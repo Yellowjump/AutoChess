@@ -220,6 +220,7 @@ namespace UnityGameFramework.Runtime
 
         private void Start()
         {
+            GameEntry.InitBuiltinComponents();
         }
 
         private void Update()
