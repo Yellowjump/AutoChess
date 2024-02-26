@@ -35,7 +35,8 @@ public class qipan : MonoBehaviour
         }
         for (int i=0;i<9;i++)
         {
-            Instantiate(qige, new Vector3(-4+i,0,-4.5f),Quaternion.identity);            
+            Instantiate(qige, new Vector3(-4+i,0,-4.5f),Quaternion.identity);
+            Instantiate(qige, new Vector3(-4 + i, 0, 4.5f), Quaternion.identity);
         }
     }
 
