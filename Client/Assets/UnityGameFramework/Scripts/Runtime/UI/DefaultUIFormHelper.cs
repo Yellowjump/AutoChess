@@ -43,9 +43,17 @@ namespace UnityGameFramework.Runtime
                 return null;
             }
 
-            Transform transform = gameObject.transform;
-            transform.SetParent(((MonoBehaviour)uiGroup.Helper).transform);
-            transform.localScale = Vector3.one;
+            RectTransform rectTransform = gameObject.transform as RectTransform;
+            if (rectTransform != null)
+            {
+                rectTransform.SetParent(((MonoBehaviour)uiGroup.Helper).transform,true);
+                rectTransform.localScale = Vector3.one;
+                rectTransform.anchorMin = Vector2.zero;
+                rectTransform.anchorMax = Vector2.one;
+                rectTransform.anchoredPosition = Vector2.zero;
+                rectTransform.sizeDelta = Vector2.zero;
+            }
+            
 
             return gameObject.GetOrAddComponent<UIForm>();
         }
