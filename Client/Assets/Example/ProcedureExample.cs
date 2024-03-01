@@ -15,7 +15,7 @@ namespace GameFrameworkExample
             Log.Info(welcomeMessage);
             Log.Warning(welcomeMessage);
             Log.Error(welcomeMessage);
-            GameEntry.UI.OpenUIForm("Assets/UIPrefab/test_panel.prefab","middle");
+            GameEntry.UI.OpenUIForm(UICtrlName.TestUIPrefab,"middle");
         }
     }
 }
