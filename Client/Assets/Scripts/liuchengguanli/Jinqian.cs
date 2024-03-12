@@ -5,7 +5,7 @@ using UnityEngine;
 public class Jinqian
 {
     //³õÊ¼½ğ±ÒÎª0
-    private int jinbinum = 0;
+    private int jinbinum = 4;
 
     public void changejinqian(int change)
     {
@@ -23,5 +23,9 @@ public class Jinqian
         {
             jinbinum += (jinbinum / 10);
         }
+    }
+    public int GetJinBiNum()
+    {
+        return jinbinum;
     }
 }

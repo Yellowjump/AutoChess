@@ -8,7 +8,7 @@ public class LiuChengGuanLi : MonoBehaviour
 
     Dengji dengji;
     Jinqian jinqian;
-    Qizi qizi;
+    QiziGuanLi qiziguanli;
 
     // Update is called once per frame
     private void Update()

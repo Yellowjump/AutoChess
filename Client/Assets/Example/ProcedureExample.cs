@@ -16,7 +16,7 @@ namespace GameFrameworkExample
             Log.Info(welcomeMessage);
             /*Log.Warning(welcomeMessage);
             Log.Error(welcomeMessage);*/
-            GameEntry.UI.OpenUIForm(UICtrlName.TestUIPrefab,"middle");
+            GameEntry.UI.OpenUIForm(UICtrlName.JieMianUIPrefab, "middle");
             /*var asset = AssetDatabase.LoadAssetAtPath(UICtrlName.TestUIPrefab,typeof(GameObject));
             var pa = GameObject.Find("UI Group - middle");
             GameObject.Instantiate(asset, pa.transform);*/

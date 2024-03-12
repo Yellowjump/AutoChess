@@ -2,11 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Qizi
+public class QiziGuanLi
 {
     private int _curUid = 1;
     int []changshang= { 0,0,0,0,0,0,0,0,0};
     int []changxia= { 0,0,0,0,0,0,0,0};
+
+    int[] qizishu = {20 };//i是棋子的index，里面是棋子是剩余数量
+
+    int []goumaiUIqizi = new int[5];//记录UI购买界面的棋子index
     int findkongweiCS()
     {
         for (int i=0;i<9;i++)
