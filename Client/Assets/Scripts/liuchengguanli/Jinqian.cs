@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Jinqian
 {
-    //初始金币为0
-    private int jinbinum = 4;
+    //初始金币为10
+    private int jinbinum = 20;
 
     public void changejinqian(int change)
     {
