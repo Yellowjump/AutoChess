@@ -34,30 +34,30 @@ public class UIguanli : UIFormLogic
     private AnimationCurve MoveInCurve;
 
     [SerializeField]
-    private Text SqOrFx;//ÏÔÊ¾ÊÕÆğ»¹ÊÇ·ÅÏÂ
-    private int ShouqiOrFangxia = -1;//-1ÊÇÊÕÆğ£¬1ÊÇ·ÅÏÂ
+    private Text SqOrFx;//æ˜¾ç¤ºæ”¶èµ·è¿˜æ˜¯æ”¾ä¸‹
+    private int ShouqiOrFangxia = -1;//-1æ˜¯æ”¶èµ·ï¼Œ1æ˜¯æ”¾ä¸‹
 
     [SerializeField]
-    private Text JinBi;//ÏÔÊ¾½ğ±ÒÊı
+    private Text JinBi;//æ˜¾ç¤ºé‡‘å¸æ•°
     
-    Jinqian jinqian=new Jinqian();//´´½¨Ò»¸ö½ğÇ®Àà¶ÔÏó
+    Jinqian jinqian=new Jinqian();//åˆ›å»ºä¸€ä¸ªé‡‘é’±ç±»å¯¹è±¡
     
-    private List<Sprite>ListQiziSprite = new List<Sprite>();//±£´æÆå×ÓÍ¼Æ¬
+    private List<Sprite>ListQiziSprite = new List<Sprite>();//ä¿å­˜æ£‹å­å›¾ç‰‡
     protected override void OnInit(object userData)
     {
         JinBi.text = jinqian.GetJinBiNum().ToString();
         transform.position = Vector3.zero;
-        _btnShuaxin.onClick.AddListener(OnClickBtnShuaxin);//Ë¢ĞÂ°´¼ü
-        _btnShouqi.onClick.AddListener(OnClickBtnShouqi);//ÊÕÆğ·ÅÏÂ°´¼ü
-        //Æå×Ó¹ºÂò°´¼ü¿ò1-5
+        _btnShuaxin.onClick.AddListener(OnClickBtnShuaxin);//åˆ·æ–°æŒ‰é”®
+        _btnShouqi.onClick.AddListener(OnClickBtnShouqi);//æ”¶èµ·æ”¾ä¸‹æŒ‰é”®
+        //æ£‹å­è´­ä¹°æŒ‰é”®æ¡†1-5
         _btnOne.onClick.AddListener(OnClickBtnGouMaiOne);
         _btnTwo.onClick.AddListener(OnClickBtnGouMaiTwo);
         _btnThree.onClick.AddListener(OnClickBtnGouMaiThree);
         _btnFour.onClick.AddListener(OnClickBtnGouMaiFour);
         _btnFive.onClick.AddListener(OnClickBtnGouMaiFive);
         
-        InitQiziPicture();//±£´æÆå×Ó¹ºÂò½çÃæÍ¼Æ¬£¬Ê¹ÓÃµÄÊ±ºòĞè×¢ÒâListQiziPicture[qiziindex];
-        //³õÊ¼ÏÈ¼ÓÁ½¿é£¬ÔÙË¢ĞÂ
+        InitQiziPicture();//ä¿å­˜æ£‹å­è´­ä¹°ç•Œé¢å›¾ç‰‡ï¼Œä½¿ç”¨çš„æ—¶å€™éœ€æ³¨æ„ListQiziPicture[qiziindex];
+        //åˆå§‹å…ˆåŠ ä¸¤å—ï¼Œå†åˆ·æ–°
         jinqian.changejinqian(2);
         OnClickBtnShuaxin();
 
@@ -67,7 +67,7 @@ public class UIguanli : UIFormLogic
     {
         Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Image/qizi_0.jpg");
         //_btnOne.image.sprite = img;
-        //ÒÀ´Î´æÈëimg
+        //ä¾æ¬¡å­˜å…¥img
         ListQiziSprite.Add(spr);
         //
     }
@@ -77,11 +77,11 @@ public class UIguanli : UIFormLogic
         //JinBi.text = jinqian.GetJinBiNum().ToString();
         if (ShouqiOrFangxia == -1)
         {
-            SqOrFx.text = "ÊÕÆğ";
+            SqOrFx.text = "æ”¶èµ·";
         }
         else
         {
-            SqOrFx.text = "·ÅÏÂ";
+            SqOrFx.text = "æ”¾ä¸‹";
         }
         StopCoroutine(ChuangkouYidong());
         lerpTime = 0;
@@ -92,18 +92,18 @@ public class UIguanli : UIFormLogic
     {
         if (jinqian.GetJinBiNum()>=2)
         {
-            //ÏÈ¿ÛÇ®
+            //å…ˆæ‰£é’±
             jinqian.changejinqian(-2);
             JinBi.text = jinqian.GetJinBiNum().ToString();
-            //»ñÈ¡5¸öËæ»úqiziIndex
+            //è·å–5ä¸ªéšæœºqiziIndex
 
-            //¼¤»î5¸ö¹ºÂò°´Å¥
+            //æ¿€æ´»5ä¸ªè´­ä¹°æŒ‰é’®
             _btnOne.gameObject.SetActive(true);
             _btnTwo.gameObject.SetActive(true);
             _btnThree.gameObject.SetActive(true);
             _btnFour.gameObject.SetActive(true);
             _btnFive.gameObject.SetActive(true);
-            //Ë¢ĞÂUIÆå×Ó¹ºÂò½çÃæ
+            //åˆ·æ–°UIæ£‹å­è´­ä¹°ç•Œé¢
             _btnOne.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[0]];
             _btnTwo.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[1]];
             _btnThree.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[2]];
@@ -127,7 +127,7 @@ public class UIguanli : UIFormLogic
         yield return null;
         StopCoroutine(ChuangkouYidong());
     }
-    private void OnClickBtnGouMaiOne()//¹ºÂòµÚÒ»¸ö¸ñ×ÓÀïµÄÆå×Ó
+    private void OnClickBtnGouMaiOne()//è´­ä¹°ç¬¬ä¸€ä¸ªæ ¼å­é‡Œçš„æ£‹å­
     {
         int index = QiziGuanLi.Instance.goumaiUIqiziIndex[0];
         goumaiqizi(index, _btnOne);
@@ -157,7 +157,7 @@ public class UIguanli : UIFormLogic
     {
         int kwCx = QiziGuanLi.Instance.findkongweiCX();
         int feiyong = QiziGuanLi.Instance.qizi[index];
-        if (kwCx != -1 && jinqian.GetJinBiNum() >= feiyong)//ÏÈ³¡ÏÂÓĞÎ»ÖÃ£¬ÔÙÂòµÃÆğ
+        if (kwCx != -1 && jinqian.GetJinBiNum() >= feiyong)//å…ˆåœºä¸‹æœ‰ä½ç½®ï¼Œå†ä¹°å¾—èµ·
         {
             QiziGuanLi.Instance.goumaiqizi(index, kwCx);
             EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;

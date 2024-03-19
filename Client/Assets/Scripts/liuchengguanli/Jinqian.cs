@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Jinqian
 {
-    //³õÊ¼½ğ±ÒÎª10
+    //åˆå§‹é‡‘å¸ä¸º10
     private int jinbinum = 20;
 
     public void changejinqian(int change)
@@ -13,8 +13,8 @@ public class Jinqian
     }
     public void huihejiesuanJQ()
     {
-        jinbinum += 5;//Ã¿»ØºÏ¹Ì¶¨ÓĞ5½ğ±Ò
-        //¼ÆËãÀûÏ¢
+        jinbinum += 5;//æ¯å›åˆå›ºå®šæœ‰5é‡‘å¸
+        //è®¡ç®—åˆ©æ¯
         if (jinbinum >= 50)
         {
             jinbinum += 5;

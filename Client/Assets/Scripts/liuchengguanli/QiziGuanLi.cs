@@ -5,7 +5,7 @@ using UnityEngine.Pool;
 
 public class QiziGuanLi
 {
-    public static QiziGuanLi instance;//µ¥ÊµÀı»¯
+    public static QiziGuanLi instance;//å•å®ä¾‹åŒ–
     public static QiziGuanLi Instance
     {
         get
@@ -17,14 +17,14 @@ public class QiziGuanLi
     }
 
     //private int _curUid = 1;
-    int []changshang= { -1, -1, -1, -1, -1, -1, -1, -1, -1 };//¼ÇÂ¼³¡ÉÏÆå×ÓµÄindex
-    int []changxia= { -1, -1, -1, -1, -1, -1, -1, -1,-1 };//¼ÇÂ¼³¡ÏÂÆå×ÓµÄindex
+    int []changshang= { -1, -1, -1, -1, -1, -1, -1, -1, -1 };//è®°å½•åœºä¸Šæ£‹å­çš„index
+    int []changxia= { -1, -1, -1, -1, -1, -1, -1, -1,-1 };//è®°å½•åœºä¸‹æ£‹å­çš„index
 
-    public int[] qizi = {1 };//¼ÇÂ¼Æå×ÓµÄ¼Û¸ñ£¬iÊÇÆå×ÓµÄindex
-    public int[] qizishu = {20 };//iÊÇÆå×ÓµÄindex£¬ÀïÃæÊÇÆå×ÓÊÇÊ£ÓàÊıÁ¿
+    public int[] qizi = {1 };//è®°å½•æ£‹å­çš„ä»·æ ¼ï¼Œiæ˜¯æ£‹å­çš„index
+    public int[] qizishu = {20 };//iæ˜¯æ£‹å­çš„indexï¼Œé‡Œé¢æ˜¯æ£‹å­æ˜¯å‰©ä½™æ•°é‡
 
     int[] beixuan = new int[100];
-    public int []goumaiUIqiziIndex = new int[5];//¼ÇÂ¼UI¹ºÂò½çÃæµÄÆå×Óindex
+    public int []goumaiUIqiziIndex = new int[5];//è®°å½•UIè´­ä¹°ç•Œé¢çš„æ£‹å­index
 
     public int findkongweiCS()
     {

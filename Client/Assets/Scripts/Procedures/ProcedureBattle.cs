@@ -1,13 +1,11 @@
-﻿using GameFramework;
+using DataTable;
+using GameFramework;
 using GameFramework.Procedure;
-using GameFramework.UI;
-using UnityEngine;
 using UnityGameFramework.Runtime;
 using ProcedureOwner = GameFramework.Fsm.IFsm<GameFramework.Procedure.IProcedureManager>;
-
-namespace GameFrameworkExample
+namespace Procedure
 {
-    public class ProcedureExample : ProcedureBase
+    public class ProcedureBattle:ProcedureBase
     {
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
@@ -17,9 +15,12 @@ namespace GameFrameworkExample
             /*Log.Warning(welcomeMessage);
             Log.Error(welcomeMessage);*/
             GameEntry.UI.OpenUIForm(UICtrlName.JieMianUIPrefab, "middle");
-            /*var asset = AssetDatabase.LoadAssetAtPath(UICtrlName.TestUIPrefab,typeof(GameObject));
-            var pa = GameObject.Find("UI Group - middle");
-            GameObject.Instantiate(asset, pa.transform);*/
+            var assetPath = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
+            if (assetPath.HasDataRow(101))
+            {
+                Log.Info("assetID 101 path is :"+assetPath[101].AssetPath);
+            }
+            
         }
     }
 }
