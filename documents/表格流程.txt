@@ -1,0 +1,5 @@
+excel需要保存成txt到Assets/DataTables路径下
+然后点unity编辑器上的Tools/Generate DataTables和Tools/Generate DataTable Code会生成.byte二进制和表格读取代码
+使用可以参考ProcedurePreload和ProcedureBattle流程中AssetsPath表的加载和调用。
+todo：表格枚举自动生成
+		表格加载代码自动生成
