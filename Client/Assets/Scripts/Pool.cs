@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEngine;
 
 using UnityEngine.Pool;
+using UnityGameFramework.Runtime;
 
 public class Pool :MonoBehaviour
 {
@@ -26,7 +27,6 @@ public class Pool :MonoBehaviour
         PoolEntity = new ObjectPool<EntityBase>(createFuncEnt, actionOnGetEnt, actionOnReleaseEnt, actionOnDestroyEnt, true, 10, 1000);
         pool=new ObjectPool<GameObject>(createFuncObj, actionOnGetObj, actionOnReleaseObj, actionOnDestroyObj, true, 10, 1000);
         PoolObject.Add(0,pool);
-
     }
 
     EntityBase createFuncEnt()

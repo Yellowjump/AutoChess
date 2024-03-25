@@ -4,10 +4,20 @@ using UnityEngine;
 
 public class Dengji 
 {
-    //初始等级为1,经验为0
+    public static Dengji instance;//单实例化
+    public static Dengji Instance
+    {
+        get
+        {
+            if (instance == null)
+                instance = new Dengji();
+            return instance;
+        }
+    }
+    //初始等级为1,经验为0,最高为9
     private int dj = 1;
-    private int jinyan = 0;
-    private int []shengjixuqiu = {2,4,8,10,20,32,48,60};
+    public int jinyan = 0;
+    public int []shengjixuqiu = {2,4,8,10,20,32,48,60};
     //每回合给2经验
     public void huihejiesuanJY()
     {
@@ -27,5 +37,9 @@ public class Dengji
             jinyan -= shengjixuqiu[dj];
             dj++;
         }
+    }
+    public int getDj()
+    {
+        return dj;
     }
 }

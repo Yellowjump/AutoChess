@@ -26,6 +26,11 @@ public class UIguanli : UIFormLogic
     [SerializeField]
     private Button _btnFive;
     [SerializeField]
+    private Button _btnShengji;
+
+    [SerializeField]
+    private Slider _slderDengji;
+    [SerializeField]
     private Canvas _cavJiemian;
     private float lerpTime=0;
     private float Y = 0;
@@ -39,13 +44,17 @@ public class UIguanli : UIFormLogic
 
     [SerializeField]
     private Text JinBi;//显示金币数
-    
+
+    [SerializeField]
+    private Text DengJi;//显示等级
+
     Jinqian jinqian=new Jinqian();//创建一个金钱类对象
     
     private List<Sprite>ListQiziSprite = new List<Sprite>();//保存棋子图片
     protected override void OnInit(object userData)
     {
         JinBi.text = jinqian.GetJinBiNum().ToString();
+        DengJi.text = "等级："+Dengji.Instance.getDj().ToString()+"\n"+ Dengji.Instance.jinyan+" / " + Dengji.Instance.shengjixuqiu[Dengji.Instance.getDj()];
         transform.position = Vector3.zero;
         _btnShuaxin.onClick.AddListener(OnClickBtnShuaxin);//刷新按键
         _btnShouqi.onClick.AddListener(OnClickBtnShouqi);//收起放下按键
@@ -55,11 +64,12 @@ public class UIguanli : UIFormLogic
         _btnThree.onClick.AddListener(OnClickBtnGouMaiThree);
         _btnFour.onClick.AddListener(OnClickBtnGouMaiFour);
         _btnFive.onClick.AddListener(OnClickBtnGouMaiFive);
-        
+        _btnShengji.onClick.AddListener(OnClickBtnShengJi);
         InitQiziPicture();//保存棋子购买界面图片，使用的时候需注意ListQiziPicture[qiziindex];
         //初始先加两块，再刷新
         jinqian.changejinqian(2);
         OnClickBtnShuaxin();
+
 
         base.OnInit(userData);
     }
@@ -96,7 +106,8 @@ public class UIguanli : UIFormLogic
             jinqian.changejinqian(-2);
             JinBi.text = jinqian.GetJinBiNum().ToString();
             //获取5个随机qiziIndex
-
+            //Log.Info("hfk:"+QiziGuanLi.Instance.paiku1num);
+            QiziGuanLi.Instance.choupai(Dengji.Instance.getDj());
             //激活5个购买按钮
             _btnOne.gameObject.SetActive(true);
             _btnTwo.gameObject.SetActive(true);
@@ -111,6 +122,20 @@ public class UIguanli : UIFormLogic
             _btnFive.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[4]];
         }
         //Log.Info("TestBtn OnClick");
+    }
+    private void OnClickBtnShengJi()
+    {
+        int dj = Dengji.Instance.getDj();
+        if (jinqian.GetJinBiNum() >= 4 && dj < 9)
+        {
+            //先扣钱
+            jinqian.changejinqian(-4);
+            JinBi.text = jinqian.GetJinBiNum().ToString();
+            //涨经验
+            Dengji.Instance.changejinyan(4);
+            DengJi.text = "等级：" + Dengji.Instance.getDj().ToString() + "\n" + Dengji.Instance.jinyan + " / " + Dengji.Instance.shengjixuqiu[Dengji.Instance.getDj()];
+            _slderDengji.value = (float)Dengji.Instance.jinyan / (float)Dengji.Instance.shengjixuqiu[Dengji.Instance.getDj()];
+        }
     }
     IEnumerator ChuangkouYidong()
     {
@@ -130,36 +155,41 @@ public class UIguanli : UIFormLogic
     private void OnClickBtnGouMaiOne()//购买第一个格子里的棋子
     {
         int index = QiziGuanLi.Instance.goumaiUIqiziIndex[0];
-        goumaiqizi(index, _btnOne);
+        int paikuindex = QiziGuanLi.Instance.goumaiUIqiziPaikuIndex[0];
+        goumaiqizi(index, paikuindex, _btnOne);
     }
     private void OnClickBtnGouMaiTwo()
     {
         int index = QiziGuanLi.Instance.goumaiUIqiziIndex[1];
-        goumaiqizi(index, _btnTwo);
+        int paikuindex = QiziGuanLi.Instance.goumaiUIqiziPaikuIndex[1];
+        goumaiqizi(index, paikuindex, _btnTwo);
 
     }
     private void OnClickBtnGouMaiThree()
     {
         int index = QiziGuanLi.Instance.goumaiUIqiziIndex[2];
-        goumaiqizi(index, _btnThree);
+        int paikuindex = QiziGuanLi.Instance.goumaiUIqiziPaikuIndex[2];
+        goumaiqizi(index, paikuindex, _btnThree);
     }
     private void OnClickBtnGouMaiFour()
     {
         int index = QiziGuanLi.Instance.goumaiUIqiziIndex[3];
-        goumaiqizi(index, _btnFour);
+        int paikuindex = QiziGuanLi.Instance.goumaiUIqiziPaikuIndex[3];
+        goumaiqizi(index, paikuindex, _btnFour);
     }
     private void OnClickBtnGouMaiFive()
     {
         int index = QiziGuanLi.Instance.goumaiUIqiziIndex[4];
-        goumaiqizi(index, _btnFive);
+        int paikuindex = QiziGuanLi.Instance.goumaiUIqiziPaikuIndex[4];
+        goumaiqizi(index, paikuindex, _btnFive);
     }
-    private void goumaiqizi(int index,Button btn)
+    private void goumaiqizi(int index,int paikuIndex,Button btn)
     {
         int kwCx = QiziGuanLi.Instance.findkongweiCX();
         int feiyong = QiziGuanLi.Instance.qizi[index];
         if (kwCx != -1 && jinqian.GetJinBiNum() >= feiyong)//先场下有位置，再买得起
         {
-            QiziGuanLi.Instance.goumaiqizi(index, kwCx);
+            QiziGuanLi.Instance.goumaiqizi(index,paikuIndex, kwCx,feiyong);
             EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
             qizi.Init(index);
             qizi.GObj.transform.localPosition = new Vector3(-4 + kwCx, 0, -4.5f);
@@ -168,4 +198,5 @@ public class UIguanli : UIFormLogic
             btn.gameObject.SetActive(false);
         }
     }
+
 }
