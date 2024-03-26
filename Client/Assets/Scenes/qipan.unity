@@ -377,7 +377,6 @@ GameObject:
   m_Component:
   - component: {fileID: 840169886}
   - component: {fileID: 840169885}
-  - component: {fileID: 840169887}
   m_Layer: 0
   m_Name: PoolEntity
   m_TagString: Untagged
@@ -412,18 +411,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &840169887
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 840169884}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c6ab5fbc1de692d44aa7599ff26a6135, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &894640687
 GameObject:
   m_ObjectHideFlags: 0
