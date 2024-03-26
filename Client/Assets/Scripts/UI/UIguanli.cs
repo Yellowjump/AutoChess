@@ -192,6 +192,7 @@ public class UIguanli : UIFormLogic
             QiziGuanLi.Instance.goumaiqizi(index,paikuIndex, kwCx,feiyong);
             EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
             qizi.Init(index);
+
             qizi.GObj.transform.localPosition = new Vector3(-4 + kwCx, 0, -4.5f);
             jinqian.changejinqian(-feiyong);
             JinBi.text = jinqian.GetJinBiNum().ToString();

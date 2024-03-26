@@ -1,3 +1,4 @@
+using liuchengguanli;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,9 +21,10 @@ public class QiziGuanLi
         Init();//初始化paiku*
     }
     //private int _curUid = 1;
-    int []changshang= { -1, -1, -1, -1, -1, -1, -1, -1, -1 };//记录场上棋子的index
-    int []changxia= { -1, -1, -1, -1, -1, -1, -1, -1,-1 };//记录场下棋子的index
-
+    public int []changshang= { -1, -1, -1, -1, -1, -1, -1, -1, -1 };//记录场上棋子的index
+    public int []changxia= { -1, -1, -1, -1, -1, -1, -1, -1,-1 };//记录场下棋子的index
+    public List<EntityQizi> QiziList = new List<EntityQizi>();//保存所有生成的棋子
+    public List<EntityQizi> QiziCSList = new List<EntityQizi>();//保存所有在场上的棋子
     public int[] qizi = {1 };//记录棋子的价格，i是棋子的index
     public int[] qizishu = {20 };//i是棋子的index，里面是棋子是剩余数量
     //保存每种费用棋子的数量，index以及每个等级抽到的概率
@@ -182,7 +184,7 @@ public class QiziGuanLi
         }
         return pairandom;
     }
-    public int findkongweiCS()
+    public int findkongweiCS()//发现场上空位
     {
         for (int i=0;i<9;i++)
         {

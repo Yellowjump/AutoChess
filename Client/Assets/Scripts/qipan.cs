@@ -19,18 +19,18 @@ public class qipan : MonoBehaviour
                 qg.transform.parent = this.transform;
             }
         }
-        for (int i = 0; i < 7; i++)
+        for (int i = 0; i < 5; i++)
         {
             for (int j = 0; j < 5; j++)
             {
                 if (j != 2)
                 {
-                    GameObject qg = Instantiate(qige, new Vector3(Mathf.Sqrt(2) * 3 - i * Mathf.Sqrt(2), 0, Mathf.Sqrt(2) * 2 - j * Mathf.Sqrt(2)), Quaternion.Euler(0, 45, 0));
+                    GameObject qg = Instantiate(qige, new Vector3(Mathf.Sqrt(2) * 2 - i * Mathf.Sqrt(2), 0, Mathf.Sqrt(2) * 2 - j * Mathf.Sqrt(2)), Quaternion.Euler(0, 45, 0));
                     qg.transform.parent = this.transform;
                 }
                 else
                 {
-                    GameObject qg = Instantiate(qige3, new Vector3(Mathf.Sqrt(2) * 3 - i * Mathf.Sqrt(2), 0, Mathf.Sqrt(2) * 2 - j * Mathf.Sqrt(2)), Quaternion.Euler(0, 45, 0));
+                    GameObject qg = Instantiate(qige3, new Vector3(Mathf.Sqrt(2) * 2 - i * Mathf.Sqrt(2), 0, Mathf.Sqrt(2) * 2 - j * Mathf.Sqrt(2)), Quaternion.Euler(0, 45, 0));
                     qg.transform.parent = this.transform;
                 }
                 
