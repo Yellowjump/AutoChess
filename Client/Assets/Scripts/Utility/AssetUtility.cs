@@ -12,7 +12,7 @@ namespace DataTable
 {
     public static class AssetUtility
     {
-        public static string GetConfigAsset(string assetName, bool fromBytes = false)
+        /*public static string GetConfigAsset(string assetName, bool fromBytes = false)
         {
             return Utility.Text.Format("Assets/GameMain/Configs/{0}.{1}", assetName, fromBytes ? "bytes" : "txt");
         }
@@ -60,6 +60,6 @@ namespace DataTable
         public static string GetUISoundAsset(string assetName)
         {
             return Utility.Text.Format("Assets/GameMain/UI/UISounds/{0}.wav", assetName);
-        }
+        }*/
     }
 }

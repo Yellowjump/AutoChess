@@ -1,33 +1,59 @@
+using System.Collections.Generic;
+
 namespace SkillSystem
 {
     public class SkillFactory
     {
-        public CommandBase CreateCommand(CommandType type)
+        public static CommandBase CreateCommand(CommandType type)
         {
             switch (type)
             {
-                case CommandType.CauseDamage:
+                case CommandType.DoNothing:
+                    return new CommandBase();
+                default:
                     return new CommandBase();
             }
-            return null;
         }
-        public ConditionBase CreateCondition(ConditionType type)
+        public static ConditionBase CreateCondition(ConditionType type)
         {
             switch (type)
             {
                 case ConditionType.NoCondition:
                     return new ConditionBase();
+                case ConditionType.ConditionGroup:
+                    return new ConditionGroup();
+                default:
+                    return new ConditionBase();
             }
-            return null;
         }
-        public TargetPickerBase CreateCommand(TargetPickerType type)
+        public static TargetPickerBase CreateTargetPicker(TargetPickerType type)
         {
             switch (type)
             {
-                case TargetPickerType.Nearest:
+                case TargetPickerType.NoTarget:
+                    return new TargetPickerBase();
+                default:
                     return new TargetPickerBase();
             }
-            return null;
+        }
+
+        public static TriggerList CreateNewEmptyTriggerList()
+        {
+            var emptyTriggerList = new TriggerList
+            {
+                CurTriggerList = new List<OneTrigger>()
+            };
+            return emptyTriggerList;
+        }
+
+        public static OneTrigger CreateNewEmptyTrigger()
+        {
+            var emptyTrigger = new OneTrigger
+            {
+                CurCondition = CreateCondition(ConditionType.NoCondition),
+                CurTargetPicker = CreateTargetPicker(TargetPickerType.NoTarget),
+            };
+            return emptyTrigger;
         }
     }
 }

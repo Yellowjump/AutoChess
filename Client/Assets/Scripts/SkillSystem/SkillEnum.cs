@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace SkillSystem
 {
     /// <summary>
@@ -8,6 +10,7 @@ namespace SkillSystem
         /// <summary>
         /// 触发时
         /// </summary>
+        [Tooltip("触发时")]
         OnActive,
         /// <summary>
         /// 每帧触发
@@ -38,9 +41,17 @@ namespace SkillSystem
         /// </summary>
         Percentage,
     }
-
+    public enum LogicOperator
+    {
+        [Tooltip("与")]
+        And,
+        [Tooltip("或")]
+        Or
+    }
     public enum TargetPickerType
     {
+        [Tooltip("无目标")]
+        NoTarget,
         /// <summary>
         /// 当前普工目标
         /// </summary>
@@ -53,9 +64,26 @@ namespace SkillSystem
 
     public enum CommandType
     {
+        [Tooltip("啥事不干")]
+        DoNothing,
         /// <summary>
         /// 造成伤害
         /// </summary>
         CauseDamage,
+    }
+
+    /// <summary>
+    /// 触发器容器类型
+    /// </summary>
+    public enum TriggerListType
+    {
+        /// <summary>
+        /// 技能
+        /// </summary>
+        Skill,
+        /// <summary>
+        /// buff
+        /// </summary>
+        Buff,
     }
 }

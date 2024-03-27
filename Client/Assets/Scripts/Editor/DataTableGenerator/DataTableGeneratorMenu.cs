@@ -53,7 +53,7 @@ namespace DataTable.Editor.DataTableTools
 
         private static string[] GetDataTableNames()
         {
-            string dataTablesPath = Application.dataPath + @"/DataTables";
+            string dataTablesPath = Application.dataPath + @"/Data/DataTables";
             DirectoryInfo directoryInfo = new DirectoryInfo(dataTablesPath);
             FileInfo[] fis = directoryInfo.GetFiles("*.txt", SearchOption.AllDirectories);
             string[] dataTableNames = new string[fis.Length];

@@ -73,7 +73,7 @@ namespace Procedure
             foreach (var tableName in _dataTableFlag)
             {
                 DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(typeof(DRAssetsPath), tableName.Key);
-                dataTable.ReadData($"Assets/DataTables/{tableName.Key}.bytes",0, null);
+                dataTable.ReadData($"Assets/Data/DataTables/{tableName.Key}.bytes",0, null);
             }
         }
         

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using liuchengguanli;
 
 namespace SkillSystem
@@ -7,7 +8,7 @@ namespace SkillSystem
         public TriggerType CurTriggerType;
         public ConditionBase CurCondition;
         public TargetPickerBase CurTargetPicker;
-        public CommandBase CurCommand;
+        public List<CommandBase> CurCommandList = new List<CommandBase>();
         public EntityBase CurTarget;
         public void OnActive()
         {
@@ -24,7 +25,15 @@ namespace SkillSystem
                 {
                     CurTarget = CurTargetPicker.GetTarget(this);
                 }
-                CurCommand?.OnExecute(this);
+
+                if (CurCommandList != null && CurCommandList.Count != 0)
+                {
+                    foreach (var oneCommand in CurCommandList)
+                    {
+                        oneCommand?.OnExecute(this);
+                    }
+                }
+                
             }
         }
     }
