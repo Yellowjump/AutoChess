@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace SkillSystem
 {
     public class ConditionBase
@@ -7,6 +9,16 @@ namespace SkillSystem
         public virtual bool OnCheck(OneTrigger trigger)
         {
             return false;
+        }
+
+        public virtual void WriteToFile(BinaryWriter writer)
+        {
+            
+        }
+
+        public virtual void ReadFromFile(BinaryReader reader)
+        {
+            
         }
     }
 }

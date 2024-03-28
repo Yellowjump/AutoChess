@@ -7,7 +7,7 @@ namespace Editor.SkillSystem.Conditions
     [SkillDrawer(typeof(ConditionGroup))]
     public class ConditionGroupEditor
     {
-        public static void OnGUIDraw(ConditionGroup conditionGroup)
+        public void OnGUIDraw(ConditionGroup conditionGroup)
         {
             if (conditionGroup == null) return;
             conditionGroup.CurLogicOperator =(LogicOperator) EditorGUILayout.EnumPopup("条件组类型",conditionGroup.CurLogicOperator);
@@ -27,7 +27,7 @@ namespace Editor.SkillSystem.Conditions
                     {
                         conditionGroup.ConditionList[conditionIndex] = SkillFactory.CreateCondition(newConditionType);
                     }
-                    SkillSystemDrawer.DrawOneInstance(oneCondition);
+                    SkillSystemDrawerCenter.DrawOneInstance(oneCondition);
                 }
             }
             ConditionBaseEditor.ConditionBaseDraw(conditionGroup);

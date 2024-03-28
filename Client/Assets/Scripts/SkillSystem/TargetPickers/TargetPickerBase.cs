@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using liuchengguanli;
 
 namespace SkillSystem
@@ -8,6 +10,15 @@ namespace SkillSystem
         public EntityBase GetTarget(OneTrigger trigger)
         {
             return null;
+        }
+        public virtual void WriteToFile(BinaryWriter writer)
+        {
+            
+        }
+
+        public virtual void ReadFromFile(BinaryReader reader)
+        {
+            
         }
     }
 }

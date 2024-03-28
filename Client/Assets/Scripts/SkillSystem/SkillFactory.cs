@@ -39,20 +39,21 @@ namespace SkillSystem
 
         public static TriggerList CreateNewEmptyTriggerList()
         {
-            var emptyTriggerList = new TriggerList
-            {
-                CurTriggerList = new List<OneTrigger>()
-            };
+            var emptyTriggerList = new TriggerList();
             return emptyTriggerList;
         }
-
-        public static OneTrigger CreateNewEmptyTrigger()
+        public static OneTrigger CreateNewDefaultTrigger()
         {
             var emptyTrigger = new OneTrigger
             {
                 CurCondition = CreateCondition(ConditionType.NoCondition),
                 CurTargetPicker = CreateTargetPicker(TargetPickerType.NoTarget),
             };
+            return emptyTrigger;
+        }
+        public static OneTrigger CreateNewEmptyTrigger()
+        {
+            var emptyTrigger = new OneTrigger();
             return emptyTrigger;
         }
     }
