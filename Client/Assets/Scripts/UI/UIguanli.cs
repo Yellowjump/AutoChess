@@ -129,11 +129,26 @@ public class UIguanli : UIFormLogic
             _btnFour.gameObject.SetActive(true);
             _btnFive.gameObject.SetActive(true);
             //刷新UI棋子购买界面
-            _btnOne.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[0]];
-            _btnTwo.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[1]];
-            _btnThree.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[2]];
-            _btnFour.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[3]];
-            _btnFive.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[4]];
+            if (QiziGuanLi.Instance.goumaiUIqiziIndex[0] > -1)
+            {
+                _btnOne.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[0]];
+            }
+            if (QiziGuanLi.Instance.goumaiUIqiziIndex[1] > -1)
+            {
+                _btnTwo.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[1]];
+            }
+            if (QiziGuanLi.Instance.goumaiUIqiziIndex[2] > -1)
+            {
+                _btnThree.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[2]];
+            }
+            if (QiziGuanLi.Instance.goumaiUIqiziIndex[3] > -1)
+            {
+                _btnFour.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[3]];
+            }
+            if (QiziGuanLi.Instance.goumaiUIqiziIndex[4] > -1)
+            {
+                _btnFive.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[4]];
+            } 
         }
         //Log.Info("TestBtn OnClick");
     }
@@ -201,16 +216,27 @@ public class UIguanli : UIFormLogic
     {
         int kwCx = QiziGuanLi.Instance.findkongweiCX();
         int feiyong = QiziGuanLi.Instance.qizi[index];
-        if (kwCx != -1 && jinqian.GetJinBiNum() >= feiyong)//先场下有位置，再买得起
-        {
-            QiziGuanLi.Instance.goumaiqizi(index,paikuIndex, kwCx,feiyong);
-            EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
-            qizi.Init(index);
 
-            qizi.GObj.transform.localPosition = new Vector3(-4 + kwCx, 0, -4.5f);
-            jinqian.changejinqian(-feiyong);
-            JinBi.text = jinqian.GetJinBiNum().ToString();
-            btn.gameObject.SetActive(false);
+        if (jinqian.GetJinBiNum() >= feiyong)//先场下有位置，再买得起
+        {
+            int SJ = shengji(index);
+            if (SJ == -1 && kwCx != -1)//没升级棋子但是有空位
+            {
+                QiziGuanLi.Instance.goumaiqizi(index, paikuIndex, kwCx, feiyong);
+                EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
+                qizi.Init(index);
+
+                qizi.GObj.transform.localPosition = new Vector3(-4 + kwCx, 0, -4.5f);
+                jinqian.changejinqian(-feiyong);
+                JinBi.text = jinqian.GetJinBiNum().ToString();
+                btn.gameObject.SetActive(false);
+            }
+            else if (SJ==0)//购买后能升级棋子不用有空位
+            {
+                jinqian.changejinqian(-feiyong);
+                JinBi.text = jinqian.GetJinBiNum().ToString();
+                btn.gameObject.SetActive(false);
+            }
         }
     }
 
@@ -227,10 +253,14 @@ public class UIguanli : UIFormLogic
             QiziGuanLi.Instance.changxia[(int)qiziObj_oldlocation.x + 4] = -1;
         }
         QiziGuanLi.Instance.QiziList.Remove(qizi);
-        jinqian.changejinqian(QiziGuanLi.Instance.qizi[qizi.Index]);//卖完棋子之后加钱，并把棋子放回池子里
+        
+        int jq = qizi.money;//获取棋子的金额
+        jinqian.changejinqian(jq);//卖完棋子之后加钱，并把棋子放回池子里,牌库也要更新
         JinBi.text = jinqian.GetJinBiNum().ToString();
+        QiziGuanLi.Instance.chushouQizi(qizi.Index, jq,qizi.level);
         Pool.instance.PoolObject[qizi.Index].Release(qizi.GObj);
         Pool.instance.PoolEntity.Release(qizi);
+
     }
     protected override void OnUpdate(float elapseSeconds, float realElapseSeconds)
     {
@@ -240,7 +270,7 @@ public class UIguanli : UIFormLogic
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
-                if (Physics.Raycast(ray, out hit) && hit.transform.tag == "qizi")
+                if (Physics.Raycast(ray, out hit) && hit.transform.tag == "qizi"&&hit.transform.localPosition.z<0)
                 {
                     for (int i = 0; i < QiziGuanLi.Instance.QiziList.Count; i++)
                     {
@@ -288,7 +318,7 @@ public class UIguanli : UIFormLogic
             }
             if (Input.GetMouseButtonDown(0))//判断射线检测，应该放下棋子到棋格子上还是和已经放置的棋子交换位置，或者无法放置棋子（回到原位）
             {
-                if (findqige != -1)//鼠标不在棋格上，放回原位
+                if (findqige != -1 && hits[findqige].transform.position.z<0)//鼠标不在棋格上，放回原位
                 {
                     if (findotherQizi == -1)//空格子
                     {
@@ -370,8 +400,7 @@ public class UIguanli : UIFormLogic
                 {
                     qiziobj.transform.localPosition = qiziObj_oldlocation;
                 }
-                qiziobj = null;
-                GetOrNotGetQizi = false;
+
                 //调用协程延缓1帧去取消出售button
                 StartCoroutine(waitforonezhen());
             }
@@ -380,7 +409,71 @@ public class UIguanli : UIFormLogic
     }
     IEnumerator waitforonezhen()
     {
-        yield return new WaitForSeconds(0.08f);
+        qiziobj = null;
+        GetOrNotGetQizi = false;
+        yield return new WaitForSeconds(0.12f);
         _btnChushou.gameObject.SetActive(false);
+        yield return null;
+    }
+    private int shengji(int index)
+    {
+        int num = 0;
+        int qizi1=-1;
+        int qizi2=-1;
+        int qizi3 = -1;
+        for (int i=0;i<QiziGuanLi.Instance.QiziList.Count;i++)
+        {
+            if (QiziGuanLi.Instance.QiziList[i].Index== index&& QiziGuanLi.Instance.QiziList[i].level==1)
+            {
+                num++;
+                if (num == 1)
+                {
+                    qizi1 = i;
+                }
+                else if (num == 2)
+                {
+                    qizi2 = i;
+                }
+                else
+                {
+                    qizi3 = i;
+                }
+            }
+        }
+        if (num == 2)//场上有两个一星棋子
+        {
+            EntityQizi qz1 = QiziGuanLi.Instance.QiziList[qizi1];
+            EntityQizi qz2 = QiziGuanLi.Instance.QiziList[qizi2];
+            qz1.GObj.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
+            qz1.level = 2;
+            if (qz1.money == 1)
+            {
+                qz1.money = qz1.money * 3;
+            }
+            else
+            {
+                qz1.money = qz1.money * 3-1;
+            }
+            //另一个棋子得放回池子
+            if (qz2.GObj.transform.localPosition.z == -4.5f)//如果第二个棋子在场下
+            {
+                QiziGuanLi.Instance.changxia[(int)qz2.GObj.transform.localPosition.x + 4] = -1;
+            }
+            else
+            {
+                QiziGuanLi.Instance.QiziCSList.Remove(qz2);
+            }
+            QiziGuanLi.Instance.QiziList.Remove(qz2);
+            Pool.instance.PoolObject[index].Release(qz2.GObj);
+            Pool.instance.PoolEntity.Release(qz2);
+            //判断是否存在三个两星棋子
+
+
+            return 0;//升级了棋子返回0
+        }
+        else
+        {
+            return -1;//没升级返回-1
+        }
     }
 }

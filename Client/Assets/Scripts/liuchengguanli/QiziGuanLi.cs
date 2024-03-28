@@ -96,8 +96,15 @@ public class QiziGuanLi
     //按照等级来抽五张牌
     public void choupai(int dengji)
     {
+        int sumnum = 0;
         for (int i=0;i<5;i++)
         {
+            goumaiUIqiziIndex[i] = -1;
+            goumaiUIqiziPaikuIndex[i] = -1;
+        }
+        for (int i=0;i<5&&sumnum<1000;i++)
+        {
+            sumnum++;
             int dengjirandom = Random.Range(0,100);
             if (dengjirandom <= gailv1[dengji-1])
             {
@@ -240,9 +247,49 @@ public class QiziGuanLi
             paiku5num--;
         }
     }
-    public void chushouQizi()//卖棋子
+    public void chushouQizi(int qiziindex,int feiyong,int level)//卖棋子
     {
-
+        int qizinum = (int)Mathf.Pow(3, level - 1);
+        if (feiyong/ qizinum == 1)
+        {
+            for (int i=0;i<qizinum;i++)
+            {
+                paiku1[paiku1num] = qiziindex;
+                paiku1num++;
+            }
+        }
+        else if ((feiyong + 1) / qizinum == 2)
+        {
+            for (int i = 0; i < qizinum; i++)
+            {
+                paiku2[paiku2num] = qiziindex;
+                paiku2num++;
+            }
+        }
+        else if ((feiyong + 1) / qizinum == 3)
+        {
+            for (int i = 0; i < qizinum; i++)
+            {
+                paiku3[paiku3num] = qiziindex;
+                paiku3num++;
+            }
+        }
+        else if ((feiyong + 1) / qizinum == 4)
+        {
+            for (int i = 0; i < qizinum; i++)
+            {
+                paiku4[paiku4num] = qiziindex;
+                paiku4num++;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < qizinum; i++)
+            {
+                paiku5[paiku5num] = qiziindex;
+                paiku5num++;
+            }
+        }
     }
 
 }
