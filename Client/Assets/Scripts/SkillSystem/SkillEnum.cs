@@ -10,7 +10,7 @@ namespace SkillSystem
         /// <summary>
         /// 触发时
         /// </summary>
-        [Tooltip("触发时")]
+        [InspectorName("触发时")]
         OnActive,
         /// <summary>
         /// 每帧触发
@@ -43,14 +43,14 @@ namespace SkillSystem
     }
     public enum LogicOperator
     {
-        [Tooltip("与")]
+        [InspectorName("与")]
         And,
-        [Tooltip("或")]
+        [InspectorName("或")]
         Or
     }
     public enum TargetPickerType
     {
-        [Tooltip("无目标")]
+        [InspectorName("无目标")]
         NoTarget,
         /// <summary>
         /// 当前普工目标
@@ -64,7 +64,7 @@ namespace SkillSystem
 
     public enum CommandType
     {
-        [Tooltip("啥事不干")]
+        [InspectorName("啥事不干")]
         DoNothing,
         /// <summary>
         /// 造成伤害
@@ -85,5 +85,14 @@ namespace SkillSystem
         /// buff
         /// </summary>
         Buff,
+    }
+    public class EnumDisplayNameAttribute : PropertyAttribute
+    {
+        public string DisplayName { get; private set; }
+
+        public EnumDisplayNameAttribute(string displayName)
+        {
+            DisplayName = displayName;
+        }
     }
 }

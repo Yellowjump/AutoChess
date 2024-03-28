@@ -7,7 +7,7 @@ namespace Editor.SkillSystem.Conditions
     [SkillDrawer(typeof(ConditionBase))]
     public class ConditionBaseEditor
     {
-        public static void OnGUIDraw(ConditionBase conditionBase)
+        public void OnGUIDraw(ConditionBase conditionBase)
         {
             if (conditionBase != null)
             {

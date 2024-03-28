@@ -7,7 +7,7 @@ namespace Editor.SkillSystem.Commands
     [SkillDrawer(typeof(CommandBase))]
     public class CommandBaseEditor
     {
-        public static void OnGUIDraw(CommandBase commandBase)
+        public void OnGUIDraw(CommandBase commandBase)
         {
             if (commandBase != null)
             {

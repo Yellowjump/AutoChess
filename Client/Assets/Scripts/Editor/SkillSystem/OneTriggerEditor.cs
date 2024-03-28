@@ -18,14 +18,14 @@ namespace Editor.SkillSystem
                 {
                     oneTrigger.CurCondition = SkillFactory.CreateCondition(newConditionType);
                 }
-                SkillSystemDrawer.DrawOneInstance(oneTrigger.CurCondition);
+                SkillSystemDrawerCenter.DrawOneInstance(oneTrigger.CurCondition);
                 var oldTargetPickerType = oneTrigger.CurTargetPicker.CurTargetPickerType;
                 var newTargetPickerType = (TargetPickerType)EditorGUILayout.EnumPopup("目标选择",oneTrigger.CurTargetPicker.CurTargetPickerType);
                 if (oldTargetPickerType != newTargetPickerType)
                 {
                     oneTrigger.CurTargetPicker = SkillFactory.CreateTargetPicker(newTargetPickerType);
                 }
-                SkillSystemDrawer.DrawOneInstance(oneTrigger.CurTargetPicker);
+                SkillSystemDrawerCenter.DrawOneInstance(oneTrigger.CurTargetPicker);
                 if (GUILayout.Button("添加Command"))
                 {
                     oneTrigger.CurCommandList.Add(SkillFactory.CreateCommand(CommandType.CauseDamage));
@@ -33,9 +33,17 @@ namespace Editor.SkillSystem
 
                 if (oneTrigger.CurCommandList != null && oneTrigger.CurCommandList.Count != 0)
                 {
-                    foreach (var oneCommand in oneTrigger.CurCommandList)
+                    for (var commandIndex = 0; commandIndex < oneTrigger.CurCommandList.Count; commandIndex++)
                     {
-                        SkillSystemDrawer.DrawOneInstance(oneCommand);
+                        var oneCommand = oneTrigger.CurCommandList[commandIndex];
+                        var oldCommandType = oneCommand.CurCommandType;
+                        var newCommandType =
+                            (CommandType)EditorGUILayout.EnumPopup("Command类型", oneCommand.CurCommandType);
+                        if (oldCommandType != newCommandType)
+                        {
+                            oneTrigger.CurCommandList[commandIndex] = SkillFactory.CreateCommand(newCommandType);
+                        }
+                        SkillSystemDrawerCenter.DrawOneInstance(oneCommand);
                     }
                 }
                 

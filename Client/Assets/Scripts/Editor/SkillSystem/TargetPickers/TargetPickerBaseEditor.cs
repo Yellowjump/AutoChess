@@ -7,7 +7,7 @@ namespace Editor.SkillSystem.TargetPickers
     [SkillDrawer(typeof(TargetPickerBase))]
     public class TargetPickerBaseEditor
     {
-        public static void OnGUIDraw(TargetPickerBase targetPickerBase)
+        public void OnGUIDraw(TargetPickerBase targetPickerBase)
         {
             if (targetPickerBase != null)
             {
