@@ -467,8 +467,65 @@ public class UIguanli : UIFormLogic
             Pool.instance.PoolObject[index].Release(qz2.GObj);
             Pool.instance.PoolEntity.Release(qz2);
             //判断是否存在三个两星棋子
-
-
+            num = 0;
+            for (int i = 0; i < QiziGuanLi.Instance.QiziList.Count; i++)
+            {
+                if (QiziGuanLi.Instance.QiziList[i].Index == index && QiziGuanLi.Instance.QiziList[i].level == 2)
+                {
+                    num++;
+                    if (num == 1)
+                    {
+                        qizi1 = i;
+                    }
+                    else if (num == 2)
+                    {
+                        qizi2 = i;
+                    }
+                    else
+                    {
+                        qizi3 = i;
+                    }
+                }
+            }
+            if (num==3)//有三个两星棋子
+            {
+                qz1 = QiziGuanLi.Instance.QiziList[qizi1];
+                qz2 = QiziGuanLi.Instance.QiziList[qizi2];
+                EntityQizi qz3 = QiziGuanLi.Instance.QiziList[qizi3];
+                qz1.GObj.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
+                qz1.level = 3;
+                if (qz1.money == 3)
+                {
+                    qz1.money = qz1.money * 3;
+                }
+                else
+                {
+                    qz1.money = qz1.money * 3 + 2;
+                }
+                //另外俩个棋子得放回池子
+                if (qz2.GObj.transform.localPosition.z == -4.5f)//如果第二个棋子在场下
+                {
+                    QiziGuanLi.Instance.changxia[(int)qz2.GObj.transform.localPosition.x + 4] = -1;
+                }
+                else
+                {
+                    QiziGuanLi.Instance.QiziCSList.Remove(qz2);
+                }
+                QiziGuanLi.Instance.QiziList.Remove(qz2);
+                Pool.instance.PoolObject[index].Release(qz2.GObj);
+                Pool.instance.PoolEntity.Release(qz2);
+                if (qz3.GObj.transform.localPosition.z == -4.5f)//如果第三个棋子在场下
+                {
+                    QiziGuanLi.Instance.changxia[(int)qz3.GObj.transform.localPosition.x + 4] = -1;
+                }
+                else
+                {
+                    QiziGuanLi.Instance.QiziCSList.Remove(qz3);
+                }
+                QiziGuanLi.Instance.QiziList.Remove(qz3);
+                Pool.instance.PoolObject[index].Release(qz3.GObj);
+                Pool.instance.PoolEntity.Release(qz3);
+            }
             return 0;//升级了棋子返回0
         }
         else
