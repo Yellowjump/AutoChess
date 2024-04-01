@@ -40,7 +40,7 @@ namespace DataTable.Editor.DataTableTools
 
             public override double Parse(string value)
             {
-                return double.Parse(value);
+                return string.IsNullOrEmpty(value) ? 0 : double.Parse(value);
             }
 
             public override void WriteToStream(DataTableProcessor dataTableProcessor, BinaryWriter binaryWriter, string value)

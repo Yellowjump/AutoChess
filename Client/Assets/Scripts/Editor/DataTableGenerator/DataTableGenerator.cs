@@ -9,6 +9,7 @@ using GameFramework;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -17,11 +18,16 @@ namespace DataTable.Editor.DataTableTools
 {
     public sealed class DataTableGenerator
     {
-        private const string DataTablePath = "Assets/DataTables";
+        private const string DataTablePath = "Assets/Data/DataTables";
         private const string CSharpCodePath = "Assets/Scripts/DataTable";
         private const string CSharpCodeTemplateFileName = "Assets/Scripts/DataTable/DataTableCodeTemplate.txt";
         private static readonly Regex EndWithNumberRegex = new Regex(@"\d+$");
         private static readonly Regex NameRegex = new Regex(@"^[A-Z][A-Za-z0-9_]*$");
+
+        private static string[] GenerateEnumDataTables =
+        {
+            "Skill"
+        };
 
         public static DataTableProcessor CreateDataTableProcessor(string dataTableName)
         {
@@ -81,6 +87,9 @@ namespace DataTable.Editor.DataTableTools
             codeContent.Replace("__DATA_TABLE_PROPERTIES__", GenerateDataTableProperties(dataTableProcessor));
             codeContent.Replace("__DATA_TABLE_PARSER__", GenerateDataTableParser(dataTableProcessor));
             codeContent.Replace("__DATA_TABLE_PROPERTY_ARRAY__", GenerateDataTablePropertyArray(dataTableProcessor));
+
+            codeContent.Replace("__DATA_TABLE_PROPERTIES_ENUM__", GenerateDataTablePropertiesEnum(dataTableProcessor, dataTableName));
+            codeContent.Replace("__DATA_TABLE_PROPERTY_GET_BY_ENUM__", GenerateDataTablePropertyGetByEnum(dataTableProcessor, dataTableName));
         }
 
         private static string GenerateDataTableProperties(DataTableProcessor dataTableProcessor)
@@ -158,7 +167,6 @@ namespace DataTable.Editor.DataTableTools
 
                 if (dataTableProcessor.IsSystem(i))
                 {
-                
                     if (languageKeyword == "string")
                     {
                         stringBuilder.AppendFormat("            {0} = columnStrings[index++];", dataTableProcessor.GetName(i)).AppendLine();
@@ -383,26 +391,17 @@ namespace DataTable.Editor.DataTableTools
 
             public string Name
             {
-                get
-                {
-                    return m_Name;
-                }
+                get { return m_Name; }
             }
 
             public string LanguageKeyword
             {
-                get
-                {
-                    return m_LanguageKeyword;
-                }
+                get { return m_LanguageKeyword; }
             }
 
             public int ItemCount
             {
-                get
-                {
-                    return m_Items.Count;
-                }
+                get { return m_Items.Count; }
             }
 
             public KeyValuePair<int, string> GetItem(int index)
@@ -419,6 +418,112 @@ namespace DataTable.Editor.DataTableTools
             {
                 m_Items.Add(new KeyValuePair<int, string>(id, propertyName));
             }
+        }
+
+        private static string GenerateDataTablePropertiesEnum(DataTableProcessor dataTableProcessor, string dataTableName)
+        {
+            if (!GenerateEnumDataTables.Contains(dataTableName))
+            {
+                return string.Empty;
+            }
+
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine($"\tpublic enum DR{dataTableName}Field");
+            stringBuilder.AppendLine("\t{");
+
+            bool firstProperty = true;
+            for (int i = 0; i < dataTableProcessor.RawColumnCount; i++)
+            {
+                if (dataTableProcessor.IsCommentColumn(i) || dataTableProcessor.IsIdColumn(i))
+                {
+                    // 注释列或编号列
+                    continue;
+                }
+
+                stringBuilder.AppendFormat("\t    {0},", dataTableProcessor.GetName(i)).AppendLine();
+            }
+
+            stringBuilder.AppendLine("\t}");
+            return stringBuilder.ToString();
+        }
+
+        private static string GenerateDataTablePropertyGetByEnum(DataTableProcessor dataTableProcessor, string dataTableName)
+        {
+            if (!GenerateEnumDataTables.Contains(dataTableName))
+            {
+                return string.Empty;
+            }
+
+            string enumFieldName = $"DR{dataTableName}Field";
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder
+                .AppendLine("\t\t/// <summary>")
+                .AppendLine("\t\t/// 根据指定的枚举值获取表字段的值。")
+                .AppendLine("\t\t/// </summary>")
+                .AppendLine("\t\t/// <typeparam name=\"T\"> ")
+                .AppendLine("\t\t///     <para>");
+
+            // 生成枚举字段对应的类型注释
+            for (int i = 0; i < dataTableProcessor.RawColumnCount; i++)
+            {
+                if (dataTableProcessor.IsCommentColumn(i))
+                {
+                    // 注释列
+                    continue;
+                }
+
+                if (dataTableProcessor.IsIdColumn(i))
+                {
+                    // 编号列
+                    continue;
+                }
+
+                stringBuilder
+                    .AppendFormat("\t\t///         <see cref=\"{0}.{1}\"/> 对应的是 {2},", enumFieldName, dataTableProcessor.GetName(i),dataTableProcessor.GetLanguageKeyword(i)).AppendLine();
+            }
+
+            stringBuilder.AppendLine("\t\t///     </para>")
+                .AppendLine("\t\t/// </typeparam>")
+                .AppendFormat("\t\t/// <param name=\"field\">枚举值，表示需要获取的表字段</param>").AppendLine()
+                .AppendFormat("\t\t/// <returns>返回字段值</returns>").AppendLine()
+                .AppendFormat("\t\t/// <exception cref=\"ArgumentException\">当传入的枚举值无效时抛出异常</exception>").AppendLine()
+                .AppendFormat("\t\tpublic T GetFieldValue<T>({0} field)", enumFieldName).AppendLine()
+                .AppendLine("\t\t{")
+                .AppendLine("\t\t    if (FieldMap.TryGetValue(field, out var func))")
+                .AppendLine("\t\t    {")
+                .AppendLine("\t\t        var ret = func(this);")
+                .AppendLine("\t\t        if (ret.Item2 == typeof(T))")
+                .AppendLine("\t\t        {")
+                .AppendLine("\t\t            return (T)Convert.ChangeType(ret.Item1, typeof(T));")
+                .AppendLine("\t\t        }")
+                .AppendFormat("\t\t        throw new ArgumentException($\"Invalid {0} {{field}} type:{{ret.Item2}} errorType:{{typeof(T)}}\");", enumFieldName).AppendLine()
+                .AppendLine("\t\t    }")
+                .AppendLine("\t\t    else")
+                .AppendLine("\t\t    {")
+                .AppendLine("\t\t        throw new ArgumentException(\"Invalid " + enumFieldName + " value\");")
+                .AppendLine("\t\t    }")
+                .AppendLine("\t\t}");
+            
+            
+            stringBuilder.AppendFormat("\t\tprivate static readonly Dictionary<{0}, Func<{1}, (object, Type)>> FieldMap = new Dictionary<{0}, Func<{1}, (object, Type)>>()",enumFieldName,"DR" + dataTableName).AppendLine();
+            stringBuilder.AppendLine("\t\t{");
+
+            for (int i = 0; i < dataTableProcessor.RawColumnCount; i++)
+            {
+                if (dataTableProcessor.IsCommentColumn(i) || dataTableProcessor.IsIdColumn(i))
+                {
+                    // 跳过注释列和编号列
+                    continue;
+                }
+
+                string fieldName = dataTableProcessor.GetName(i);
+                string fieldType = dataTableProcessor.GetLanguageKeyword(i);
+
+                stringBuilder.AppendLine($"\t\t    {{ {enumFieldName}.{fieldName}, obj => (obj.{fieldName}, typeof({fieldType})) }},");
+            }
+
+            stringBuilder.AppendLine("\t\t};");
+            return stringBuilder.ToString();
         }
     }
 }

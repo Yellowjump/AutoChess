@@ -41,7 +41,7 @@ namespace DataTable.Editor.DataTableTools
 
             public override ulong Parse(string value)
             {
-                return ulong.Parse(value);
+                return string.IsNullOrEmpty(value) ? (ulong)0 : ulong.Parse(value);
             }
 
             public override void WriteToStream(DataTableProcessor dataTableProcessor, BinaryWriter binaryWriter, string value)

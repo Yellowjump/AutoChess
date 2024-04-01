@@ -41,7 +41,7 @@ namespace DataTable.Editor.DataTableTools
 
             public override short Parse(string value)
             {
-                return short.Parse(value);
+                return string.IsNullOrEmpty(value) ? (short)0 : short.Parse(value);
             }
 
             public override void WriteToStream(DataTableProcessor dataTableProcessor, BinaryWriter binaryWriter, string value)

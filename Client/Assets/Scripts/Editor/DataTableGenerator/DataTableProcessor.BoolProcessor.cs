@@ -41,6 +41,14 @@ namespace DataTable.Editor.DataTableTools
 
             public override bool Parse(string value)
             {
+                if (string.IsNullOrEmpty(value))
+                {
+                    return false;
+                }
+                if (int.TryParse(value, out var intResult))
+                {
+                    return intResult >= 1;
+                }
                 return bool.Parse(value);
             }
 

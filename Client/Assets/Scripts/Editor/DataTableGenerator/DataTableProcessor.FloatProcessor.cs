@@ -41,7 +41,7 @@ namespace DataTable.Editor.DataTableTools
 
             public override float Parse(string value)
             {
-                return float.Parse(value);
+                return string.IsNullOrEmpty(value) ? 0 : float.Parse(value);
             }
 
             public override void WriteToStream(DataTableProcessor dataTableProcessor, BinaryWriter binaryWriter, string value)

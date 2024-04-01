@@ -1,0 +1,5 @@
+﻿#	资源路径配置表											
+#	Id		TemplateID	Duration	CD	IntParam1	IntParam2	IntParam3	IntParam4	IntParam5	StringParam1	StringParam2
+#	int		int	int	int	int	int	int	int	int	string	string
+#	技能ID	技能备注	模板ID	持续时间ms	冷却时间ms	int参数1	int参数2	int参数3	int参数4	int参数5	str参数1	str参数2
+	1	测试技能	1000	2000	10000	10						

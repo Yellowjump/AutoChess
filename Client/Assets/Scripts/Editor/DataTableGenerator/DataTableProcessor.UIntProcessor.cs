@@ -41,7 +41,7 @@ namespace DataTable.Editor.DataTableTools
 
             public override uint Parse(string value)
             {
-                return uint.Parse(value);
+                return string.IsNullOrEmpty(value) ? (uint)0 : uint.Parse(value);
             }
 
             public override void WriteToStream(DataTableProcessor dataTableProcessor, BinaryWriter binaryWriter, string value)

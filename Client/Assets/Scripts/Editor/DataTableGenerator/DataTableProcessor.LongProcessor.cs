@@ -41,7 +41,7 @@ namespace DataTable.Editor.DataTableTools
 
             public override long Parse(string value)
             {
-                return long.Parse(value);
+                return string.IsNullOrEmpty(value) ? 0 : long.Parse(value);
             }
 
             public override void WriteToStream(DataTableProcessor dataTableProcessor, BinaryWriter binaryWriter, string value)

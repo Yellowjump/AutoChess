@@ -41,6 +41,10 @@ namespace DataTable.Editor.DataTableTools
 
             public override Vector4 Parse(string value)
             {
+                if (string.IsNullOrEmpty(value))
+                {
+                    return Vector4.zero;
+                }
                 string[] splitedValue = value.Split(',');
                 return new Vector4(float.Parse(splitedValue[0]), float.Parse(splitedValue[1]), float.Parse(splitedValue[2]), float.Parse(splitedValue[3]));
             }

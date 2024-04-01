@@ -41,6 +41,10 @@ namespace DataTable.Editor.DataTableTools
 
             public override Quaternion Parse(string value)
             {
+                if (string.IsNullOrEmpty(value))
+                {
+                    return Quaternion.identity;
+                }
                 string[] splitedValue = value.Split(',');
                 return new Quaternion(float.Parse(splitedValue[0]), float.Parse(splitedValue[1]), float.Parse(splitedValue[2]), float.Parse(splitedValue[3]));
             }

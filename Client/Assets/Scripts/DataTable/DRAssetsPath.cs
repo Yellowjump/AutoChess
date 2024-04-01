@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-03-13 22:00:51.295
+// 生成时间：2024-04-02 01:06:48.996
 //------------------------------------------------------------
 
 using GameFramework;
@@ -18,6 +18,7 @@ using UnityGameFramework.Runtime;
 
 namespace DataTable
 {
+
     /// <summary>
     /// 资源路径配置表。
     /// </summary>
@@ -93,5 +94,7 @@ namespace DataTable
         {
 
         }
+
+
     }
 }
