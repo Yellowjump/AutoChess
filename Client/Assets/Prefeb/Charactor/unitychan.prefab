@@ -2157,6 +2157,7 @@ GameObject:
   - component: {fileID: 11400004}
   - component: {fileID: 1511735787332003998}
   - component: {fileID: -8326772562114122043}
+  - component: {fileID: 1673308683543661616}
   m_Layer: 0
   m_Name: unitychan
   m_TagString: qizi
@@ -2261,6 +2262,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1673308683543661616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 475f28055dae01546969f40267a5a7b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &100098
 GameObject:
   m_ObjectHideFlags: 0

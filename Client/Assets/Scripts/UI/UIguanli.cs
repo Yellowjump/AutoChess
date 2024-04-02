@@ -1,3 +1,4 @@
+using GameFramework.Fsm;
 using liuchengguanli;
 using System;
 using System.Collections;
@@ -64,6 +65,7 @@ public class UIguanli : UIFormLogic
     private List<Sprite>ListQiziSprite = new List<Sprite>();//保存棋子图片
     protected override void OnInit(object userData)
     {
+        
         JinBi.text = jinqian.GetJinBiNum().ToString();
         DengJi.text = "等级："+Dengji.Instance.getDj().ToString()+"\n"+ Dengji.Instance.jinyan+" / " + Dengji.Instance.shengjixuqiu[Dengji.Instance.getDj()];
         transform.position = Vector3.zero;
@@ -253,7 +255,6 @@ public class UIguanli : UIFormLogic
             QiziGuanLi.Instance.changxia[(int)qiziObj_oldlocation.x + 4] = -1;
         }
         QiziGuanLi.Instance.QiziList.Remove(qizi);
-        
         int jq = qizi.money;//获取棋子的金额
         jinqian.changejinqian(jq);//卖完棋子之后加钱，并把棋子放回池子里,牌库也要更新
         JinBi.text = jinqian.GetJinBiNum().ToString();
