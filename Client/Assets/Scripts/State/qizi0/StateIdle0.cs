@@ -12,6 +12,7 @@ public class StateIdle0 : FsmState<Fsm_qizi0>
     protected override void OnEnter(IFsm<Fsm_qizi0> fsm)
     {
         base.OnEnter(fsm);
+        
     }
     protected override void OnUpdate(IFsm<Fsm_qizi0> fsm, float elapseSeconds, float realElapseSeconds)
     {

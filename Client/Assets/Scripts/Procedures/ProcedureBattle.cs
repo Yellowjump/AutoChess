@@ -1,26 +1,46 @@
 using DataTable;
 using GameFramework;
+using GameFramework.Fsm;
 using GameFramework.Procedure;
+using UnityEngine;
 using UnityGameFramework.Runtime;
 using ProcedureOwner = GameFramework.Fsm.IFsm<GameFramework.Procedure.IProcedureManager>;
 namespace Procedure
 {
-    public class ProcedureBattle:ProcedureBase
+    public class ProcedureBattle: ProcedureBase
     {
+        float battleTime;
+        UIForm goumaiUI;
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
-            string welcomeMessage = Utility.Text.Format("Hello! This is an empty project based on Game Framework {0}.", Version.GameFrameworkVersion);
-            Log.Info(welcomeMessage);
-            /*Log.Warning(welcomeMessage);
-            Log.Error(welcomeMessage);*/
-            GameEntry.UI.OpenUIForm(UICtrlName.JieMianUIPrefab, "middle");
-            var assetPath = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
-            if (assetPath.HasDataRow(101))
+            //获取了所有状态机
+            FsmBase[] fsms = GameEntry.Fsm.GetAllFsms();
+            foreach (FsmBase fsm in fsms)
             {
-                Log.Info("assetID 101 path is :"+assetPath[101].AssetPath);
+                if (fsm.CurrentStateName.StartsWith("StateIdle"))
+                {
+                    Log.Info("hfk:" + fsm.Name + fsm.CurrentStateName);
+                    //将棋子状态机改编成attack
+                    //ChangeState<StateAttack0>(fsm);
+                }
             }
-            
+
+            Log.Info("hfk,进入战斗状态时间是:" + Time.time);
+            goumaiUI = GameEntry.UI.GetUIForm(UICtrlName.JieMianUIPrefab);
+            battleTime = Time.time;
+        }
+        protected override void OnUpdate(ProcedureOwner procedureOwner, float elapseSeconds, float realElapseSeconds)
+        {
+            base.OnUpdate(procedureOwner, elapseSeconds, realElapseSeconds);
+            if (Time.time-battleTime>5)
+            {
+                ChangeState<ProcedurePreBattle>(procedureOwner);
+            }
+            else
+            {
+                goumaiUI.GetComponent<UIguanli>()._slderJindu.value = (Time.time - battleTime) / 5;
+            }
         }
     }
 }

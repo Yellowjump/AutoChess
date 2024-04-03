@@ -32,7 +32,10 @@ public class UIguanli : UIFormLogic
     public Button _btnChushou;
 
     [SerializeField]
-    private Slider _slderDengji;
+    private Slider _slderDengji;//显示经验升级进度
+    [SerializeField]
+    public Slider _slderJindu;//显示流程进度
+
     [SerializeField]
     private Canvas _cavJiemian;
     private float lerpTime=0;
