@@ -15,17 +15,18 @@ namespace Procedure
         {
             base.OnEnter(procedureOwner);
             //获取了所有状态机
-            FsmBase[] fsms = GameEntry.Fsm.GetAllFsms();
-            foreach (FsmBase fsm in fsms)
-            {
-                if (fsm.CurrentStateName.StartsWith("StateIdle"))
-                {
-                    Log.Info("hfk:" + fsm.Name + fsm.CurrentStateName);
-                    //将棋子状态机改编成attack
-                    //ChangeState<StateAttack0>(fsm);
-                }
-            }
+            //FsmBase[] fsms = GameEntry.Fsm.GetAllFsms();
+            //foreach (FsmBase fsm in fsms)
+            //{
+            //    if (fsm.CurrentStateName.StartsWith("State"))
+            //    {
+            //        Log.Info("hfk:" + fsm.Name + " " + fsm.CurrentStateName + " " + fsm.OwnerType);
+            //        //将棋子状态机改编成attack
+            //        //ChangeState<StateAttack0>(fsm);
+            //    }
+            //}
 
+            QiziGuanLi.Instance.dangqianliucheng = 1;
             Log.Info("hfk,进入战斗状态时间是:" + Time.time);
             goumaiUI = GameEntry.UI.GetUIForm(UICtrlName.JieMianUIPrefab);
             battleTime = Time.time;

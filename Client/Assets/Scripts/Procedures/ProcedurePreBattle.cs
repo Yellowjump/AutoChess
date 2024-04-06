@@ -23,6 +23,7 @@ namespace Procedure
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
+            QiziGuanLi.Instance.dangqianliucheng = 0;
             Log.Info("hfk,进入准备状态时间是:"+Time.time);
             prebattleTime = Time.time;
             string welcomeMessage = Utility.Text.Format("Hello! This is an empty project based on Game Framework {0}.", Version.GameFrameworkVersion);
@@ -32,7 +33,6 @@ namespace Procedure
             if (cishu ==0)//首次进入时添加购买棋子UI
             {
                 GameEntry.UI.OpenUIForm(UICtrlName.JieMianUIPrefab, "middle");
-                
                 cishu++;
             }
             var assetPath = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");

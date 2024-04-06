@@ -57,6 +57,22 @@ public class UIguanli : UIFormLogic
     [SerializeField]
     private Text ChuSouNum;//显示出售价格
 
+    [SerializeField]
+    private Image qizishuxin;//显示棋子属性面板
+    private EntityQizi shuxin__qizi;
+    [SerializeField]
+    private Text xuetiaonow;//显示血量
+    [SerializeField]
+    private Text xuetiaosum;
+    [SerializeField]
+    public Slider _slderXuetiao;//显示血条
+    [SerializeField]
+    private Text pownow;//显示蓝量
+    [SerializeField]
+    private Text powsum;
+    [SerializeField]
+    public Slider _slderPow;//显示蓝条
+
     Jinqian jinqian=new Jinqian();//创建一个金钱类对象
     //拖拽棋子相关
     private bool GetOrNotGetQizi = false;
@@ -228,7 +244,7 @@ public class UIguanli : UIFormLogic
             if (SJ == -1 && kwCx != -1)//没升级棋子但是有空位
             {
                 QiziGuanLi.Instance.goumaiqizi(index, paikuIndex, kwCx, feiyong);
-                EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
+                qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
                 qizi.Init(index);
 
                 qizi.GObj.transform.localPosition = new Vector3(-4 + kwCx, 0, -4.5f);
@@ -266,12 +282,41 @@ public class UIguanli : UIFormLogic
         Pool.instance.PoolEntity.Release(qizi);
 
     }
+    private void shuxinxianshi(EntityQizi qz)
+    {
+        xuetiaonow.text = qizi.xueliangnow.ToString();
+        xuetiaosum.text = qizi.xueliangsum.ToString();
+        pownow.text = qizi.powernow.ToString();
+        powsum.text = qizi.powersum.ToString();
+        _slderXuetiao.value = (float)qizi.xueliangnow / (float)qizi.xueliangsum;
+        _slderPow.value = (float)qizi.powernow / (float)qizi.powersum;
+    }
     protected override void OnUpdate(float elapseSeconds, float realElapseSeconds)
     {
         if (!GetOrNotGetQizi)
         {
+            if (Input.GetMouseButtonDown(1))//显示棋子属性面板
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit) && hit.transform.tag == "qizi")
+                {
+                    for (int i = 0; i < QiziGuanLi.Instance.QiziList.Count; i++)
+                    {
+                        if (hit.transform.localPosition == QiziGuanLi.Instance.QiziList[i].GObj.transform.localPosition)
+                        {
+                            shuxin__qizi = QiziGuanLi.Instance.QiziList[i];
+                            break;
+                        }
+                    }
+                    //Log.Info("hfk:" + hit.transform.tag);
+                    qizishuxin.gameObject.SetActive(true);
+                    shuxinxianshi(shuxin__qizi);
+                }
+            }
             if (Input.GetMouseButtonDown(0))
             {
+                qizishuxin.gameObject.SetActive(false);
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
                 if (Physics.Raycast(ray, out hit) && hit.transform.tag == "qizi"&&hit.transform.localPosition.z<0)
@@ -281,6 +326,7 @@ public class UIguanli : UIFormLogic
                         if (hit.transform.localPosition == QiziGuanLi.Instance.QiziList[i].GObj.transform.localPosition)
                         {
                             qizi = QiziGuanLi.Instance.QiziList[i];
+                            break;
                         }
                     }
                     //Log.Info("hfk:" + hit.transform.tag);
@@ -288,7 +334,7 @@ public class UIguanli : UIFormLogic
                     qiziObj_oldlocation = qiziobj.transform.position;
                     GetOrNotGetQizi = true;
                     _btnChushou.gameObject.SetActive(true);
-                    ChuSouNum.text = "出售\n"+QiziGuanLi.Instance.qizi[qizi.Index]+"金币";
+                    ChuSouNum.text = "出售\n"+qizi.money+"金币";
                 }
             }
         }
