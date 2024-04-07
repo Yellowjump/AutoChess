@@ -1,0 +1,5 @@
+﻿#	角色表	
+#	Id	SkillID
+#	int	int
+#	角色ID	技能ID
+	1	1

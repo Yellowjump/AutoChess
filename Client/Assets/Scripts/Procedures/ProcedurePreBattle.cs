@@ -23,13 +23,13 @@ namespace Procedure
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
-            Log.Info("hfk,进入准备状态时间是:"+Time.time);
+            Log.Info("hfk,杩涘叆鍑嗗鐘舵�佹椂闂存槸:"+Time.time);
             prebattleTime = Time.time;
             string welcomeMessage = Utility.Text.Format("Hello! This is an empty project based on Game Framework {0}.", Version.GameFrameworkVersion);
             Log.Info(welcomeMessage);
             /*Log.Warning(welcomeMessage);
             Log.Error(welcomeMessage);*/
-            if (cishu ==0)//首次进入时添加购买棋子UI
+            if (cishu ==0)//棣栨杩涘叆鏃舵坊鍔犺喘涔版瀛怳I
             {
                 GameEntry.UI.OpenUIForm(UICtrlName.JieMianUIPrefab, "middle");
                 

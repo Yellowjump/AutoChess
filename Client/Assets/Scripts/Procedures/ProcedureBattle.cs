@@ -14,19 +14,19 @@ namespace Procedure
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
-            //获取了所有状态机
+            //鑾峰彇浜嗘墍鏈夌姸鎬佹満
             FsmBase[] fsms = GameEntry.Fsm.GetAllFsms();
             foreach (FsmBase fsm in fsms)
             {
                 if (fsm.CurrentStateName.StartsWith("StateIdle"))
                 {
                     Log.Info("hfk:" + fsm.Name + fsm.CurrentStateName);
-                    //将棋子状态机改编成attack
+                    //灏嗘瀛愮姸鎬佹満鏀圭紪鎴恆ttack
                     //ChangeState<StateAttack0>(fsm);
                 }
             }
 
-            Log.Info("hfk,进入战斗状态时间是:" + Time.time);
+            Log.Info("hfk,杩涘叆鎴樻枟鐘舵�佹椂闂存槸:" + Time.time);
             goumaiUI = GameEntry.UI.GetUIForm(UICtrlName.JieMianUIPrefab);
             battleTime = Time.time;
         }

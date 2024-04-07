@@ -14,7 +14,7 @@ namespace Procedure
 {
     public class ProcedurePreload : ProcedureBase
     {
-        private Dictionary<string,bool> _dataTableFlag = new Dictionary<string,bool>();
+        private Dictionary<string,(Type,bool)> _dataTableFlag = new Dictionary<string, (Type, bool)>();
         private Dictionary<string, bool> m_LoadedFlag = new Dictionary<string, bool>();
 
         protected override void OnInit(ProcedureOwner procedureOwner)
@@ -46,7 +46,7 @@ namespace Procedure
 
             foreach (var item in _dataTableFlag)
             {
-                if (!item.Value)
+                if (!item.Value.Item2)
                     return;
             }
             ChangeState<ProcedurePreBattle>(procedureOwner);
@@ -69,10 +69,12 @@ namespace Procedure
         private void PreloadDataTable()
         {
             _dataTableFlag.Clear();
-            _dataTableFlag.Add("AssetsPath",false);
+            _dataTableFlag.Add("AssetsPath",(typeof(DRAssetsPath),false));
+            _dataTableFlag.Add("Hero",(typeof(DRHero),false));
+            _dataTableFlag.Add("Skill",(typeof(DRSkill),false));
             foreach (var tableName in _dataTableFlag)
             {
-                DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(typeof(DRAssetsPath), tableName.Key);
+                DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(tableName.Value.Item1, tableName.Key);
                 dataTable.ReadData($"Assets/Data/DataTables/{tableName.Key}.bytes",0, null);
             }
         }
@@ -92,7 +94,7 @@ namespace Procedure
             var tableName = ExtractFileName(ne.DataTableAssetName);
             if (_dataTableFlag.ContainsKey(tableName))
             {
-                _dataTableFlag[tableName] = true;
+                _dataTableFlag[tableName] = new ValueTuple<Type, bool>(_dataTableFlag[tableName].Item1,true);
                 Log.Info("Load config '{0}' OK.", ne.DataTableAssetName);
             }
             else

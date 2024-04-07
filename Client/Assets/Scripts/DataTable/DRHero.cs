@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-04-06 09:17:15.105
+// 生成时间：2024-04-06 09:17:15.118
 //------------------------------------------------------------
 
 using GameFramework;
@@ -20,14 +20,14 @@ namespace DataTable
 {
 
     /// <summary>
-    /// 资源路径配置表。
+    /// 角色表。
     /// </summary>
-    public class DRAssetsPath : DataRowBase
+    public class DRHero : DataRowBase
     {
         private int m_Id = 0;
 
         /// <summary>
-        /// 获取资源编号。
+        /// 获取角色ID。
         /// </summary>
         public override int Id
         {
@@ -38,18 +38,9 @@ namespace DataTable
         }
 
         /// <summary>
-        /// 获取资源名称。
+        /// 获取技能ID。
         /// </summary>
-        public string AssetPath
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// 获取资源组Id。
-        /// </summary>
-        public string ResourceGroupIndexs
+        public int SkillID
         {
             get;
             private set;
@@ -66,9 +57,7 @@ namespace DataTable
             int index = 0;
             index++;
             m_Id = int.Parse(columnStrings[index++]);
-            index++;
-            AssetPath = columnStrings[index++];
-            ResourceGroupIndexs = columnStrings[index++];
+            SkillID = int.Parse(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -81,8 +70,7 @@ namespace DataTable
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
-                    AssetPath = binaryReader.ReadString();
-                    ResourceGroupIndexs = binaryReader.ReadString();
+                    SkillID = binaryReader.Read7BitEncodedInt32();
                 }
             }
 
