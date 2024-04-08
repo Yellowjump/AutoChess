@@ -288,8 +288,8 @@ public class UIguanli : UIFormLogic
         xuetiaosum.text = qizi.xueliangsum.ToString();
         pownow.text = qizi.powernow.ToString();
         powsum.text = qizi.powersum.ToString();
-        _slderXuetiao.value = (float)qizi.xueliangnow / (float)qizi.xueliangsum;
-        _slderPow.value = (float)qizi.powernow / (float)qizi.powersum;
+        _slderXuetiao.value = qizi.xueliangnow /qizi.xueliangsum;
+        _slderPow.value = qizi.powernow /qizi.powersum;
     }
     protected override void OnUpdate(float elapseSeconds, float realElapseSeconds)
     {
