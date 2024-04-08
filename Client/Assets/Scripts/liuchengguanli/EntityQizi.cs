@@ -1,3 +1,4 @@
+using GameFramework.Fsm;
 using System.Collections;
 using System.Collections.Generic;
 using DataTable;
@@ -12,6 +13,14 @@ namespace liuchengguanli
         public int level;
         public int money;
         public int ID;//hero表中ID
+        public int xueliangsum=1000;//��Ѫ��
+        public int powersum=100;//����
+        public int xueliangnow;//��ǰѪ��
+        public int powernow;//��ǰ��
+        public float x;
+        public float y;//�������ϵ�λ��
+        public float gongjiDistence;//��������
+        //GameObject xuetiao;//Ѫ��ui
         public override void Init(int i)
         {
             this.Index = i;
@@ -22,6 +31,9 @@ namespace liuchengguanli
             QiziGuanLi.Instance.QiziList.Add(this);
             ID = 1;//todo 后续 从棋子购买处获取ID
             InitSkill();
+            xueliangnow = xueliangsum;
+            powernow = 0;
+            //this.GObj.GetComponent<Fsm_qizi0>().Init();
             //Log.Info("hfk:qizichushihua:" + this.GObj.name+"list.size: " + Pool.instance.list.Count + "list[0]position:" + Pool.instance.list[0].GObj.transform.localPosition);
         }
 

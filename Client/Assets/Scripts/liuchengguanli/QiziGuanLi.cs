@@ -46,6 +46,7 @@ public class QiziGuanLi
     public int []goumaiUIqiziIndex = new int[5];//记录UI购买界面的棋子index
     public int []goumaiUIqiziPaikuIndex = new int[5];//记录UI购买界面的棋子在牌库的index
     private int[] goumaiUiqiziPaikuFeiyong = new int[5];//记录UI购买界面的棋子
+    public int dangqianliucheng = 0;
     void Init()//初始化每个牌库
     {
         for (int i=0;i<qizi.Length;i++)
