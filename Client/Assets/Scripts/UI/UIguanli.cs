@@ -72,6 +72,10 @@ public class UIguanli : UIFormLogic
     private Text powsum;
     [SerializeField]
     public Slider _slderPow;//显示蓝条
+    [SerializeField]
+    public Image levelqizi;//显示棋子level
+    [SerializeField]
+    public Image qiziImage;//显示棋子image
 
     Jinqian jinqian=new Jinqian();//创建一个金钱类对象
     //拖拽棋子相关
@@ -82,6 +86,7 @@ public class UIguanli : UIFormLogic
     Vector3 qiziObj_oldlocation;
 
     private List<Sprite>ListQiziSprite = new List<Sprite>();//保存棋子图片
+    private List<Sprite> ListQiziShuxingSprite = new List<Sprite>();//保存棋子图片
     protected override void OnInit(object userData)
     {
         
@@ -98,6 +103,7 @@ public class UIguanli : UIFormLogic
         _btnFive.onClick.AddListener(OnClickBtnGouMaiFive);
         _btnShengji.onClick.AddListener(OnClickBtnShengJi);
         InitQiziPicture();//保存棋子购买界面图片，使用的时候需注意ListQiziPicture[qiziindex];
+        InitQiziShuxingPicture();//保存棋子属性界面图片，使用的时候需注意ListQiziShuxingPicture[qiziindex];
         //初始先加两块，再刷新
         jinqian.changejinqian(2);
         OnClickBtnShuaxin();
@@ -114,6 +120,13 @@ public class UIguanli : UIFormLogic
         //依次存入img
         ListQiziSprite.Add(spr);
         //
+    }
+    private void InitQiziShuxingPicture()
+    {
+        Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Image/shuxing0.jpg");
+        //_btnOne.image.sprite = img;
+        //依次存入img
+        ListQiziShuxingSprite.Add(spr);
     }
     private void OnClickBtnShouqi()
     {
@@ -290,6 +303,8 @@ public class UIguanli : UIFormLogic
         powsum.text = qizi.powersum.ToString();
         _slderXuetiao.value = qizi.xueliangnow /qizi.xueliangsum;
         _slderPow.value = qizi.powernow /qizi.powersum;
+        levelqizi.sprite = QiziGuanLi.Instance.ListQiziLevelSprite[qz.level - 1];
+        qiziImage.sprite = ListQiziShuxingSprite[qz.Index];
     }
     protected override void OnUpdate(float elapseSeconds, float realElapseSeconds)
     {
@@ -496,6 +511,7 @@ public class UIguanli : UIFormLogic
             EntityQizi qz2 = QiziGuanLi.Instance.QiziList[qizi2];
             qz1.GObj.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
             qz1.level = 2;
+            qz1.levelImage.sprite = QiziGuanLi.Instance.ListQiziLevelSprite[1];
             if (qz1.money == 1)
             {
                 qz1.money = qz1.money * 3;
@@ -544,6 +560,7 @@ public class UIguanli : UIFormLogic
                 EntityQizi qz3 = QiziGuanLi.Instance.QiziList[qizi3];
                 qz1.GObj.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
                 qz1.level = 3;
+                qz1.levelImage.sprite = QiziGuanLi.Instance.ListQiziLevelSprite[2];
                 if (qz1.money == 3)
                 {
                     qz1.money = qz1.money * 3;

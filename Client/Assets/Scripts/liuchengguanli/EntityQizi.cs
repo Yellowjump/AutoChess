@@ -18,9 +18,9 @@ namespace liuchengguanli
         public float x;
         public float y;//‘⁄∆Â≈Ã…œµƒŒª÷√
         public float gongjiDistence;//π•ª˜æ‡¿Î
-        Slider xuetiao;
-        Slider power;
-        Transform xuet;
+        public Slider xuetiao;
+        public Slider power;
+        public Image levelImage;
         public override void Init(int i)
         {
             this.Index = i;
@@ -35,6 +35,8 @@ namespace liuchengguanli
             this.xuetiao.value = this.xueliangnow / this.xueliangnow;
             this.power = this.GObj.transform.Find("xuetiao_qizi/pow").GetComponent<Slider>();
             this.power.value = this.powernow / this.powersum;
+            this.levelImage = this.GObj.transform.Find("xuetiao_qizi/level").GetComponent<Image>();
+            this.levelImage.sprite = QiziGuanLi.Instance.ListQiziLevelSprite[0];
             //GameEntry.UI.OpenUIForm("Assets/UIPrefab/xuetiao_qizi.prefab", "middle");
             //this.GObj.GetComponent<Fsm_qizi0>().Init();
             //Log.Info("hfk:qizichushihua:" + this.GObj.name+"list.size: " + Pool.instance.list.Count + "list[0]position:" + Pool.instance.list[0].GObj.transform.localPosition);

@@ -1,6 +1,7 @@
 using liuchengguanli;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -47,8 +48,15 @@ public class QiziGuanLi
     public int []goumaiUIqiziPaikuIndex = new int[5];//记录UI购买界面的棋子在牌库的index
     private int[] goumaiUiqiziPaikuFeiyong = new int[5];//记录UI购买界面的棋子
     public int dangqianliucheng = 0;
+    public List<Sprite> ListQiziLevelSprite = new List<Sprite>();//保存棋子星级图片
     void Init()//初始化每个牌库
     {
+        Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Image/level1.png");
+        Sprite spr2 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Image/level2.png");
+        Sprite spr3 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Image/level3.png");
+        ListQiziLevelSprite.Add(spr);
+        ListQiziLevelSprite.Add(spr2);
+        ListQiziLevelSprite.Add(spr3);
         for (int i=0;i<qizi.Length;i++)
         {
             switch (qizi[i])
