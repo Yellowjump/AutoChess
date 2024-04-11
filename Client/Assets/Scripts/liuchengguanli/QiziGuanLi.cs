@@ -1,4 +1,5 @@
 using liuchengguanli;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -26,6 +27,8 @@ public class QiziGuanLi
     public int []changxia= { -1, -1, -1, -1, -1, -1, -1, -1,-1 };//记录场下棋子的index
     public List<EntityQizi> QiziList = new List<EntityQizi>();//保存所有生成的棋子
     public List<EntityQizi> QiziCSList = new List<EntityQizi>();//保存所有在场上的棋子
+    public List<EntityQizi> QiziCXList = new List<EntityQizi>();//保存所有在场下的棋子
+    public List<EntityQizi> DirenList = new List<EntityQizi>();//保存敌方棋子
     public int[] qizi = {1 };//记录棋子的价格，i是棋子的index
     public int[] qizishu = {20 };//i是棋子的index，里面是棋子是剩余数量
     //保存每种费用棋子的数量，index以及每个等级抽到的概率
@@ -47,7 +50,7 @@ public class QiziGuanLi
     public int []goumaiUIqiziIndex = new int[5];//记录UI购买界面的棋子index
     public int []goumaiUIqiziPaikuIndex = new int[5];//记录UI购买界面的棋子在牌库的index
     private int[] goumaiUiqiziPaikuFeiyong = new int[5];//记录UI购买界面的棋子
-    public int dangqianliucheng = 0;
+    public int dangqianliucheng = 0;//保存当前流程，0是prebattle,1是battle
     public List<Sprite> ListQiziLevelSprite = new List<Sprite>();//保存棋子星级图片
     void Init()//初始化每个牌库
     {
@@ -102,6 +105,17 @@ public class QiziGuanLi
             }
         }
     }
+    public void InitDirenList()
+    {
+        EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
+        qizi.Init(0);
+        QiziCXList.Remove(qizi);
+        QiziList.Remove(qizi);
+        qizi.GObj.SetActive(false);
+        qizi.x = -0.7071068f;
+        qizi.y = -0.7071068f;
+        DirenList.Add(qizi);
+    }
     //按照等级来抽五张牌
     public void choupai(int dengji)
     {
@@ -114,7 +128,7 @@ public class QiziGuanLi
         for (int i=0;i<5&&sumnum<1000;i++)
         {
             sumnum++;
-            int dengjirandom = Random.Range(0,100);
+            int dengjirandom = UnityEngine.Random.Range(0,100);
             if (dengjirandom <= gailv1[dengji-1])
             {
                 if (paiku1num != 0)
@@ -184,7 +198,7 @@ public class QiziGuanLi
     }
     int findRandom(int i,int paikunum,int[]paiku,int feiyong)
     {
-        int pairandom = Random.Range(0, paikunum);
+        int pairandom = UnityEngine.Random.Range(0, paikunum);
         bool findYou = true;
         while (findYou)
         {
@@ -194,7 +208,7 @@ public class QiziGuanLi
                 if (pairandom == goumaiUIqiziIndex[i] && qizi[paiku[pairandom]] == feiyong)
                 {
                     findYou = true;
-                    pairandom = Random.Range(0, paikunum);
+                    pairandom = UnityEngine.Random.Range(0, paikunum);
                 }
             }
         }

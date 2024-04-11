@@ -1,6 +1,8 @@
 using GameFramework.Fsm;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
@@ -29,8 +31,10 @@ namespace liuchengguanli
             this.GObj = Pool.instance.PoolObject[i].Get();
             this.GObj.transform.localScale = Vector3.one;
             QiziGuanLi.Instance.QiziList.Add(this);
+            QiziGuanLi.Instance.QiziCXList.Add(this);
             xueliangnow = xueliangsum;
             powernow = 0;
+            gongjiDistence = 1;
             this.xuetiao = this.GObj.transform.Find("xuetiao_qizi/xuetiao").GetComponent<Slider>();
             this.xuetiao.value = this.xueliangnow / this.xueliangnow;
             this.power = this.GObj.transform.Find("xuetiao_qizi/pow").GetComponent<Slider>();
@@ -40,6 +44,21 @@ namespace liuchengguanli
             //GameEntry.UI.OpenUIForm("Assets/UIPrefab/xuetiao_qizi.prefab", "middle");
             //this.GObj.GetComponent<Fsm_qizi0>().Init();
             //Log.Info("hfk:qizichushihua:" + this.GObj.name+"list.size: " + Pool.instance.list.Count + "list[0]position:" + Pool.instance.list[0].GObj.transform.localPosition);
+        }
+        public void Remove()
+        {
+            if (this.GObj.transform.localPosition.z == -4.5f)//如果棋子在场下
+            {
+                QiziGuanLi.Instance.QiziCXList.Remove(this);
+                QiziGuanLi.Instance.changxia[(int)this.GObj.transform.localPosition.x + 4] = -1;
+            }
+            else
+            {
+                QiziGuanLi.Instance.QiziCSList.Remove(this);
+            }
+            QiziGuanLi.Instance.QiziList.Remove(this);
+            Pool.instance.PoolObject[this.Index].Release(this.GObj);
+            Pool.instance.PoolEntity.Release(this);
         }
     }
 }

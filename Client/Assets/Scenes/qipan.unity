@@ -313,7 +313,7 @@ Transform:
   m_GameObject: {fileID: 535097038}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.3, z: 0}
   m_LocalScale: {x: 12, y: 0.3, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -349,9 +349,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66d05faa70756b94a88cc5a02069a143, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  qige: {fileID: 5891351650075787601, guid: 91aa2c49f43eccc44b105cd62b643063, type: 3}
-  qige2: {fileID: 6720554408448520539, guid: 3702132d4aaba7d438f5e9b904a1e2fd, type: 3}
-  qige3: {fileID: 6239518299781808009, guid: 410161a86ded891499fffb6e083746a2, type: 3}
+  qige: {fileID: 3531539621356819610, guid: 91aa2c49f43eccc44b105cd62b643063, type: 3}
+  qige2: {fileID: 4432933118174782608, guid: 3702132d4aaba7d438f5e9b904a1e2fd, type: 3}
+  qige3: {fileID: 3915876965497055810, guid: 410161a86ded891499fffb6e083746a2, type: 3}
 --- !u!4 &573954246
 Transform:
   m_ObjectHideFlags: 0
@@ -496,13 +496,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 894640687}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.6258442, y: 0.0011351479, z: -0.0009536152, w: 0.7799468}
+  m_LocalRotation: {x: 0.62584174, y: 0, z: 0, w: 0.77995014}
   m_LocalPosition: {x: 0.6304506, y: 8.817878, z: -2.622393}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 77.488, y: 0, z: 0}
 --- !u!1 &914392062
 GameObject:
   m_ObjectHideFlags: 0
