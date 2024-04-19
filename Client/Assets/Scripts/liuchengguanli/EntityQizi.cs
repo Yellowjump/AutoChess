@@ -23,6 +23,7 @@ namespace liuchengguanli
         public Slider xuetiao;
         public Slider power;
         public Image levelImage;
+        public Animator animator;//动画管理器
         public override void Init(int i)
         {
             this.Index = i;
@@ -33,14 +34,15 @@ namespace liuchengguanli
             QiziGuanLi.Instance.QiziList.Add(this);
             QiziGuanLi.Instance.QiziCXList.Add(this);
             xueliangnow = xueliangsum;
-            powernow = 0;
-            gongjiDistence = 1;
+            powernow = 0;//初始化蓝量
+            gongjiDistence = 1.5f;//初始化攻击距离
             this.xuetiao = this.GObj.transform.Find("xuetiao_qizi/xuetiao").GetComponent<Slider>();
             this.xuetiao.value = this.xueliangnow / this.xueliangnow;
             this.power = this.GObj.transform.Find("xuetiao_qizi/pow").GetComponent<Slider>();
             this.power.value = this.powernow / this.powersum;
             this.levelImage = this.GObj.transform.Find("xuetiao_qizi/level").GetComponent<Image>();
             this.levelImage.sprite = QiziGuanLi.Instance.ListQiziLevelSprite[0];
+            this.animator = this.GObj.GetComponent<Animator>();
             //GameEntry.UI.OpenUIForm("Assets/UIPrefab/xuetiao_qizi.prefab", "middle");
             //this.GObj.GetComponent<Fsm_qizi0>().Init();
             //Log.Info("hfk:qizichushihua:" + this.GObj.name+"list.size: " + Pool.instance.list.Count + "list[0]position:" + Pool.instance.list[0].GObj.transform.localPosition);

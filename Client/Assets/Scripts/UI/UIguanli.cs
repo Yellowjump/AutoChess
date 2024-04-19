@@ -340,6 +340,13 @@ public class UIguanli : UIFormLogic
                     qizishuxin.gameObject.SetActive(true);
                     shuxinxianshi(shuxin_qizi);
                 }
+                ////测试qigepos
+                if (Physics.Raycast(ray, out hit) && hit.transform.tag == "qige")
+                {
+
+                    Vector2Int v = QiziGuanLi.Instance.getIndexQige(hit.transform.position);
+                    Log.Info("hfk" + hit.transform.position + "  vector2:" + v);
+                }
             }
             if (Input.GetMouseButtonDown(0))
             {

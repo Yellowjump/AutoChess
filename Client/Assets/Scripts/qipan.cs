@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityGameFramework.Runtime;
 
 public class qipan : MonoBehaviour
 {
@@ -11,29 +12,40 @@ public class qipan : MonoBehaviour
     public GameObject qige3;
     void Start()
     {
-        for (int i=0;i<6;i++)
+        for (int i = 0; i < 9; i++)
         {
-            for (int j=0;j<4;j++)
+            if (i==4)
             {
-                GameObject qg =Instantiate(qige2,new Vector3(Mathf.Sqrt(2)*2.5f - i * Mathf.Sqrt(2), 0, Mathf.Sqrt(2) * 1.5f - j * Mathf.Sqrt(2)),Quaternion.Euler(0,45,0));
-                qg.transform.parent = this.transform;
+                for (int j = 0; j < 5; j++)
+                {
+                    Vector3 pos = new Vector3(Mathf.Sqrt(2) * -2f + j * Mathf.Sqrt(2), 0, 0);
+                    GameObject qg = Instantiate(qige3, pos, Quaternion.Euler(0, 45, 0));
+                    qg.transform.parent = this.transform;
+                    QiziGuanLi.Instance.qigepos[i][j] = pos;
+                    //Log.Info("hfk:i="+i+" j="+j+" pos=" + pos);
+                }
             }
-        }
-        for (int i = 0; i < 5; i++)
-        {
-            for (int j = 0; j < 5; j++)
+            else if (i % 2 == 0)
             {
-                if (j != 2)
+                for (int j = 0; j < 5; j++)
                 {
-                    GameObject qg = Instantiate(qige, new Vector3(Mathf.Sqrt(2) * 2 - i * Mathf.Sqrt(2), 0, Mathf.Sqrt(2) * 2 - j * Mathf.Sqrt(2)), Quaternion.Euler(0, 45, 0));
+                    Vector3 pos = new Vector3(Mathf.Sqrt(2) * -2f + j * Mathf.Sqrt(2), 0, Mathf.Sqrt(2) * 2f - i * Mathf.Sqrt(2) / 2);
+                    GameObject qg = Instantiate(qige2, pos, Quaternion.Euler(0, 45, 0));
                     qg.transform.parent = this.transform;
+                    QiziGuanLi.Instance.qigepos[i][j] = pos;
+                    //Log.Info("hfk:i=" + i + " j=" + j + " pos=" + pos);
                 }
-                else
+            }
+            else
+            {
+                for (int j = 0; j < 6; j++)
                 {
-                    GameObject qg = Instantiate(qige3, new Vector3(Mathf.Sqrt(2) * 2 - i * Mathf.Sqrt(2), 0, Mathf.Sqrt(2) * 2 - j * Mathf.Sqrt(2)), Quaternion.Euler(0, 45, 0));
+                    Vector3 pos = new Vector3(Mathf.Sqrt(2) * -2.5f + j * Mathf.Sqrt(2), 0, Mathf.Sqrt(2) * 2f - i * Mathf.Sqrt(2) / 2);
+                    GameObject qg = Instantiate(qige2, pos, Quaternion.Euler(0, 45, 0));
                     qg.transform.parent = this.transform;
+                    QiziGuanLi.Instance.qigepos[i][j] = pos;
+                    //Log.Info("hfk:i=" + i + " j=" + j + " pos=" + pos);
                 }
-                
             }
         }
         for (int i=0;i<9;i++)

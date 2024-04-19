@@ -15,6 +15,7 @@ public class Fsm_qizi0 : MonoBehaviour
     void Start()
     {
         //this.transform
+        //Log.Info("hfk:" + qizi.level);
         List<FsmState<Fsm_qizi0>> stateList = new List<FsmState<Fsm_qizi0>>() { new StateIdle0(), new StateMove0(), new StateAttack0(), new StateUnderControl0() };
         fsm = GameEntry.Fsm.CreateFsm<Fsm_qizi0>((ID++).ToString(), this, stateList);
         fsm.Start<StateIdle0>();
