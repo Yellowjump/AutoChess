@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using SkillSystem;
 using UnityEngine;
 
 namespace DataTable.Editor.DataTableTools
@@ -23,12 +24,6 @@ namespace DataTable.Editor.DataTableTools
         private const string CSharpCodeTemplateFileName = "Assets/Scripts/DataTable/DataTableCodeTemplate.txt";
         private static readonly Regex EndWithNumberRegex = new Regex(@"\d+$");
         private static readonly Regex NameRegex = new Regex(@"^[A-Z][A-Za-z0-9_]*$");
-
-        private static string[] GenerateEnumDataTables =
-        {
-            "Skill"
-        };
-
         public static DataTableProcessor CreateDataTableProcessor(string dataTableName)
         {
             return new DataTableProcessor(Utility.Path.GetRegularPath(Path.Combine(DataTablePath, dataTableName + ".txt")), Encoding.GetEncoding("GB2312"), 1, 2, null, 3, 4, 1);
@@ -422,11 +417,10 @@ namespace DataTable.Editor.DataTableTools
 
         private static string GenerateDataTablePropertiesEnum(DataTableProcessor dataTableProcessor, string dataTableName)
         {
-            if (!GenerateEnumDataTables.Contains(dataTableName))
+            if (!Enum.TryParse<GenerateEnumDataTables>(dataTableName, out var result))
             {
                 return string.Empty;
             }
-
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.AppendLine($"\tpublic enum DR{dataTableName}Field");
             stringBuilder.AppendLine("\t{");
@@ -449,7 +443,7 @@ namespace DataTable.Editor.DataTableTools
 
         private static string GenerateDataTablePropertyGetByEnum(DataTableProcessor dataTableProcessor, string dataTableName)
         {
-            if (!GenerateEnumDataTables.Contains(dataTableName))
+            if (!Enum.TryParse<GenerateEnumDataTables>(dataTableName, out var result))
             {
                 return string.Empty;
             }

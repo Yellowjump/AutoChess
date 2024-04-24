@@ -69,9 +69,20 @@ namespace SkillSystem
         /// <summary>
         /// 造成伤害
         /// </summary>
+        [InspectorName("造成伤害")]
         CauseDamage,
     }
 
+    /// <summary>
+    /// 伤害计算类型
+    /// </summary>
+    public enum DamageComputeType
+    {
+        [InspectorName("通用伤害流程")]
+        CommonDamage,
+        [InspectorName("真实伤害")]
+        RealDamage,
+    }
     /// <summary>
     /// 触发器容器类型
     /// </summary>
@@ -86,13 +97,11 @@ namespace SkillSystem
         /// </summary>
         Buff,
     }
-    public class EnumDisplayNameAttribute : PropertyAttribute
+    public enum GenerateEnumDataTables
     {
-        public string DisplayName { get; private set; }
-
-        public EnumDisplayNameAttribute(string displayName)
-        {
-            DisplayName = displayName;
-        }
+        [InspectorName("不读表固定值")]
+        None,
+        [InspectorName("SKill表")]
+        Skill,
     }
 }

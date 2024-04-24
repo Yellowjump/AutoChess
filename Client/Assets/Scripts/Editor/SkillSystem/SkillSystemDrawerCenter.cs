@@ -17,16 +17,6 @@ namespace Editor.SkillSystem
             DrawerType = drawerType;
         }
     }
-    [CustomPropertyDrawer(typeof(EnumDisplayNameAttribute))]
-    public class EnumDisplayNameDrawer : PropertyDrawer
-    {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            EnumDisplayNameAttribute enumDisplayName = attribute as EnumDisplayNameAttribute;
-            EditorGUI.LabelField(position, enumDisplayName.DisplayName);
-        }
-    }
-
     public class SkillSystemDrawerCenter
     {
         private static Dictionary<Type, MethodInfo> _drawFieldMethods = new Dictionary<Type, MethodInfo>();

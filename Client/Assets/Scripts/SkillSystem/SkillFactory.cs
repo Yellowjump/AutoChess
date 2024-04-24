@@ -10,6 +10,8 @@ namespace SkillSystem
             {
                 case CommandType.DoNothing:
                     return new CommandBase();
+                case CommandType.CauseDamage:
+                    return new CommandCauseDamage();
                 default:
                     return new CommandBase();
             }
