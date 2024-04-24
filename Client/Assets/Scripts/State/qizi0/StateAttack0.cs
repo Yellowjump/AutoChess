@@ -20,6 +20,7 @@ public class StateAttack0 : FsmState<Fsm_qizi0>
     protected override void OnEnter(IFsm<Fsm_qizi0> fsm)
     {
         base.OnEnter(fsm);
+        
         if (qizi == null)
         {
             foreach (EntityQizi qz in QiziGuanLi.Instance.QiziList)
@@ -89,6 +90,7 @@ public class StateAttack0 : FsmState<Fsm_qizi0>
             }
             if (qizi.gongjiDistence * qizi.gongjiDistence >= mindistance)
             {
+                qizi.GObj.transform.LookAt(qizitarget.GObj.transform.position);
                 //¹¥»÷
             }
             else

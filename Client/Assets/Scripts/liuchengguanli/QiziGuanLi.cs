@@ -124,22 +124,23 @@ public class QiziGuanLi
         qizi.x = -0.7071068f;
         qizi.y = -0.7071068f;
         DirenList.Add(qizi);
+
         EntityQizi qizi2 = Pool.instance.PoolEntity.Get() as EntityQizi;
         qizi2.Init(0);
         QiziCXList.Remove(qizi2);
         QiziList.Remove(qizi2);
         qizi2.GObj.SetActive(false);
-        qizi2.x = -2.12132f;
-        qizi2.y = -0.7071068f;
+        qizi2.x = 3.535534f;
+        qizi2.y = 2.12132f;
         DirenList.Add(qizi2);
-        EntityQizi qizi3 = Pool.instance.PoolEntity.Get() as EntityQizi;
-        qizi3.Init(0);
-        QiziCXList.Remove(qizi3);
-        QiziList.Remove(qizi3);
-        qizi3.GObj.SetActive(false);
-        qizi3.x = -1.414214f;
-        qizi3.y = -1.414214f;
-        DirenList.Add(qizi3);
+        //EntityQizi qizi3 = Pool.instance.PoolEntity.Get() as EntityQizi;
+        //qizi3.Init(0);
+        //QiziCXList.Remove(qizi3);
+        //QiziList.Remove(qizi3);
+        //qizi3.GObj.SetActive(false);
+        //qizi3.x = -1.414214f;
+        //qizi3.y = -1.414214f;
+        //DirenList.Add(qizi3);
     }
     void InitQige()
     {

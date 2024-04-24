@@ -35,7 +35,7 @@ namespace liuchengguanli
             QiziGuanLi.Instance.QiziCXList.Add(this);
             xueliangnow = xueliangsum;
             powernow = 0;//初始化蓝量
-            gongjiDistence = 1.5f;//初始化攻击距离
+            gongjiDistence = 1.2f;//初始化攻击距离
             this.xuetiao = this.GObj.transform.Find("xuetiao_qizi/xuetiao").GetComponent<Slider>();
             this.xuetiao.value = this.xueliangnow / this.xueliangnow;
             this.power = this.GObj.transform.Find("xuetiao_qizi/pow").GetComponent<Slider>();

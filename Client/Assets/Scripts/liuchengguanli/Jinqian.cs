@@ -5,7 +5,7 @@ using UnityEngine;
 public class Jinqian
 {
     //初始金币为10
-    private int jinbinum = 20;
+    private int jinbinum = 40;
 
     public void changejinqian(int change)
     {
