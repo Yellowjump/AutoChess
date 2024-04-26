@@ -1,8 +1,12 @@
 using liuchengguanli;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityGameFramework.Runtime;
+using static UnityEngine.GraphicsBuffer;
 
 public class QiziGuanLi
 {
@@ -19,12 +23,15 @@ public class QiziGuanLi
     QiziGuanLi()
     {
         Init();//初始化paiku*
+        InitQige();//初始化qige[]
     }
     //private int _curUid = 1;
     public int []changshang= { -1, -1, -1, -1, -1, -1, -1, -1, -1 };//记录场上棋子的index
     public int []changxia= { -1, -1, -1, -1, -1, -1, -1, -1,-1 };//记录场下棋子的index
     public List<EntityQizi> QiziList = new List<EntityQizi>();//保存所有生成的棋子
     public List<EntityQizi> QiziCSList = new List<EntityQizi>();//保存所有在场上的棋子
+    public List<EntityQizi> QiziCXList = new List<EntityQizi>();//保存所有在场下的棋子
+    public List<EntityQizi> DirenList = new List<EntityQizi>();//保存敌方棋子
     public int[] qizi = {1 };//记录棋子的价格，i是棋子的index
     public int[] qizishu = {20 };//i是棋子的index，里面是棋子是剩余数量
     //保存每种费用棋子的数量，index以及每个等级抽到的概率
@@ -46,9 +53,22 @@ public class QiziGuanLi
     public int []goumaiUIqiziIndex = new int[5];//记录UI购买界面的棋子index
     public int []goumaiUIqiziPaikuIndex = new int[5];//记录UI购买界面的棋子在牌库的index
     private int[] goumaiUiqiziPaikuFeiyong = new int[5];//记录UI购买界面的棋子
-    public int dangqianliucheng = 0;
+    public int dangqianliucheng = 0;//保存当前流程，0是prebattle,1是battle
+    public List<Sprite> ListQiziLevelSprite = new List<Sprite>();//保存棋子星级图片
+    public int[][] qige = new int[9][];//保存棋格上是否有棋子
+    public Vector3[][] qigepos = new Vector3[9][];//保存棋格位置
+
+    public GameObject showpath;
+
     void Init()//初始化每个牌库
     {
+        showpath = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefeb/qigezi/showpath.prefab");//绑定path预制体
+        Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Image/level1.png");
+        Sprite spr2 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Image/level2.png");
+        Sprite spr3 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Image/level3.png");
+        ListQiziLevelSprite.Add(spr);
+        ListQiziLevelSprite.Add(spr2);
+        ListQiziLevelSprite.Add(spr3);
         for (int i=0;i<qizi.Length;i++)
         {
             switch (qizi[i])
@@ -94,6 +114,56 @@ public class QiziGuanLi
             }
         }
     }
+    public void InitDirenList()
+    {
+        EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
+        qizi.Init(0);
+        QiziCXList.Remove(qizi);
+        QiziList.Remove(qizi);
+        qizi.GObj.SetActive(false);
+        qizi.x = -0.7071068f;
+        qizi.y = -0.7071068f;
+        DirenList.Add(qizi);
+
+        EntityQizi qizi2 = Pool.instance.PoolEntity.Get() as EntityQizi;
+        qizi2.Init(0);
+        QiziCXList.Remove(qizi2);
+        QiziList.Remove(qizi2);
+        qizi2.GObj.SetActive(false);
+        qizi2.x = 3.535534f;
+        qizi2.y = 2.12132f;
+        DirenList.Add(qizi2);
+        //EntityQizi qizi3 = Pool.instance.PoolEntity.Get() as EntityQizi;
+        //qizi3.Init(0);
+        //QiziCXList.Remove(qizi3);
+        //QiziList.Remove(qizi3);
+        //qizi3.GObj.SetActive(false);
+        //qizi3.x = -1.414214f;
+        //qizi3.y = -1.414214f;
+        //DirenList.Add(qizi3);
+    }
+    void InitQige()
+    {
+        qige[0] =new int[5]{ 0,0,0,0,0};
+        qige[1] = new int[6] { 0, 0, 0, 0, 0 ,0};
+        qige[2] = new int[5] { 0, 0, 0, 0, 0 };
+        qige[3] = new int[6] { 0, 0, 0, 0, 0,0 };
+        qige[4] = new int[5] { 0, 0, 0, 0, 0 };
+        qige[5] = new int[6] { 0, 0, 0, 0, 0,0 };
+        qige[6] = new int[5] { 0, 0, 0, 0, 0 };
+        qige[7] = new int[6] { 0, 0, 0, 0, 0,0 };
+        qige[8] = new int[5] { 0, 0, 0, 0, 0 };
+        qigepos[0] = new Vector3[5];
+        qigepos[1] = new Vector3[6];
+        qigepos[2] = new Vector3[5];
+        qigepos[3] = new Vector3[6];
+        qigepos[4] = new Vector3[5];
+        qigepos[5] = new Vector3[6];
+        qigepos[6] = new Vector3[5];
+        qigepos[7] = new Vector3[6];
+        qigepos[8] = new Vector3[5];
+
+    }
     //按照等级来抽五张牌
     public void choupai(int dengji)
     {
@@ -106,7 +176,7 @@ public class QiziGuanLi
         for (int i=0;i<5&&sumnum<1000;i++)
         {
             sumnum++;
-            int dengjirandom = Random.Range(0,100);
+            int dengjirandom = UnityEngine.Random.Range(0,100);
             if (dengjirandom <= gailv1[dengji-1])
             {
                 if (paiku1num != 0)
@@ -176,7 +246,7 @@ public class QiziGuanLi
     }
     int findRandom(int i,int paikunum,int[]paiku,int feiyong)
     {
-        int pairandom = Random.Range(0, paikunum);
+        int pairandom = UnityEngine.Random.Range(0, paikunum);
         bool findYou = true;
         while (findYou)
         {
@@ -186,7 +256,7 @@ public class QiziGuanLi
                 if (pairandom == goumaiUIqiziIndex[i] && qizi[paiku[pairandom]] == feiyong)
                 {
                     findYou = true;
-                    pairandom = Random.Range(0, paikunum);
+                    pairandom = UnityEngine.Random.Range(0, paikunum);
                 }
             }
         }
@@ -292,5 +362,123 @@ public class QiziGuanLi
             }
         }
     }
+    public float getDistance(Vector2Int a,Vector2Int b)
+    {
+        return (qigepos[a.x][a.y].x - qigepos[b.x][b.y].x) * (qigepos[a.x][a.y].x - qigepos[b.x][b.y].x) + (qigepos[a.x][a.y].z - qigepos[b.x][b.y].z) * (qigepos[a.x][a.y].z - qigepos[b.x][b.y].z);
+    }
+    public Vector2Int getIndexQige(Vector3 pos)
+    {
+        int targetx = 4 - (int)(pos.z * 2 / 1.414f );
+        int targety;
+        if (targetx % 2 == 0)
+        {
+            targety = (int)(pos.x / 1.414f) + 2;
+        }
+        else
+        {
+            targety = (int)((pos.x + 1.414f / 2) / 1.414f) + 2;
+        }
+        return new Vector2Int(targetx,targety);
+    }
+    public Vector2Int Findpath(Vector2Int start, Vector2Int end,float gongjidistance)
+    {
+        Vector2Int lastpos=start;
+        List<Vector2Int> sortList = new List<Vector2Int>();
+        Dictionary<Vector2Int, Vector2Int> cameFrom = new Dictionary<Vector2Int, Vector2Int>();
+        Dictionary<Vector2Int, float> xiaoHao = new Dictionary<Vector2Int, float>();
+        sortList.Add(start);
+        //cameFrom[start] = new Vector2Int(-1,-1);
+        xiaoHao[start] = 0f;
+        bool find = false;
+        while (sortList.Count > 0)
+        {
+            Vector2Int current = sortList[0];
+            for (int i = 1; i < sortList.Count; i++)
+            {
+                if (xiaoHao[current] * xiaoHao[current] +getDistance(current, end) > xiaoHao[sortList[i]] * xiaoHao[sortList[i]] + getDistance(sortList[i], end))
+                {
+                    current = sortList[i];
+                }
+            }
+            sortList.Remove(current);
+            if (getDistance(current,end)<=gongjidistance*gongjidistance)
+            {
+                lastpos = current;
+                find = true;
+                break;
+            }
+            //找四个斜线方向的点,x为奇数或者偶数情况不一样
+            if (current.x % 2 == 0)//偶数情况
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    for (int j = 0; j < 2; j++)
+                    {
+                        Vector2Int newpos = new Vector2Int(current.x + 1 - i * 2, current.y + j);
+                        if (newpos.x < 0 || newpos.x > 8 || newpos.y < 0 || newpos.y > 5)
+                        {
+                            continue;
+                        }
+                        if (cameFrom.ContainsKey(newpos))
+                        {
+                            continue;
+                        }
+                        if (QiziGuanLi.Instance.qige[newpos.x][newpos.y] == 1)
+                        {
+                            continue;
+                        }
+                        sortList.Add(newpos);
+                        cameFrom[newpos] = current;
+                        xiaoHao[newpos] = xiaoHao[current] + 1;
+                    }
+                }
+            }
+            else//奇数情况
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    for (int j = 0; j < 2; j++)
+                    {
+                        Vector2Int newpos = new Vector2Int(current.x + 1 - i * 2, current.y - j);
 
+                        if (newpos.x < 0 || newpos.x > 8 || newpos.y < 0 || newpos.y > 4)
+                        {
+                            continue;
+                        }
+                        if (cameFrom.ContainsKey(newpos))
+                        {
+                            continue;
+                        }
+                        if (QiziGuanLi.Instance.qige[newpos.x][newpos.y] == 1)
+                        {
+                            continue;
+                        }
+                        sortList.Add(newpos);
+                        cameFrom[newpos] = current;
+                        xiaoHao[newpos] = xiaoHao[current] + 1;
+                    }
+                }
+            }
+        }
+        //Log.Info("hfk:find ="+find);
+        if (find)
+        {
+            Stack<Vector2Int> trace = new Stack<Vector2Int>();
+            Vector2Int pos = lastpos;
+            while (cameFrom.ContainsKey(pos))
+            {
+                trace.Push(pos);
+                pos = cameFrom[pos];
+            }
+            while (trace.Count > 0)
+            {
+                Vector2Int p = trace.Pop();
+                return p;
+                //Vector3 po = qigepos[p.x][p.y];
+                //Log.Info("hfk:p=" + qigepos[p.x][p.y].x+" "+ qigepos[p.x][p.y].z + " pos=" + po);
+                //GameObject qg =GameObject.Instantiate(showpath, po, Quaternion.Euler(0, 45, 0));
+            }
+        }
+        return new Vector2Int(-1,-1);
+    }
 }

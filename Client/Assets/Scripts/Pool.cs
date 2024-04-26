@@ -6,9 +6,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Presets;
 using UnityEngine;
 
 using UnityEngine.Pool;
+using UnityEngine.TextCore.Text;
 using UnityGameFramework.Runtime;
 
 public class Pool :MonoBehaviour
@@ -37,7 +39,7 @@ public class Pool :MonoBehaviour
     }
     GameObject createFuncObj()
     {
-        GameObject obj = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefeb/Charactor/unitychan.prefab");
+        GameObject obj = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefeb/Charactor/qizi0/unitychan.prefab"); 
         GameObject ob = Instantiate(obj,this.transform);
         return ob;
     }
