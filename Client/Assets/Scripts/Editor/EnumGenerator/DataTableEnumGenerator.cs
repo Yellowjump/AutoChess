@@ -18,7 +18,7 @@ namespace DataTable
         private readonly static string[] GenerateDataTables = {
         };
 
-        [MenuItem("Tools/Generate DataTable Enum", false, 3)]
+        /*[MenuItem("Tools/Generate DataTable Enum", false, 3)]
         private static void GenerateDataTableEnum()
         {
             foreach (string dataTableName in GenerateDataTables)
@@ -34,7 +34,7 @@ namespace DataTable
             }
 
             AssetDatabase.Refresh();
-        }
+        }*/
 
         public static void GenerateEnumFile(DataTableProcessor dataTableProcessor, string dataTableName)
         {

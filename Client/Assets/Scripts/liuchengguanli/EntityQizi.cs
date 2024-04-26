@@ -21,6 +21,8 @@ namespace liuchengguanli
         public float y;//�������ϵ�λ��
         public float gongjiDistence;//��������
         //GameObject xuetiao;//Ѫ��ui
+        public TriggerList NormalSkill;
+        public TriggerList SpSkill;
         public override void Init(int i)
         {
             this.Index = i;
@@ -46,13 +48,20 @@ namespace liuchengguanli
                 return;
             }
             var skillID = heroTable[ID].SkillID;
-            var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
+            var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");//先只初始化 normalSkill
             if (!skillTable.HasDataRow(skillID))
             {
                 Log.Error($"heroID:{ID} skillID{skillID} invalid no match TableRow");
                 return;
             }
             var skillTableData = skillTable[skillID];
+            var skillTemplates = GameEntry.DataTable.GetDataTable<DRSkillTemplate>("SkillTemplate");
+            if (!skillTemplates.HasDataRow(skillTableData.TemplateID))
+            {
+                Log.Error($"skillID{skillID} no match Template{skillTableData.TemplateID}");
+                return;
+            }
+            var temp = skillTemplates[skillTableData.TemplateID].Skill;
             
         }
     }

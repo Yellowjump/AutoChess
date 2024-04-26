@@ -40,6 +40,11 @@ namespace Procedure
             {
                 Log.Info("assetID 101 path is :" + assetPath[101].AssetPath);
             }
+            var skillTemp = GameEntry.DataTable.GetDataTable<DRSkillTemplate>("SkillTemplate");
+            if (skillTemp.HasDataRow(1001))
+            {
+                Log.Info("assetID 101 path is :" + skillTemp[1001].Skill);
+            }
             goumaiUI = GameEntry.UI.GetUIForm(UICtrlName.JieMianUIPrefab);
         }
         protected override void OnUpdate(ProcedureOwner procedureOwner, float elapseSeconds, float realElapseSeconds)
