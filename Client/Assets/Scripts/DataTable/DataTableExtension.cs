@@ -7,10 +7,13 @@
 
 using GameFramework;
 using System;
+using System.IO;
+using System.Text;
 using UnityEngine;
 using GameFramework.Resource;
 using UnityGameFramework.Runtime;
 using GameFramework.DataTable;
+using SkillSystem;
 
 namespace DataTable
 {
@@ -18,5 +21,72 @@ namespace DataTable
     {
         internal static readonly char[] DataSplitSeparators = new char[] { '\t' };
         internal static readonly char[] DataTrimSeparators = new char[] { '\"' };
+        public static Color32 ParseColor32(string value)
+        {
+            string[] splitValue = value.Split(',');
+            return new Color32(byte.Parse(splitValue[0]), byte.Parse(splitValue[1]), byte.Parse(splitValue[2]), byte.Parse(splitValue[3]));
+        }
+
+        public static Color ParseColor(string value)
+        {
+            string[] splitValue = value.Split(',');
+            return new Color(float.Parse(splitValue[0]), float.Parse(splitValue[1]), float.Parse(splitValue[2]), float.Parse(splitValue[3]));
+        }
+
+        public static Quaternion ParseQuaternion(string value)
+        {
+            string[] splitValue = value.Split(',');
+            return new Quaternion(float.Parse(splitValue[0]), float.Parse(splitValue[1]), float.Parse(splitValue[2]), float.Parse(splitValue[3]));
+        }
+
+        public static Rect ParseRect(string value)
+        {
+            string[] splitValue = value.Split(',');
+            return new Rect(float.Parse(splitValue[0]), float.Parse(splitValue[1]), float.Parse(splitValue[2]), float.Parse(splitValue[3]));
+        }
+
+        public static Vector2 ParseVector2(string value)
+        {
+            string[] splitValue = value.Split(',');
+            return new Vector2(float.Parse(splitValue[0]), float.Parse(splitValue[1]));
+        }
+
+        public static Vector3 ParseVector3(string value)
+        {
+            string[] splitValue = value.Split(',');
+            return new Vector3(float.Parse(splitValue[0]), float.Parse(splitValue[1]), float.Parse(splitValue[2]));
+        }
+
+        public static Vector4 ParseVector4(string value)
+        {
+            string[] splitValue = value.Split(',');
+            return new Vector4(float.Parse(splitValue[0]), float.Parse(splitValue[1]), float.Parse(splitValue[2]), float.Parse(splitValue[3]));
+        }
+
+        public static int[] ParseInt32Array(string value)
+        {
+            string[] splitValue = value.Split(',');
+            int[] result = new int[splitValue.Length];
+            for (int i = 0; i < splitValue.Length; i++)
+            {
+                result[i] = int.Parse(splitValue[i]);
+            }
+
+            return result;
+        }
+        public static TriggerList ParseTriggerList(string value)
+        {
+            TriggerList newEmptyTriggerList = SkillFactory.CreateNewEmptyTriggerList();
+            // 解码 Base64 字符串
+            byte[] decodedData = Convert.FromBase64String(value);
+            using (MemoryStream memoryStream = new MemoryStream(decodedData, 0, decodedData.Length, false))
+            {
+                using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
+                {
+                    newEmptyTriggerList.ReadFromFile(binaryReader);
+                }
+            }
+            return newEmptyTriggerList;
+        }
     }
 }

@@ -7,6 +7,7 @@
 
 using System;
 using System.IO;
+using SkillSystem;
 using UnityEngine;
 
 namespace DataTable
@@ -64,6 +65,11 @@ namespace DataTable
 
             return intArray;
         }
-
+        public static TriggerList ReadTriggerList(this BinaryReader binaryReader)
+        {
+            var newEmptyTriggerList =  SkillFactory.CreateNewEmptyTriggerList();
+            newEmptyTriggerList.ReadFromFile(binaryReader);
+            return newEmptyTriggerList;
+        }
     }
 }

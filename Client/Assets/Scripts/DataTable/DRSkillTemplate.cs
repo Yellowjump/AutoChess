@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-04-26 18:20:00.255
+// 生成时间：2024-04-26 18:20:00.260
 //------------------------------------------------------------
 
 using GameFramework;
@@ -21,14 +21,14 @@ namespace DataTable
 {
 
     /// <summary>
-    /// 角色表。
+    /// 技能模板表。
     /// </summary>
-    public class DRHero : DataRowBase
+    public class DRSkillTemplate : DataRowBase
     {
         private int m_Id = 0;
 
         /// <summary>
-        /// 获取角色ID。
+        /// 获取模板ID。
         /// </summary>
         public override int Id
         {
@@ -39,9 +39,9 @@ namespace DataTable
         }
 
         /// <summary>
-        /// 获取技能ID。
+        /// 获取技能。
         /// </summary>
-        public int SkillID
+        public TriggerList Skill
         {
             get;
             private set;
@@ -58,7 +58,7 @@ namespace DataTable
             int index = 0;
             index++;
             m_Id = int.Parse(columnStrings[index++]);
-            SkillID = int.Parse(columnStrings[index++]);
+            Skill = DataTableExtension.ParseTriggerList(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -71,7 +71,7 @@ namespace DataTable
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
-                    SkillID = binaryReader.Read7BitEncodedInt32();
+                    Skill = binaryReader.ReadTriggerList();
                 }
             }
 
