@@ -10,13 +10,11 @@ using UnityGameFramework.Runtime;
 
 namespace liuchengguanli
 {
-    public class EntityQizi : EntityBase
+    public partial class EntityQizi : EntityBase
     {
         public int level;
         public int money;
         public int ID;//hero表中ID
-        public TriggerList NormalSkill;
-        public TriggerList SpSkill;
         public float xueliangsum=1000;//��Ѫ��
         public float powersum =100;//����
         public float xueliangnow;//��ǰѪ��
@@ -53,35 +51,6 @@ namespace liuchengguanli
             //this.GObj.GetComponent<Fsm_qizi0>().Init();
             //Log.Info("hfk:qizichushihua:" + this.GObj.name+"list.size: " + Pool.instance.list.Count + "list[0]position:" + Pool.instance.list[0].GObj.transform.localPosition);
         }
-
-        private void InitSkill()
-        {
-            var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
-            if (!heroTable.HasDataRow(ID))
-            {
-                Log.Error($"heroID:{ID} invalid no match TableRow");
-                return;
-            }
-
-            var skillID = heroTable[ID].SkillID;
-            var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill"); //先只初始化 normalSkill
-            if (!skillTable.HasDataRow(skillID))
-            {
-                Log.Error($"heroID:{ID} skillID{skillID} invalid no match TableRow");
-                return;
-            }
-
-            var skillTableData = skillTable[skillID];
-            var skillTemplates = GameEntry.DataTable.GetDataTable<DRSkillTemplate>("SkillTemplate");
-            if (!skillTemplates.HasDataRow(skillTableData.TemplateID))
-            {
-                Log.Error($"skillID{skillID} no match Template{skillTableData.TemplateID}");
-                return;
-            }
-
-            var temp = skillTemplates[skillTableData.TemplateID].Skill;
-        }
-
         public void Remove()
         {
             if (this.GObj.transform.localPosition.z == -4.5f)//��������ڳ���

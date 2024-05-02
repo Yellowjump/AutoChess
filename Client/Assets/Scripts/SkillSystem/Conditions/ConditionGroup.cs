@@ -7,7 +7,7 @@ namespace SkillSystem
         public override ConditionType CurConditionType => ConditionType.ConditionGroup;
         public LogicOperator CurLogicOperator = LogicOperator.And;
         public List<ConditionBase> ConditionList = new List<ConditionBase>();
-        public override bool OnCheck(OneTrigger trigger)
+        public override bool OnCheck(OneTrigger trigger,object arg = null)
         {
             if (ConditionList == null || ConditionList.Count == 0)
             {

@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
 using liuchengguanli;
+using UnityGameFramework.Runtime;
 
 namespace SkillSystem
 {
     public class OneTrigger
     {
+        public TriggerList ParentTriggerList;
         public TriggerType CurTriggerType;
         public ConditionBase CurCondition;
         public TargetPickerBase CurTargetPicker;
@@ -18,20 +20,20 @@ namespace SkillSystem
                 OnTrigger();
             }
         }
-        public void OnTrigger()
+        public void OnTrigger(object arg = null)
         {
-            if (CurCondition != null && CurCondition.OnCheck(this)==!CurCondition.ReverseResult)
+            if (CurCondition != null && CurCondition.OnCheck(this,arg)==!CurCondition.ReverseResult)
             {
                 if (CurTargetPicker != null)
                 {
-                    CurTarget = CurTargetPicker.GetTarget(this);
+                    CurTarget = CurTargetPicker.GetTarget(this,arg);
                 }
 
                 if (CurCommandList != null && CurCommandList.Count != 0)
                 {
                     foreach (var oneCommand in CurCommandList)
                     {
-                        oneCommand?.OnExecute(this);
+                        oneCommand?.OnExecute(this,arg);
                     }
                 }
                 
@@ -59,10 +61,12 @@ namespace SkillSystem
             var curConditionType = (ConditionType)reader.ReadInt32();
             CurCondition = SkillFactory.CreateCondition(curConditionType);
             CurCondition.ReadFromFile(reader);
+            CurCondition.ParentTrigger = this;
             
             var curTargetPickerType = (TargetPickerType)reader.ReadInt32();
             CurTargetPicker = SkillFactory.CreateTargetPicker(curTargetPickerType);
             CurTargetPicker.ReadFromFile(reader);
+            CurTargetPicker.ParentTrigger = this;
             
             var commandCount = reader.ReadInt32();
             CurCommandList.Clear();
@@ -72,6 +76,40 @@ namespace SkillSystem
                 var curCommand = SkillFactory.CreateCommand(curCommandType);
                 CurCommandList.Add(curCommand);
                 curCommand.ReadFromFile(reader);
+                curCommand.ParentTrigger = this;
+            }
+        }
+
+        public void Clone(OneTrigger copy)
+        {
+            copy.CurTriggerType = CurTriggerType;
+            
+            var copyCondition = SkillFactory.CreateCondition(CurCondition.CurConditionType);
+            CurCondition.Clone(copyCondition);
+            copyCondition.ParentTrigger = copy;
+            copy.CurCondition = copyCondition;
+            
+            var copyTargetPicker = SkillFactory.CreateTargetPicker(CurTargetPicker.CurTargetPickerType);
+            CurTargetPicker.Clone(copyTargetPicker);
+            copyTargetPicker.ParentTrigger = copy;
+            copy.CurTargetPicker = copyTargetPicker;
+
+            copy.CurCommandList.Clear();
+            foreach (var oneCommand in CurCommandList)
+            {
+                var copyCommand = SkillFactory.CreateCommand(oneCommand.CurCommandType);
+                oneCommand.Clone(copyCommand);
+                copyCommand.ParentTrigger = copy;
+                copy.CurCommandList.Add(copyCommand);
+            }
+        }
+        public void SetSkillValue(DataRowBase dataTable)
+        {
+            CurCondition.SetSkillValue(dataTable);
+            CurTargetPicker.SetSkillValue(dataTable);
+            foreach (var oneCommand in CurCommandList)
+            {
+                oneCommand.SetSkillValue(dataTable);
             }
         }
     }

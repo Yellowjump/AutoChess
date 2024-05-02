@@ -103,5 +103,23 @@ namespace SkillSystem
         None,
         [InspectorName("SKill表")]
         Skill,
+        [InspectorName("Buff表")]
+        Buff,
+    }
+
+    public enum SkillType
+    {
+        /// <summary>
+        /// 普工
+        /// </summary>
+        NormalSkill,
+        /// <summary>
+        /// 特殊技能
+        /// </summary>
+        SpSkill,
+        /// <summary>
+        /// 被动技能
+        /// </summary>
+        PassiveSkill,
     }
 }

@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-05-01 21:43:12.510
+// 生成时间：2024-05-01 21:43:12.503
 //------------------------------------------------------------
 
 using GameFramework;
@@ -19,11 +19,10 @@ using SkillSystem;
 
 namespace DataTable
 {
-	public enum DRSkillField
+	public enum DRBuffField
 	{
 	    TemplateID,
 	    Duration,
-	    CD,
 	    IntParam1,
 	    IntParam2,
 	    IntParam3,
@@ -34,14 +33,14 @@ namespace DataTable
 	}
 
     /// <summary>
-    /// 资源路径配置表。
+    /// buff表。
     /// </summary>
-    public class DRSkill : DataRowBase
+    public class DRBuff : DataRowBase
     {
         private int m_Id = 0;
 
         /// <summary>
-        /// 获取技能ID。
+        /// 获取buffID。
         /// </summary>
         public override int Id
         {
@@ -64,15 +63,6 @@ namespace DataTable
         /// 获取持续时间ms。
         /// </summary>
         public int Duration
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// 获取冷却时间ms。
-        /// </summary>
-        public int CD
         {
             get;
             private set;
@@ -155,7 +145,6 @@ namespace DataTable
             index++;
             TemplateID = int.Parse(columnStrings[index++]);
             Duration = int.Parse(columnStrings[index++]);
-            CD = int.Parse(columnStrings[index++]);
             IntParam1 = int.Parse(columnStrings[index++]);
             IntParam2 = int.Parse(columnStrings[index++]);
             IntParam3 = int.Parse(columnStrings[index++]);
@@ -177,7 +166,6 @@ namespace DataTable
                     m_Id = binaryReader.Read7BitEncodedInt32();
                     TemplateID = binaryReader.Read7BitEncodedInt32();
                     Duration = binaryReader.Read7BitEncodedInt32();
-                    CD = binaryReader.Read7BitEncodedInt32();
                     IntParam1 = binaryReader.Read7BitEncodedInt32();
                     IntParam2 = binaryReader.Read7BitEncodedInt32();
                     IntParam3 = binaryReader.Read7BitEncodedInt32();
@@ -281,22 +269,21 @@ namespace DataTable
 		/// </summary>
 		/// <typeparam name="T"> 
 		///     <para>
-		///         <see cref="DRSkillField.TemplateID"/> 对应的是 int,
-		///         <see cref="DRSkillField.Duration"/> 对应的是 int,
-		///         <see cref="DRSkillField.CD"/> 对应的是 int,
-		///         <see cref="DRSkillField.IntParam1"/> 对应的是 int,
-		///         <see cref="DRSkillField.IntParam2"/> 对应的是 int,
-		///         <see cref="DRSkillField.IntParam3"/> 对应的是 int,
-		///         <see cref="DRSkillField.IntParam4"/> 对应的是 int,
-		///         <see cref="DRSkillField.IntParam5"/> 对应的是 int,
-		///         <see cref="DRSkillField.StringParam1"/> 对应的是 string,
-		///         <see cref="DRSkillField.StringParam2"/> 对应的是 string,
+		///         <see cref="DRBuffField.TemplateID"/> 对应的是 int,
+		///         <see cref="DRBuffField.Duration"/> 对应的是 int,
+		///         <see cref="DRBuffField.IntParam1"/> 对应的是 int,
+		///         <see cref="DRBuffField.IntParam2"/> 对应的是 int,
+		///         <see cref="DRBuffField.IntParam3"/> 对应的是 int,
+		///         <see cref="DRBuffField.IntParam4"/> 对应的是 int,
+		///         <see cref="DRBuffField.IntParam5"/> 对应的是 int,
+		///         <see cref="DRBuffField.StringParam1"/> 对应的是 string,
+		///         <see cref="DRBuffField.StringParam2"/> 对应的是 string,
 		///     </para>
 		/// </typeparam>
 		/// <param name="field">枚举值，表示需要获取的表字段</param>
 		/// <returns>返回字段值</returns>
 		/// <exception cref="ArgumentException">当传入的枚举值无效时抛出异常</exception>
-		public T GetFieldValue<T>(DRSkillField field)
+		public T GetFieldValue<T>(DRBuffField field)
 		{
 		    if (FieldMap.TryGetValue(field, out var func))
 		    {
@@ -305,25 +292,24 @@ namespace DataTable
 		        {
 		            return (T)Convert.ChangeType(ret.Item1, typeof(T));
 		        }
-		        throw new ArgumentException($"Invalid DRSkillField {field} type:{ret.Item2} errorType:{typeof(T)}");
+		        throw new ArgumentException($"Invalid DRBuffField {field} type:{ret.Item2} errorType:{typeof(T)}");
 		    }
 		    else
 		    {
-		        throw new ArgumentException("Invalid DRSkillField value");
+		        throw new ArgumentException("Invalid DRBuffField value");
 		    }
 		}
-		private static readonly Dictionary<DRSkillField, Func<DRSkill, (object, Type)>> FieldMap = new Dictionary<DRSkillField, Func<DRSkill, (object, Type)>>()
+		private static readonly Dictionary<DRBuffField, Func<DRBuff, (object, Type)>> FieldMap = new Dictionary<DRBuffField, Func<DRBuff, (object, Type)>>()
 		{
-		    { DRSkillField.TemplateID, obj => (obj.TemplateID, typeof(int)) },
-		    { DRSkillField.Duration, obj => (obj.Duration, typeof(int)) },
-		    { DRSkillField.CD, obj => (obj.CD, typeof(int)) },
-		    { DRSkillField.IntParam1, obj => (obj.IntParam1, typeof(int)) },
-		    { DRSkillField.IntParam2, obj => (obj.IntParam2, typeof(int)) },
-		    { DRSkillField.IntParam3, obj => (obj.IntParam3, typeof(int)) },
-		    { DRSkillField.IntParam4, obj => (obj.IntParam4, typeof(int)) },
-		    { DRSkillField.IntParam5, obj => (obj.IntParam5, typeof(int)) },
-		    { DRSkillField.StringParam1, obj => (obj.StringParam1, typeof(string)) },
-		    { DRSkillField.StringParam2, obj => (obj.StringParam2, typeof(string)) },
+		    { DRBuffField.TemplateID, obj => (obj.TemplateID, typeof(int)) },
+		    { DRBuffField.Duration, obj => (obj.Duration, typeof(int)) },
+		    { DRBuffField.IntParam1, obj => (obj.IntParam1, typeof(int)) },
+		    { DRBuffField.IntParam2, obj => (obj.IntParam2, typeof(int)) },
+		    { DRBuffField.IntParam3, obj => (obj.IntParam3, typeof(int)) },
+		    { DRBuffField.IntParam4, obj => (obj.IntParam4, typeof(int)) },
+		    { DRBuffField.IntParam5, obj => (obj.IntParam5, typeof(int)) },
+		    { DRBuffField.StringParam1, obj => (obj.StringParam1, typeof(string)) },
+		    { DRBuffField.StringParam2, obj => (obj.StringParam2, typeof(string)) },
 		};
 
     }
