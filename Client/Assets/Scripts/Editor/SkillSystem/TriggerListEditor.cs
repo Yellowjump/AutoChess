@@ -28,8 +28,15 @@ namespace Editor.SkillSystem
                 // 左边界右移 20 像素
                 GUILayout.Space(20);
                 EditorGUILayout.BeginVertical();
-                foreach (var oneTrigger in triggerList.CurTriggerList)
+                for (var triggerIndex = 0; triggerIndex < triggerList.CurTriggerList.Count; triggerIndex++)
                 {
+                    var oneTrigger = triggerList.CurTriggerList[triggerIndex];
+                    EditorGUILayout.BeginHorizontal();
+                    if (GUILayout.Button("X", GUILayout.Width(20)))
+                    {
+                        triggerList.CurTriggerList.Remove(oneTrigger);
+                    }
+
                     EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                     // 绘制边界线
                     Rect rect = GUILayoutUtility.GetRect(0, 0);
@@ -37,7 +44,9 @@ namespace Editor.SkillSystem
                     SkillSystemDrawerCenter.DrawOneInstance(oneTrigger);
                     EditorGUILayout.EndVertical();
                     GUILayout.Space(5);
+                    EditorGUILayout.EndHorizontal();
                 }
+
                 EditorGUILayout.EndVertical();
                 EditorGUILayout.EndHorizontal(); // 结束水平布局
             }

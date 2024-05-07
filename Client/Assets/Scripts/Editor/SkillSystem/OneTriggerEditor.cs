@@ -33,9 +33,21 @@ namespace Editor.SkillSystem
 
                 if (oneTrigger.CurCommandList != null && oneTrigger.CurCommandList.Count != 0)
                 {
+                    EditorGUILayout.BeginVertical();
+                    
                     for (var commandIndex = 0; commandIndex < oneTrigger.CurCommandList.Count; commandIndex++)
                     {
                         var oneCommand = oneTrigger.CurCommandList[commandIndex];
+                        EditorGUILayout.BeginHorizontal();
+                        if (GUILayout.Button("X", GUILayout.Width(20)))
+                        {
+                            oneTrigger.CurCommandList.Remove(oneCommand);
+                        }
+                        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                        
+                        // 绘制边界线
+                        Rect rect = GUILayoutUtility.GetRect(0, 0);
+                        EditorGUI.DrawRect(new Rect(rect.x - 2, rect.y, 2, rect.height), Color.black);
                         var oldCommandType = oneCommand.CurCommandType;
                         var newCommandType =
                             (CommandType)EditorGUILayout.EnumPopup("Command类型", oneCommand.CurCommandType);
@@ -44,7 +56,11 @@ namespace Editor.SkillSystem
                             oneTrigger.CurCommandList[commandIndex] = SkillFactory.CreateCommand(newCommandType);
                         }
                         SkillSystemDrawerCenter.DrawOneInstance(oneCommand);
+                        EditorGUILayout.EndVertical();
+                        GUILayout.Space(5);
+                        EditorGUILayout.EndHorizontal();
                     }
+                    EditorGUILayout.EndVertical();
                 }
                 
             }

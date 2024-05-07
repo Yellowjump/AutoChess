@@ -20,6 +20,12 @@ namespace Editor.SkillSystem.Conditions
                 for (var conditionIndex = 0; conditionIndex < conditionGroup.ConditionList.Count; conditionIndex++)
                 {
                     var oneCondition = conditionGroup.ConditionList[conditionIndex];
+                    EditorGUILayout.BeginHorizontal();
+                    if (GUILayout.Button("X", GUILayout.Width(20)))
+                    {
+                        conditionGroup.ConditionList.Remove(oneCondition);
+                    }
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                     var oldConditionType = oneCondition.CurConditionType;
                     var newConditionType =
                         (ConditionType)EditorGUILayout.EnumPopup("触发条件", oneCondition.CurConditionType);
@@ -28,6 +34,9 @@ namespace Editor.SkillSystem.Conditions
                         conditionGroup.ConditionList[conditionIndex] = SkillFactory.CreateCondition(newConditionType);
                     }
                     SkillSystemDrawerCenter.DrawOneInstance(oneCondition);
+                    EditorGUILayout.EndVertical();
+                    GUILayout.Space(5);
+                    EditorGUILayout.EndHorizontal();
                 }
             }
             ConditionBaseEditor.ConditionBaseDraw(conditionGroup);
