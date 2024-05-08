@@ -9,16 +9,10 @@ namespace Editor.SkillSystem
     [SkillDrawer(typeof(TriggerList))]
     public class TriggerListEditor
     {
-        public int OldTempleteID = -1;
         public void OnGUIDraw(TriggerList triggerList)
         {
             if (triggerList !=null)
             {
-                if (OldTempleteID == -1)
-                {
-                    OldTempleteID = triggerList.TempleteID;
-                }
-                triggerList.TempleteID = EditorGUILayout.IntField("当前技能模板ID:", triggerList.TempleteID);
                 if (GUILayout.Button("添加触发器"))
                 {
                     triggerList.CurTriggerList.Add(SkillFactory.CreateNewDefaultTrigger());

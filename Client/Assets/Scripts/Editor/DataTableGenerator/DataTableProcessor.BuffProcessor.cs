@@ -15,7 +15,7 @@ namespace DataTable.Editor.DataTableTools
 {
     public sealed partial class DataTableProcessor
     {
-        private sealed class TriggerListProcessor : GenericDataProcessor<TriggerList>
+        private sealed class BuffProcessor : GenericDataProcessor<Buff>
         {
             public override bool IsSystem
             {
@@ -29,7 +29,7 @@ namespace DataTable.Editor.DataTableTools
             {
                 get
                 {
-                    return "TriggerList";
+                    return "Buff";
                 }
             }
 
@@ -37,8 +37,8 @@ namespace DataTable.Editor.DataTableTools
             {
                 return new string[]
                 {
-                    "TriggerList",
-                    "SkillSystem.TriggerList"
+                    "Buff",
+                    "SkillSystem.Buff"
                 };
             }
             public override void WriteToStream(DataTableProcessor dataTableProcessor, BinaryWriter binaryWriter, string value)
@@ -48,7 +48,7 @@ namespace DataTable.Editor.DataTableTools
                 binaryWriter.Write(decodedData);
             }
 
-            public override TriggerList Parse(string value)
+            public override Buff Parse(string value)
             {
                 return null;
             }

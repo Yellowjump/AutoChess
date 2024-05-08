@@ -1,3 +1,4 @@
+using SkillSystem;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
@@ -13,6 +14,10 @@ namespace liuchengguanli
         public virtual void Init(int index)
         {
             Log.Info("hfk:base");
+        }
+        public virtual void AddBuff(Buff buff)
+        {
+            
         }
     }
 }

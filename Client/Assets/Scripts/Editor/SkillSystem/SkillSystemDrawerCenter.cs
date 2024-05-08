@@ -97,5 +97,33 @@ namespace Editor.SkillSystem
             }
             return triggerListEditor;
         }
+        public static SkillEditor GetSkillEditor(Skill skill)
+        {
+            if (skill==null|| _drawInstanceMap == null || _drawInstanceMap.Count == 0)
+            {
+                return null;
+            }
+
+            _drawInstanceMap.TryGetValue(skill, out var instance);
+            if (instance is not SkillEditor skillEditor)
+            {
+                return null;
+            }
+            return skillEditor;
+        }
+        public static BuffEditor GetBuffEditor(Buff buff)
+        {
+            if (buff==null|| _drawInstanceMap == null || _drawInstanceMap.Count == 0)
+            {
+                return null;
+            }
+
+            _drawInstanceMap.TryGetValue(buff, out var instance);
+            if (instance is not BuffEditor skillEditor)
+            {
+                return null;
+            }
+            return skillEditor;
+        }
     }
 }

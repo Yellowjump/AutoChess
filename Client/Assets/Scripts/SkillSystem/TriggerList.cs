@@ -13,14 +13,11 @@ namespace SkillSystem
     /// </summary>
     public class TriggerList
     {
-        public int TempleteID = 0;
         public List<OneTrigger> CurTriggerList = new List<OneTrigger>();
         public TriggerListType CurTriggerListType;
-        public int SkillOrBuffID = 0;//todo 要怎么setSkillValue 读取不同的表数据
         public Skill ParentSkill;
         public void WriteToFile(BinaryWriter writer)
         {
-            writer.Write(TempleteID);
             writer.Write(CurTriggerList.Count);
             foreach (var oneTrigger in CurTriggerList)
             {
@@ -30,7 +27,6 @@ namespace SkillSystem
 
         public void ReadFromFile(BinaryReader reader)
         {
-            TempleteID = reader.ReadInt32();
             var triggerCount = reader.ReadInt32();
             CurTriggerList.Clear();
             for (int triggerIndex = 0; triggerIndex < triggerCount; triggerIndex++)
@@ -43,7 +39,6 @@ namespace SkillSystem
 
         public void Clone(TriggerList copy)
         {
-            copy.TempleteID = TempleteID;
             copy.CurTriggerListType = CurTriggerListType;
             copy.CurTriggerList.Clear();
             foreach (var oneTrigger in CurTriggerList)
@@ -53,7 +48,6 @@ namespace SkillSystem
                 oneCopyTrigger.ParentTriggerList = copy;
                 copy.CurTriggerList.Add(oneCopyTrigger);
             }
-            copy.SkillOrBuffID = SkillOrBuffID;
         }
 
         public void SetSkillValue(DataRowBase dataTable)
@@ -64,9 +58,9 @@ namespace SkillSystem
             }
         }
         /// <summary>
-        /// 当技能释放
+        /// 当技能释放或buff激活
         /// </summary>
-        public void OnCast()
+        public void OnActive()
         {
             if (ParentSkill == null)
             {
@@ -87,6 +81,7 @@ namespace SkillSystem
                     //添加到角色的 监听列表中
                 }
             }
+            OnTrigger(TriggerType.OnActive);
         }
         public void OnTrigger(TriggerType triggerType)
         {

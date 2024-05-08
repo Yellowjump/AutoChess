@@ -65,11 +65,17 @@ namespace DataTable
 
             return intArray;
         }
-        public static TriggerList ReadTriggerList(this BinaryReader binaryReader)
+        public static Skill ReadSkill(this BinaryReader binaryReader)
         {
-            var newEmptyTriggerList =  SkillFactory.CreateNewEmptyTriggerList();
-            newEmptyTriggerList.ReadFromFile(binaryReader);
-            return newEmptyTriggerList;
+            var newSkill =  SkillFactory.CreateNewSkill();
+            newSkill.ReadFromFile(binaryReader);
+            return newSkill;
+        }
+        public static Buff ReadBuff(this BinaryReader binaryReader)
+        {
+            var newBuff =  SkillFactory.CreateNewBuff();
+            newBuff.ReadFromFile(binaryReader);
+            return newBuff;
         }
     }
 }

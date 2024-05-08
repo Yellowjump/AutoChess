@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityGameFramework.Runtime;
 
 namespace SkillSystem
 {
@@ -12,6 +13,8 @@ namespace SkillSystem
                     return new CommandBase();
                 case CommandType.CauseDamage:
                     return new CommandCauseDamage();
+                case CommandType.CreateBuff:
+                    return new CommandCreateBuff();
                 default:
                     return new CommandBase();
             }
@@ -39,9 +42,10 @@ namespace SkillSystem
             }
         }
 
-        public static TriggerList CreateNewEmptyTriggerList()
+        public static TriggerList CreateNewEmptyTriggerList(Skill skill = null)
         {
             var emptyTriggerList = new TriggerList();
+            emptyTriggerList.ParentSkill = skill;
             return emptyTriggerList;
         }
         public static OneTrigger CreateNewDefaultTrigger()
@@ -57,6 +61,20 @@ namespace SkillSystem
         {
             var emptyTrigger = new OneTrigger();
             return emptyTrigger;
+        }
+
+        public static Buff CreateNewBuff()
+        {
+            var newBuff = new Buff();
+            newBuff.OwnTriggerList = CreateNewEmptyTriggerList();
+            return newBuff;
+        }
+
+        public static Skill CreateNewSkill()
+        {
+            var newSkill = new Skill();
+            newSkill.OwnTriggerList = CreateNewEmptyTriggerList();
+            return newSkill;
         }
     }
 }

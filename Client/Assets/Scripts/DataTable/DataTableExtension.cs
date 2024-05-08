@@ -74,19 +74,33 @@ namespace DataTable
 
             return result;
         }
-        public static TriggerList ParseTriggerList(string value)
+        public static Skill ParseSkill(string value)
         {
-            TriggerList newEmptyTriggerList = SkillFactory.CreateNewEmptyTriggerList();
+            Skill newSkill = SkillFactory.CreateNewSkill();
             // 解码 Base64 字符串
             byte[] decodedData = Convert.FromBase64String(value);
             using (MemoryStream memoryStream = new MemoryStream(decodedData, 0, decodedData.Length, false))
             {
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
-                    newEmptyTriggerList.ReadFromFile(binaryReader);
+                    newSkill.ReadFromFile(binaryReader);
                 }
             }
-            return newEmptyTriggerList;
+            return newSkill;
+        }
+        public static Buff ParseBuff(string value)
+        {
+            Buff newBuff = SkillFactory.CreateNewBuff();
+            // 解码 Base64 字符串
+            byte[] decodedData = Convert.FromBase64String(value);
+            using (MemoryStream memoryStream = new MemoryStream(decodedData, 0, decodedData.Length, false))
+            {
+                using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
+                {
+                    newBuff.ReadFromFile(binaryReader);
+                }
+            }
+            return newBuff;
         }
     }
 }

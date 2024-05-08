@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-05-01 21:43:12.510
+// 生成时间：2024-05-09 00:12:25.651
 //------------------------------------------------------------
 
 using GameFramework;
@@ -39,9 +39,9 @@ namespace DataTable
         }
 
         /// <summary>
-        /// 获取技能。
+        /// 获取技能模板。
         /// </summary>
-        public TriggerList Skill
+        public Skill SkillTemplate
         {
             get;
             private set;
@@ -58,7 +58,7 @@ namespace DataTable
             int index = 0;
             index++;
             m_Id = int.Parse(columnStrings[index++]);
-            Skill = DataTableExtension.ParseTriggerList(columnStrings[index++]);
+            SkillTemplate = DataTableExtension.ParseSkill(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -71,7 +71,7 @@ namespace DataTable
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
-                    Skill = binaryReader.ReadTriggerList();
+                    SkillTemplate = binaryReader.ReadSkill();
                 }
             }
 

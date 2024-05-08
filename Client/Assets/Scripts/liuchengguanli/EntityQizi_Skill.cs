@@ -17,6 +17,7 @@ namespace liuchengguanli
         public Skill SpSkill;
         public Skill PassiveSkill;
         public Dictionary<TriggerType, List<OneTrigger>> CurTriggerDic = new Dictionary<TriggerType, List<OneTrigger>>();
+        public List<Buff> CurBuffList = new List<Buff>();
         private void InitSkill()
         {
             var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
@@ -51,12 +52,9 @@ namespace liuchengguanli
                 ShakeBeforeMs = skillTableData.CD //todo 后续在skill表中添加前摇时间
             };
 
-            var temp = skillTemplates[skillTableData.TemplateID].Skill;
-            var newTriggerList = SkillFactory.CreateNewEmptyTriggerList();
-            newTriggerList.ParentSkill = NormalSkill;
-            temp.Clone(newTriggerList);
+            var temp = skillTemplates[skillTableData.TemplateID].SkillTemplate;
+            temp.Clone(NormalSkill);
             temp.SetSkillValue(skillTableData);
-            NormalSkill.OwnTriggerList = newTriggerList;
         }
 
         public void AddTriggerListen(OneTrigger oneTrigger)
@@ -74,7 +72,7 @@ namespace liuchengguanli
             var curTypeList = CurTriggerDic[triggerType];
             curTypeList.Add(oneTrigger);
         }
-
+        
         public void OnTrigger(TriggerType triggerType, object arg)
         {
             if (CurTriggerDic == null||!CurTriggerDic.ContainsKey(triggerType)||CurTriggerDic[triggerType]==null||CurTriggerDic[triggerType].Count==0)
@@ -87,6 +85,17 @@ namespace liuchengguanli
             {
                 oneTrigger.OnTrigger();
             }
+        }
+
+        public override void AddBuff(Buff buff)
+        {
+            if (buff == null)
+            {
+                return;
+            }
+            // todo 判断是否有 免疫之类的判断
+            CurBuffList.Add(buff);
+            buff.OnActive();
         }
     }
 }

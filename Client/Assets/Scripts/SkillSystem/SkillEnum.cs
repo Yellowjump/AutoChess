@@ -71,6 +71,8 @@ namespace SkillSystem
         /// </summary>
         [InspectorName("造成伤害")]
         CauseDamage,
+        [InspectorName("添加buff")]
+        CreateBuff,
     }
 
     /// <summary>
@@ -121,5 +123,27 @@ namespace SkillSystem
         /// 被动技能
         /// </summary>
         PassiveSkill,
+    }
+    /// <summary>
+    /// buff标签
+    /// </summary>
+    public enum BuffTag
+    {
+        [InspectorName("无")]
+        None = 0,         // 00000000
+        [InspectorName("重伤")]
+        HeavyDamage = 1 << 0,  // 00000001
+        [InspectorName("冰冻")]
+        Frozen = 1 << 1,       // 00000010
+        [InspectorName("眩晕")]
+        Stunned = 1 << 2,      // 00000100
+        [InspectorName("流血")]
+        Bleeding = 1 << 3,     // 00001000
+        [InspectorName("燃烧")]
+        Burning = 1 << 4,      // 00010000
+        [InspectorName("治疗")]
+        Healing = 1 << 5,      // 00100000
+        [InspectorName("不可免疫")]
+        Immune = 1 << 6        // 01000000
     }
 }

@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-05-09 00:12:25.634
+// 生成时间：2024-05-09 00:12:25.643
 //------------------------------------------------------------
 
 using GameFramework;
@@ -21,14 +21,14 @@ namespace DataTable
 {
 
     /// <summary>
-    /// 资源路径配置表。
+    /// buff模板表。
     /// </summary>
-    public class DRAssetsPath : DataRowBase
+    public class DRBuffTemplate : DataRowBase
     {
         private int m_Id = 0;
 
         /// <summary>
-        /// 获取资源编号。
+        /// 获取模板ID。
         /// </summary>
         public override int Id
         {
@@ -39,18 +39,9 @@ namespace DataTable
         }
 
         /// <summary>
-        /// 获取资源名称。
+        /// 获取buff模板。
         /// </summary>
-        public string AssetPath
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// 获取资源组Id。
-        /// </summary>
-        public string ResourceGroupIndexs
+        public Buff BuffTemplate
         {
             get;
             private set;
@@ -67,9 +58,7 @@ namespace DataTable
             int index = 0;
             index++;
             m_Id = int.Parse(columnStrings[index++]);
-            index++;
-            AssetPath = columnStrings[index++];
-            ResourceGroupIndexs = columnStrings[index++];
+            BuffTemplate = DataTableExtension.ParseBuff(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -82,8 +71,7 @@ namespace DataTable
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
-                    AssetPath = binaryReader.ReadString();
-                    ResourceGroupIndexs = binaryReader.ReadString();
+                    BuffTemplate = binaryReader.ReadBuff();
                 }
             }
 
