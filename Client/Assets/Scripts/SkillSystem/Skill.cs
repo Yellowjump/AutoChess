@@ -21,13 +21,13 @@ namespace SkillSystem
         public void Clone(Skill copy)
         {
             copy.TempleteID = TempleteID;
-            copy.OwnTriggerList = SkillFactory.CreateNewEmptyTriggerList(copy);
+            copy.OwnTriggerList ??= SkillFactory.CreateNewEmptyTriggerList(copy);
             OwnTriggerList.Clone(copy.OwnTriggerList);
         }
         public void ReadFromFile(BinaryReader reader)
         {
             TempleteID = reader.ReadInt32();
-            OwnTriggerList = SkillFactory.CreateNewEmptyTriggerList(this);
+            OwnTriggerList ??= SkillFactory.CreateNewEmptyTriggerList(this);
             OwnTriggerList.ReadFromFile(reader);
         }
 

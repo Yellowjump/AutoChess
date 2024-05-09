@@ -1,4 +1,5 @@
 using System.IO;
+using DataTable;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
@@ -11,7 +12,7 @@ namespace SkillSystem
         /// 是否创建buff表中的buff
         /// </summary>
         public bool UseTemplateBuff;
-        public TableParamInt BuffID;
+        public TableParamInt BuffID = new TableParamInt();
         /// <summary>
         /// <para>UseTemplateBuff 是 false时是临时buff（id为0）</para>
         /// <para>UseTemplateBuff 是 true时是 表格中的buff</para>
@@ -24,13 +25,48 @@ namespace SkillSystem
             if (trigger != null && trigger.CurTarget != null)
             {
                 //对当前 target 创建一个buff
-                if (UseTemplateBuff != null)
+                if (UseTemplateBuff==false)
                 {
-                    var newBuff = new Buff();
-                    TemporaryBuff.Clone(newBuff);
-                    newBuff.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
-                    newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
-                    trigger.CurTarget.AddBuff(newBuff);
+                    if (TemporaryBuff != null)
+                    {
+                        var newBuff = SkillFactory.CreateNewBuff();
+                        TemporaryBuff.Clone(newBuff);
+                        newBuff.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
+                        newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
+                        trigger.CurTarget.AddBuff(newBuff);
+                    }
+                }
+                else
+                {
+                    if (TemporaryBuff == null)
+                    {
+                        var buffTempTable = GameEntry.DataTable.GetDataTable<DRBuffTemplate>("BuffTemplate");
+                        var buffTable = GameEntry.DataTable.GetDataTable<DRBuff>("Buff");
+                        if (buffTable.HasDataRow(BuffID.Value))
+                        {
+                            var buffData = buffTable[BuffID.Value];
+                            var buffTempId = buffData.TemplateID;
+                            if (buffTempTable != null && buffTempTable.HasDataRow(buffTempId))
+                            {
+                                var buffTemp = buffTempTable[buffTempId].BuffTemplate;
+                                var newBuff = SkillFactory.CreateNewBuff();
+                                buffTemp.Clone(newBuff);
+                                newBuff.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
+                                newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
+                                newBuff.SetSkillValue(buffData);
+                                trigger.CurTarget.AddBuff(newBuff);
+                            }
+                            else
+                            {
+                                Log.Error($"No BuffTemplate ID:{buffTempId}");
+                            }
+                        }
+                        else
+                        {
+                            Log.Error($"No BuffID:{BuffID.Value}");
+                        }
+                    }
+                    
                 }
             }
         }
@@ -39,8 +75,15 @@ namespace SkillSystem
             if (copy is CommandCreateBuff copyCreateBuff)
             {
                 copyCreateBuff.UseTemplateBuff = UseTemplateBuff;
-                BuffID.Clone(copyCreateBuff.BuffID);
-                
+                if (UseTemplateBuff)
+                {
+                    BuffID.Clone(copyCreateBuff.BuffID);
+                }
+                else
+                {
+                    copyCreateBuff.TemporaryBuff = SkillFactory.CreateNewBuff();
+                    TemporaryBuff.Clone(copyCreateBuff.TemporaryBuff);
+                }
             }
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using liuchengguanli;
+using UnityGameFramework.Runtime;
 
 namespace SkillSystem
 {
@@ -16,7 +17,7 @@ namespace SkillSystem
         {
             copy.BuffID = BuffID;
             copy.OwnBuffTag = OwnBuffTag;
-            copy.OwnTriggerList = SkillFactory.CreateNewEmptyTriggerList();
+            copy.OwnTriggerList ??= SkillFactory.CreateNewEmptyTriggerList();
             OwnTriggerList.Clone(copy.OwnTriggerList);
         }
         public void OnActive()
@@ -27,7 +28,7 @@ namespace SkillSystem
         {
             TempleteID = reader.ReadInt32();
             OwnBuffTag = GetCombinedTags(reader.ReadInt32());
-            OwnTriggerList = SkillFactory.CreateNewEmptyTriggerList();
+            OwnTriggerList ??= SkillFactory.CreateNewEmptyTriggerList();
             OwnTriggerList.ReadFromFile(reader);
         }
 
@@ -48,6 +49,10 @@ namespace SkillSystem
                 }
             }
             return result;
+        }
+        public void SetSkillValue(DataRowBase dataTable)
+        {
+            OwnTriggerList?.SetSkillValue(dataTable);
         }
     }
 }
