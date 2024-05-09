@@ -57,7 +57,7 @@ public class QiziGuanLi
     public List<Sprite> ListQiziLevelSprite = new List<Sprite>();//保存棋子星级图片
     public int[][] qige = new int[9][];//保存棋格上是否有棋子
     public Vector3[][] qigepos = new Vector3[9][];//保存棋格位置
-
+    public int QiziCurUniqueIndex = 0;
     public GameObject showpath;
 
     void Init()//初始化每个牌库

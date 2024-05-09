@@ -5,25 +5,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
-public class StateIdle0 : FsmState<Fsm_qizi0>
+public class StateIdle0 : FsmState<EntityQizi>
 {
-    EntityQizi qizi;//×´Ì¬»ú¹ÒÔØµÄÆå×ÓÀà
-    EntityQizi targetqizi;//Ä¿±êÆå×Ó
+    EntityQizi qizi;//çŠ¶æ€æœºæŒ‚è½½çš„æ£‹å­ç±»
+    EntityQizi targetqizi;//ç›®æ ‡æ£‹å­
     float mindistance = 10000;
-    int zhenying;//0Îª×Ô¼ºÕóÓª£¬1ÎªµĞ·½
+    int zhenying;//0ä¸ºè‡ªå·±é˜µè¥ï¼Œ1ä¸ºæ•Œæ–¹
     float timebegin;
-    protected override void OnInit(IFsm<Fsm_qizi0> fsm)
+    protected override void OnInit(IFsm<EntityQizi> fsm)
     {
         base.OnInit(fsm);
     }
-    protected override void OnEnter(IFsm<Fsm_qizi0> fsm)
+    protected override void OnEnter(IFsm<EntityQizi> fsm)
     {
         base.OnEnter(fsm);
         if (qizi == null)
         {
             foreach (EntityQizi qz in QiziGuanLi.Instance.QiziList)
             {
-                if (qz.GObj.transform.localPosition == fsm.Owner.transform.localPosition)
+                if (qz.GObj.transform.localPosition == fsm.Owner.GObj.transform.localPosition)
                 {
                     qizi = qz;
                     zhenying = 0;
@@ -32,7 +32,7 @@ public class StateIdle0 : FsmState<Fsm_qizi0>
             }
             foreach (EntityQizi qz in QiziGuanLi.Instance.DirenList)
             {
-                if (qz.GObj.transform.localPosition == fsm.Owner.transform.localPosition)
+                if (qz.GObj.transform.localPosition == fsm.Owner.GObj.transform.localPosition)
                 {
                     qizi = qz;
                     zhenying = 1;
@@ -75,10 +75,10 @@ public class StateIdle0 : FsmState<Fsm_qizi0>
             }
         }
     }
-    protected override void OnUpdate(IFsm<Fsm_qizi0> fsm, float elapseSeconds, float realElapseSeconds)
+    protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
         base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
-        if (Time.time - timebegin > 0.5f&&qizi.y != -4.5 && QiziGuanLi.Instance.dangqianliucheng == 1)//0.5sÃ¿´Î
+        if (Time.time - timebegin > 0.5f&&qizi.y != -4.5 && QiziGuanLi.Instance.dangqianliucheng == 1)//0.5sæ¯æ¬¡
         {
             timebegin = Time.time+0.5f;
             Findtarget();
@@ -86,22 +86,22 @@ public class StateIdle0 : FsmState<Fsm_qizi0>
             {
                 if (qizi.gongjiDistence* qizi.gongjiDistence<mindistance)
                 {
-                    //¾àÀë²»¹»£¬¿ªÊ¼Ñ°Â·
+                    //è·ç¦»ä¸å¤Ÿï¼Œå¼€å§‹å¯»è·¯
                     ChangeState<StateMove0>(fsm);
                 }
-                else //¾àÀë¹»£¬ÇĞ»»µ½¹¥»÷×´Ì¬
+                else //è·ç¦»å¤Ÿï¼Œåˆ‡æ¢åˆ°æ”»å‡»çŠ¶æ€
                 {
                     ChangeState<StateAttack0>(fsm);
                 }
             }
         }
     }
-    protected override void OnLeave(IFsm<Fsm_qizi0> fsm, bool isShutdown)
+    protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {
         base.OnLeave(fsm, isShutdown);
         
     }
-    protected override void OnDestroy(IFsm<Fsm_qizi0> fsm)
+    protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {
         base.OnDestroy(fsm);
     }

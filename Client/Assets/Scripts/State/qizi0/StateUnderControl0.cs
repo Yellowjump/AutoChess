@@ -1,27 +1,28 @@
 using GameFramework.Fsm;
 using System.Collections;
 using System.Collections.Generic;
+using liuchengguanli;
 using UnityEngine;
 
-public class StateUnderControl0 : FsmState<Fsm_qizi0>
+public class StateUnderControl0 : FsmState<EntityQizi>
 {
-    protected override void OnInit(IFsm<Fsm_qizi0> fsm)
+    protected override void OnInit(IFsm<EntityQizi> fsm)
     {
         base.OnInit(fsm);
     }
-    protected override void OnEnter(IFsm<Fsm_qizi0> fsm)
+    protected override void OnEnter(IFsm<EntityQizi> fsm)
     {
         base.OnEnter(fsm);
     }
-    protected override void OnUpdate(IFsm<Fsm_qizi0> fsm, float elapseSeconds, float realElapseSeconds)
+    protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
         base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
     }
-    protected override void OnLeave(IFsm<Fsm_qizi0> fsm, bool isShutdown)
+    protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {
         base.OnLeave(fsm, isShutdown);
     }
-    protected override void OnDestroy(IFsm<Fsm_qizi0> fsm)
+    protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {
         base.OnDestroy(fsm);
     }

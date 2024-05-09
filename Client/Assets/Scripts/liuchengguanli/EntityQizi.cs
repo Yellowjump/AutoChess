@@ -14,7 +14,8 @@ namespace liuchengguanli
     {
         public int level;
         public int money;
-        public int ID;//hero表中ID
+        public int HeroID;//hero表中ID
+        public int HeroUID;//qizi唯一id
         public float xueliangsum=1000;//��Ѫ��
         public float powersum =100;//����
         public float xueliangnow;//��ǰѪ��
@@ -29,12 +30,13 @@ namespace liuchengguanli
         public override void Init(int i)
         {
             this.Index = i;
+            HeroUID = QiziGuanLi.Instance.QiziCurUniqueIndex++;
             this.level = 1;
             this.money = QiziGuanLi.Instance.qizi[i];
             this.GObj = Pool.instance.PoolObject[i].Get();
             this.GObj.transform.localScale = Vector3.one;
             QiziGuanLi.Instance.QiziList.Add(this);
-            ID = 1;//todo 后续 从棋子购买处获取ID
+            HeroID = 1;//todo 后续 从棋子购买处获取ID
             InitSkill();
             QiziGuanLi.Instance.QiziCXList.Add(this);
             xueliangnow = xueliangsum;
@@ -50,6 +52,7 @@ namespace liuchengguanli
             //GameEntry.UI.OpenUIForm("Assets/UIPrefab/xuetiao_qizi.prefab", "middle");
             //this.GObj.GetComponent<Fsm_qizi0>().Init();
             //Log.Info("hfk:qizichushihua:" + this.GObj.name+"list.size: " + Pool.instance.list.Count + "list[0]position:" + Pool.instance.list[0].GObj.transform.localPosition);
+            InitState();
         }
         public void Remove()
         {

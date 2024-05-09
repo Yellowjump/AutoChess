@@ -8,30 +8,30 @@ using UnityEngine.Analytics;
 using UnityGameFramework.Runtime;
 using static UnityEngine.GraphicsBuffer;
 
-public class StateMove0 : FsmState<Fsm_qizi0>
+public class StateMove0 : FsmState<EntityQizi>
 {
-    EntityQizi qizi;//×´Ì¬»ú¹ÒÔØµÄÆå×ÓÀà
-    int zhenying = 0;//0±íÃ÷ÊÇ×Ô¼ºÕâ±ßµÄÆå×Ó£¬1±íÃ÷ÊÇµĞ·½ÕóÓªµÄ
-    EntityQizi qizitarget;//Ä¿±êÆå×Ó
+    EntityQizi qizi;//çŠ¶æ€æœºæŒ‚è½½çš„æ£‹å­ç±»
+    int zhenying = 0;//0è¡¨æ˜æ˜¯è‡ªå·±è¿™è¾¹çš„æ£‹å­ï¼Œ1è¡¨æ˜æ˜¯æ•Œæ–¹é˜µè¥çš„
+    EntityQizi qizitarget;//ç›®æ ‡æ£‹å­
     float mindistance = 10000;
-    float timebegin;//¼ÇÂ¼½øÈë×´Ì¬µÄÊ±¼ä
-    float timetemp;//¼ÇÂ¼½øÈëupdateµÄÊ±¼ä
+    float timebegin;//è®°å½•è¿›å…¥çŠ¶æ€çš„æ—¶é—´
+    float timetemp;//è®°å½•è¿›å…¥updateçš„æ—¶é—´
     bool findpath = false;
     Vector2Int nextPosIndex;
     Vector3 startpos;
     Vector3 nextpos;
-    protected override void OnInit(IFsm<Fsm_qizi0> fsm)
+    protected override void OnInit(IFsm<EntityQizi> fsm)
     {
         base.OnInit(fsm);
     }
-    protected override void OnEnter(IFsm<Fsm_qizi0> fsm)
+    protected override void OnEnter(IFsm<EntityQizi> fsm)
     {
         base.OnEnter(fsm);
-        if (qizi==null)//µÚÒ»´Î½øÈë»ñÈ¡×ÔÉíÆå×ÓÀà
+        if (qizi==null)//ç¬¬ä¸€æ¬¡è¿›å…¥è·å–è‡ªèº«æ£‹å­ç±»
         {
             foreach (EntityQizi qz in QiziGuanLi.Instance.QiziList)
             {
-                if (qz.GObj.transform.localPosition == fsm.Owner.transform.localPosition)
+                if (qz.GObj.transform.localPosition == fsm.Owner.GObj.transform.localPosition)
                 {
                     qizi = qz;
                     zhenying = 0;
@@ -40,7 +40,7 @@ public class StateMove0 : FsmState<Fsm_qizi0>
             }
             foreach (EntityQizi qz in QiziGuanLi.Instance.DirenList)
             {
-                if (qz.GObj.transform.localPosition == fsm.Owner.transform.localPosition)
+                if (qz.GObj.transform.localPosition == fsm.Owner.GObj.transform.localPosition)
                 {
                     qizi = qz;
                     zhenying = 1;
@@ -50,7 +50,7 @@ public class StateMove0 : FsmState<Fsm_qizi0>
         }
         startpos = qizi.GObj.transform.position;
         //Log.Info("hfk:" + qizi.level);
-        //ÕÒµ½¾àÀë¸ÃÆå×Ó×î½üµÄÆå×Ó
+        //æ‰¾åˆ°è·ç¦»è¯¥æ£‹å­æœ€è¿‘çš„æ£‹å­
         qizitarget = null;
         mindistance = 10000;
         findpath = false;
@@ -118,10 +118,10 @@ public class StateMove0 : FsmState<Fsm_qizi0>
             }
         }
     }
-    protected override void OnUpdate(IFsm<Fsm_qizi0> fsm, float elapseSeconds, float realElapseSeconds)
+    protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
         base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
-        if (Time.time- timetemp > 0.5f)//0.5sÃ¿´Î
+        if (Time.time- timetemp > 0.5f)//0.5sæ¯æ¬¡
         {
             timetemp = Time.time+0.5f;
             Findtarget();
@@ -132,7 +132,7 @@ public class StateMove0 : FsmState<Fsm_qizi0>
             if (qizi.gongjiDistence * qizi.gongjiDistence <= mindistance)
             {
                 Vector2Int start = QiziGuanLi.Instance.getIndexQige(qizi.GObj.transform.position);
-                //Ñ°Â·
+                //å¯»è·¯
                 while (nextPosIndex.x==-1&&qizitarget!=null)
                 {
                     Vector2Int end = QiziGuanLi.Instance.getIndexQige(qizitarget.GObj.transform.position);
@@ -172,11 +172,11 @@ public class StateMove0 : FsmState<Fsm_qizi0>
             }
         }
     }
-    protected override void OnLeave(IFsm<Fsm_qizi0> fsm, bool isShutdown)
+    protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {
         base.OnLeave(fsm, isShutdown);
     }
-    protected override void OnDestroy(IFsm<Fsm_qizi0> fsm)
+    protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {
         base.OnDestroy(fsm);
     }

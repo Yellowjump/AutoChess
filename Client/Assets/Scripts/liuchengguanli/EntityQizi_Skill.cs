@@ -21,17 +21,17 @@ namespace liuchengguanli
         private void InitSkill()
         {
             var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
-            if (!heroTable.HasDataRow(ID))
+            if (!heroTable.HasDataRow(HeroID))
             {
-                Log.Error($"heroID:{ID} invalid no match TableRow");
+                Log.Error($"heroID:{HeroID} invalid no match TableRow");
                 return;
             }
 
-            var skillID = heroTable[ID].SkillID;
+            var skillID = heroTable[HeroID].SkillID;
             var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill"); //先只初始化 normalSkill
             if (!skillTable.HasDataRow(skillID))
             {
-                Log.Error($"heroID:{ID} skillID{skillID} invalid no match TableRow");
+                Log.Error($"heroID:{HeroID} skillID{skillID} invalid no match TableRow");
                 return;
             }
 
