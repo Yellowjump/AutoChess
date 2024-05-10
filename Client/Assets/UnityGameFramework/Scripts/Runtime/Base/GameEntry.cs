@@ -24,7 +24,7 @@ namespace UnityGameFramework.Runtime
         /// 游戏框架所在的场景编号。
         /// </summary>
         internal const int GameFrameworkSceneId = 0;
-
+        public const float LogicDeltaTime = 1f / 60f; // 1/60秒
         /// <summary>
         /// 获取游戏框架组件。
         /// </summary>

@@ -2,8 +2,7 @@ using GameFramework.Fsm;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using DataTable;
-using SkillSystem;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
@@ -16,17 +15,17 @@ namespace liuchengguanli
         public int money;
         public int HeroID;//hero表中ID
         public int HeroUID;//qizi唯一id
-        public float xueliangsum=1000;//��Ѫ��
-        public float powersum =100;//����
-        public float xueliangnow;//��ǰѪ��
-        public float powernow;//��ǰ��
+        public float xueliangsum=1000;//总血量
+        public float powersum =100;//总蓝
+        public float xueliangnow;//当前血量
+        public float powernow;//当前蓝
         public float x;
-        public float y;//�������ϵ�λ��
-        public float gongjiDistence;//��������
+        public float y;//在棋盘上的位置
+        public float gongjiDistence;//攻击距离
         public Slider xuetiao;
         public Slider power;
         public Image levelImage;
-        public Animator animator;//����������
+        public Animator animator;//动画管理器
         public override void Init(int i)
         {
             this.Index = i;
@@ -36,12 +35,10 @@ namespace liuchengguanli
             this.GObj = Pool.instance.PoolObject[i].Get();
             this.GObj.transform.localScale = Vector3.one;
             QiziGuanLi.Instance.QiziList.Add(this);
-            HeroID = 1;//todo 后续 从棋子购买处获取ID
-            InitSkill();
             QiziGuanLi.Instance.QiziCXList.Add(this);
             xueliangnow = xueliangsum;
-            powernow = 0;//��ʼ������
-            gongjiDistence = 1.2f;//��ʼ����������
+            powernow = 0;//初始化蓝量
+            gongjiDistence = 1.2f;//初始化攻击距离
             this.xuetiao = this.GObj.transform.Find("xuetiao_qizi/xuetiao").GetComponent<Slider>();
             this.xuetiao.value = this.xueliangnow / this.xueliangnow;
             this.power = this.GObj.transform.Find("xuetiao_qizi/pow").GetComponent<Slider>();
@@ -52,11 +49,13 @@ namespace liuchengguanli
             //GameEntry.UI.OpenUIForm("Assets/UIPrefab/xuetiao_qizi.prefab", "middle");
             //this.GObj.GetComponent<Fsm_qizi0>().Init();
             //Log.Info("hfk:qizichushihua:" + this.GObj.name+"list.size: " + Pool.instance.list.Count + "list[0]position:" + Pool.instance.list[0].GObj.transform.localPosition);
+            HeroID = 1;//todo 后续 从棋子购买处获取ID
+            InitSkill();
             InitState();
         }
         public void Remove()
         {
-            if (this.GObj.transform.localPosition.z == -4.5f)//��������ڳ���
+            if (this.GObj.transform.localPosition.z == -4.5f)//如果棋子在场下
             {
                 QiziGuanLi.Instance.QiziCXList.Remove(this);
                 QiziGuanLi.Instance.changxia[(int)this.GObj.transform.localPosition.x + 4] = -1;
@@ -68,6 +67,12 @@ namespace liuchengguanli
             QiziGuanLi.Instance.QiziList.Remove(this);
             Pool.instance.PoolObject[this.Index].Release(this.GObj);
             Pool.instance.PoolEntity.Release(this);
+            DestoryState();
+        }
+
+        public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds)
+        {
+            UpdateState(elapseSeconds,realElapseSeconds);
         }
     }
 }

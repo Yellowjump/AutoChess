@@ -1,6 +1,5 @@
 using DataTable;
 using GameFramework;
-using GameFramework.Fsm;
 using GameFramework.Procedure;
 using liuchengguanli;
 using UnityChan;
@@ -14,18 +13,19 @@ namespace Procedure
     {
         float battleTime;
         UIForm goumaiUI;
+        private float timeAccumulator = 0f;
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
             QiziGuanLi.Instance.dangqianliucheng = 1;
-            //±éÀúµĞÈËlist£¬ÈÃµĞÈËÆå×Ó·ÅÖÃÔÚÆåÅÌ¶ÔÃæ
+            //éå†æ•Œäººlistï¼Œè®©æ•Œäººæ£‹å­æ”¾ç½®åœ¨æ£‹ç›˜å¯¹é¢
             for (int i = 0; i < QiziGuanLi.Instance.DirenList.Count; i++)
             {
                 EntityQizi qz = QiziGuanLi.Instance.DirenList[i];
                 qz.GObj.SetActive(true);
                 qz.GObj.transform.position = new Vector3(-qz.x, 0, -qz.y);
                 qz.GObj.transform.rotation = Quaternion.Euler(new Vector3(0, -180, 0));
-                //¸úĞÂqige[][]ÊÇ·ñÓĞÆå×Ó
+                //è·Ÿæ–°qige[][]æ˜¯å¦æœ‰æ£‹å­
                 Vector2Int posindex = QiziGuanLi.Instance.getIndexQige(qz.GObj.transform.position);
                 QiziGuanLi.Instance.qige[posindex.x][posindex.y] = 1;
             }
@@ -33,11 +33,11 @@ namespace Procedure
             {
                 EntityQizi qz = QiziGuanLi.Instance.QiziCSList[i];
                 qz.GObj.transform.position = new Vector3(qz.x, 0, qz.y);
-                //¸úĞÂqige[][]ÊÇ·ñÓĞÆå×Ó
+                //è·Ÿæ–°qige[][]æ˜¯å¦æœ‰æ£‹å­
                 Vector2Int posindex = QiziGuanLi.Instance.getIndexQige(qz.GObj.transform.position);
                 QiziGuanLi.Instance.qige[posindex.x][posindex.y] = 1;
             }
-            //Log.Info("hfk,½øÈëÕ½¶·×´Ì¬Ê±¼äÊÇ:" + Time.time);
+            //Log.Info("hfk,è¿›å…¥æˆ˜æ–—çŠ¶æ€æ—¶é—´æ˜¯:" + Time.time);
             goumaiUI = GameEntry.UI.GetUIForm(UICtrlName.JieMianUIPrefab);
             battleTime = Time.time;
         }
@@ -51,8 +51,21 @@ namespace Procedure
             else
             {
                 goumaiUI.GetComponent<UIguanli>()._slderJindu.value = (Time.time - battleTime) / 30;
-                goumaiUI.GetComponent<UIguanli>().textjindu.text = "Õ½¶·½×¶ÎÊ£Óà£º" + (30 - (int)(Time.time - battleTime)) + "s";
+                goumaiUI.GetComponent<UIguanli>().textjindu.text = "æˆ˜æ–—é˜¶æ®µå‰©ä½™ï¼š" + (30 - (int)(Time.time - battleTime)) + "s";
+                timeAccumulator += elapseSeconds;
+                // å½“ç´¯ç§¯æ—¶é—´å¤§äºç­‰äºå›ºå®šçš„DeltaTimeæ—¶ï¼Œæ‰§è¡ŒselfLogicUpdateæ–¹æ³•
+                while (timeAccumulator >= GameEntry.LogicDeltaTime)
+                {
+                    QiziGuanLi.Instance.OnLogicUpdate(elapseSeconds,realElapseSeconds);
+                    timeAccumulator -= GameEntry.LogicDeltaTime;
+                }
             }
+        }
+
+        protected override void OnLeave(ProcedureOwner procedureOwner, bool isShutdown)
+        {
+            base.OnLeave(procedureOwner, isShutdown);
+            timeAccumulator = 0f;
         }
     }
 }

@@ -481,4 +481,28 @@ public class QiziGuanLi
         }
         return new Vector2Int(-1,-1);
     }
+    /// <summary>
+    /// 逻辑update
+    /// </summary>
+    /// <param name="elapseSeconds">逻辑流逝时间，以秒为单位。</param>
+    /// <param name="realElapseSeconds">真实流逝时间，以秒为单位。</param>
+    public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds)
+    {
+        List<EntityQizi> tempEntityList = ListPool<EntityQizi>.Get();
+        //先轮询己方棋子，后续联机的话需要判断 玩家uid来确定先后
+        tempEntityList.AddRange(QiziList);
+        tempEntityList.Sort((a,b)=>a.HeroUID.CompareTo(b.HeroUID));
+        foreach (var oneEntity in tempEntityList)
+        {
+            oneEntity.OnLogicUpdate(elapseSeconds, realElapseSeconds);
+        }
+        tempEntityList.Clear();
+        tempEntityList.AddRange(DirenList);
+        tempEntityList.Sort((a,b)=>a.HeroUID.CompareTo(b.HeroUID));
+        foreach (var oneEntity in tempEntityList)
+        {
+            oneEntity.OnLogicUpdate(elapseSeconds, realElapseSeconds);
+        }
+        ListPool<EntityQizi>.Release(tempEntityList);
+    }
 }

@@ -14,7 +14,7 @@ namespace GameFramework.Fsm
     /// 有限状态机。
     /// </summary>
     /// <typeparam name="T">有限状态机持有者类型。</typeparam>
-    internal sealed class Fsm<T> : FsmBase, IReference, IFsm<T> where T : class
+    public sealed class Fsm<T> : FsmBase, IReference, IFsm<T> where T : class
     {
         private T m_Owner;
         private readonly Dictionary<Type, FsmState<T>> m_States;
@@ -545,6 +545,10 @@ namespace GameFramework.Fsm
             m_CurrentState.OnUpdate(this, elapseSeconds, realElapseSeconds);
         }
 
+        public void UpdatePublic(float elapseSeconds, float realElapseSeconds)
+        {
+            Update(elapseSeconds, realElapseSeconds);
+        }
         /// <summary>
         /// 关闭并清理有限状态机。
         /// </summary>
@@ -552,7 +556,11 @@ namespace GameFramework.Fsm
         {
             ReferencePool.Release(this);
         }
-
+        
+        public void ShutdownPublic()
+        {
+            ReferencePool.Release(this);
+        }
         /// <summary>
         /// 切换当前有限状态机状态。
         /// </summary>

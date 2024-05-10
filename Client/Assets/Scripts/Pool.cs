@@ -15,12 +15,12 @@ using UnityGameFramework.Runtime;
 
 public class Pool :MonoBehaviour
 {
-    public static Pool instance;//单实例化
+    public static Pool instance;//鍗曞疄渚嬪寲
 
     public ObjectPool<EntityBase> PoolEntity;
     public ObjectPool<GameObject> pool;
     public Dictionary<int, ObjectPool<GameObject>> PoolObject = new Dictionary<int, ObjectPool<GameObject>>();
-    public List<EntityQizi> list = new List<EntityQizi>();//存放生成的entityqizi
+    public List<EntityQizi> list = new List<EntityQizi>();//瀛樻斁鐢熸垚鐨別ntityqizi
     void Awake()
     {
         instance = this;

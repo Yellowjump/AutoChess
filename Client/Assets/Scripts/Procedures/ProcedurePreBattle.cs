@@ -26,11 +26,11 @@ namespace Procedure
             base.OnEnter(procedureOwner);
 
             QiziGuanLi.Instance.dangqianliucheng = 0;
-            //Log.Info("hfk,½øÈë×¼±¸×´Ì¬Ê±¼äÊÇ:"+Time.time);
+            //Log.Info("hfk,è¿›å…¥å‡†å¤‡çŠ¶æ€æ—¶é—´æ˜¯:"+Time.time);
             prebattleTime = Time.time;
             //string welcomeMessage = Utility.Text.Format("Hello! This is an empty project based on Game Framework {0}.", Version.GameFrameworkVersion);
             //Log.Info(welcomeMessage);
-            if (cishu ==0)//Ê×´Î½øÈëÊ±Ìí¼Ó¹ºÂòÆå×ÓUI
+            if (cishu ==0)//é¦–æ¬¡è¿›å…¥æ—¶æ·»åŠ è´­ä¹°æ£‹å­UI
             {
                 QiziGuanLi.Instance.InitDirenList();
                 GameEntry.UI.OpenUIForm(UICtrlName.JieMianUIPrefab, "middle");
@@ -47,15 +47,15 @@ namespace Procedure
             {
                 EntityQizi qz = QiziGuanLi.Instance.DirenList[i];
                 qz.GObj.SetActive(false);
-            }//±éÀú³¡ÉÏÆå×ÓListÈÃËûÃÇ»Øµ½entityqiziÖĞ±£´æµÄÎ»ÖÃ
+            }//éå†åœºä¸Šæ£‹å­Listè®©ä»–ä»¬å›åˆ°entityqiziä¸­ä¿å­˜çš„ä½ç½®
             for (int i = 0; i < QiziGuanLi.Instance.QiziCSList.Count; i++)
             {
                 EntityQizi qz = QiziGuanLi.Instance.QiziCSList[i];
                 qz.GObj.transform.position = new Vector3(qz.x, 0, qz.y);
-                //¸úĞÂqige[][]ÊÇ·ñÓĞÆå×Ó
+                //è·Ÿæ–°qige[][]æ˜¯å¦æœ‰æ£‹å­
                 Vector2Int posindex = QiziGuanLi.Instance.getIndexQige(qz.GObj.transform.position);
             }
-            //¹éÁãqige[][]
+            //å½’é›¶qige[][]
             for (int i = 0; i < 9; i++)
             {
                 for (int j = 0; j < QiziGuanLi.Instance.qige[i].Length; j++)
@@ -79,7 +79,7 @@ namespace Procedure
                     goumaiUI = GameEntry.UI.GetUIForm(UICtrlName.JieMianUIPrefab);
                 }
                 goumaiUI.GetComponent<UIguanli>()._slderJindu.value = (Time.time - prebattleTime) / 20;
-                goumaiUI.GetComponent<UIguanli>().textjindu.text = "×¼±¸½×¶ÎÊ£Óà£º" + (20 - (int)(Time.time - prebattleTime)) + "s";
+                goumaiUI.GetComponent<UIguanli>().textjindu.text = "å‡†å¤‡é˜¶æ®µå‰©ä½™ï¼š" + (20 - (int)(Time.time - prebattleTime)) + "s";
             }
         }
     }
