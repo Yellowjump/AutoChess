@@ -85,20 +85,6 @@ namespace SkillSystem
         [InspectorName("真实伤害")]
         RealDamage,
     }
-    /// <summary>
-    /// 触发器容器类型
-    /// </summary>
-    public enum TriggerListType
-    {
-        /// <summary>
-        /// 技能
-        /// </summary>
-        Skill,
-        /// <summary>
-        /// buff
-        /// </summary>
-        Buff,
-    }
     public enum GenerateEnumDataTables
     {
         [InspectorName("不读表固定值")]
@@ -145,5 +131,49 @@ namespace SkillSystem
         Healing = 1 << 5,      // 00100000
         [InspectorName("不可免疫")]
         Immune = 1 << 6        // 01000000
+    }
+
+    public enum CheckCastSkillResult
+    {
+        /// <summary>
+        /// 技能错误
+        /// </summary>
+        Error,
+        /// <summary>
+        /// 能释放
+        /// </summary>
+        CanCast,
+        /// <summary>
+        /// 没有能量
+        /// </summary>
+        NoPower,
+        /// <summary>
+        /// 目标在范围外
+        /// </summary>
+        TargetOutRange,
+        /// <summary>
+        /// 技能还在CD中
+        /// </summary>
+        InCd,
+        /// <summary>
+        /// 没有有效目标
+        /// </summary>
+        NoValidTarget,
+    }
+
+    public enum SkillCastTargetType
+    {
+        NoNeedTarget = 0,
+        /// <summary>
+        /// 最近的敌人
+        /// </summary>
+        NearestEnemy = 1,
+    }
+
+    public enum CampType
+    {
+        Enemy,
+        Friend,
+        Both,
     }
 }

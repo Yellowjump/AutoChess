@@ -45,6 +45,8 @@ public class StateIdle0 : FsmState<EntityQizi>
         targetqizi = null;
         mindistance = 10000;
         timebegin = Time.time;
+        // 检测是否能释放SpSkill
+        
     }
     private void Findtarget()
     {

@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-05-09 00:12:25.649
+// 生成时间：2024-05-11 17:54:46.486
 //------------------------------------------------------------
 
 using GameFramework;
@@ -24,6 +24,8 @@ namespace DataTable
 	    TemplateID,
 	    Duration,
 	    CD,
+	    TargetType,
+	    SkillRange,
 	    IntParam1,
 	    IntParam2,
 	    IntParam3,
@@ -73,6 +75,24 @@ namespace DataTable
         /// 获取冷却时间ms。
         /// </summary>
         public int CD
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取目标类型。
+        /// </summary>
+        public int TargetType
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取技能范围。
+        /// </summary>
+        public int SkillRange
         {
             get;
             private set;
@@ -156,6 +176,8 @@ namespace DataTable
             TemplateID = int.Parse(columnStrings[index++]);
             Duration = int.Parse(columnStrings[index++]);
             CD = int.Parse(columnStrings[index++]);
+            TargetType = int.Parse(columnStrings[index++]);
+            SkillRange = int.Parse(columnStrings[index++]);
             IntParam1 = int.Parse(columnStrings[index++]);
             IntParam2 = int.Parse(columnStrings[index++]);
             IntParam3 = int.Parse(columnStrings[index++]);
@@ -178,6 +200,8 @@ namespace DataTable
                     TemplateID = binaryReader.Read7BitEncodedInt32();
                     Duration = binaryReader.Read7BitEncodedInt32();
                     CD = binaryReader.Read7BitEncodedInt32();
+                    TargetType = binaryReader.Read7BitEncodedInt32();
+                    SkillRange = binaryReader.Read7BitEncodedInt32();
                     IntParam1 = binaryReader.Read7BitEncodedInt32();
                     IntParam2 = binaryReader.Read7BitEncodedInt32();
                     IntParam3 = binaryReader.Read7BitEncodedInt32();
@@ -284,6 +308,8 @@ namespace DataTable
 		///         <see cref="DRSkillField.TemplateID"/> 对应的是 int,
 		///         <see cref="DRSkillField.Duration"/> 对应的是 int,
 		///         <see cref="DRSkillField.CD"/> 对应的是 int,
+		///         <see cref="DRSkillField.TargetType"/> 对应的是 int,
+		///         <see cref="DRSkillField.SkillRange"/> 对应的是 int,
 		///         <see cref="DRSkillField.IntParam1"/> 对应的是 int,
 		///         <see cref="DRSkillField.IntParam2"/> 对应的是 int,
 		///         <see cref="DRSkillField.IntParam3"/> 对应的是 int,
@@ -317,6 +343,8 @@ namespace DataTable
 		    { DRSkillField.TemplateID, obj => (obj.TemplateID, typeof(int)) },
 		    { DRSkillField.Duration, obj => (obj.Duration, typeof(int)) },
 		    { DRSkillField.CD, obj => (obj.CD, typeof(int)) },
+		    { DRSkillField.TargetType, obj => (obj.TargetType, typeof(int)) },
+		    { DRSkillField.SkillRange, obj => (obj.SkillRange, typeof(int)) },
 		    { DRSkillField.IntParam1, obj => (obj.IntParam1, typeof(int)) },
 		    { DRSkillField.IntParam2, obj => (obj.IntParam2, typeof(int)) },
 		    { DRSkillField.IntParam3, obj => (obj.IntParam3, typeof(int)) },

@@ -2,13 +2,14 @@ using liuchengguanli;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SkillSystem;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 using static UnityEngine.GraphicsBuffer;
 
-public class QiziGuanLi
+public partial class QiziGuanLi
 {
     public static QiziGuanLi instance;//单实例化
     public static QiziGuanLi Instance
@@ -117,6 +118,7 @@ public class QiziGuanLi
     public void InitDirenList()
     {
         EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
+        qizi.BelongCamp = CampType.Enemy;
         qizi.Init(0);
         QiziCXList.Remove(qizi);
         QiziList.Remove(qizi);
@@ -126,6 +128,7 @@ public class QiziGuanLi
         DirenList.Add(qizi);
 
         EntityQizi qizi2 = Pool.instance.PoolEntity.Get() as EntityQizi;
+        qizi.BelongCamp = CampType.Enemy;
         qizi2.Init(0);
         QiziCXList.Remove(qizi2);
         QiziList.Remove(qizi2);

@@ -11,6 +11,7 @@ namespace liuchengguanli
     {
         public int Index;//保存Object的编号
         public GameObject GObj;
+        public CampType BelongCamp;
         public virtual void Init(int index)
         {
             Log.Info("hfk:base");
@@ -18,6 +19,12 @@ namespace liuchengguanli
         public virtual void AddBuff(Buff buff)
         {
             
+        }
+
+        public float GetDistanceSquare(EntityBase target)
+        {
+            float distanceSquare = (GObj.transform.position.x - target.GObj.transform.position.x) * (GObj.transform.position.x - target.GObj.transform.position.x) + (GObj.transform.position.z - target.GObj.transform.position.z) * (GObj.transform.position.z - target.GObj.transform.position.z);
+            return distanceSquare;
         }
     }
 }

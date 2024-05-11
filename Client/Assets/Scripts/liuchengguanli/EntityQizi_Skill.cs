@@ -18,6 +18,22 @@ namespace liuchengguanli
         public Skill PassiveSkill;
         public Dictionary<TriggerType, List<OneTrigger>> CurTriggerDic = new Dictionary<TriggerType, List<OneTrigger>>();
         public List<Buff> CurBuffList = new List<Buff>();
+
+        public EntityQizi CurAttackTarget;
+        /// <summary>
+        /// 普攻动画加速时间
+        /// </summary>
+        public float CurNormalAtkAniRate
+        {
+            get
+            {
+                if (NormalSkill.DefaultAnimationDurationMs > 1 / AtkSpeed)
+                {
+                    return NormalSkill.DefaultAnimationDurationMs * AtkSpeed;
+                }
+                return 1;
+            }
+        }
         private void InitSkill()
         {
             var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
@@ -49,7 +65,8 @@ namespace liuchengguanli
                 CurSkillType = SkillType.NormalSkill,
                 Caster = this,
                 CDMs = skillTableData.CD,
-                ShakeBeforeMs = skillTableData.CD //todo 后续在skill表中添加前摇时间
+                ShakeBeforeMs = skillTableData.CD, //todo 后续在skill表中添加前摇时间
+                CurSkillCastTargetType = (SkillCastTargetType)skillTableData.TargetType,
             };
 
             var temp = skillTemplates[skillTableData.TemplateID].SkillTemplate;
@@ -96,6 +113,85 @@ namespace liuchengguanli
             // todo 判断是否有 免疫之类的判断
             CurBuffList.Add(buff);
             buff.OnActive();
+        }
+
+        public CheckCastSkillResult CheckCanCastSkill(out EntityQizi target,bool isSpSkill = false)
+        {
+            target = null;
+            //判断是否需要蓝量
+            if (isSpSkill)
+            {
+                if (power.value < 1)
+                {
+                    return CheckCastSkillResult.NoPower;
+                }
+            }
+            //判断目标
+            var willCastSkill = isSpSkill ? SpSkill : NormalSkill;
+            if (willCastSkill == null)
+            {
+                return CheckCastSkillResult.Error;
+            }
+
+            var inAttackRange = false;
+            if (willCastSkill.CurSkillCastTargetType != SkillCastTargetType.NoNeedTarget)
+            {
+                bool canUseOldTarget = false;
+                if (CurAttackTarget != null)
+                {
+                    //如果之前存在攻击目标
+                    //判断是否已死亡
+                    //判断是否在范围内
+                    canUseOldTarget = CurAttackTarget.xueliangnow >= 0;
+                    //判断是否有不可选中之类
+                    canUseOldTarget = canUseOldTarget&&!(GetDistanceSquare(CurAttackTarget) > gongjiDistence * gongjiDistence);
+                    if (canUseOldTarget)
+                    {
+                        target = CurAttackTarget;
+                    }
+                }
+
+                if (canUseOldTarget == false)
+                {
+                    //之前目标不可用，重新选择目标
+                    inAttackRange = GetSkillNewTarget(out target, isSpSkill);
+                }
+            }
+            if (target == null)
+            {
+                return CheckCastSkillResult.NoValidTarget;
+            }
+            else if (inAttackRange == false)
+            {
+                
+            }
+            return CheckCastSkillResult.CanCast;
+        }
+        /// <summary>
+        /// 获取技能目标以及是否在攻击范围内
+        /// </summary>
+        /// <param name="target">技能目标</param>
+        /// <param name="isSpSkill"></param>
+        /// <returns>是否在攻击范围内</returns>
+        public bool GetSkillNewTarget(out EntityQizi target, bool isSpSkill = false)
+        {
+            target = null;
+            //判断目标
+            var willCastSkill = isSpSkill ? SpSkill : NormalSkill;
+            if (willCastSkill == null)
+            {
+                return false;
+            }
+
+            bool inAttackRange = false;
+            switch (willCastSkill.CurSkillCastTargetType)
+            {
+                case SkillCastTargetType.NearestEnemy:
+                    return QiziGuanLi.instance.GetNearestTarget(this,BelongCamp,out target);
+                case SkillCastTargetType.NoNeedTarget:
+                    return true;
+            }
+            return false;
         }
     }
 }

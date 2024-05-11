@@ -1,5 +1,6 @@
-ï»¿#	èµ„æºè·¯å¾„é…ç½®è¡¨											
-#	Id		TemplateID	Duration	CD	IntParam1	IntParam2	IntParam3	IntParam4	IntParam5	StringParam1	StringParam2
-#	int		int	int	int	int	int	int	int	int	string	string
-#	æŠ€èƒ½ID	æŠ€èƒ½å¤‡æ³¨	æ¨¡æ¿ID	æŒç»­æ—¶é—´ms	å†·å´æ—¶é—´ms	intå‚æ•°1	intå‚æ•°2	intå‚æ•°3	intå‚æ•°4	intå‚æ•°5	strå‚æ•°1	strå‚æ•°2
-	1	æµ‹è¯•æŠ€èƒ½	1000	2000	10000	10						
+#	×ÊÔ´Â·¾¶ÅäÖÃ±í													
+#	Id		TemplateID	Duration	CD	TargetType	SkillRange	IntParam1	IntParam2	IntParam3	IntParam4	IntParam5	StringParam1	StringParam2
+#	int		int	int	int	int	int	int	int	int	int	int	string	string
+#	¼¼ÄÜID	¼¼ÄÜ±¸×¢	Ä£°åID	³ÖĞøÊ±¼äms	ÀäÈ´Ê±¼äms	Ä¿±êÀàĞÍ	¼¼ÄÜ·¶Î§	int²ÎÊı1	int²ÎÊı2	int²ÎÊı3	int²ÎÊı4	int²ÎÊı5	str²ÎÊı1	str²ÎÊı2
+#														
+	1	²âÊÔ¼¼ÄÜ	1000	2000	10000	1	1	10						

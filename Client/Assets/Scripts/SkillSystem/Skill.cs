@@ -13,7 +13,8 @@ namespace SkillSystem
         public EntityQizi Caster;
         public int CDMs;
         public int ShakeBeforeMs;//技能前摇
-
+        public int AfterCastDurationMs;//释放之后经过的时间ms
+        public SkillCastTargetType CurSkillCastTargetType;//释放目标类型
         public void Cast()
         {
             OwnTriggerList.OnActive();
@@ -40,5 +41,6 @@ namespace SkillSystem
         {
             OwnTriggerList?.SetSkillValue(dataTable);
         }
+        
     }
 }

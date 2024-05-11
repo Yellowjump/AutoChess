@@ -22,6 +22,9 @@ namespace liuchengguanli
         public float x;
         public float y;//在棋盘上的位置
         public float gongjiDistence;//攻击距离
+
+        public float AtkSpeed=1;//每秒攻击次数
+        
         public Slider xuetiao;
         public Slider power;
         public Image levelImage;

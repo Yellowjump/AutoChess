@@ -14,7 +14,6 @@ namespace SkillSystem
     public class TriggerList
     {
         public List<OneTrigger> CurTriggerList = new List<OneTrigger>();
-        public TriggerListType CurTriggerListType;
         public Skill ParentSkill;
         public void WriteToFile(BinaryWriter writer)
         {
@@ -39,7 +38,6 @@ namespace SkillSystem
 
         public void Clone(TriggerList copy)
         {
-            copy.CurTriggerListType = CurTriggerListType;
             copy.CurTriggerList.Clear();
             foreach (var oneTrigger in CurTriggerList)
             {
