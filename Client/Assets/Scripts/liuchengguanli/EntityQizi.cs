@@ -75,6 +75,7 @@ namespace liuchengguanli
 
         public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds)
         {
+            SinceLastNormalAtk += elapseSeconds;
             UpdateState(elapseSeconds,realElapseSeconds);
         }
     }

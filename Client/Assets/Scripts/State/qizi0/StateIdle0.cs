@@ -2,13 +2,12 @@ using GameFramework.Fsm;
 using liuchengguanli;
 using System.Collections;
 using System.Collections.Generic;
+using SkillSystem;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
 public class StateIdle0 : FsmState<EntityQizi>
 {
-    EntityQizi qizi;//状态机挂载的棋子类
-    EntityQizi targetqizi;//目标棋子
     float mindistance = 10000;
     int zhenying;//0为自己阵营，1为敌方
     float timebegin;
@@ -19,68 +18,23 @@ public class StateIdle0 : FsmState<EntityQizi>
     protected override void OnEnter(IFsm<EntityQizi> fsm)
     {
         base.OnEnter(fsm);
-        if (qizi == null)
+        if (fsm == null || fsm.Owner == null)
         {
-            foreach (EntityQizi qz in QiziGuanLi.Instance.QiziList)
-            {
-                if (qz.GObj.transform.localPosition == fsm.Owner.GObj.transform.localPosition)
-                {
-                    qizi = qz;
-                    zhenying = 0;
-                    break;
-                }
-            }
-            foreach (EntityQizi qz in QiziGuanLi.Instance.DirenList)
-            {
-                if (qz.GObj.transform.localPosition == fsm.Owner.GObj.transform.localPosition)
-                {
-                    qizi = qz;
-                    zhenying = 1;
-                    break;
-                }
-            }
-            //Log.Info("hfk:" + qizi.level);
+            return;
         }
-        qizi.animator.Play("WAIT00");
-        targetqizi = null;
+
+        var owner = fsm.Owner;
+        owner.animator.Play("WAIT00");
         mindistance = 10000;
         timebegin = Time.time;
         // 检测是否能释放SpSkill
-        
-    }
-    private void Findtarget()
-    {
-        targetqizi = null;
-        mindistance = 10000;
-        if (zhenying == 0)
-        {
-            foreach (EntityQizi qz in QiziGuanLi.Instance.DirenList)
-            {
-                float distence = (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) * (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) + (qizi.GObj.transform.position.z - qz.GObj.transform.position.z) * (qizi.GObj.transform.position.z - qz.GObj.transform.position.z);
-                if (distence < mindistance)
-                {
-                    targetqizi = qz;
-                    mindistance = distence;
-                }
-            }
-        }
-        else
-        {
-            foreach (EntityQizi qz in QiziGuanLi.Instance.QiziCSList)
-            {
-                float distence = (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) * (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) + (qizi.GObj.transform.position.z - qz.GObj.transform.position.z) * (qizi.GObj.transform.position.z - qz.GObj.transform.position.z);
-                if (distence < mindistance)
-                {
-                    targetqizi = qz;
-                    mindistance = distence;
-                }
-            }
-        }
+        CheckChangeState(fsm);
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
         base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
-        if (Time.time - timebegin > 0.5f&&qizi.y != -4.5 && QiziGuanLi.Instance.dangqianliucheng == 1)//0.5s每次
+        CheckChangeState(fsm);
+        /*if (Time.time - timebegin > 0.5f&&qizi.y != -4.5 && QiziGuanLi.Instance.dangqianliucheng == 1)//0.5s每次
         {
             timebegin = Time.time+0.5f;
             Findtarget();
@@ -96,6 +50,51 @@ public class StateIdle0 : FsmState<EntityQizi>
                     ChangeState<StateAttack0>(fsm);
                 }
             }
+        }*/
+    }
+
+    private void CheckChangeState(IFsm<EntityQizi> fsm)
+    {
+        EntityQizi owner = fsm.Owner;
+        if (owner == null)
+        {
+            Log.Error("owner is null");
+            return;
+        }
+
+        if (QiziGuanLi.instance.dangqianliucheng == 0)
+        {
+            return;
+        }
+        //技能
+        var result = owner.CheckCanCastSkill(out var target, true);
+        if (result == CheckCastSkillResult.CanCast)
+        {
+            owner.CurAttackTarget = target;
+            ChangeState<StateAttack0>(fsm);
+            return;
+        }
+        else if (result == CheckCastSkillResult.TargetOutRange)
+        {
+            owner.CurAttackTarget = target;
+            ChangeState<StateMove0>(fsm);
+            return;
+        }
+        //普攻
+        result = owner.CheckCanCastSkill(out target, false);
+        if (result == CheckCastSkillResult.CanCast)
+        {
+            owner.CurAttackTarget = target;
+            ChangeState<StateAttack0>(fsm);
+        }
+        else if (result == CheckCastSkillResult.TargetOutRange)
+        {
+            owner.CurAttackTarget = target;
+            ChangeState<StateMove0>(fsm);
+        }
+        else if (result == CheckCastSkillResult.NormalAtkWait)
+        {
+            owner.CurAttackTarget = target;//普攻等待，但是目标要锁定
         }
     }
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)

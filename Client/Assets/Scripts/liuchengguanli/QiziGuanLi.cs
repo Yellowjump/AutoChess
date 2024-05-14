@@ -56,7 +56,7 @@ public partial class QiziGuanLi
     private int[] goumaiUiqiziPaikuFeiyong = new int[5];//记录UI购买界面的棋子
     public int dangqianliucheng = 0;//保存当前流程，0是prebattle,1是battle
     public List<Sprite> ListQiziLevelSprite = new List<Sprite>();//保存棋子星级图片
-    public int[][] qige = new int[9][];//保存棋格上是否有棋子
+    public int[][] qige = new int[9][];//保存棋格上是否有棋子 -1表示没有，其余是棋子uid
     public Vector3[][] qigepos = new Vector3[9][];//保存棋格位置
     public int QiziCurUniqueIndex = 0;
     public GameObject showpath;
@@ -147,15 +147,15 @@ public partial class QiziGuanLi
     }
     void InitQige()
     {
-        qige[0] =new int[5]{ 0,0,0,0,0};
-        qige[1] = new int[6] { 0, 0, 0, 0, 0 ,0};
-        qige[2] = new int[5] { 0, 0, 0, 0, 0 };
-        qige[3] = new int[6] { 0, 0, 0, 0, 0,0 };
-        qige[4] = new int[5] { 0, 0, 0, 0, 0 };
-        qige[5] = new int[6] { 0, 0, 0, 0, 0,0 };
-        qige[6] = new int[5] { 0, 0, 0, 0, 0 };
-        qige[7] = new int[6] { 0, 0, 0, 0, 0,0 };
-        qige[8] = new int[5] { 0, 0, 0, 0, 0 };
+        qige[0] =new int[5]{ -1,-1,-1,-1,-1};
+        qige[1] = new int[6] { -1, -1, -1, -1, -1 ,-1};
+        qige[2] = new int[5] { -1, -1, -1, -1, -1 };
+        qige[3] = new int[6] { -1, -1, -1, -1, -1,-1 };
+        qige[4] = new int[5] { -1, -1, -1, -1, -1 };
+        qige[5] = new int[6] { -1, -1, -1, -1, -1,-1 };
+        qige[6] = new int[5] { -1, -1, -1, -1, -1 };
+        qige[7] = new int[6] { -1, -1, -1, -1, -1,-1 };
+        qige[8] = new int[5] { -1, -1, -1, -1, -1 };
         qigepos[0] = new Vector3[5];
         qigepos[1] = new Vector3[6];
         qigepos[2] = new Vector3[5];
@@ -367,7 +367,16 @@ public partial class QiziGuanLi
     }
     public float getDistance(Vector2Int a,Vector2Int b)
     {
-        return (qigepos[a.x][a.y].x - qigepos[b.x][b.y].x) * (qigepos[a.x][a.y].x - qigepos[b.x][b.y].x) + (qigepos[a.x][a.y].z - qigepos[b.x][b.y].z) * (qigepos[a.x][a.y].z - qigepos[b.x][b.y].z);
+        try
+        {
+            return (qigepos[a.x][a.y].x - qigepos[b.x][b.y].x) * (qigepos[a.x][a.y].x - qigepos[b.x][b.y].x) + (qigepos[a.x][a.y].z - qigepos[b.x][b.y].z) * (qigepos[a.x][a.y].z - qigepos[b.x][b.y].z);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e);
+        }
+
+        return 0;
     }
     public Vector2Int getIndexQige(Vector3 pos)
     {
@@ -383,8 +392,29 @@ public partial class QiziGuanLi
         }
         return new Vector2Int(targetx,targety);
     }
+
+    public Vector2Int GetIndexQizi(EntityQizi qizi)
+    {
+        var qiziUid = qizi.HeroUID;
+        for (var index = 0; index < qige.Length; index++)
+        {
+            var oneline = qige[index];
+            for (int lineIndex = 0; lineIndex < oneline.Length; lineIndex++)
+            {
+                if (qige[index][lineIndex] == qiziUid)
+                {
+                    return new Vector2Int(index, lineIndex);
+                }
+            }
+        }
+        return new Vector2Int(-1, -1);
+    }
     public Vector2Int Findpath(Vector2Int start, Vector2Int end,float gongjidistance)
     {
+        /*if (gongjidistance == 1&&IsSurround(end))//攻击距离为1，先判断是否目标被围了一圈
+        {
+            return new Vector2Int(-1,-1);
+        }*/
         Vector2Int lastpos=start;
         List<Vector2Int> sortList = new List<Vector2Int>();
         Dictionary<Vector2Int, Vector2Int> cameFrom = new Dictionary<Vector2Int, Vector2Int>();
@@ -395,14 +425,8 @@ public partial class QiziGuanLi
         bool find = false;
         while (sortList.Count > 0)
         {
+            sortList.Sort((a,b)=>(xiaoHao[a]*xiaoHao[a]+getDistance(a, end)).CompareTo((xiaoHao[b]*xiaoHao[b]+getDistance(b, end))));
             Vector2Int current = sortList[0];
-            for (int i = 1; i < sortList.Count; i++)
-            {
-                if (xiaoHao[current] * xiaoHao[current] +getDistance(current, end) > xiaoHao[sortList[i]] * xiaoHao[sortList[i]] + getDistance(sortList[i], end))
-                {
-                    current = sortList[i];
-                }
-            }
             sortList.Remove(current);
             if (getDistance(current,end)<=gongjidistance*gongjidistance)
             {
@@ -422,11 +446,11 @@ public partial class QiziGuanLi
                         {
                             continue;
                         }
-                        if (cameFrom.ContainsKey(newpos))
+                        if (cameFrom.ContainsKey(newpos)&&xiaoHao[newpos] <= xiaoHao[current] + 1)//找到了更短到达newPos的路径
                         {
                             continue;
                         }
-                        if (QiziGuanLi.Instance.qige[newpos.x][newpos.y] == 1)
+                        if (QiziGuanLi.Instance.qige[newpos.x][newpos.y] >-1)
                         {
                             continue;
                         }
@@ -448,11 +472,11 @@ public partial class QiziGuanLi
                         {
                             continue;
                         }
-                        if (cameFrom.ContainsKey(newpos))
+                        if (cameFrom.ContainsKey(newpos)&&xiaoHao[newpos] <= xiaoHao[current] + 1)//找到了更短到达newPos的路径
                         {
                             continue;
                         }
-                        if (QiziGuanLi.Instance.qige[newpos.x][newpos.y] == 1)
+                        if (QiziGuanLi.Instance.qige[newpos.x][newpos.y] >-1)
                         {
                             continue;
                         }
@@ -468,7 +492,7 @@ public partial class QiziGuanLi
         {
             Stack<Vector2Int> trace = new Stack<Vector2Int>();
             Vector2Int pos = lastpos;
-            while (cameFrom.ContainsKey(pos))
+            while (pos!=start)
             {
                 trace.Push(pos);
                 pos = cameFrom[pos];
@@ -483,6 +507,52 @@ public partial class QiziGuanLi
             }
         }
         return new Vector2Int(-1,-1);
+    }
+    public bool IsSurround(Vector2Int target)
+    {
+        //找四个斜线方向的点,x为奇数或者偶数情况不一样
+        if (target.x % 2 == 0)//偶数情况
+        {
+            
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    Vector2Int newpos = new Vector2Int(target.x + 1 - i * 2, target.y + j);
+                    if (newpos.x < 0 || newpos.x > 8 || newpos.y < 0 || newpos.y > 5)
+                    {
+                        continue;
+                    }
+                    if (QiziGuanLi.Instance.qige[newpos.x][newpos.y] >-1)
+                    {
+                        continue;
+                    }
+                    return false;
+                }
+            }
+        }
+        else//奇数情况
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    Vector2Int newpos = new Vector2Int(target.x + 1 - i * 2, target.y - j);
+
+                    if (newpos.x < 0 || newpos.x > 8 || newpos.y < 0 || newpos.y > 4)
+                    {
+                        continue;
+                    }
+                    if (QiziGuanLi.Instance.qige[newpos.x][newpos.y] >-1)
+                    {
+                        continue;
+                    }
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
     /// <summary>
     /// 逻辑update

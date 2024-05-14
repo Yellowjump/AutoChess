@@ -24,6 +24,10 @@ namespace SkillSystem
         /// 被释放普工时
         /// </summary>
         OnBeNormalAttack,
+        /// <summary>
+        /// 技能前摇结束
+        /// </summary>
+        SkillBeforeShakeEnd,
     }
 
     public enum ConditionType
@@ -152,9 +156,9 @@ namespace SkillSystem
         /// </summary>
         TargetOutRange,
         /// <summary>
-        /// 技能还在CD中
+        /// 普攻还在等待
         /// </summary>
-        InCd,
+        NormalAtkWait,
         /// <summary>
         /// 没有有效目标
         /// </summary>

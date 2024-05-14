@@ -3,6 +3,7 @@ using liuchengguanli;
 using Procedure;
 using System.Collections;
 using System.Collections.Generic;
+using SkillSystem;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
@@ -13,6 +14,8 @@ public class StateAttack0 : FsmState<EntityQizi>
     EntityQizi qizitarget;//目标棋子
     float mindistance=10000;
     float timebegin;
+    private bool curSpSkill = false;
+    private float durationAccumulate = 0f;
     protected override void OnInit(IFsm<EntityQizi> fsm)
     {
         base.OnInit(fsm);
@@ -21,67 +24,18 @@ public class StateAttack0 : FsmState<EntityQizi>
     {
         base.OnEnter(fsm);
         
-        if (qizi == null)
-        {
-            foreach (EntityQizi qz in QiziGuanLi.Instance.QiziList)
-            {
-                if (qz.GObj.transform.localPosition == fsm.Owner.GObj.transform.localPosition)
-                {
-                    qizi = qz;
-                    zhenying = 0;
-                    break;
-                }
-            }
-            foreach (EntityQizi qz in QiziGuanLi.Instance.DirenList)
-            {
-                if (qz.GObj.transform.localPosition == fsm.Owner.GObj.transform.localPosition)
-                {
-                    qizi = qz;
-                    zhenying = 1;
-                    break;
-                }
-            }
-            //Log.Info("hfk:" + qizi.level);
-        }
-        qizi.animator.Play("ATTACK");
         //Log.Info("hfk 棋子进入attack");
         qizitarget = null;
         mindistance = 10000;
         //找到距离该棋子最近的棋子
-        Findtarget();
+        //Findtarget();
         timebegin = Time.time;
-    }
-    private void Findtarget()
-    {
-        if (zhenying == 0)
-        {
-            foreach (EntityQizi qz in QiziGuanLi.Instance.DirenList)
-            {
-                float distence = (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) * (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) + (qizi.GObj.transform.position.z - qz.GObj.transform.position.z) * (qizi.GObj.transform.position.z - qz.GObj.transform.position.z);
-                if (distence < mindistance)
-                {
-                    qizitarget = qz;
-                    mindistance = distence;
-                }
-            }
-        }
-        else
-        {
-            foreach (EntityQizi qz in QiziGuanLi.Instance.QiziCSList)
-            {
-                float distence = (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) * (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) + (qizi.GObj.transform.position.z - qz.GObj.transform.position.z) * (qizi.GObj.transform.position.z - qz.GObj.transform.position.z);
-                if (distence < mindistance)
-                {
-                    qizitarget = qz;
-                    mindistance = distence;
-                }
-            }
-        }
+        CheckCastSkill(fsm);
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
         base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
-        if (Time.time-timebegin>0.5f)
+        /*if (Time.time-timebegin>0.5f)
         {
             timebegin = Time.time + 0.5f;
             if (QiziGuanLi.Instance.dangqianliucheng == 0 || qizitarget == null)
@@ -97,11 +51,60 @@ public class StateAttack0 : FsmState<EntityQizi>
             {
                 ChangeState<StateMove0>(fsm);
             }
+        }*/
+        if (fsm == null || fsm.Owner == null)
+        {
+            return;
         }
+
+        var owner = fsm.Owner;
+        durationAccumulate += elapseSeconds;
+        //update 技能时间
+        var curSkill = curSpSkill ? owner.SpSkill : owner.NormalSkill;
+        if (durationAccumulate * 1000 >= curSkill.ShakeBeforeMs && durationAccumulate * 1000 < curSkill.ShakeBeforeMs + elapseSeconds * 1000)
+        {
+            curSkill.OnSkillBeforeShakeEnd();
+        }
+
+        if (durationAccumulate * 1000 >= curSkill.DefaultAnimationDurationMs && durationAccumulate * 1000 < curSkill.DefaultAnimationDurationMs + elapseSeconds * 1000)
+        {
+            //技能结束回到idle状态
+            ChangeState<StateIdle0>(fsm);
+        }
+    }
+
+    private void CheckCastSkill(IFsm<EntityQizi> fsm)
+    {
+        if (fsm == null || fsm.Owner == null)
+        {
+            return;
+        }
+
+        var owner = fsm.Owner;
+        var result = owner.CheckCanCastSkill(out var target, true);
+        if (result == CheckCastSkillResult.CanCast)
+        {
+            owner.CastSkill(true);
+            owner.animator.Play("ATTACK");
+            curSpSkill = true;
+            return;
+        }
+
+        result = owner.CheckCanCastSkill(out target, false);
+        if (result == CheckCastSkillResult.CanCast)
+        {
+            owner.CastSkill(false);
+            owner.animator.Play("ATTACK");
+            curSpSkill = false;
+            return;
+        }
+        ChangeState<StateIdle0>(fsm);
     }
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {
         base.OnLeave(fsm, isShutdown);
+        durationAccumulate = 0;
+        curSpSkill = false;
     }
     protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {

@@ -23,19 +23,19 @@ namespace Procedure
             {
                 EntityQizi qz = QiziGuanLi.Instance.DirenList[i];
                 qz.GObj.SetActive(true);
-                qz.GObj.transform.position = new Vector3(-qz.x, 0, -qz.y);
+                qz.LogicPosition = new Vector3(-qz.x, 0, -qz.y);
                 qz.GObj.transform.rotation = Quaternion.Euler(new Vector3(0, -180, 0));
                 //跟新qige[][]是否有棋子
-                Vector2Int posindex = QiziGuanLi.Instance.getIndexQige(qz.GObj.transform.position);
-                QiziGuanLi.Instance.qige[posindex.x][posindex.y] = 1;
+                Vector2Int posindex = QiziGuanLi.Instance.getIndexQige(qz.LogicPosition);
+                QiziGuanLi.Instance.qige[posindex.x][posindex.y] = qz.HeroUID;
             }
             for (int i=0;i<QiziGuanLi.Instance.QiziCSList.Count;i++)
             {
                 EntityQizi qz = QiziGuanLi.Instance.QiziCSList[i];
-                qz.GObj.transform.position = new Vector3(qz.x, 0, qz.y);
+                qz.LogicPosition = new Vector3(qz.x, 0, qz.y);
                 //跟新qige[][]是否有棋子
-                Vector2Int posindex = QiziGuanLi.Instance.getIndexQige(qz.GObj.transform.position);
-                QiziGuanLi.Instance.qige[posindex.x][posindex.y] = 1;
+                Vector2Int posindex = QiziGuanLi.Instance.getIndexQige(qz.LogicPosition);
+                QiziGuanLi.Instance.qige[posindex.x][posindex.y] = qz.HeroUID;
             }
             //Log.Info("hfk,进入战斗状态时间是:" + Time.time);
             goumaiUI = GameEntry.UI.GetUIForm(UICtrlName.JieMianUIPrefab);
@@ -56,7 +56,7 @@ namespace Procedure
                 // 当累积时间大于等于固定的DeltaTime时，执行selfLogicUpdate方法
                 while (timeAccumulator >= GameEntry.LogicDeltaTime)
                 {
-                    QiziGuanLi.Instance.OnLogicUpdate(elapseSeconds,realElapseSeconds);
+                    QiziGuanLi.Instance.OnLogicUpdate(GameEntry.LogicDeltaTime,realElapseSeconds);
                     timeAccumulator -= GameEntry.LogicDeltaTime;
                 }
             }

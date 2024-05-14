@@ -3,6 +3,7 @@ using liuchengguanli;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SkillSystem;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEditor;
@@ -257,6 +258,7 @@ public class UIguanli : UIFormLogic
             {
                 QiziGuanLi.Instance.goumaiqizi(index, paikuIndex, kwCx, feiyong);
                 qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
+                qizi.BelongCamp = CampType.Friend;
                 qizi.Init(index);
 
                 qizi.GObj.transform.position = new Vector3(-4 + kwCx, 0, -4.5f);

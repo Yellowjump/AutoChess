@@ -2,6 +2,7 @@ using GameFramework.Fsm;
 using liuchengguanli;
 using System.Collections;
 using System.Collections.Generic;
+using SkillSystem;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Analytics;
@@ -10,7 +11,6 @@ using static UnityEngine.GraphicsBuffer;
 
 public class StateMove0 : FsmState<EntityQizi>
 {
-    EntityQizi qizi;//状态机挂载的棋子类
     int zhenying = 0;//0表明是自己这边的棋子，1表明是敌方阵营的
     EntityQizi qizitarget;//目标棋子
     float mindistance = 10000;
@@ -20,6 +20,9 @@ public class StateMove0 : FsmState<EntityQizi>
     Vector2Int nextPosIndex;
     Vector3 startpos;
     Vector3 nextpos;
+    private const float MoveOneCellDuration = 0.5f;
+    private float _moveAccumulate = 0f;
+    private bool _moving = false;
     protected override void OnInit(IFsm<EntityQizi> fsm)
     {
         base.OnInit(fsm);
@@ -27,28 +30,13 @@ public class StateMove0 : FsmState<EntityQizi>
     protected override void OnEnter(IFsm<EntityQizi> fsm)
     {
         base.OnEnter(fsm);
-        if (qizi==null)//第一次进入获取自身棋子类
+        if (fsm == null || fsm.Owner == null)
         {
-            foreach (EntityQizi qz in QiziGuanLi.Instance.QiziList)
-            {
-                if (qz.GObj.transform.localPosition == fsm.Owner.GObj.transform.localPosition)
-                {
-                    qizi = qz;
-                    zhenying = 0;
-                    break;
-                }
-            }
-            foreach (EntityQizi qz in QiziGuanLi.Instance.DirenList)
-            {
-                if (qz.GObj.transform.localPosition == fsm.Owner.GObj.transform.localPosition)
-                {
-                    qizi = qz;
-                    zhenying = 1;
-                    break;
-                }
-            }
+            return;
         }
-        startpos = qizi.GObj.transform.position;
+
+        var owner = fsm.Owner;
+        startpos = owner.LogicPosition;
         //Log.Info("hfk:" + qizi.level);
         //找到距离该棋子最近的棋子
         qizitarget = null;
@@ -58,70 +46,33 @@ public class StateMove0 : FsmState<EntityQizi>
         timetemp = Time.time;
         nextPosIndex = new Vector2Int(-1, -1);
     }
-    private void Findtarget()
-    {
-        nextPosIndex = new Vector2Int(-1, -1);
-        qizitarget = null;
-        mindistance = 10000;
-        if (zhenying == 0)
-        {
-            foreach (EntityQizi qz in QiziGuanLi.Instance.DirenList)
-            {
-                float distance = (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) * (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) + (qizi.GObj.transform.position.z - qz.GObj.transform.position.z) * (qizi.GObj.transform.position.z - qz.GObj.transform.position.z);
-                if (distance < mindistance)
-                {
-                    qizitarget = qz;
-                    mindistance = distance;
-                }
-            }
-        }
-        else
-        {
-            foreach (EntityQizi qz in QiziGuanLi.Instance.QiziCSList)
-            {
-                float distence = (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) * (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) + (qizi.GObj.transform.position.z - qz.GObj.transform.position.z) * (qizi.GObj.transform.position.z - qz.GObj.transform.position.z);
-                if (distence < mindistance)
-                {
-                    qizitarget = qz;
-                    mindistance = distence;
-                }
-            }
-        }
-    }
-    private void FindNexttarget()
-    {
-        float dayudistance = mindistance;
-        qizitarget = null;
-        mindistance = 10000;
-        if (zhenying == 0)
-        {
-            foreach (EntityQizi qz in QiziGuanLi.Instance.DirenList)
-            {
-                float distance = (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) * (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) + (qizi.GObj.transform.position.z - qz.GObj.transform.position.z) * (qizi.GObj.transform.position.z - qz.GObj.transform.position.z);
-                if (distance < mindistance&&distance>dayudistance)
-                {
-                    qizitarget = qz;
-                    mindistance = distance;
-                }
-            }
-        }
-        else
-        {
-            foreach (EntityQizi qz in QiziGuanLi.Instance.QiziCSList)
-            {
-                float distance = (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) * (qizi.GObj.transform.position.x - qz.GObj.transform.position.x) + (qizi.GObj.transform.position.z - qz.GObj.transform.position.z) * (qizi.GObj.transform.position.z - qz.GObj.transform.position.z);
-                if (distance < mindistance && distance > dayudistance)
-                {
-                    qizitarget = qz;
-                    mindistance = distance;
-                }
-            }
-        }
-    }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
         base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
-        if (Time.time- timetemp > 0.5f)//0.5s每次
+        var owner = fsm.Owner;
+        if (owner == null)
+        {
+            Log.Error("Owner is null");
+            return;
+        }
+        //判断是否在移动中
+        if (_moving)
+        {
+            _moveAccumulate += elapseSeconds;
+            if (_moveAccumulate < MoveOneCellDuration)
+            {
+                owner.LogicPosition = new Vector3(Mathf.Lerp(startpos.x, nextpos.x, _moveAccumulate/MoveOneCellDuration), 0, Mathf.Lerp(startpos.z, nextpos.z, _moveAccumulate/MoveOneCellDuration));
+                return;
+            }
+            else
+            {
+                //已到达目标点
+                _moving = false;
+            }
+        }
+        //判断是否可以changeState或者确定下一移动目标点
+        CheckChangeStateOrMovePos(fsm);
+        /*if (Time.time- timetemp > 0.5f)//0.5s每次
         {
             timetemp = Time.time+0.5f;
             Findtarget();
@@ -169,6 +120,60 @@ public class StateMove0 : FsmState<EntityQizi>
                 findpath = false;
                 startpos = nextpos;
                 //ChangeState<StateIdle0>(fsm);
+            }
+        }*/
+    }
+
+    private void CheckChangeStateOrMovePos(IFsm<EntityQizi> fsm)
+    {
+        if (fsm == null||fsm.Owner==null)
+        {
+            Log.Error("Fsm is null or Owner is null");
+            return;
+        }
+        var owner = fsm.Owner;
+        var result = owner.CheckCanCastSkill(out var target, true);
+        if (result == CheckCastSkillResult.CanCast)
+        {
+            owner.CurAttackTarget = target;
+            ChangeState<StateAttack0>(fsm);
+            return;
+        }
+        else if (result == CheckCastSkillResult.TargetOutRange)
+        {
+            owner.CurAttackTarget = target;
+            Vector2Int ownerIndex = QiziGuanLi.Instance.GetIndexQizi(owner);
+            Vector2Int targetIndex = QiziGuanLi.Instance.GetIndexQizi(target);
+            nextPosIndex = QiziGuanLi.Instance.Findpath(ownerIndex, targetIndex, owner.gongjiDistence);
+            if (nextPosIndex != new Vector2Int(-1, -1))
+            {
+                _moving = true;
+                startpos = owner.LogicPosition;
+                nextpos = QiziGuanLi.Instance.qigepos[nextPosIndex.x][nextPosIndex.y];
+                QiziGuanLi.Instance.qige[nextPosIndex.x][nextPosIndex.y] = owner.HeroUID;
+                QiziGuanLi.Instance.qige[ownerIndex.x][ownerIndex.y] =-1;
+                return;
+            }
+        }
+        result = owner.CheckCanCastSkill(out target, false);
+        if (result == CheckCastSkillResult.CanCast)
+        {
+            owner.CurAttackTarget = target;
+            ChangeState<StateAttack0>(fsm);
+        }
+        else if (result == CheckCastSkillResult.TargetOutRange)
+        {
+            owner.CurAttackTarget = target;
+            Vector2Int ownerIndex = QiziGuanLi.Instance.GetIndexQizi(owner);
+            Vector2Int targetIndex = QiziGuanLi.Instance.GetIndexQizi(target);
+            nextPosIndex = QiziGuanLi.Instance.Findpath(ownerIndex, targetIndex, owner.gongjiDistence);
+            if (nextPosIndex != new Vector2Int(-1, -1))
+            {
+                _moving = true;
+                startpos = owner.LogicPosition;
+                nextpos = QiziGuanLi.Instance.qigepos[nextPosIndex.x][nextPosIndex.y];
+                QiziGuanLi.Instance.qige[nextPosIndex.x][nextPosIndex.y] = owner.HeroUID;
+                QiziGuanLi.Instance.qige[ownerIndex.x][ownerIndex.y] = -1;
             }
         }
     }

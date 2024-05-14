@@ -34,6 +34,9 @@ namespace liuchengguanli
                 return 1;
             }
         }
+
+        public float NormalAtkInterval => AtkSpeed <= 0 ? float.MaxValue : 1 / AtkSpeed;
+        public float SinceLastNormalAtk = float.MaxValue;
         private void InitSkill()
         {
             var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
@@ -64,8 +67,8 @@ namespace liuchengguanli
                 SkillID = skillID,
                 CurSkillType = SkillType.NormalSkill,
                 Caster = this,
-                CDMs = skillTableData.CD,
-                ShakeBeforeMs = skillTableData.CD, //todo 后续在skill表中添加前摇时间
+                DefaultAnimationDurationMs = skillTableData.Duration,
+                ShakeBeforeMs = skillTableData.BeforeShakeEndMs, //todo 后续在skill表中添加前摇时间
                 CurSkillCastTargetType = (SkillCastTargetType)skillTableData.TargetType,
             };
 
@@ -147,6 +150,7 @@ namespace liuchengguanli
                     canUseOldTarget = canUseOldTarget&&!(GetDistanceSquare(CurAttackTarget) > gongjiDistence * gongjiDistence);
                     if (canUseOldTarget)
                     {
+                        inAttackRange = true;
                         target = CurAttackTarget;
                     }
                 }
@@ -163,7 +167,12 @@ namespace liuchengguanli
             }
             else if (inAttackRange == false)
             {
-                
+                return CheckCastSkillResult.TargetOutRange;
+            }
+
+            if (isSpSkill == false&&SinceLastNormalAtk<NormalAtkInterval)
+            {
+                return CheckCastSkillResult.NormalAtkWait;
             }
             return CheckCastSkillResult.CanCast;
         }
@@ -187,11 +196,24 @@ namespace liuchengguanli
             switch (willCastSkill.CurSkillCastTargetType)
             {
                 case SkillCastTargetType.NearestEnemy:
-                    return QiziGuanLi.instance.GetNearestTarget(this,BelongCamp,out target);
+                    return QiziGuanLi.instance.GetNearestTarget(this,CampType.Enemy,out target);
                 case SkillCastTargetType.NoNeedTarget:
                     return true;
             }
             return false;
+        }
+
+        public void CastSkill(bool isSpSkill)
+        {
+            if (isSpSkill)
+            {
+                SpSkill?.Cast();
+            }
+            else
+            {
+                SinceLastNormalAtk = 0;
+                NormalSkill.Cast();
+            }
         }
     }
 }
