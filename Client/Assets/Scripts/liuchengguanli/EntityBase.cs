@@ -17,7 +17,11 @@ namespace liuchengguanli
         public Vector3 LogicPosition
         {
             get =>_logicPosition;
-            set => _logicPosition = value;
+            set
+            {
+                _logicPosition = value;
+                GObj.transform.position = value;
+            }
         }
 
         public virtual void Init(int index)

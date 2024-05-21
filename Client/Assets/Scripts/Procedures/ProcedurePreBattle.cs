@@ -51,12 +51,12 @@ namespace Procedure
             for (int i = 0; i < QiziGuanLi.Instance.QiziCSList.Count; i++)
             {
                 EntityQizi qz = QiziGuanLi.Instance.QiziCSList[i];
-                qz.LogicPosition = new Vector3(qz.x, 0, qz.y);
+                qz.LogicPosition = QiziGuanLi.instance.GetGeziPos(qz.rowIndex,qz.columnIndex);
                 //跟新qige[][]是否有棋子
                 Vector2Int posindex = QiziGuanLi.Instance.getIndexQige(qz.LogicPosition);
             }
             //归零qige[][]
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < QiziGuanLi.Instance.qige[i].Length; j++)
                 {

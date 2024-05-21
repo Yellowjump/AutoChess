@@ -62,7 +62,7 @@ public class StateIdle0 : FsmState<EntityQizi>
             return;
         }
 
-        if (QiziGuanLi.instance.dangqianliucheng == 0)
+        if (QiziGuanLi.instance.dangqianliucheng == 0||owner.rowIndex==-1)//非战斗状态或者 没上场就一直在idle状态
         {
             return;
         }

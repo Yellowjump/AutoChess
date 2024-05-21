@@ -1,6 +1,6 @@
 #	资源路径配置表													
-#	Id		TemplateID	Duration	CD	TargetType	SkillRange	IntParam1	IntParam2	IntParam3	IntParam4	IntParam5	StringParam1	StringParam2
+#	Id		TemplateID	Duration	BeforeShakeEndMs	TargetType	SkillRange	IntParam1	IntParam2	IntParam3	IntParam4	IntParam5	StringParam1	StringParam2
 #	int		int	int	int	int	int	int	int	int	int	int	string	string
-#	技能ID	技能备注	模板ID	持续时间ms	冷却时间ms	目标类型	技能范围	int参数1	int参数2	int参数3	int参数4	int参数5	str参数1	str参数2
+#	技能ID	技能备注	模板ID	持续时间ms	动画前摇结束ms	目标类型	技能范围	int参数1	int参数2	int参数3	int参数4	int参数5	str参数1	str参数2
 #														
-	1	测试技能	1000	2000	10000	1	1	10						
+	1	测试技能	1000	2000	500	1	1	10						

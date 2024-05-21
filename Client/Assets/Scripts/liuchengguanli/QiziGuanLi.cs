@@ -56,11 +56,20 @@ public partial class QiziGuanLi
     private int[] goumaiUiqiziPaikuFeiyong = new int[5];//记录UI购买界面的棋子
     public int dangqianliucheng = 0;//保存当前流程，0是prebattle,1是battle
     public List<Sprite> ListQiziLevelSprite = new List<Sprite>();//保存棋子星级图片
-    public int[][] qige = new int[9][];//保存棋格上是否有棋子 -1表示没有，其余是棋子uid
-    public Vector3[][] qigepos = new Vector3[9][];//保存棋格位置
+    public int[][] qige = new int[8][];//保存棋格上是否有棋子 -1表示没有，其余是棋子uid
+    public Vector3[][] qigepos = new Vector3[8][];//保存棋格位置
+    public Vector3[] cxqigepos = new Vector3[9];//保存场下棋格位置
     public int QiziCurUniqueIndex = 0;
     public GameObject showpath;
 
+    private Vector2Int[] adjacentOffsetDoubleRow = new Vector2Int[6]
+    {
+        Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right, Vector2Int.one, Vector2Int.down + Vector2Int.right
+    };
+    private Vector2Int[] adjacentOffsetSingleRow = new Vector2Int[6]
+    {
+        Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right, Vector2Int.left+Vector2Int.up, Vector2Int.left+ Vector2Int.down
+    };
     void Init()//初始化每个牌库
     {
         showpath = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefeb/qigezi/showpath.prefab");//绑定path预制体
@@ -123,8 +132,8 @@ public partial class QiziGuanLi
         QiziCXList.Remove(qizi);
         QiziList.Remove(qizi);
         qizi.GObj.SetActive(false);
-        qizi.x = -0.7071068f;
-        qizi.y = -0.7071068f;
+        qizi.rowIndex =5;
+        qizi.columnIndex = 1;
         DirenList.Add(qizi);
 
         EntityQizi qizi2 = Pool.instance.PoolEntity.Get() as EntityQizi;
@@ -133,8 +142,8 @@ public partial class QiziGuanLi
         QiziCXList.Remove(qizi2);
         QiziList.Remove(qizi2);
         qizi2.GObj.SetActive(false);
-        qizi2.x = 3.535534f;
-        qizi2.y = 2.12132f;
+        qizi2.rowIndex = 6;
+        qizi2.columnIndex = 5;
         DirenList.Add(qizi2);
         //EntityQizi qizi3 = Pool.instance.PoolEntity.Get() as EntityQizi;
         //qizi3.Init(0);
@@ -147,25 +156,22 @@ public partial class QiziGuanLi
     }
     void InitQige()
     {
-        qige[0] =new int[5]{ -1,-1,-1,-1,-1};
-        qige[1] = new int[6] { -1, -1, -1, -1, -1 ,-1};
-        qige[2] = new int[5] { -1, -1, -1, -1, -1 };
-        qige[3] = new int[6] { -1, -1, -1, -1, -1,-1 };
-        qige[4] = new int[5] { -1, -1, -1, -1, -1 };
-        qige[5] = new int[6] { -1, -1, -1, -1, -1,-1 };
-        qige[6] = new int[5] { -1, -1, -1, -1, -1 };
-        qige[7] = new int[6] { -1, -1, -1, -1, -1,-1 };
-        qige[8] = new int[5] { -1, -1, -1, -1, -1 };
-        qigepos[0] = new Vector3[5];
-        qigepos[1] = new Vector3[6];
-        qigepos[2] = new Vector3[5];
-        qigepos[3] = new Vector3[6];
-        qigepos[4] = new Vector3[5];
-        qigepos[5] = new Vector3[6];
-        qigepos[6] = new Vector3[5];
-        qigepos[7] = new Vector3[6];
-        qigepos[8] = new Vector3[5];
-
+        qige[0] = new int[7] { -1, -1, -1, -1, -1 ,-1,-1};
+        qige[1] = new int[7] { -1, -1, -1, -1, -1 ,-1,-1};
+        qige[2] = new int[7] { -1, -1, -1, -1, -1 ,-1,-1};
+        qige[3] = new int[7] { -1, -1, -1, -1, -1 ,-1,-1};
+        qige[4] = new int[7] { -1, -1, -1, -1, -1 ,-1,-1};
+        qige[5] = new int[7] { -1, -1, -1, -1, -1 ,-1,-1};
+        qige[6] = new int[7] { -1, -1, -1, -1, -1 ,-1,-1};
+        qige[7] = new int[7] { -1, -1, -1, -1, -1 ,-1,-1};
+        qigepos[0] = new Vector3[7];
+        qigepos[1] = new Vector3[7];
+        qigepos[2] = new Vector3[7];
+        qigepos[3] = new Vector3[7];
+        qigepos[4] = new Vector3[7];
+        qigepos[5] = new Vector3[7];
+        qigepos[6] = new Vector3[7];
+        qigepos[7] = new Vector3[7];
     }
     //按照等级来抽五张牌
     public void choupai(int dengji)
@@ -369,7 +375,7 @@ public partial class QiziGuanLi
     {
         try
         {
-            return (qigepos[a.x][a.y].x - qigepos[b.x][b.y].x) * (qigepos[a.x][a.y].x - qigepos[b.x][b.y].x) + (qigepos[a.x][a.y].z - qigepos[b.x][b.y].z) * (qigepos[a.x][a.y].z - qigepos[b.x][b.y].z);
+            return (qigepos[a.y][a.x].x - qigepos[b.y][b.x].x) * (qigepos[a.y][a.x].x - qigepos[b.y][b.x].x) + (qigepos[a.y][a.x].z - qigepos[b.y][b.x].z) * (qigepos[a.y][a.x].z - qigepos[b.y][b.x].z);
         }
         catch (Exception e)
         {
@@ -396,14 +402,14 @@ public partial class QiziGuanLi
     public Vector2Int GetIndexQizi(EntityQizi qizi)
     {
         var qiziUid = qizi.HeroUID;
-        for (var index = 0; index < qige.Length; index++)
+        for (var rowIndex = 0; rowIndex < qige.Length; rowIndex++)
         {
-            var oneline = qige[index];
-            for (int lineIndex = 0; lineIndex < oneline.Length; lineIndex++)
+            var oneline = qige[rowIndex];
+            for (int columnIndex = 0; columnIndex < oneline.Length; columnIndex++)
             {
-                if (qige[index][lineIndex] == qiziUid)
+                if (qige[rowIndex][columnIndex] == qiziUid)
                 {
-                    return new Vector2Int(index, lineIndex);
+                    return new Vector2Int(columnIndex,rowIndex);
                 }
             }
         }
@@ -434,7 +440,28 @@ public partial class QiziGuanLi
                 find = true;
                 break;
             }
-            //找四个斜线方向的点,x为奇数或者偶数情况不一样
+
+            var adjacentOffList = current.y % 2 == 0 ? adjacentOffsetDoubleRow : adjacentOffsetSingleRow;
+            for (int adjacentCellIndex = 0; adjacentCellIndex < 6; adjacentCellIndex++)
+            {
+                var curAdjacent = current + adjacentOffList[adjacentCellIndex];
+                if (curAdjacent.x < 0 || curAdjacent.x > 6 || curAdjacent.y < 0 || curAdjacent.y > 7)
+                {
+                    continue;
+                }
+                if (cameFrom.ContainsKey(curAdjacent)&&xiaoHao[curAdjacent] <= xiaoHao[current] + 1)//找到了更短到达newPos的路径
+                {
+                    continue;
+                }
+                if (QiziGuanLi.Instance.qige[curAdjacent.y][curAdjacent.x] >-1)
+                {
+                    continue;
+                }
+                sortList.Add(curAdjacent);
+                cameFrom[curAdjacent] = current;
+                xiaoHao[curAdjacent] = xiaoHao[current] + 1;
+            }
+            /*//找四个斜线方向的点,x为奇数或者偶数情况不一样
             if (current.x % 2 == 0)//偶数情况
             {
                 for (int i = 0; i < 2; i++)
@@ -485,7 +512,7 @@ public partial class QiziGuanLi
                         xiaoHao[newpos] = xiaoHao[current] + 1;
                     }
                 }
-            }
+            }*/
         }
         //Log.Info("hfk:find ="+find);
         if (find)
@@ -505,6 +532,7 @@ public partial class QiziGuanLi
                 //Log.Info("hfk:p=" + qigepos[p.x][p.y].x+" "+ qigepos[p.x][p.y].z + " pos=" + po);
                 //GameObject qg =GameObject.Instantiate(showpath, po, Quaternion.Euler(0, 45, 0));
             }
+            return lastpos;
         }
         return new Vector2Int(-1,-1);
     }
@@ -553,6 +581,11 @@ public partial class QiziGuanLi
         }
 
         return true;
+    }
+
+    public Vector3 GetGeziPos(int row,int column)
+    {
+        return row >= 0 ? qigepos[row][column] : cxqigepos[column];
     }
     /// <summary>
     /// 逻辑update

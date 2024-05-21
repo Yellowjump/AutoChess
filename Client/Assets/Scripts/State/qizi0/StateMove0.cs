@@ -66,8 +66,13 @@ public class StateMove0 : FsmState<EntityQizi>
             }
             else
             {
+                _moveAccumulate = 0;
+                owner.LogicPosition = nextpos;
                 //已到达目标点
                 _moving = false;
+                var v2 = QiziGuanLi.instance.GetIndexQizi(owner);
+                owner.columnIndex = v2.x;
+                owner.rowIndex = v2.y;
             }
         }
         //判断是否可以changeState或者确定下一移动目标点
@@ -149,9 +154,9 @@ public class StateMove0 : FsmState<EntityQizi>
             {
                 _moving = true;
                 startpos = owner.LogicPosition;
-                nextpos = QiziGuanLi.Instance.qigepos[nextPosIndex.x][nextPosIndex.y];
-                QiziGuanLi.Instance.qige[nextPosIndex.x][nextPosIndex.y] = owner.HeroUID;
-                QiziGuanLi.Instance.qige[ownerIndex.x][ownerIndex.y] =-1;
+                nextpos = QiziGuanLi.Instance.qigepos[nextPosIndex.y][nextPosIndex.x];
+                QiziGuanLi.Instance.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
+                QiziGuanLi.Instance.qige[ownerIndex.y][ownerIndex.x] =-1;
                 return;
             }
         }
@@ -167,13 +172,15 @@ public class StateMove0 : FsmState<EntityQizi>
             Vector2Int ownerIndex = QiziGuanLi.Instance.GetIndexQizi(owner);
             Vector2Int targetIndex = QiziGuanLi.Instance.GetIndexQizi(target);
             nextPosIndex = QiziGuanLi.Instance.Findpath(ownerIndex, targetIndex, owner.gongjiDistence);
-            if (nextPosIndex != new Vector2Int(-1, -1))
+            if (nextPosIndex != new Vector2Int(-1, -1)&&nextPosIndex!=ownerIndex)
             {
                 _moving = true;
                 startpos = owner.LogicPosition;
-                nextpos = QiziGuanLi.Instance.qigepos[nextPosIndex.x][nextPosIndex.y];
-                QiziGuanLi.Instance.qige[nextPosIndex.x][nextPosIndex.y] = owner.HeroUID;
-                QiziGuanLi.Instance.qige[ownerIndex.x][ownerIndex.y] = -1;
+                nextpos = QiziGuanLi.Instance.qigepos[nextPosIndex.y][nextPosIndex.x];
+                owner.animator.Play("RUN00_F");
+                owner.GObj.transform.LookAt(nextpos);
+                QiziGuanLi.Instance.qige[ownerIndex.y][ownerIndex.x] = -1;
+                QiziGuanLi.Instance.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
             }
         }
     }

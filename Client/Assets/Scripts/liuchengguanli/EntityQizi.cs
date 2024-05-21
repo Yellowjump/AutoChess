@@ -19,8 +19,8 @@ namespace liuchengguanli
         public float powersum =100;//总蓝
         public float xueliangnow;//当前血量
         public float powernow;//当前蓝
-        public float x;
-        public float y;//在棋盘上的位置
+        public int rowIndex;
+        public int columnIndex;//在棋盘上的位置下标,左下角是0，0,如果在备战棋格，rowIndex = -1，columnIndex是第几个
         public float gongjiDistence;//攻击距离
 
         public float AtkSpeed=1;//每秒攻击次数
@@ -58,10 +58,10 @@ namespace liuchengguanli
         }
         public void Remove()
         {
-            if (this.GObj.transform.localPosition.z == -4.5f)//如果棋子在场下
+            if (rowIndex==-1)//如果棋子在场下
             {
                 QiziGuanLi.Instance.QiziCXList.Remove(this);
-                QiziGuanLi.Instance.changxia[(int)this.GObj.transform.localPosition.x + 4] = -1;
+                QiziGuanLi.Instance.changxia[columnIndex] = -1;
             }
             else
             {

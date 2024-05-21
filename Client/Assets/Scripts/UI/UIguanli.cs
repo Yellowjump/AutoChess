@@ -260,10 +260,9 @@ public class UIguanli : UIFormLogic
                 qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
                 qizi.BelongCamp = CampType.Friend;
                 qizi.Init(index);
-
-                qizi.GObj.transform.position = new Vector3(-4 + kwCx, 0, -4.5f);
-                qizi.x = qizi.GObj.transform.position.x;
-                qizi.y = qizi.GObj.transform.position.z;
+                qizi.rowIndex =-1;
+                qizi.columnIndex = kwCx;
+                qizi.LogicPosition = QiziGuanLi.instance.GetGeziPos(qizi.rowIndex, qizi.columnIndex);
                 qizi = null;
                 jinqian.changejinqian(-feiyong);
                 JinBi.text = jinqian.GetJinBiNum().ToString();
@@ -281,14 +280,14 @@ public class UIguanli : UIFormLogic
     private void OnClickBtnChushou()
     {
         //Log.Info("hfk"+111);
-        if (qizi.y != -4.5)//棋子在场上
+        if (qizi.rowIndex != -1)//棋子在场上
         {
             QiziGuanLi.Instance.QiziCSList.Remove(qizi);
 
         }
         else //棋子在场下
         {
-            QiziGuanLi.Instance.changxia[(int)qizi.x + 4] = -1;
+            QiziGuanLi.Instance.changxia[qizi.columnIndex] = -1;
             QiziGuanLi.Instance.QiziCXList.Remove(qizi);
         }
         QiziGuanLi.Instance.QiziList.Remove(qizi);
@@ -343,12 +342,12 @@ public class UIguanli : UIFormLogic
                     shuxinxianshi(shuxin_qizi);
                 }
                 ////测试qigepos
-                if (Physics.Raycast(ray, out hit) && hit.transform.tag == "qige")
+                /*if (Physics.Raycast(ray, out hit) && hit.transform.tag == "qige")
                 {
 
                     Vector2Int v = QiziGuanLi.Instance.getIndexQige(hit.transform.position);
                     Log.Info("hfk" + hit.transform.position + "  vector2:" + v);
-                }
+                }*/
             }
             if (Input.GetMouseButtonDown(0))
             {
@@ -377,7 +376,30 @@ public class UIguanli : UIFormLogic
                 }
                 else//战斗阶段，只能选场下的棋子
                 {
-                    if (Physics.Raycast(ray, out hit) && hit.transform.tag == "qizi" && hit.transform.position.z == -4.5)
+                    // 创建一个平面，平面法线方向为 Vector3.up，平面通过点 (0, 0, 0)
+                    Plane plane = new Plane(Vector3.up, Vector3.zero);
+                    // 检查射线是否与平面相交
+                    if (plane.Raycast(ray, out var enter))
+                    {
+                        // 计算相交点
+                        Vector3 hitPoint = ray.GetPoint(enter);
+                        if (hitPoint.z > -5 && hitPoint.z < -4 && hitPoint.x > -4.5 && hitPoint.x < 4.5)
+                        {
+                            var matchIndex = (int)(hitPoint.x + 4.5);
+                            foreach (var cxQizi in QiziGuanLi.instance.QiziCXList)
+                            {
+                                if(cxQizi.columnIndex==matchIndex)
+                                {
+                                    qizi = cxQizi;
+                                    GetOrNotGetQizi = true;
+                                    _btnChushou.gameObject.SetActive(true);
+                                    ChuSouNum.text = "出售\n" + qizi.money + "金币";
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    /*if (Physics.Raycast(ray, out hit) && hit.transform.tag == "qizi" && hit.transform.position.z == -4.5)
                     {
                         for (int i = 0; i < QiziGuanLi.Instance.QiziCXList.Count; i++)
                         {
@@ -392,7 +414,7 @@ public class UIguanli : UIFormLogic
                         GetOrNotGetQizi = true;
                         _btnChushou.gameObject.SetActive(true);
                         ChuSouNum.text = "出售\n" + qizi.money + "金币";
-                    }
+                    }*/
                 }
             }
         }
@@ -402,6 +424,20 @@ public class UIguanli : UIFormLogic
             int findotherQizi = -1;
             int findqige = -1;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            // 创建一个平面，平面法线方向为 Vector3.up，平面通过点 (0, 0, 0)
+            Plane plane = new Plane(Vector3.up, Vector3.zero);
+            bool planeHasEnter = false;
+            Vector3 hitPoint = Vector3.zero;
+            // 检查射线是否与平面相交
+            if (plane.Raycast(ray, out var enter))
+            {
+                planeHasEnter = true;
+                // 计算相交点
+                hitPoint = ray.GetPoint(enter);
+                qizi.LogicPosition = hitPoint + Vector3.up*0.5f;
+                
+            }
+
             RaycastHit[] hits = Physics.RaycastAll(ray);
             for (int i = 0; i < hits.Length; i++)//移动鼠标拖拽棋子
             {
@@ -421,38 +457,165 @@ public class UIguanli : UIFormLogic
             }
             if (Input.GetMouseButtonDown(0))//判断射线检测，应该放下棋子到棋格子上还是和已经放置的棋子交换位置，或者无法放置棋子（回到原位）
             {
-                if (findqige != -1 && hits[findqige].transform.position.z<0)//鼠标不在棋格上，放回原位
+                var matchRowIndex = -1;
+                var matchColumnIndex = -1;
+                var sqrt3 = Math.Sqrt(3);
+                if (hitPoint.z > -5 && hitPoint.z < -4 && hitPoint.x > -4.5 && hitPoint.x < 4.5)//确定选中的是场上格子还是场下格子
+                {
+                    matchRowIndex = -1;
+                    matchColumnIndex = (int)(hitPoint.x + 4.5);
+                }
+                else if (hitPoint.z > -3 - (1 / sqrt3) && hitPoint.z < -3 + (1 / sqrt3) + (sqrt3 * 3.5))
+                {
+                    matchRowIndex = (int)((hitPoint.z+3+(1/sqrt3))*2/sqrt3);
+                    var tempOffset = matchRowIndex % 2 == 0 ? 0.5f : 0;
+                    if (hitPoint.x > tempOffset - 4f && hitPoint.x < 3 + tempOffset)
+                    {
+                        matchColumnIndex = (int)(hitPoint.x + 4f - tempOffset);
+                    }
+                }
+
+                if (matchColumnIndex != -1)//命中了格子
+                {
+                    EntityQizi hitQizi = null;
+                    if (matchRowIndex == -1)//命中的场下格子
+                    {
+                        foreach (var cxQizi in QiziGuanLi.instance.QiziCXList)
+                        {
+                            if(cxQizi.columnIndex==matchColumnIndex)
+                            {
+                                hitQizi = cxQizi;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var csQizi in QiziGuanLi.instance.QiziCSList)
+                        {
+                            if(csQizi.columnIndex==matchColumnIndex)
+                            {
+                                hitQizi = csQizi;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (hitQizi == null&&(matchRowIndex == -1 || (QiziGuanLi.Instance.dangqianliucheng == 0&&(QiziGuanLi.Instance.QiziCSList.Count < Dengji.Instance.getDj()||(QiziGuanLi.Instance.QiziCSList.Count == Dengji.Instance.getDj()&&qizi.rowIndex != -1))))) //对面空格子并且能直接放进去的情况
+                    {
+                        //如果拖拽的棋子是场下的
+                        if (qizi.rowIndex == -1)
+                        {   //放的位置是场上
+                            if (matchRowIndex!=-1)
+                            {   
+                                 qizi.LogicPosition = QiziGuanLi.instance.GetGeziPos(matchRowIndex,matchColumnIndex);
+                                 QiziGuanLi.Instance.changxia[qizi.columnIndex] = -1;
+                                 QiziGuanLi.Instance.QiziCSList.Add(qizi);
+                                 QiziGuanLi.Instance.QiziCXList.Remove(qizi);
+                                 qizi.rowIndex = matchRowIndex;
+                                 qizi.columnIndex= matchColumnIndex;
+
+                            }
+                            else //放的位置是场下
+                            {
+                                qizi.LogicPosition = QiziGuanLi.instance.GetGeziPos(matchRowIndex,matchColumnIndex);
+                                QiziGuanLi.Instance.changxia[qizi.columnIndex] = -1;
+                                QiziGuanLi.Instance.changxia[matchColumnIndex] = qizi.Index;
+                                qizi.rowIndex = matchRowIndex;
+                                qizi.columnIndex = matchColumnIndex;
+                            }
+                        }
+                        else//如果棋子是场上的
+                        {   //如果放的位置是场下
+                            if (matchRowIndex == -1)
+                            {
+                                QiziGuanLi.Instance.changxia[matchColumnIndex] = qizi.Index;
+                                QiziGuanLi.Instance.QiziCSList.Remove(qizi);
+                                QiziGuanLi.Instance.QiziCXList.Add(qizi);
+                            }
+                            qizi.LogicPosition = QiziGuanLi.instance.GetGeziPos(matchRowIndex,matchColumnIndex);
+                            qizi.rowIndex = matchRowIndex;
+                            qizi.columnIndex = matchColumnIndex;
+                        }
+                    }
+                    else if (hitQizi != null && QiziGuanLi.Instance.dangqianliucheng == 0 || matchRowIndex == -1) //交换棋子的情况
+                    {
+                        //如果拖拽的棋子是场下的
+                        if (qizi.rowIndex == -1)
+                        {   //放的棋子位置是场上
+                            if (hitQizi.rowIndex != -1)
+                            {
+                                QiziGuanLi.Instance.changxia[qizi.columnIndex] = hitQizi.Index;
+                                QiziGuanLi.Instance.QiziCSList.Remove(hitQizi);
+                                QiziGuanLi.Instance.QiziCSList.Add(qizi);
+                                QiziGuanLi.Instance.QiziCXList.Remove(qizi);
+                                QiziGuanLi.Instance.QiziCXList.Add(hitQizi);
+                            }
+                            else //放的位置是场下
+                            {
+                                QiziGuanLi.Instance.changxia[hitQizi.columnIndex] = qizi.Index;
+                                QiziGuanLi.Instance.changxia[qizi.columnIndex] = hitQizi.Index;
+                            }
+                        }
+                        else//如果棋子是场上的
+                        {   //如果放的别的棋子位置是场下
+                            if (hitQizi.rowIndex == -1)
+                            {
+                                QiziGuanLi.Instance.changxia[hitQizi.columnIndex] = qizi.Index;
+                                QiziGuanLi.Instance.QiziCSList.Remove(qizi);
+                                QiziGuanLi.Instance.QiziCSList.Add(qiziother);
+                                QiziGuanLi.Instance.QiziCXList.Remove(qiziother);
+                                QiziGuanLi.Instance.QiziCXList.Add(qizi);
+                            }//放的位置是场上的棋子，相当于交换两棋子位置
+                        }
+                        (qizi.LogicPosition,hitQizi.LogicPosition)=(QiziGuanLi.instance.GetGeziPos(hitQizi.rowIndex,hitQizi.columnIndex),QiziGuanLi.instance.GetGeziPos(qizi.rowIndex,qizi.columnIndex));
+                        (qizi.columnIndex, hitQizi.columnIndex) = (hitQizi.columnIndex, qizi.columnIndex);
+                        (qizi.rowIndex, hitQizi.rowIndex) = (hitQizi.rowIndex, qizi.rowIndex);
+                        
+                    }
+                    else//将qizi放回原位
+                    {
+                        qizi.LogicPosition = QiziGuanLi.instance.GetGeziPos(qizi.rowIndex,qizi.columnIndex);
+                    }
+                    qizi = null;
+                }
+                else
+                {
+                    qizi.LogicPosition = QiziGuanLi.instance.GetGeziPos(qizi.rowIndex,qizi.columnIndex);
+                    qizi = null;
+                }
+                /*if (findqige != -1 && hits[findqige].transform.position.z<0)//鼠标不在棋格上，放回原位
                 {
                     if (QiziGuanLi.Instance.dangqianliucheng == 0)
                     {
                         if (findotherQizi == -1)//空格子
                         {
                             //如果拖拽的棋子是场下的
-                            if (qizi.y == -4.5)
+                            if (qizi.rowIndex == -1)
                             {   //放的位置是场上
                                 if (hits[findqige].transform.position.z != -4.5)
                                 {   //并且场上棋子数小于等于等级，需要将changxia[]所处位置置为-1
                                     if (QiziGuanLi.Instance.QiziCSList.Count < Dengji.Instance.getDj())
                                     {
                                         qizi.GObj.transform.position = hits[findqige].transform.parent.transform.position;
-                                        QiziGuanLi.Instance.changxia[(int)qizi.x + 4] = -1;
+                                        QiziGuanLi.Instance.changxia[qizi.columnIndex] = -1;
                                         QiziGuanLi.Instance.QiziCSList.Add(qizi);
                                         QiziGuanLi.Instance.QiziCXList.Remove(qizi);
-                                        qizi.x = qizi.GObj.transform.position.x;
-                                        qizi.y= qizi.GObj.transform.position.z;
+                                        qizi.rowIndex = qizi.GObj.transform.position.x;
+                                        qizi.columnIndex= qizi.GObj.transform.position.z;
                                     }
                                     else
                                     {
-                                        qizi.GObj.transform.position = new Vector3(qizi.x,0,qizi.y);
+                                        qizi.GObj.transform.position = new Vector3(qizi.rowIndex,0,qizi.columnIndex);
                                     }
                                 }
                                 else //放的位置是场下
                                 {
                                     qizi.GObj.transform.position = hits[findqige].transform.parent.transform.position;
-                                    QiziGuanLi.Instance.changxia[(int)qizi.x + 4] = -1;
+                                    QiziGuanLi.Instance.changxia[(int)qizi.rowIndex + 4] = -1;
                                     QiziGuanLi.Instance.changxia[(int)hits[findqige].transform.parent.transform.position.x + 4] = qizi.Index;
-                                    qizi.x = qizi.GObj.transform.position.x;
-                                    qizi.y = qizi.GObj.transform.position.z;
+                                    qizi.rowIndex = qizi.GObj.transform.position.x;
+                                    qizi.columnIndex = qizi.GObj.transform.position.z;
                                 }
                             }
                             else//如果棋子是场上的
@@ -464,8 +627,8 @@ public class UIguanli : UIFormLogic
                                     QiziGuanLi.Instance.QiziCXList.Add(qizi);
                                 }
                                 qizi.GObj.transform.position = hits[findqige].transform.parent.transform.position;
-                                qizi.x = qizi.GObj.transform.position.x;
-                                qizi.y = qizi.GObj.transform.position.z;
+                                qizi.rowIndex = qizi.GObj.transform.position.x;
+                                qizi.columnIndex = qizi.GObj.transform.position.z;
                             }
                             qizi = null;
                         }
@@ -479,13 +642,13 @@ public class UIguanli : UIFormLogic
                                 }
                             }
                             //如果拖拽的棋子是场下的
-                            if (qizi.y == -4.5)
+                            if (qizi.columnIndex == -4.5)
                             {   //放的棋子位置是场上
                                 if (hits[findqige].transform.position.z != -4.5)
                                 {
                                     qizi.GObj.transform.position = hits[findqige].transform.parent.transform.position;
-                                    qiziother.GObj.transform.position = new Vector3(qizi.x,0,qizi.y);
-                                    QiziGuanLi.Instance.changxia[(int)qizi.x + 4] = qiziother.Index;
+                                    qiziother.GObj.transform.position = new Vector3(qizi.rowIndex,0,qizi.columnIndex);
+                                    QiziGuanLi.Instance.changxia[(int)qizi.rowIndex + 4] = qiziother.Index;
                                     QiziGuanLi.Instance.QiziCSList.Remove(qiziother);
                                     QiziGuanLi.Instance.QiziCSList.Add(qizi);
                                     QiziGuanLi.Instance.QiziCXList.Remove(qizi);
@@ -493,10 +656,10 @@ public class UIguanli : UIFormLogic
                                 }
                                 else //放的位置是场下
                                 {
-                                    QiziGuanLi.Instance.changxia[(int)qizi.x + 4] = qiziother.Index;
-                                    QiziGuanLi.Instance.changxia[(int)qiziother.x + 4] = qizi.Index;
+                                    QiziGuanLi.Instance.changxia[(int)qizi.rowIndex + 4] = qiziother.Index;
+                                    QiziGuanLi.Instance.changxia[(int)qiziother.rowIndex + 4] = qizi.Index;
                                     qizi.GObj.transform.position = hits[findqige].transform.parent.transform.position;
-                                    qiziother.GObj.transform.position = new Vector3(qizi.x,0,qizi.y);
+                                    qiziother.GObj.transform.position = new Vector3(qizi.rowIndex,0,qizi.columnIndex);
                                 }
                             }
                             else//如果棋子是场上的
@@ -509,13 +672,13 @@ public class UIguanli : UIFormLogic
                                     QiziGuanLi.Instance.QiziCXList.Remove(qiziother);
                                     QiziGuanLi.Instance.QiziCXList.Add(qizi);
                                 }//放的位置是场上的棋子，相当于交换两棋子位置
-                                qiziother.GObj.transform.position = new Vector3(qizi.x,0,qizi.y);
+                                qiziother.GObj.transform.position = new Vector3(qizi.rowIndex,0,qizi.columnIndex);
                                 qizi.GObj.transform.position = hits[findqige].transform.parent.transform.position;
                             }
-                            qizi.x = qizi.GObj.transform.position.x;
-                            qizi.y = qizi.GObj.transform.position.z;
-                            qiziother.x = qiziother.GObj.transform.position.x;
-                            qiziother.y = qiziother.GObj.transform.position.z;
+                            qizi.rowIndex = qizi.GObj.transform.position.x;
+                            qizi.columnIndex = qizi.GObj.transform.position.z;
+                            qiziother.rowIndex = qiziother.GObj.transform.position.x;
+                            qiziother.columnIndex = qiziother.GObj.transform.position.z;
                             qizi = null;
                         }
                     }
@@ -525,22 +688,22 @@ public class UIguanli : UIFormLogic
                         {
                             if (hits[findqige].transform.position.z != -4.5)//放的位置是场上，直接归位
                             {
-                                qizi.GObj.transform.position = new Vector3(qizi.x,0,qizi.y);
+                                qizi.GObj.transform.position = new Vector3(qizi.rowIndex,0,qizi.columnIndex);
                             }
                             else //放的位置是场下
                             {
                                 qizi.GObj.transform.position = hits[findqige].transform.parent.transform.position;
-                                QiziGuanLi.Instance.changxia[(int)qizi.x + 4] = -1;
+                                QiziGuanLi.Instance.changxia[(int)qizi.rowIndex + 4] = -1;
                                 QiziGuanLi.Instance.changxia[(int)hits[findqige].transform.position.x + 4] = qizi.Index;
                             }
-                            qizi.x = qizi.GObj.transform.position.x;
-                            qizi.y = qizi.GObj.transform.position.z;
+                            qizi.rowIndex = qizi.GObj.transform.position.x;
+                            qizi.columnIndex = qizi.GObj.transform.position.z;
                         }
                         else//棋格上有别的棋子
                         {
                             if (hits[findotherQizi].transform.position.z != -4.5f)//其他棋子不在场下
                             {
-                                qizi.GObj.transform.position = new Vector3(qizi.x, 0, qizi.y);
+                                qizi.GObj.transform.position = new Vector3(qizi.rowIndex, 0, qizi.columnIndex);
                             }
                             else
                             {
@@ -551,14 +714,14 @@ public class UIguanli : UIFormLogic
                                         qiziother = QiziGuanLi.Instance.QiziCXList[i];
                                     }
                                 }
-                                QiziGuanLi.Instance.changxia[(int)qizi.x + 4] = qiziother.Index;
+                                QiziGuanLi.Instance.changxia[(int)qizi.rowIndex + 4] = qiziother.Index;
                                 QiziGuanLi.Instance.changxia[(int)qiziother.GObj.transform.position.x + 4] = qizi.Index;
                                 qizi.GObj.transform.position = qiziother.GObj.transform.position;
-                                qiziother.GObj.transform.position = new Vector3(qizi.x, 0, qizi.y);
-                                qizi.x = qizi.GObj.transform.position.x;
-                                qizi.y = qizi.GObj.transform.position.z;
-                                qiziother.x = qiziother.GObj.transform.position.x;
-                                qiziother.y = qiziother.GObj.transform.position.z;
+                                qiziother.GObj.transform.position = new Vector3(qizi.rowIndex, 0, qizi.columnIndex);
+                                qizi.rowIndex = qizi.GObj.transform.position.x;
+                                qizi.columnIndex = qizi.GObj.transform.position.z;
+                                qiziother.rowIndex = qiziother.GObj.transform.position.x;
+                                qiziother.columnIndex = qiziother.GObj.transform.position.z;
                             }
                         }
                         qizi = null;
@@ -566,8 +729,8 @@ public class UIguanli : UIFormLogic
                 }
                 else
                 {
-                    qizi.GObj.transform.position = new Vector3(qizi.x, 0, qizi.y);
-                }
+                    qizi.LogicPosition = QiziGuanLi.instance.GetGeziPos(qizi.rowIndex,qizi.columnIndex);
+                }*/
                 //调用协程延缓1帧去取消出售button
                 StartCoroutine(waitforonezhen());
             }

@@ -86,6 +86,7 @@ public class StateAttack0 : FsmState<EntityQizi>
         {
             owner.CastSkill(true);
             owner.animator.Play("ATTACK");
+            owner.GObj.transform.LookAt(target.GObj.transform);
             curSpSkill = true;
             return;
         }
@@ -95,6 +96,7 @@ public class StateAttack0 : FsmState<EntityQizi>
         {
             owner.CastSkill(false);
             owner.animator.Play("ATTACK");
+            owner.GObj.transform.LookAt(target.GObj.transform);
             curSpSkill = false;
             return;
         }
