@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using liuchengguanli;
+using Entity;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem

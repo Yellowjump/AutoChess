@@ -1,4 +1,5 @@
 using System.IO;
+using Entity;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
@@ -7,6 +8,7 @@ namespace SkillSystem
     {
         public override CommandType CurCommandType => CommandType.CauseDamage;
         public DamageComputeType CurDamageComputeType = DamageComputeType.CommonDamage;
+        public DamageType CurDamageType;
         public TableParamInt ParamInt1 = new TableParamInt();
         public TableParamInt ParamInt2 = new TableParamInt();
         public TableParamInt ParamInt3 = new TableParamInt();
@@ -15,7 +17,24 @@ namespace SkillSystem
             if (trigger != null && trigger.CurTarget != null)
             {
                 //对当前 target 造成伤害
+                EntityQizi caster = GetDamageCaster();
+                if (caster != null)
+                {
+                    if (CurDamageComputeType == DamageComputeType.CommonDamage)
+                    {
+                        
+                    }
+                }
             }
+        }
+
+        private EntityQizi GetDamageCaster()
+        {
+            if (ParentTrigger != null)
+            {
+                return ParentTrigger.ParentTriggerList.ParentSkill.Caster;
+            }
+            return null;
         }
         public override void WriteToFile(BinaryWriter writer)
         {

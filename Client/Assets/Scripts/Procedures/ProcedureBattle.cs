@@ -1,7 +1,7 @@
 using DataTable;
 using GameFramework;
 using GameFramework.Procedure;
-using liuchengguanli;
+using Entity;
 using UnityChan;
 using UnityEngine;
 using UnityEngine.UI;

@@ -9,7 +9,7 @@ using UnityEngine.Pool;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 
-namespace liuchengguanli
+namespace Entity
 {
     public partial class EntityQizi
     {

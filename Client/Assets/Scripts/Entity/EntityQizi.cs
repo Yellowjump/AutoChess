@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 
-namespace liuchengguanli
+namespace Entity
 {
     public partial class EntityQizi : EntityBase
     {
@@ -53,6 +53,7 @@ namespace liuchengguanli
             //this.GObj.GetComponent<Fsm_qizi0>().Init();
             //Log.Info("hfk:qizichushihua:" + this.GObj.name+"list.size: " + Pool.instance.list.Count + "list[0]position:" + Pool.instance.list[0].GObj.transform.localPosition);
             HeroID = 1;//todo 后续 从棋子购买处获取ID
+            InitAttribute();
             InitSkill();
             InitState();
         }

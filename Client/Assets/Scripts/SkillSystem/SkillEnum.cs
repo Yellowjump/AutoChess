@@ -84,10 +84,22 @@ namespace SkillSystem
     /// </summary>
     public enum DamageComputeType
     {
-        [InspectorName("通用伤害流程")]
+        [InspectorName("普攻")]
         CommonDamage,
         [InspectorName("真实伤害")]
         RealDamage,
+    }
+    /// <summary>
+    /// 伤害类型
+    /// </summary>
+    public enum DamageType
+    {
+        [InspectorName("物理伤害")]
+        PhysicalDamage,
+        [InspectorName("魔法伤害")]
+        MagicDamage,
+        [InspectorName("真实伤害")]
+        TrueDamage
     }
     public enum GenerateEnumDataTables
     {
@@ -179,5 +191,37 @@ namespace SkillSystem
         Enemy,
         Friend,
         Both,
+    }
+
+    public enum AttributeType
+    {
+        [InspectorName("当前血量")]
+        Hp,
+        [InspectorName("最大血量")]
+        MaxHp,
+        [InspectorName("当前蓝量")]
+        Power,
+        [InspectorName("最大蓝量")]
+        MaxPower,
+        [InspectorName("攻击力")]
+        AttackDamage,
+        [InspectorName("法强")]
+        AbilityPower,
+        [InspectorName("普攻速")]
+        AttackSpeed,
+        [InspectorName("移速")]
+        MovementSpeed,
+        [InspectorName("护甲")]
+        Armor,
+        [InspectorName("魔抗")]
+        MagicResist,
+        [InspectorName("护甲穿透固定值")]
+        ArmorPenetrationNum,
+        [InspectorName("护甲穿透百分比")]
+        ArmorPenetrationPercent,
+        [InspectorName("法穿固定值")]
+        MagicPenetrationNum,
+        [InspectorName("法穿百分比")]
+        MagicPenetrationPercent,
     }
 }

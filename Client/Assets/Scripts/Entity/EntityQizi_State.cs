@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using GameFramework.Fsm;
 using UnityGameFramework.Runtime;
 
-namespace liuchengguanli
+namespace Entity
 {
     public partial class EntityQizi
     {

@@ -1,7 +1,7 @@
 using GameFramework.Fsm;
 using System.Collections;
 using System.Collections.Generic;
-using liuchengguanli;
+using Entity;
 using UnityEngine;
 
 public class StateUnderControl0 : FsmState<EntityQizi>
