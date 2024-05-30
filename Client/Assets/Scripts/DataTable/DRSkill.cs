@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-05-14 14:44:53.118
+// 生成时间：2024-05-30 18:16:26.352
 //------------------------------------------------------------
 
 using GameFramework;
@@ -22,6 +22,7 @@ namespace DataTable
 	public enum DRSkillField
 	{
 	    TemplateID,
+	    SkillAnim,
 	    Duration,
 	    BeforeShakeEndMs,
 	    TargetType,
@@ -57,6 +58,15 @@ namespace DataTable
         /// 获取模板ID。
         /// </summary>
         public int TemplateID
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取技能动画。
+        /// </summary>
+        public string SkillAnim
         {
             get;
             private set;
@@ -174,6 +184,7 @@ namespace DataTable
             m_Id = int.Parse(columnStrings[index++]);
             index++;
             TemplateID = int.Parse(columnStrings[index++]);
+            SkillAnim = columnStrings[index++];
             Duration = int.Parse(columnStrings[index++]);
             BeforeShakeEndMs = int.Parse(columnStrings[index++]);
             TargetType = int.Parse(columnStrings[index++]);
@@ -198,6 +209,7 @@ namespace DataTable
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
                     TemplateID = binaryReader.Read7BitEncodedInt32();
+                    SkillAnim = binaryReader.ReadString();
                     Duration = binaryReader.Read7BitEncodedInt32();
                     BeforeShakeEndMs = binaryReader.Read7BitEncodedInt32();
                     TargetType = binaryReader.Read7BitEncodedInt32();
@@ -306,6 +318,7 @@ namespace DataTable
 		/// <typeparam name="T"> 
 		///     <para>
 		///         <see cref="DRSkillField.TemplateID"/> 对应的是 int,
+		///         <see cref="DRSkillField.SkillAnim"/> 对应的是 string,
 		///         <see cref="DRSkillField.Duration"/> 对应的是 int,
 		///         <see cref="DRSkillField.BeforeShakeEndMs"/> 对应的是 int,
 		///         <see cref="DRSkillField.TargetType"/> 对应的是 int,
@@ -341,6 +354,7 @@ namespace DataTable
 		private static readonly Dictionary<DRSkillField, Func<DRSkill, (object, Type)>> FieldMap = new Dictionary<DRSkillField, Func<DRSkill, (object, Type)>>()
 		{
 		    { DRSkillField.TemplateID, obj => (obj.TemplateID, typeof(int)) },
+		    { DRSkillField.SkillAnim, obj => (obj.SkillAnim, typeof(string)) },
 		    { DRSkillField.Duration, obj => (obj.Duration, typeof(int)) },
 		    { DRSkillField.BeforeShakeEndMs, obj => (obj.BeforeShakeEndMs, typeof(int)) },
 		    { DRSkillField.TargetType, obj => (obj.TargetType, typeof(int)) },

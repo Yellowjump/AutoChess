@@ -22,6 +22,10 @@ public partial class QiziGuanLi
         float minDistanceSquare = float.MaxValue;
         foreach (var oneQizi in waitCheckList)
         {
+            if (oneQizi.IsValid == false)
+            {
+                continue;
+            }
             var newDistanceSquare = oneQizi.GetDistanceSquare(source);
             if (newDistanceSquare< minDistanceSquare)
             {

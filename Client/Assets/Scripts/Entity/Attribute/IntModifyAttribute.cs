@@ -23,7 +23,7 @@ namespace Entity.Attribute
             {
                 finalValue = _curMinLimit.LimitValue;
             }
-            if (_curMinLimit != null&&finalValue>_curMaxLimit.LimitValue)
+            if (_curMaxLimit != null&&finalValue>_curMaxLimit.LimitValue)
             {
                 finalValue = _curMaxLimit.LimitValue;
             }

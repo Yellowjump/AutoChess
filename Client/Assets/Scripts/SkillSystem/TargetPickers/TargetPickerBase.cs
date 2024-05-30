@@ -9,7 +9,7 @@ namespace SkillSystem
     {
         public OneTrigger ParentTrigger;
         public virtual TargetPickerType CurTargetPickerType => TargetPickerType.NoTarget;
-        public EntityBase GetTarget(OneTrigger trigger,object arg = null)
+        public virtual EntityBase GetTarget(OneTrigger trigger,object arg = null)
         {
             return null;
         }

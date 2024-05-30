@@ -21,6 +21,10 @@ namespace Editor.SkillSystem
                 {
                     tableParamInt.CurMatchPropertyIndex = (int)(DRSkillField)EditorGUILayout.EnumPopup("读取列", (DRSkillField)tableParamInt.CurMatchPropertyIndex);
                 }
+                else if (tableParamInt.CurMatchTable == GenerateEnumDataTables.Buff)
+                {
+                    tableParamInt.CurMatchPropertyIndex = (int)(DRBuffField)EditorGUILayout.EnumPopup("读取列", (DRBuffField)tableParamInt.CurMatchPropertyIndex);
+                }
             }
         }
     }

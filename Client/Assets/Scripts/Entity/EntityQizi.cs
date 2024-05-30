@@ -29,6 +29,8 @@ namespace Entity
         public Slider power;
         public Image levelImage;
         public Animator animator;//动画管理器
+
+        public bool IsValid = true;
         public override void Init(int i)
         {
             this.Index = i;
@@ -57,6 +59,19 @@ namespace Entity
             InitSkill();
             InitState();
         }
+        /// <summary>
+        /// 战斗结束后回到初始状态
+        /// </summary>
+        public void ReInit()
+        {
+            GObj.SetActive(true);
+            IsValid = true;
+            CurBuffList.Clear();
+            fsm.ChangeStatePublic<StateIdle0>();
+            AttributeList.Clear();
+            InitAttribute();
+            InitPassiveSkill();
+        }
         public void Remove()
         {
             if (rowIndex==-1)//如果棋子在场下
@@ -78,6 +93,14 @@ namespace Entity
         {
             SinceLastNormalAtk += elapseSeconds;
             UpdateState(elapseSeconds,realElapseSeconds);
+            UpdateShowSlider();
+        }
+
+        public void OnDead()
+        {
+            IsValid = false;
+            QiziGuanLi.instance.qige[rowIndex][columnIndex] = -1;
+            GObj.SetActive(false);
         }
     }
 }

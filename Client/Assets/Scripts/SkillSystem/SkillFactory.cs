@@ -15,6 +15,8 @@ namespace SkillSystem
                     return new CommandCauseDamage();
                 case CommandType.CreateBuff:
                     return new CommandCreateBuff();
+                case CommandType.PlayAnim:
+                    return new CommandPlayAnim();
                 default:
                     return new CommandBase();
             }
@@ -37,6 +39,10 @@ namespace SkillSystem
             {
                 case TargetPickerType.NoTarget:
                     return new TargetPickerBase();
+                case TargetPickerType.SkillCasterCurTarget:
+                    return new TargetPickerSkillCasterCurTarget();
+                case TargetPickerType.SkillCaster:
+                    return new TargetPickerSkillCaster();
                 default:
                     return new TargetPickerBase();
             }

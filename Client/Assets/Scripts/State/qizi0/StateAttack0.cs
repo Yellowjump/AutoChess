@@ -68,6 +68,7 @@ public class StateAttack0 : FsmState<EntityQizi>
 
         if (durationAccumulate * 1000 >= curSkill.DefaultAnimationDurationMs && durationAccumulate * 1000 < curSkill.DefaultAnimationDurationMs + elapseSeconds * 1000)
         {
+            curSkill.OnDestory();
             //技能结束回到idle状态
             ChangeState<StateIdle0>(fsm);
         }
@@ -85,7 +86,6 @@ public class StateAttack0 : FsmState<EntityQizi>
         if (result == CheckCastSkillResult.CanCast)
         {
             owner.CastSkill(true);
-            owner.animator.Play("ATTACK");
             owner.GObj.transform.LookAt(target.GObj.transform);
             curSpSkill = true;
             return;
@@ -95,7 +95,6 @@ public class StateAttack0 : FsmState<EntityQizi>
         if (result == CheckCastSkillResult.CanCast)
         {
             owner.CastSkill(false);
-            owner.animator.Play("ATTACK");
             owner.GObj.transform.LookAt(target.GObj.transform);
             curSpSkill = false;
             return;

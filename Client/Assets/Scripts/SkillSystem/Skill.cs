@@ -19,6 +19,11 @@ namespace SkillSystem
         {
             OwnTriggerList.OnActive();
         }
+
+        public void OnDestory()
+        {
+            OwnTriggerList.OnDestory();
+        }
         public void Clone(Skill copy)
         {
             copy.TempleteID = TempleteID;

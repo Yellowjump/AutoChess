@@ -52,6 +52,7 @@ namespace Procedure
             {
                 EntityQizi qz = QiziGuanLi.Instance.QiziCSList[i];
                 qz.LogicPosition = QiziGuanLi.instance.GetGeziPos(qz.rowIndex,qz.columnIndex);
+                qz.ReInit();
                 //跟新qige[][]是否有棋子
                 Vector2Int posindex = QiziGuanLi.Instance.getIndexQige(qz.LogicPosition);
             }

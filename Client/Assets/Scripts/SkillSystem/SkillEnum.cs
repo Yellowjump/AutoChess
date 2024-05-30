@@ -12,6 +12,8 @@ namespace SkillSystem
         /// </summary>
         [InspectorName("触发时")]
         OnActive,
+        [InspectorName("结束时")]
+        OnDestory,
         /// <summary>
         /// 每帧触发
         /// </summary>
@@ -27,7 +29,16 @@ namespace SkillSystem
         /// <summary>
         /// 技能前摇结束
         /// </summary>
+        [InspectorName("技能前摇结束")]
         SkillBeforeShakeEnd,
+        [InspectorName("伤害计算完将要造成伤害前")]
+        BeforeCauseDamage,
+        [InspectorName("伤害计算完将要 被 造成伤害前")]
+        BeforeBeCauseDamage,
+        [InspectorName("造成伤害后")]
+        AfterCauseDamage,
+        [InspectorName("被 造成伤害后")]
+        AfterBeCauseDamage,
     }
 
     public enum ConditionType
@@ -59,11 +70,15 @@ namespace SkillSystem
         /// <summary>
         /// 当前普工目标
         /// </summary>
-        CurNormalTarget,
+        [InspectorName("技能释放者当前目标")]
+        SkillCasterCurTarget,
+        [InspectorName("技能释放者")]
+        SkillCaster,
         /// <summary>
         /// 最近的目标（能选中的）
         /// </summary>
         Nearest,
+        
     }
 
     public enum CommandType
@@ -77,6 +92,8 @@ namespace SkillSystem
         CauseDamage,
         [InspectorName("添加buff")]
         CreateBuff,
+        [InspectorName("播放动画")]
+        PlayAnim,
     }
 
     /// <summary>
@@ -85,9 +102,9 @@ namespace SkillSystem
     public enum DamageComputeType
     {
         [InspectorName("普攻")]
-        CommonDamage,
-        [InspectorName("真实伤害")]
-        RealDamage,
+        NormalDamage,
+        [InspectorName("固定值加属性百分比")]
+        FixNumAddAttrPercent,
     }
     /// <summary>
     /// 伤害类型

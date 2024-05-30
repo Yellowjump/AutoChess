@@ -10,7 +10,7 @@ namespace SkillSystem
         public bool ReverseResult = false;
         public virtual bool OnCheck(OneTrigger trigger,object arg = null)
         {
-            return false;
+            return true;
         }
 
         public virtual void WriteToFile(BinaryWriter writer)

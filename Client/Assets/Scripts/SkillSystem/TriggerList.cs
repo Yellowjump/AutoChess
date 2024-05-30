@@ -81,6 +81,32 @@ namespace SkillSystem
             }
             OnTrigger(TriggerType.OnActive);
         }
+        /// <summary>
+        /// 技能或buff 结束
+        /// </summary>
+        public void OnDestory()
+        {
+            if (ParentSkill == null)
+            {
+                return;
+            }
+
+            EntityQizi caster = ParentSkill.Caster;
+            if (caster == null)
+            {
+                return;
+            }
+            //将触发类型是 当收到/造成伤害 这种监听类型时 放入caster 的 监听 dic里
+            foreach (var oneTrigger in CurTriggerList)
+            {
+                if (oneTrigger.CurTriggerType != TriggerType.OnActive||oneTrigger.CurTriggerType != TriggerType.OnDestory)
+                {
+                    caster.RemoveTriggerListen(oneTrigger);
+                    //角色的 监听列表中 移除
+                }
+            }
+            OnTrigger(TriggerType.OnDestory);
+        }
         public void OnTrigger(TriggerType triggerType)
         {
             foreach (var oneTrigger in CurTriggerList)

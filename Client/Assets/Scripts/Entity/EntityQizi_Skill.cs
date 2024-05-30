@@ -75,8 +75,17 @@ namespace Entity
             var temp = skillTemplates[skillTableData.TemplateID].SkillTemplate;
             temp.Clone(NormalSkill);
             temp.SetSkillValue(skillTableData);
+
+            InitPassiveSkill();
         }
 
+        /// <summary>
+        /// 初始化被动技能
+        /// </summary>
+        public void InitPassiveSkill()
+        {
+            
+        }
         public void AddTriggerListen(OneTrigger oneTrigger)
         {
             if (oneTrigger == null||CurTriggerDic == null)
@@ -92,8 +101,23 @@ namespace Entity
             var curTypeList = CurTriggerDic[triggerType];
             curTypeList.Add(oneTrigger);
         }
+        public void RemoveTriggerListen(OneTrigger oneTrigger)
+        {
+            if (oneTrigger == null||CurTriggerDic == null)
+            {
+                return;
+            }
+            var triggerType = oneTrigger.CurTriggerType;
+            if (!CurTriggerDic.ContainsKey(triggerType))
+            {
+                return;
+            }
+
+            var curTypeList = CurTriggerDic[triggerType];
+            curTypeList.Remove(oneTrigger);
+        }
         
-        public void OnTrigger(TriggerType triggerType, object arg)
+        public void OnTrigger(TriggerType triggerType, object arg = null)
         {
             if (CurTriggerDic == null||!CurTriggerDic.ContainsKey(triggerType)||CurTriggerDic[triggerType]==null||CurTriggerDic[triggerType].Count==0)
             {
@@ -103,7 +127,7 @@ namespace Entity
             var typeList = CurTriggerDic[triggerType];
             foreach (var oneTrigger in typeList)
             {
-                oneTrigger.OnTrigger();
+                oneTrigger.OnTrigger(arg);
             }
         }
 
@@ -213,6 +237,25 @@ namespace Entity
             {
                 SinceLastNormalAtk = 0;
                 NormalSkill.Cast();
+            }
+        }
+
+        public void BeCauseDamage(CauseDamageData damageData)
+        {
+            if (damageData == null)
+            {
+                return;
+            }
+            //todo 计算护盾
+            var hpAttr = GetAttribute(AttributeType.Hp);
+            hpAttr.AddNum(-(int)damageData.DamageValue);
+            damageData.Caster.OnTrigger(TriggerType.AfterCauseDamage,damageData);
+            OnTrigger(TriggerType.AfterBeCauseDamage,damageData);
+            var curHp = (int)hpAttr.GetFinalValue();
+            if (curHp == 0)
+            {
+                //death
+                OnDead();
             }
         }
     }

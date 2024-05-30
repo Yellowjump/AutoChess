@@ -44,5 +44,15 @@ namespace Entity
             TryAddAttribute(new CharacterAttribute(AttributeType.MagicPenetrationNum,0));
             TryAddAttribute(new CharacterAttribute(AttributeType.MagicPenetrationPercent,0));
         }
+
+        private void UpdateShowSlider()
+        {
+            var maxHp = (int)GetAttribute(AttributeType.MaxHp).GetFinalValue();
+            var curHp = (int)GetAttribute(AttributeType.Hp).GetFinalValue();
+            xuetiao.value = curHp / (float)maxHp;
+            var maxPower = (int)GetAttribute(AttributeType.MaxPower).GetFinalValue();
+            var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
+            power.value = curPower / (float)maxPower;
+        }
     }
 }

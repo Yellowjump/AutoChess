@@ -569,7 +569,10 @@ namespace GameFramework.Fsm
         {
             ChangeState(typeof(TState));
         }
-
+        public void ChangeStatePublic<TState>() where TState : FsmState<T>
+        {
+            ChangeState(typeof(TState));
+        }
         /// <summary>
         /// 切换当前有限状态机状态。
         /// </summary>
