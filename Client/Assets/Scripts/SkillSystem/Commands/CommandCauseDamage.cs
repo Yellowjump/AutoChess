@@ -80,6 +80,7 @@ namespace SkillSystem
                 caster.OnTrigger(TriggerType.BeforeCauseDamage,beforeCauseDamageData);
                 target.OnTrigger(TriggerType.BeforeBeCauseDamage,beforeCauseDamageData);
                 target.BeCauseDamage(beforeCauseDamageData);
+                ReferencePool.Release(beforeCauseDamageData);
             }
         }
 

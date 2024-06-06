@@ -74,7 +74,9 @@ namespace Entity
 
             var temp = skillTemplates[skillTableData.TemplateID].SkillTemplate;
             temp.Clone(NormalSkill);
-            temp.SetSkillValue(skillTableData);
+            NormalSkill.OwnTriggerList.Owner = this;
+            NormalSkill.SetSkillValue(skillTableData);
+            gongjiDistence = skillTableData.SkillRange;
 
             InitPassiveSkill();
         }

@@ -32,6 +32,8 @@ namespace SkillSystem
                         var newBuff = SkillFactory.CreateNewBuff();
                         TemporaryBuff.Clone(newBuff);
                         newBuff.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
+                        newBuff.Owner = trigger.CurTarget;
+                        newBuff.OwnTriggerList.Owner = trigger.CurTarget;
                         newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
                         trigger.CurTarget.AddBuff(newBuff);
                     }
@@ -54,6 +56,8 @@ namespace SkillSystem
                                 newBuff.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
                                 newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
                                 newBuff.SetSkillValue(buffData);
+                                newBuff.Owner = trigger.CurTarget;
+                                newBuff.OwnTriggerList.Owner = trigger.CurTarget;
                                 trigger.CurTarget.AddBuff(newBuff);
                             }
                             else

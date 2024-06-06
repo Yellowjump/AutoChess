@@ -33,10 +33,10 @@ namespace Entity
         public bool IsValid = true;
         public override void Init(int i)
         {
-            this.Index = i;
+            HeroID = i;
             HeroUID = QiziGuanLi.Instance.QiziCurUniqueIndex++;
             this.level = 1;
-            this.money = QiziGuanLi.Instance.qizi[i];
+            this.money = 1;
             this.GObj = Pool.instance.PoolObject[i].Get();
             this.GObj.transform.localScale = Vector3.one;
             QiziGuanLi.Instance.QiziList.Add(this);
@@ -54,7 +54,7 @@ namespace Entity
             //GameEntry.UI.OpenUIForm("Assets/UIPrefab/xuetiao_qizi.prefab", "middle");
             //this.GObj.GetComponent<Fsm_qizi0>().Init();
             //Log.Info("hfk:qizichushihua:" + this.GObj.name+"list.size: " + Pool.instance.list.Count + "list[0]position:" + Pool.instance.list[0].GObj.transform.localPosition);
-            HeroID = 1;//todo 后续 从棋子购买处获取ID
+            //HeroID = 1;//todo 后续 从棋子购买处获取ID
             InitAttribute();
             InitSkill();
             InitState();
@@ -84,7 +84,7 @@ namespace Entity
                 QiziGuanLi.Instance.QiziCSList.Remove(this);
             }
             QiziGuanLi.Instance.QiziList.Remove(this);
-            Pool.instance.PoolObject[this.Index].Release(this.GObj);
+            Pool.instance.PoolObject[this.HeroID].Release(this.GObj);
             Pool.instance.PoolEntity.Release(this);
             DestoryState();
         }

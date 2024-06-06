@@ -1,0 +1,5 @@
+﻿#	子弹配置表		
+#	Id	BulletType	AssetPathID
+#	int	int	int
+#	子弹ID	子弹类型	对应资源表ID
+	1	0	2000

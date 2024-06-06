@@ -74,6 +74,7 @@ namespace Procedure
             _dataTableFlag.Add("Skill",(typeof(DRSkill),false));
             _dataTableFlag.Add("SkillTemplate",(typeof(DRSkillTemplate),false));
             _dataTableFlag.Add("BuffTemplate",(typeof(DRBuffTemplate),false));
+            _dataTableFlag.Add("Bullet",(typeof(DRBullet),false));
             foreach (var tableName in _dataTableFlag)
             {
                 DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(tableName.Value.Item1, tableName.Key);

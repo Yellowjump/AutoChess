@@ -12,6 +12,7 @@ namespace SkillSystem
         public BuffTag OwnBuffTag;
         public TriggerList OwnTriggerList;
         public EntityQizi Caster;
+        public EntityBase Owner;
         public Skill ParentSkill;
         public void Clone(Buff copy)
         {

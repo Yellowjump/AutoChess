@@ -9,5 +9,5 @@ using System.Text;
 
 namespace DataTable.Editor.DataTableTools
 {
-    public delegate void DataTableCodeGenerator(DataTableProcessor dataTableProcessor, StringBuilder codeContent, object userData);
+    public delegate void DataTableCodeGenerator(DataTableProcessor dataTableProcessor, StringBuilder codeContent, object userData); 
 }

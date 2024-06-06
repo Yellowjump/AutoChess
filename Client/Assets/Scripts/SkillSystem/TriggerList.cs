@@ -15,6 +15,7 @@ namespace SkillSystem
     {
         public List<OneTrigger> CurTriggerList = new List<OneTrigger>();
         public Skill ParentSkill;
+        public EntityBase Owner;
         public void WriteToFile(BinaryWriter writer)
         {
             writer.Write(CurTriggerList.Count);
@@ -64,19 +65,21 @@ namespace SkillSystem
             {
                 return;
             }
-
-            EntityQizi caster = ParentSkill.Caster;
-            if (caster == null)
+            if (Owner == null)
             {
                 return;
             }
-            //将触发类型是 当收到/造成伤害 这种监听类型时 放入caster 的 监听 dic里
-            foreach (var oneTrigger in CurTriggerList)
+
+            if (Owner is EntityQizi qizi)
             {
-                if (oneTrigger.CurTriggerType != TriggerType.OnActive)
+                //将触发类型是 当收到/造成伤害 这种监听类型时 放入caster 的 监听 dic里
+                foreach (var oneTrigger in CurTriggerList)
                 {
-                    caster.AddTriggerListen(oneTrigger);
-                    //添加到角色的 监听列表中
+                    if (oneTrigger.CurTriggerType != TriggerType.OnActive)
+                    {
+                        qizi.AddTriggerListen(oneTrigger);
+                        //添加到角色的 监听列表中
+                    }
                 }
             }
             OnTrigger(TriggerType.OnActive);
@@ -90,30 +93,32 @@ namespace SkillSystem
             {
                 return;
             }
-
-            EntityQizi caster = ParentSkill.Caster;
-            if (caster == null)
+            if (Owner == null)
             {
                 return;
             }
-            //将触发类型是 当收到/造成伤害 这种监听类型时 放入caster 的 监听 dic里
-            foreach (var oneTrigger in CurTriggerList)
+
+            if (Owner is EntityQizi qizi)
             {
-                if (oneTrigger.CurTriggerType != TriggerType.OnActive||oneTrigger.CurTriggerType != TriggerType.OnDestory)
+                //将触发类型是 当收到/造成伤害 这种监听类型时 放入caster 的 监听 dic里
+                foreach (var oneTrigger in CurTriggerList)
                 {
-                    caster.RemoveTriggerListen(oneTrigger);
-                    //角色的 监听列表中 移除
+                    if (oneTrigger.CurTriggerType != TriggerType.OnActive || oneTrigger.CurTriggerType != TriggerType.OnDestory)
+                    {
+                        qizi.RemoveTriggerListen(oneTrigger);
+                        //角色的 监听列表中 移除
+                    }
                 }
             }
             OnTrigger(TriggerType.OnDestory);
         }
-        public void OnTrigger(TriggerType triggerType)
+        public void OnTrigger(TriggerType triggerType,object arg = null)
         {
             foreach (var oneTrigger in CurTriggerList)
             {
                 if (oneTrigger.CurTriggerType == triggerType)
                 {
-                    oneTrigger.OnTrigger();
+                    oneTrigger.OnTrigger(arg);
                 }
             }
         }

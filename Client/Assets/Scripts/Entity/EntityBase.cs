@@ -9,7 +9,6 @@ namespace Entity
     /// </summary>
     public class EntityBase
     {
-        public int Index;//保存Object的编号
         public GameObject GObj;
         public CampType BelongCamp;
 

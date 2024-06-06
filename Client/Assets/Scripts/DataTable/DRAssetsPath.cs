@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-05-09 00:12:25.634
+// 生成时间：2024-06-06 20:50:51.034
 //------------------------------------------------------------
 
 using GameFramework;
@@ -47,15 +47,6 @@ namespace DataTable
             private set;
         }
 
-        /// <summary>
-        /// 获取资源组Id。
-        /// </summary>
-        public string ResourceGroupIndexs
-        {
-            get;
-            private set;
-        }
-
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -69,7 +60,6 @@ namespace DataTable
             m_Id = int.Parse(columnStrings[index++]);
             index++;
             AssetPath = columnStrings[index++];
-            ResourceGroupIndexs = columnStrings[index++];
 
             GeneratePropertyArray();
             return true;
@@ -83,7 +73,6 @@ namespace DataTable
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
                     AssetPath = binaryReader.ReadString();
-                    ResourceGroupIndexs = binaryReader.ReadString();
                 }
             }
 

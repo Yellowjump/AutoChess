@@ -65,11 +65,11 @@ namespace DataTable.Editor.DataTableTools
                     rawValue[j] = rawValue[j].Trim(DataTrimSeparators);
                 }
 
-                if (i == 0)
+                if (i == nameRow)
                 {
                     rawColumnCount = rawValue.Length;
                 }
-                else if (rawValue.Length != rawColumnCount)
+                else if (rawValue.Length != rawColumnCount&&rawValue[0]!=CommentLineSeparator)
                 {
                     throw new GameFrameworkException(Utility.Text.Format("Data table file '{0}', raw Column is '{2}', but line '{1}' column is '{3}'.", dataTableFileName, i.ToString(), rawColumnCount.ToString(), rawValue.Length.ToString()));
                 }

@@ -39,6 +39,8 @@ namespace SkillSystem
         AfterCauseDamage,
         [InspectorName("被 造成伤害后")]
         AfterBeCauseDamage,
+        [InspectorName("子弹命中目标")]
+        OnBulletHitTarget,
     }
 
     public enum ConditionType
@@ -78,7 +80,8 @@ namespace SkillSystem
         /// 最近的目标（能选中的）
         /// </summary>
         Nearest,
-        
+        [InspectorName("触发参数传递进来的目标")]
+        Arg,
     }
 
     public enum CommandType
@@ -94,6 +97,8 @@ namespace SkillSystem
         CreateBuff,
         [InspectorName("播放动画")]
         PlayAnim,
+        [InspectorName("创建子弹")]
+        CreateBullet,
     }
 
     /// <summary>
@@ -240,5 +245,10 @@ namespace SkillSystem
         MagicPenetrationNum,
         [InspectorName("法穿百分比")]
         MagicPenetrationPercent,
+    }
+    public enum BulletType
+    {
+        [InspectorName("追踪子弹")]
+        TrackingBullet,
     }
 }

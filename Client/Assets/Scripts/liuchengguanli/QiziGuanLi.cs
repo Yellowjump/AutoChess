@@ -51,7 +51,7 @@ public partial class QiziGuanLi
     int paiku5num = 0;
     int[] paiku5;
     int[] gailv5 = { 0, 0,0,0, 0,0,5,10,20};
-    public int []goumaiUIqiziIndex = new int[5];//记录UI购买界面的棋子index
+    public int []goumaiUIqiziID = new int[5];//记录UI购买界面的棋子index
     public int []goumaiUIqiziPaikuIndex = new int[5];//记录UI购买界面的棋子在牌库的index
     private int[] goumaiUiqiziPaikuFeiyong = new int[5];//记录UI购买界面的棋子
     public int dangqianliucheng = 0;//保存当前流程，0是prebattle,1是battle
@@ -86,35 +86,35 @@ public partial class QiziGuanLi
                 case 1:
                     for (int j = 0; j < qizishu[i]; j++)
                     {
-                        paiku1[paiku1num] = i;
+                        paiku1[paiku1num] = i+1;
                         paiku1num++;
                     }
                     break;
                 case 2:
                     for (int j = 0; j < qizishu[i]; j++)
                     {
-                        paiku2[paiku2num] = i;
+                        paiku2[paiku2num] = i+1;
                         paiku2num++;
                     }
                     break;
                 case 3:
                     for (int j = 0; j < qizishu[i]; j++)
                     {
-                        paiku3[paiku3num] = i;
+                        paiku3[paiku3num] = i+1;
                         paiku3num++;
                     }
                     break;
                 case 4:
                     for (int j = 0; j < qizishu[i]; j++)
                     {
-                        paiku4[paiku4num] = i;
+                        paiku4[paiku4num] = i+1;
                         paiku4num++;
                     }
                     break;
                 case 5:
                     for (int j = 0; j < qizishu[i]; j++)
                     {
-                        paiku5[paiku5num] = i;
+                        paiku5[paiku5num] = i+1;
                         paiku5num++;
                     }
                     break;
@@ -128,7 +128,7 @@ public partial class QiziGuanLi
     {
         EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
         qizi.BelongCamp = CampType.Enemy;
-        qizi.Init(0);
+        qizi.Init(1);
         QiziCXList.Remove(qizi);
         QiziList.Remove(qizi);
         qizi.GObj.SetActive(false);
@@ -138,7 +138,7 @@ public partial class QiziGuanLi
 
         EntityQizi qizi2 = Pool.instance.PoolEntity.Get() as EntityQizi;
         qizi.BelongCamp = CampType.Enemy;
-        qizi2.Init(0);
+        qizi2.Init(2);
         QiziCXList.Remove(qizi2);
         QiziList.Remove(qizi2);
         qizi2.GObj.SetActive(false);
@@ -179,7 +179,7 @@ public partial class QiziGuanLi
         int sumnum = 0;
         for (int i=0;i<5;i++)
         {
-            goumaiUIqiziIndex[i] = -1;
+            goumaiUIqiziID[i] = -1;
             goumaiUIqiziPaikuIndex[i] = -1;
         }
         for (int i=0;i<5&&sumnum<1000;i++)
@@ -191,7 +191,7 @@ public partial class QiziGuanLi
                 if (paiku1num != 0)
                 {
                     int pairandom = findRandom(i, paiku1num, paiku1,1);
-                    goumaiUIqiziIndex[i] = paiku1[pairandom];
+                    goumaiUIqiziID[i] = paiku1[pairandom];
                     goumaiUIqiziPaikuIndex[i] = pairandom;
                 }
                 else 
@@ -204,7 +204,7 @@ public partial class QiziGuanLi
                 if (paiku2num != 0)
                 {
                     int pairandom = findRandom(i,paiku2num,paiku2,2);
-                    goumaiUIqiziIndex[i] = paiku2[pairandom];
+                    goumaiUIqiziID[i] = paiku2[pairandom];
                     goumaiUIqiziPaikuIndex[i] = pairandom;
                 }
                 else
@@ -217,7 +217,7 @@ public partial class QiziGuanLi
                 if (paiku3num != 0)
                 {
                     int pairandom = findRandom(i, paiku3num, paiku3,3);
-                    goumaiUIqiziIndex[i] = paiku3[pairandom];
+                    goumaiUIqiziID[i] = paiku3[pairandom];
                     goumaiUIqiziPaikuIndex[i] = pairandom;
                 }
                 else
@@ -230,7 +230,7 @@ public partial class QiziGuanLi
                 if (paiku4num != 0)
                 {
                     int pairandom = findRandom(i, paiku4num, paiku4,4);
-                    goumaiUIqiziIndex[i] = paiku4[pairandom];
+                    goumaiUIqiziID[i] = paiku4[pairandom];
                     goumaiUIqiziPaikuIndex[i] = pairandom;
                 }
                 else
@@ -243,7 +243,7 @@ public partial class QiziGuanLi
                 if (paiku5num != 0)
                 {
                     int pairandom = findRandom(i, paiku5num, paiku5,5);
-                    goumaiUIqiziIndex[i] = paiku5[pairandom];
+                    goumaiUIqiziID[i] = paiku5[pairandom];
                     goumaiUIqiziPaikuIndex[i] = pairandom;
                 }
                 else
@@ -262,7 +262,7 @@ public partial class QiziGuanLi
             findYou = false;
             for (int j = 0; j < i; j++)
             {
-                if (pairandom == goumaiUIqiziIndex[i] && qizi[paiku[pairandom]] == feiyong)
+                if (pairandom == goumaiUIqiziID[i] && qizi[paiku[pairandom]] == feiyong)
                 {
                     findYou = true;
                     pairandom = UnityEngine.Random.Range(0, paikunum);
@@ -610,5 +610,6 @@ public partial class QiziGuanLi
             oneEntity.OnLogicUpdate(elapseSeconds, realElapseSeconds);
         }
         ListPool<EntityQizi>.Release(tempEntityList);
+        OnLogicUpdateBullet(elapseSeconds, realElapseSeconds);
     }
 }

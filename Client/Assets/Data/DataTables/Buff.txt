@@ -1,6 +1,6 @@
-#	buff±í										
+ï»¿#	buffè¡¨										
 #	Id		TemplateID	Duration	IntParam1	IntParam2	IntParam3	IntParam4	IntParam5	StringParam1	StringParam2
 #	int		int	int	int	int	int	int	int	string	string
-#	buffID	buff±¸×¢	Ä£°åID	³ÖĞøÊ±¼äms	int²ÎÊı1	int²ÎÊı2	int²ÎÊı3	int²ÎÊı4	int²ÎÊı5	str²ÎÊı1	str²ÎÊı2
+#	buffID	buffå¤‡æ³¨	æ¨¡æ¿ID	æŒç»­æ—¶é—´ms	intå‚æ•°1	intå‚æ•°2	intå‚æ•°3	intå‚æ•°4	intå‚æ•°5	strå‚æ•°1	strå‚æ•°2
 #											
-	1	²âÊÔbuff	1000	2000	10	20					
+	1	æµ‹è¯•buff	1000	2000	10	20					

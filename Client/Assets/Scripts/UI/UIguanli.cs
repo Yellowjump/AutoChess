@@ -163,25 +163,25 @@ public class UIguanli : UIFormLogic
             _btnFour.gameObject.SetActive(true);
             _btnFive.gameObject.SetActive(true);
             //刷新UI棋子购买界面
-            if (QiziGuanLi.Instance.goumaiUIqiziIndex[0] > -1)
+            if (QiziGuanLi.Instance.goumaiUIqiziID[0] > 0)
             {
-                _btnOne.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[0]];
+                _btnOne.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziID[0]-1];
             }
-            if (QiziGuanLi.Instance.goumaiUIqiziIndex[1] > -1)
+            if (QiziGuanLi.Instance.goumaiUIqiziID[1] > 0)
             {
-                _btnTwo.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[1]];
+                _btnTwo.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziID[1]-1];
             }
-            if (QiziGuanLi.Instance.goumaiUIqiziIndex[2] > -1)
+            if (QiziGuanLi.Instance.goumaiUIqiziID[2] > 0)
             {
-                _btnThree.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[2]];
+                _btnThree.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziID[2]-1];
             }
-            if (QiziGuanLi.Instance.goumaiUIqiziIndex[3] > -1)
+            if (QiziGuanLi.Instance.goumaiUIqiziID[3] > 0)
             {
-                _btnFour.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[3]];
+                _btnFour.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziID[3]-1];
             }
-            if (QiziGuanLi.Instance.goumaiUIqiziIndex[4] > -1)
+            if (QiziGuanLi.Instance.goumaiUIqiziID[4] > 0)
             {
-                _btnFive.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziIndex[4]];
+                _btnFive.image.sprite = ListQiziSprite[QiziGuanLi.Instance.goumaiUIqiziID[4]-1];
             } 
         }
         //Log.Info("TestBtn OnClick");
@@ -217,39 +217,39 @@ public class UIguanli : UIFormLogic
     }
     private void OnClickBtnGouMaiOne()//购买第一个格子里的棋子
     {
-        int index = QiziGuanLi.Instance.goumaiUIqiziIndex[0];
+        int index = QiziGuanLi.Instance.goumaiUIqiziID[0];
         int paikuindex = QiziGuanLi.Instance.goumaiUIqiziPaikuIndex[0];
         goumaiqizi(index, paikuindex, _btnOne);
     }
     private void OnClickBtnGouMaiTwo()
     {
-        int index = QiziGuanLi.Instance.goumaiUIqiziIndex[1];
+        int index = QiziGuanLi.Instance.goumaiUIqiziID[1];
         int paikuindex = QiziGuanLi.Instance.goumaiUIqiziPaikuIndex[1];
         goumaiqizi(index, paikuindex, _btnTwo);
 
     }
     private void OnClickBtnGouMaiThree()
     {
-        int index = QiziGuanLi.Instance.goumaiUIqiziIndex[2];
+        int index = QiziGuanLi.Instance.goumaiUIqiziID[2];
         int paikuindex = QiziGuanLi.Instance.goumaiUIqiziPaikuIndex[2];
         goumaiqizi(index, paikuindex, _btnThree);
     }
     private void OnClickBtnGouMaiFour()
     {
-        int index = QiziGuanLi.Instance.goumaiUIqiziIndex[3];
+        int index = QiziGuanLi.Instance.goumaiUIqiziID[3];
         int paikuindex = QiziGuanLi.Instance.goumaiUIqiziPaikuIndex[3];
         goumaiqizi(index, paikuindex, _btnFour);
     }
     private void OnClickBtnGouMaiFive()
     {
-        int index = QiziGuanLi.Instance.goumaiUIqiziIndex[4];
+        int index = QiziGuanLi.Instance.goumaiUIqiziID[4];
         int paikuindex = QiziGuanLi.Instance.goumaiUIqiziPaikuIndex[4];
         goumaiqizi(index, paikuindex, _btnFive);
     }
     private void goumaiqizi(int index,int paikuIndex,Button btn)
     {
         int kwCx = QiziGuanLi.Instance.findkongweiCX();
-        int feiyong = QiziGuanLi.Instance.qizi[index];
+        int feiyong = QiziGuanLi.Instance.qizi[index-1];
 
         if (jinqian.GetJinBiNum() >= feiyong)//先场下有位置，再买得起
         {
@@ -294,8 +294,8 @@ public class UIguanli : UIFormLogic
         int jq = qizi.money;//获取棋子的金额
         jinqian.changejinqian(jq);//卖完棋子之后加钱，并把棋子放回池子里,牌库也要更新
         JinBi.text = jinqian.GetJinBiNum().ToString();
-        QiziGuanLi.Instance.chushouQizi(qizi.Index, jq,qizi.level);
-        Pool.instance.PoolObject[qizi.Index].Release(qizi.GObj);
+        QiziGuanLi.Instance.chushouQizi(qizi.HeroID, jq,qizi.level);
+        Pool.instance.PoolObject[qizi.HeroID].Release(qizi.GObj);
         Pool.instance.PoolEntity.Release(qizi);
         qizi = null;
     }
@@ -308,7 +308,7 @@ public class UIguanli : UIFormLogic
         _slderXuetiao.value = qz.xueliangnow / qz.xueliangsum;
         _slderPow.value = qz.powernow / qz.powersum;
         levelqizi.sprite = QiziGuanLi.Instance.ListQiziLevelSprite[qz.level - 1];
-        qiziImage.sprite = ListQiziShuxingSprite[qz.Index];
+        qiziImage.sprite = ListQiziShuxingSprite[qz.HeroID];
     }
     protected override void OnUpdate(float elapseSeconds, float realElapseSeconds)
     {
@@ -520,7 +520,7 @@ public class UIguanli : UIFormLogic
                             {
                                 qizi.LogicPosition = QiziGuanLi.instance.GetGeziPos(matchRowIndex,matchColumnIndex);
                                 QiziGuanLi.Instance.changxia[qizi.columnIndex] = -1;
-                                QiziGuanLi.Instance.changxia[matchColumnIndex] = qizi.Index;
+                                QiziGuanLi.Instance.changxia[matchColumnIndex] = qizi.HeroID;
                                 qizi.rowIndex = matchRowIndex;
                                 qizi.columnIndex = matchColumnIndex;
                             }
@@ -529,7 +529,7 @@ public class UIguanli : UIFormLogic
                         {   //如果放的位置是场下
                             if (matchRowIndex == -1)
                             {
-                                QiziGuanLi.Instance.changxia[matchColumnIndex] = qizi.Index;
+                                QiziGuanLi.Instance.changxia[matchColumnIndex] = qizi.HeroID;
                                 QiziGuanLi.Instance.QiziCSList.Remove(qizi);
                                 QiziGuanLi.Instance.QiziCXList.Add(qizi);
                             }
@@ -545,7 +545,7 @@ public class UIguanli : UIFormLogic
                         {   //放的棋子位置是场上
                             if (hitQizi.rowIndex != -1)
                             {
-                                QiziGuanLi.Instance.changxia[qizi.columnIndex] = hitQizi.Index;
+                                QiziGuanLi.Instance.changxia[qizi.columnIndex] = hitQizi.HeroID;
                                 QiziGuanLi.Instance.QiziCSList.Remove(hitQizi);
                                 QiziGuanLi.Instance.QiziCSList.Add(qizi);
                                 QiziGuanLi.Instance.QiziCXList.Remove(qizi);
@@ -553,15 +553,15 @@ public class UIguanli : UIFormLogic
                             }
                             else //放的位置是场下
                             {
-                                QiziGuanLi.Instance.changxia[hitQizi.columnIndex] = qizi.Index;
-                                QiziGuanLi.Instance.changxia[qizi.columnIndex] = hitQizi.Index;
+                                QiziGuanLi.Instance.changxia[hitQizi.columnIndex] = qizi.HeroID;
+                                QiziGuanLi.Instance.changxia[qizi.columnIndex] = hitQizi.HeroID;
                             }
                         }
                         else//如果棋子是场上的
                         {   //如果放的别的棋子位置是场下
                             if (hitQizi.rowIndex == -1)
                             {
-                                QiziGuanLi.Instance.changxia[hitQizi.columnIndex] = qizi.Index;
+                                QiziGuanLi.Instance.changxia[hitQizi.columnIndex] = qizi.HeroID;
                                 QiziGuanLi.Instance.QiziCSList.Remove(qizi);
                                 QiziGuanLi.Instance.QiziCSList.Add(qiziother);
                                 QiziGuanLi.Instance.QiziCXList.Remove(qiziother);
@@ -755,7 +755,7 @@ public class UIguanli : UIFormLogic
         {
             for (int i = 0; i < QiziGuanLi.Instance.QiziList.Count; i++)
             {
-                if (QiziGuanLi.Instance.QiziList[i].Index == index && QiziGuanLi.Instance.QiziList[i].level == 1)
+                if (QiziGuanLi.Instance.QiziList[i].HeroID == index && QiziGuanLi.Instance.QiziList[i].level == 1)
                 {
                     num++;
                     if (num == 1)
@@ -793,7 +793,7 @@ public class UIguanli : UIFormLogic
                 num = 0;
                 for (int i = 0; i < QiziGuanLi.Instance.QiziList.Count; i++)
                 {
-                    if (QiziGuanLi.Instance.QiziList[i].Index == index && QiziGuanLi.Instance.QiziList[i].level == 2)
+                    if (QiziGuanLi.Instance.QiziList[i].HeroID == index && QiziGuanLi.Instance.QiziList[i].level == 2)
                     {
                         num++;
                         if (num == 1)
@@ -841,7 +841,7 @@ public class UIguanli : UIFormLogic
         {
             for (int i = 0; i < QiziGuanLi.Instance.QiziCXList.Count; i++)
             {
-                if (QiziGuanLi.Instance.QiziCXList[i].Index == index && QiziGuanLi.Instance.QiziCXList[i].level == 1)
+                if (QiziGuanLi.Instance.QiziCXList[i].HeroID == index && QiziGuanLi.Instance.QiziCXList[i].level == 1)
                 {
                     num++;
                     if (num == 1)
@@ -879,7 +879,7 @@ public class UIguanli : UIFormLogic
                 num = 0;
                 for (int i = 0; i < QiziGuanLi.Instance.QiziCXList.Count; i++)
                 {
-                    if (QiziGuanLi.Instance.QiziCXList[i].Index == index && QiziGuanLi.Instance.QiziCXList[i].level == 2)
+                    if (QiziGuanLi.Instance.QiziCXList[i].HeroID == index && QiziGuanLi.Instance.QiziCXList[i].level == 2)
                     {
                         num++;
                         if (num == 1)

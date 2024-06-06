@@ -5,6 +5,8 @@ using NUnit;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DataTable;
+using GameFramework.Resource;
 using UnityEditor;
 using UnityEditor.Presets;
 using UnityEngine;
@@ -20,6 +22,7 @@ public class Pool :MonoBehaviour
     public ObjectPool<EntityBase> PoolEntity;
     public ObjectPool<GameObject> pool;
     public Dictionary<int, ObjectPool<GameObject>> PoolObject = new Dictionary<int, ObjectPool<GameObject>>();
+    public Dictionary<int, ObjectPool<GameObject>> BulletObjectPoolDic = new Dictionary<int, ObjectPool<GameObject>>();
     public List<EntityQizi> list = new List<EntityQizi>();//存放生成的entityqizi
     void Awake()
     {
@@ -29,7 +32,8 @@ public class Pool :MonoBehaviour
     {
         PoolEntity = new ObjectPool<EntityBase>(createFuncEnt, actionOnGetEnt, actionOnReleaseEnt, actionOnDestroyEnt, true, 10, 1000);
         pool=new ObjectPool<GameObject>(createFuncObj, actionOnGetObj, actionOnReleaseObj, actionOnDestroyObj, true, 10, 1000);
-        PoolObject.Add(0,pool);
+        PoolObject.Add(1,pool);
+        PoolObject.Add(2,pool);
     }
 
     EntityBase createFuncEnt()
@@ -72,6 +76,54 @@ public class Pool :MonoBehaviour
         Destroy(ent.GObj);
     }
     void actionOnDestroyObj(GameObject obj)
+    {
+        Destroy(obj);
+    }
+
+    public GameObject GetNewBulletGameObject(int prefabID)
+    {
+        if (!BulletObjectPoolDic.ContainsKey(prefabID))
+        {
+            var assetsPaths = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
+            if (assetsPaths.HasDataRow(prefabID))
+            {
+                var prefabPath = assetsPaths[prefabID].AssetPath;
+                BulletObjectPoolDic.Add(prefabID,new ObjectPool<GameObject>(() =>
+                {
+                    GameObject obj = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath); 
+                    GameObject ob = Instantiate(obj,this.transform);
+                    return ob;
+                },ActionOnGetBulletObj,ActionOnReleaseBulletObj,ActionOnDestroyBulletObj));
+            }
+            else
+            {
+                Log.Error($"assetsPaths Has No prefabID");
+                return null;
+            }
+        }
+        var bulletPool = BulletObjectPoolDic[prefabID];
+        return bulletPool.Get();
+    }
+
+    public void ReleaseBulletGameObject(GameObject bulletObj, int prefabID)
+    {
+        if (!BulletObjectPoolDic.ContainsKey(prefabID))
+        {
+            Log.Error($"BulletObjectPoolDic Has No prefabID");
+            return;
+        }
+        var bulletPool = BulletObjectPoolDic[prefabID];
+        bulletPool.Release(bulletObj);
+    }
+    void ActionOnGetBulletObj(GameObject obj)
+    {
+        obj.gameObject.SetActive(true);
+    }
+    void ActionOnReleaseBulletObj(GameObject obj)
+    {
+        obj.gameObject.SetActive(false);
+    }
+    void ActionOnDestroyBulletObj(GameObject obj)
     {
         Destroy(obj);
     }
