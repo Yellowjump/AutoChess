@@ -85,21 +85,21 @@ namespace SkillSystem
             copy.CurTriggerType = CurTriggerType;
             
             var copyCondition = SkillFactory.CreateCondition(CurCondition.CurConditionType);
-            CurCondition.Clone(copyCondition);
             copyCondition.ParentTrigger = copy;
+            CurCondition.Clone(copyCondition);
             copy.CurCondition = copyCondition;
             
             var copyTargetPicker = SkillFactory.CreateTargetPicker(CurTargetPicker.CurTargetPickerType);
-            CurTargetPicker.Clone(copyTargetPicker);
             copyTargetPicker.ParentTrigger = copy;
+            CurTargetPicker.Clone(copyTargetPicker);
             copy.CurTargetPicker = copyTargetPicker;
 
             copy.CurCommandList.Clear();
             foreach (var oneCommand in CurCommandList)
             {
                 var copyCommand = SkillFactory.CreateCommand(oneCommand.CurCommandType);
-                oneCommand.Clone(copyCommand);
                 copyCommand.ParentTrigger = copy;
+                oneCommand.Clone(copyCommand);
                 copy.CurCommandList.Add(copyCommand);
             }
         }

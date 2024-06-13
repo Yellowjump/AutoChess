@@ -93,6 +93,7 @@ namespace Entity
         {
             SinceLastNormalAtk += elapseSeconds;
             UpdateState(elapseSeconds,realElapseSeconds);
+            UpdateSkill(elapseSeconds, realElapseSeconds);
             UpdateShowSlider();
         }
 

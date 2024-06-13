@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.IO;
+using UnityGameFramework.Runtime;
 
 namespace SkillSystem
 {
@@ -34,6 +36,56 @@ namespace SkillSystem
                 }
             }
             return tempResult;
+        }
+
+        public override void ReadFromFile(BinaryReader reader)
+        {
+            base.ReadFromFile(reader);
+            CurLogicOperator = (LogicOperator)reader.ReadInt32();
+            var conditionCount = reader.ReadInt32();
+            ConditionList.Clear();
+            for (int i = 0; i < conditionCount; i++)
+            {
+                ConditionType oneConditionType = (ConditionType)reader.ReadInt32();
+                var oneCondition = SkillFactory.CreateCondition(oneConditionType);
+                oneCondition.ReadFromFile(reader);
+            }
+        }
+
+        public override void WriteToFile(BinaryWriter writer)
+        {
+            base.WriteToFile(writer);
+            writer.Write((int)CurLogicOperator);
+            writer.Write(ConditionList.Count);
+            foreach (var oneCondition in ConditionList)
+            {
+                writer.Write((int)oneCondition.CurConditionType);
+                oneCondition.WriteToFile(writer);
+            }
+        }
+
+        public override void Clone(ConditionBase copy)
+        {
+            base.Clone(copy);
+            if (copy is ConditionGroup copyGroup)
+            {
+                copyGroup.ConditionList.Clear();
+                foreach (var oneCondition in ConditionList)
+                {
+                    var copyCondition = SkillFactory.CreateCondition(oneCondition.CurConditionType);
+                    copyCondition.ParentTrigger = copyGroup.ParentTrigger;
+                    oneCondition.Clone(copyCondition);
+                    copyGroup.ConditionList.Add(copyCondition);
+                }
+            }
+        }
+
+        public override void SetSkillValue(DataRowBase dataTable)
+        {
+            foreach (var oneCondition in ConditionList)
+            {
+                oneCondition.SetSkillValue(dataTable);
+            }
         }
     }
 }

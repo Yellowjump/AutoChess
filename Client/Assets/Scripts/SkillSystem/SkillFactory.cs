@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DataTable;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
@@ -31,6 +32,10 @@ namespace SkillSystem
                     return new ConditionBase();
                 case ConditionType.ConditionGroup:
                     return new ConditionGroup();
+                case ConditionType.Percentage:
+                    return new ConditionPercent();
+                case ConditionType.Timed:
+                    return new ConditionTimed();
                 default:
                     return new ConditionBase();
             }
@@ -47,6 +52,8 @@ namespace SkillSystem
                     return new TargetPickerSkillCaster();
                 case TargetPickerType.Arg:
                     return new TargetPickerArg();
+                case TargetPickerType.TriggerOwner:
+                    return new TargetPickerTriggerOwner();
                 default:
                     return new TargetPickerBase();
             }
@@ -76,7 +83,6 @@ namespace SkillSystem
         public static Buff CreateNewBuff()
         {
             var newBuff = new Buff();
-            newBuff.OwnTriggerList = CreateNewEmptyTriggerList();
             return newBuff;
         }
 
@@ -84,6 +90,33 @@ namespace SkillSystem
         {
             var newSkill = new Skill();
             newSkill.OwnTriggerList = CreateNewEmptyTriggerList();
+            return newSkill;
+        }
+
+        public static Skill CreateDefaultSkill()
+        {
+            var newSkill = new Skill();
+            newSkill.OwnTriggerList = CreateNewEmptyTriggerList();
+            
+            var playAniTrigger = CreateNewEmptyTrigger();
+            playAniTrigger.CurTriggerType = TriggerType.OnActive;
+            playAniTrigger.CurCondition = CreateCondition(ConditionType.NoCondition);;
+            playAniTrigger.CurTargetPicker = CreateTargetPicker(TargetPickerType.SkillCaster);
+            CommandPlayAnim playAniCommand = CreateCommand(CommandType.PlayAnim) as CommandPlayAnim;
+            if (playAniCommand != null)
+            {
+                playAniCommand.AnimName.CurMatchTable = GenerateEnumDataTables.Skill;
+                playAniCommand.AnimName.CurMatchPropertyIndex = (int)DRSkillField.SkillAnim;
+                playAniTrigger.CurCommandList.Add(playAniCommand);
+            }
+            newSkill.OwnTriggerList.CurTriggerList.Add(playAniTrigger);
+
+            var beforeShakeEndTrigger = CreateNewEmptyTrigger();
+            beforeShakeEndTrigger.CurTriggerType = TriggerType.SkillBeforeShakeEnd;
+            beforeShakeEndTrigger.CurCondition = CreateCondition(ConditionType.NoCondition);;
+            beforeShakeEndTrigger.CurTargetPicker = CreateTargetPicker(TargetPickerType.SkillCasterCurTarget);
+            newSkill.OwnTriggerList.CurTriggerList.Add(beforeShakeEndTrigger);
+            
             return newSkill;
         }
     }

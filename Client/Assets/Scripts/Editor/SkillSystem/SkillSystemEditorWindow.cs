@@ -118,7 +118,7 @@ public class SkillSystemEditorWindow : EditorWindow
             else
             {
                 selectedButtonIndex = SkillIDList.Count - 1;
-                CurShowSkill = SkillFactory.CreateNewSkill();
+                CurShowSkill = SkillFactory.CreateDefaultSkill();
                 SkillIDList.Add(CurShowSkill);
                 SkillMap.Add(CurShowSkill,true);
                 SkillSystemDrawerCenter.ClearDrawInstanceMap();
@@ -288,8 +288,6 @@ public class SkillSystemEditorWindow : EditorWindow
         rightDetailScrollPosition = GUILayout.BeginScrollView(rightDetailScrollPosition, GUIStyle.none, GUI.skin.verticalScrollbar);
         if (selectedButtonIndex != -1)
         {
-            EditorGUILayout.LabelField("Selected Button: " + SkillIDList[selectedButtonIndex]);
-
             GUILayout.Space(10);
             if (CurShowSkill != null)
             {

@@ -48,15 +48,20 @@ namespace SkillSystem
         /// <summary>
         /// 无条件通过
         /// </summary>
+        [InspectorName("无条件通过")]
         NoCondition,
         /// <summary>
         /// 条件组
         /// </summary>
+        [InspectorName("条件组")]
         ConditionGroup,
         /// <summary>
         /// 概率
         /// </summary>
+        [InspectorName("概率触发")]
         Percentage,
+        [InspectorName("定时触发")]
+        Timed
     }
     public enum LogicOperator
     {
@@ -82,6 +87,8 @@ namespace SkillSystem
         Nearest,
         [InspectorName("触发参数传递进来的目标")]
         Arg,
+        [InspectorName("触发器持有者")]
+        TriggerOwner,
     }
 
     public enum CommandType

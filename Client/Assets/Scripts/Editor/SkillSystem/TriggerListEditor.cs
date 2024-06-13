@@ -11,6 +11,11 @@ namespace Editor.SkillSystem
     {
         public void OnGUIDraw(TriggerList triggerList)
         {
+            DrawTriggerList(triggerList);
+        }
+
+        public static void DrawTriggerList(TriggerList triggerList)
+        {
             if (triggerList !=null)
             {
                 if (GUILayout.Button("添加触发器"))

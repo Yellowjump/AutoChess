@@ -72,6 +72,7 @@ namespace Procedure
             _dataTableFlag.Add("AssetsPath",(typeof(DRAssetsPath),false));
             _dataTableFlag.Add("Hero",(typeof(DRHero),false));
             _dataTableFlag.Add("Skill",(typeof(DRSkill),false));
+            _dataTableFlag.Add("Buff",(typeof(DRBuff),false));
             _dataTableFlag.Add("SkillTemplate",(typeof(DRSkillTemplate),false));
             _dataTableFlag.Add("BuffTemplate",(typeof(DRBuffTemplate),false));
             _dataTableFlag.Add("Bullet",(typeof(DRBullet),false));

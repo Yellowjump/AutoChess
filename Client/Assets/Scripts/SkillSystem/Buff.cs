@@ -5,39 +5,35 @@ using UnityGameFramework.Runtime;
 
 namespace SkillSystem
 {
-    public class Buff
+    public class Buff:TriggerList
     {
         public int BuffID;
         public int TempleteID;
         public BuffTag OwnBuffTag;
-        public TriggerList OwnTriggerList;
-        public EntityQizi Caster;
-        public EntityBase Owner;
-        public Skill ParentSkill;
-        public void Clone(Buff copy)
+        public int DurationMs;
+        public float RemainMs;
+        public bool IsValid = true;
+        public override void Clone(TriggerList copy)
         {
-            copy.BuffID = BuffID;
-            copy.OwnBuffTag = OwnBuffTag;
-            copy.OwnTriggerList ??= SkillFactory.CreateNewEmptyTriggerList();
-            OwnTriggerList.Clone(copy.OwnTriggerList);
-        }
-        public void OnActive()
-        {
-            OwnTriggerList.OnActive();
+            if (copy is Buff copyBuff)
+            {
+                copyBuff.BuffID = BuffID;
+                copyBuff.OwnBuffTag = OwnBuffTag;
+            }
+            base.Clone(copy);
         }
         public void ReadFromFile(BinaryReader reader)
         {
             TempleteID = reader.ReadInt32();
             OwnBuffTag = GetCombinedTags(reader.ReadInt32());
-            OwnTriggerList ??= SkillFactory.CreateNewEmptyTriggerList();
-            OwnTriggerList.ReadFromFile(reader);
+            base.ReadFromFile(reader);
         }
 
         public void WriteToFile(BinaryWriter writer)
         {
             writer.Write(TempleteID);
             writer.Write((int)OwnBuffTag);
-            OwnTriggerList.WriteToFile(writer);
+            base.WriteToFile(writer);
         }
         private BuffTag GetCombinedTags(int combinedValue)
         {
@@ -51,9 +47,15 @@ namespace SkillSystem
             }
             return result;
         }
-        public void SetSkillValue(DataRowBase dataTable)
+
+        public override void OnDestory()
         {
-            OwnTriggerList?.SetSkillValue(dataTable);
+            if (IsValid == false)
+            {
+                return;
+            }
+            IsValid = false;
+            base.OnDestory();
         }
     }
 }

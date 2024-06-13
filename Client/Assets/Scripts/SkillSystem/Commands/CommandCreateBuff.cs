@@ -31,9 +31,7 @@ namespace SkillSystem
                     {
                         var newBuff = SkillFactory.CreateNewBuff();
                         TemporaryBuff.Clone(newBuff);
-                        newBuff.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
                         newBuff.Owner = trigger.CurTarget;
-                        newBuff.OwnTriggerList.Owner = trigger.CurTarget;
                         newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
                         trigger.CurTarget.AddBuff(newBuff);
                     }
@@ -53,11 +51,10 @@ namespace SkillSystem
                                 var buffTemp = buffTempTable[buffTempId].BuffTemplate;
                                 var newBuff = SkillFactory.CreateNewBuff();
                                 buffTemp.Clone(newBuff);
-                                newBuff.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
                                 newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
+                                newBuff.DurationMs = buffData.Duration;
                                 newBuff.SetSkillValue(buffData);
                                 newBuff.Owner = trigger.CurTarget;
-                                newBuff.OwnTriggerList.Owner = trigger.CurTarget;
                                 trigger.CurTarget.AddBuff(newBuff);
                             }
                             else

@@ -144,6 +144,46 @@ namespace Entity
             buff.OnActive();
         }
 
+        private void UpdateSkill(float elapseSeconds, float realElapseSeconds)
+        {
+            if (CurTriggerDic != null && CurTriggerDic.TryGetValue(TriggerType.PerTick, out var perTickList))
+            {
+                if (perTickList == null || perTickList.Count == 0)
+                {
+                    return;
+                }
+                List<OneTrigger> tempList = ListPool<OneTrigger>.Get();
+                tempList.AddRange(perTickList);
+                foreach (var oneT in tempList)
+                {
+                    oneT.OnTrigger();
+                }
+                ListPool<OneTrigger>.Release(tempList);
+            }
+
+            List<Buff> tempBuffList = ListPool<Buff>.Get();
+            tempBuffList.AddRange(CurBuffList);
+            foreach (var buff in tempBuffList)
+            {
+                if (buff.IsValid == false)
+                {
+                    continue;
+                }
+                buff.RemainMs += elapseSeconds*1000;
+                if (buff.RemainMs >= buff.DurationMs)
+                {
+                    buff.OnDestory();
+                }
+            }
+
+            for (var i = CurBuffList.Count - 1; i >= 0; i--)
+            {
+                if (CurBuffList[i].IsValid == false)
+                {
+                    CurBuffList.RemoveAt(i);
+                }
+            }
+        }
         public CheckCastSkillResult CheckCanCastSkill(out EntityQizi target,bool isSpSkill = false)
         {
             target = null;

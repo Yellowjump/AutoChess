@@ -15,12 +15,12 @@ namespace SkillSystem
 
         public virtual void WriteToFile(BinaryWriter writer)
         {
-            
+            writer.Write(ReverseResult);
         }
 
         public virtual void ReadFromFile(BinaryReader reader)
         {
-            
+            ReverseResult = reader.ReadBoolean();
         }
 
         public virtual void Clone(ConditionBase copy)

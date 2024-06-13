@@ -16,7 +16,7 @@ namespace SkillSystem
         public List<OneTrigger> CurTriggerList = new List<OneTrigger>();
         public Skill ParentSkill;
         public EntityBase Owner;
-        public void WriteToFile(BinaryWriter writer)
+        public virtual void WriteToFile(BinaryWriter writer)
         {
             writer.Write(CurTriggerList.Count);
             foreach (var oneTrigger in CurTriggerList)
@@ -25,7 +25,7 @@ namespace SkillSystem
             }
         }
 
-        public void ReadFromFile(BinaryReader reader)
+        public virtual void ReadFromFile(BinaryReader reader)
         {
             var triggerCount = reader.ReadInt32();
             CurTriggerList.Clear();
@@ -37,7 +37,7 @@ namespace SkillSystem
             }
         }
 
-        public void Clone(TriggerList copy)
+        public virtual void Clone(TriggerList copy)
         {
             copy.CurTriggerList.Clear();
             foreach (var oneTrigger in CurTriggerList)
@@ -49,7 +49,7 @@ namespace SkillSystem
             }
         }
 
-        public void SetSkillValue(DataRowBase dataTable)
+        public virtual void SetSkillValue(DataRowBase dataTable)
         {
             foreach (var oneTrigger in CurTriggerList)
             {
@@ -87,7 +87,7 @@ namespace SkillSystem
         /// <summary>
         /// 技能或buff 结束
         /// </summary>
-        public void OnDestory()
+        public virtual void OnDestory()
         {
             if (ParentSkill == null)
             {

@@ -49,6 +49,17 @@ namespace SkillSystem
                     {
                         damageParam = (float)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
                     }
+                    else if (CurDamageComputeType == DamageComputeType.FixNumAddAttrPercent)
+                    {
+                        var fixValue = ParamInt1.Value;
+                        var attrValue = 0f;
+                        if (ParamInt3.Value > 0)
+                        {
+                             var attr = (float)caster.GetAttribute((AttributeType)ParamInt2.Value).GetFinalValue();
+                             attrValue = attr * ParamInt3.Value / 100;
+                        }
+                        damageParam = fixValue + attrValue;
+                    }
                 }
 
                 if (CurDamageType == DamageType.PhysicalDamage)
@@ -104,7 +115,7 @@ namespace SkillSystem
         public override void ReadFromFile(BinaryReader reader)
         {
             CurDamageComputeType = (DamageComputeType)reader.ReadInt32();
-            //CurDamageType = (DamageType)reader.ReadInt32();
+            CurDamageType = (DamageType)reader.ReadInt32();
             ParamInt1.ReadFromFile(reader);
             ParamInt2.ReadFromFile(reader);
             ParamInt3.ReadFromFile(reader);
