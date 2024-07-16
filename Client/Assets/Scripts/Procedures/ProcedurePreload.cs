@@ -49,7 +49,7 @@ namespace Procedure
                 if (!item.Value.Item2)
                     return;
             }
-            ChangeState<ProcedurePreBattle>(procedureOwner);
+            ChangeState<ProcedureTitle>(procedureOwner);
         }
 
 
