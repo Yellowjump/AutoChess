@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GameFramework;
 using UnityEngine;
+using UnityGameFramework.Runtime;
 using Random = UnityEngine.Random;
 
 namespace Maze
@@ -37,26 +38,37 @@ namespace Maze
         private const int Width = 8;
         private const int Height = 7;
         private MazePoint[,] grid;
+        private List<MazePoint> mainPath;
+        private List<MazePoint> usedPoints = new List<MazePoint>();
+        private List<Vector2Int> directions;
+
+        public MazeGenerator()
+        {
+            directions = new List<Vector2Int>
+            {
+                new Vector2Int(1, 0), // Right
+                new Vector2Int(-1, 0), // Left
+                new Vector2Int(0, 1), // Down
+                new Vector2Int(0, -1), // Up
+                new Vector2Int(1, 1), // Down Right
+                new Vector2Int(1, -1), // Up Right
+                new Vector2Int(-1, 1), // Down Left
+                new Vector2Int(-1, -1) // Up Left
+            };
+        }
 
         public List<MazePoint> GenerateMaze()
         {
             grid = new MazePoint[Width, Height];
             InitializeGrid();
 
-            List<MazePoint> mainPath = new List<MazePoint>();
-            if (!GenerateMainPath(0, 0, mainPath))
-            {
-                throw new Exception("Failed to generate a valid maze");
-            }
+            mainPath = new List<MazePoint>();
+            GenerateMainPath(0, 0);
 
-            // Generate extra paths
-            GenerateExtraPaths(mainPath, 2);
+            GenerateSecondaryPath();
+            GenerateSecondaryPath();
 
-            // Ensure all points are accessible
-            EnsureAllPointsAccessible();
-
-            // Assign types to maze points
-            AssignTypesToPoints(mainPath);
+            AssignTypesToPoints();
 
             return FlattenGrid();
         }
@@ -72,173 +84,138 @@ namespace Maze
             }
         }
 
-        private bool GenerateMainPath(int x, int y, List<MazePoint> path)
+        private bool GenerateMainPathRecursive(int x, int y)
         {
             if (x == Width - 1 && y == Height - 1)
             {
-                path.Add(grid[x, y]);
+                mainPath.Add(grid[x, y]);
+                usedPoints.Add(grid[x, y]);
                 return true;
             }
 
-            if (x < 0 || y < 0 || x >= Width || y >= Height || path.Contains(grid[x, y]))
-            {
-                return false;
-            }
+            var newDirectionsList = new List<Vector2Int>();
+            newDirectionsList.AddRange(directions);
+            Shuffle(newDirectionsList);
 
-            path.Add(grid[x, y]);
-
-            List<Vector2Int> directions = new List<Vector2Int>
-            {
-                new Vector2Int(1, 0), // Right
-                new Vector2Int(-1, 0), // Left
-                new Vector2Int(0, 1), // Down
-                new Vector2Int(0, -1) // Up
-            };
-
-            Shuffle(directions);
-
-            foreach (var direction in directions)
+            foreach (var direction in newDirectionsList)
             {
                 int newX = x + direction.x;
                 int newY = y + direction.y;
 
-                if (GenerateMainPath(newX, newY, path))
+                if (newX >= 0 && newY >= 0 && newX < Width && newY < Height && !mainPath.Contains(grid[newX, newY])&&!IsCrossingPath(new Vector2Int(x, y), new Vector2Int(newX, newY), direction))
                 {
+                    mainPath.Add(grid[x, y]);
+                    usedPoints.Add(grid[x, y]);
                     grid[x, y].LinkPoint.Add(grid[newX, newY]);
                     grid[newX, newY].LinkPoint.Add(grid[x, y]);
-                    return true;
+
+                    if (GenerateMainPathRecursive(newX, newY))
+                    {
+                        return true;
+                    }
+
+                    // Backtrack
+                    mainPath.Remove(grid[x, y]);
+                    usedPoints.Remove(grid[x, y]);
+                    grid[x, y].LinkPoint.Remove(grid[newX, newY]);
+                    grid[newX, newY].LinkPoint.Remove(grid[x, y]);
                 }
             }
 
-            path.Remove(grid[x, y]);
             return false;
         }
 
-        private void GenerateExtraPaths(List<MazePoint> mainPath, int maxExtraPaths)
+        private void GenerateMainPath(int startX, int startY)
         {
-            int extraPaths = 0;
-            HashSet<MazePoint> visited = new HashSet<MazePoint>(mainPath);
-
-            while (extraPaths < maxExtraPaths)
+            if (!GenerateMainPathRecursive(startX, startY))
             {
-                MazePoint start = mainPath[Utility.Random.GetRandom(mainPath.Count)];
-                List<MazePoint> extraPath = new List<MazePoint>();
-                if (GenerateExtraPath(start.Pos.x, start.Pos.y, extraPath, visited))
-                {
-                    foreach (var point in extraPath)
-                    {
-                        if (!mainPath.Contains(point))
-                        {
-                            mainPath.Add(point);
-                            visited.Add(point);
-                        }
-                    }
-
-                    extraPaths++;
-                }
+                throw new Exception("Failed to generate main path");
             }
         }
 
-        private bool GenerateExtraPath(int x, int y, List<MazePoint> path, HashSet<MazePoint> visited)
+        private void GenerateSecondaryPath()
         {
-            if (x == Width - 1 && y == Height - 1)
+            int startIndex = Utility.Random.GetRandom(0, mainPath.Count / 2);
+            int endIndex = Utility.Random.GetRandom(mainPath.Count / 2, mainPath.Count);
+
+            MazePoint startPoint = mainPath[startIndex];
+            MazePoint endPoint = mainPath[endIndex];
+
+            int x = startPoint.Pos.x;
+            int y = startPoint.Pos.y;
+            List<MazePoint> secondaryPath = new List<MazePoint> { startPoint };
+
+            while (true)
             {
-                path.Add(grid[x, y]);
-                return true;
-            }
+                var newDirectionsList = new List<Vector2Int>();
+                newDirectionsList.AddRange(directions);
+                Shuffle(newDirectionsList);
 
-            if (x < 0 || y < 0 || x >= Width || y >= Height || path.Contains(grid[x, y]) || visited.Contains(grid[x, y]))
-            {
-                return false;
-            }
+                bool moved = false;
 
-            path.Add(grid[x, y]);
-
-            List<Vector2Int> directions = new List<Vector2Int>
-            {
-                new Vector2Int(1, 0), // Right
-                new Vector2Int(-1, 0), // Left
-                new Vector2Int(0, 1), // Down
-                new Vector2Int(0, -1) // Up
-            };
-
-            Shuffle(directions);
-
-            foreach (var direction in directions)
-            {
-                int newX = x + direction.x;
-                int newY = y + direction.y;
-
-                if (GenerateExtraPath(newX, newY, path, visited))
+                foreach (var direction in newDirectionsList)
                 {
-                    grid[x, y].LinkPoint.Add(grid[newX, newY]);
-                    grid[newX, newY].LinkPoint.Add(grid[x, y]);
-                    return true;
+                    int newX = x + direction.x;
+                    int newY = y + direction.y;
+
+                    if (newX >= 0 && newY >= 0 && newX < Width && newY < Height && !secondaryPath.Contains(grid[newX, newY]) && !usedPoints.Contains(grid[newX, newY]))
+                    {
+                        if (IsCrossingPath(new Vector2Int(x, y), new Vector2Int(newX, newY), direction))
+                            continue;
+
+                        secondaryPath.Add(grid[newX, newY]);
+                        usedPoints.Add(grid[newX, newY]);
+                        grid[x, y].LinkPoint.Add(grid[newX, newY]);
+                        grid[newX, newY].LinkPoint.Add(grid[x, y]);
+                        x = newX;
+                        y = newY;
+                        moved = true;
+                        break;
+                    }
+                }
+
+                if (!moved || (secondaryPath.Count > 1 && (x == endPoint.Pos.x && y == endPoint.Pos.y))) break; // Break if no move is possible or reach the end point
+            }
+        }
+
+        private bool IsCrossingPath(Vector2Int from, Vector2Int to, Vector2Int direction)
+        {
+            if (Math.Abs(direction.x) == 1 && Math.Abs(direction.y) == 1)
+            {
+                Vector2Int adjacent1 = new Vector2Int(from.x + direction.x, from.y);
+                Vector2Int adjacent2 = new Vector2Int(from.x, from.y + direction.y);
+
+                if (IsPointUsed(adjacent1) && IsPointUsed(adjacent2))
+                {
+                    if (IsLinked(adjacent1, adjacent2))
+                        return true;
                 }
             }
 
-            path.Remove(grid[x, y]);
             return false;
         }
 
-        private void EnsureAllPointsAccessible()
+        private bool IsPointUsed(Vector2Int point)
         {
-            HashSet<MazePoint> visited = new HashSet<MazePoint>();
-            Queue<MazePoint> queue = new Queue<MazePoint>();
-
-            queue.Enqueue(grid[0, 0]);
-            visited.Add(grid[0, 0]);
-
-            while (queue.Count > 0)
-            {
-                MazePoint current = queue.Dequeue();
-
-                foreach (var neighbor in GetNeighbors(current.Pos))
-                {
-                    if (!visited.Contains(neighbor))
-                    {
-                        current.LinkPoint.Add(neighbor);
-                        neighbor.LinkPoint.Add(current);
-                        visited.Add(neighbor);
-                        queue.Enqueue(neighbor);
-                    }
-                }
-            }
-
-            for (int x = 0; x < Width; x++)
-            {
-                for (int y = 0; y < Height; y++)
-                {
-                    if (!visited.Contains(grid[x, y]))
-                    {
-                        var randomNeighbor = GetNeighbors(grid[x, y].Pos).FirstOrDefault(p => visited.Contains(p));
-                        if (randomNeighbor != null)
-                        {
-                            grid[x, y].LinkPoint.Add(randomNeighbor);
-                            randomNeighbor.LinkPoint.Add(grid[x, y]);
-                            visited.Add(grid[x, y]);
-                        }
-                    }
-                }
-            }
+            return usedPoints.Any(p => p.Pos.x == point.x && p.Pos.y == point.y);
         }
 
-        private List<MazePoint> GetNeighbors(Vector2Int pos)
+        private bool IsLinked(Vector2Int point1, Vector2Int point2)
         {
-            List<MazePoint> neighbors = new List<MazePoint>();
+            MazePoint p1 = usedPoints.FirstOrDefault(p => p.Pos.x == point1.x && p.Pos.y == point1.y);
+            MazePoint p2 = usedPoints.FirstOrDefault(p => p.Pos.x == point2.x && p.Pos.y == point2.y);
 
-            if (pos.x > 0) neighbors.Add(grid[pos.x - 1, pos.y]);
-            if (pos.x < Width - 1) neighbors.Add(grid[pos.x + 1, pos.y]);
-            if (pos.y > 0) neighbors.Add(grid[pos.x, pos.y - 1]);
-            if (pos.y < Height - 1) neighbors.Add(grid[pos.x, pos.y + 1]);
-
-            return neighbors;
+            return p1 != null && p2 != null && p1.LinkPoint.Contains(p2);
         }
 
-        private void AssignTypesToPoints(List<MazePoint> mainPath)
+        private void AssignTypesToPoints()
         {
             foreach (var point in mainPath)
             {
+                if (point.LinkPoint.Count == 0)
+                {
+                    Log.Error("should be Empty");
+                }
                 if (point.Pos.x == 0 && point.Pos.y == 0)
                 {
                     point.CurType = MazePointType.Start;
@@ -253,10 +230,14 @@ namespace Maze
                 }
             }
 
-            foreach (var point in grid)
+            foreach (var point in usedPoints)
             {
                 if (point.CurType == MazePointType.Empty && !mainPath.Contains(point))
                 {
+                    if (point.LinkPoint.Count == 0)
+                    {
+                        Log.Error("should be Empty");
+                    }
                     point.CurType = (MazePointType)Utility.Random.GetRandom(2, Enum.GetValues(typeof(MazePointType)).Length - 1);
                 }
             }

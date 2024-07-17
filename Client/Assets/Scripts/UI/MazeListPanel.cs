@@ -48,6 +48,10 @@ public class MazeListPanelCtrl : UIFormLogic
         Vector2 offSet = new Vector2(150, 150);
         foreach (var onePointData in mazeList)
         {
+            if (onePointData.CurType == MazePointType.Empty)
+            {
+                continue;
+            }
             var oneNewPoint = _pointPool.Get();
             MazePointItem mp = oneNewPoint.GetComponent<MazePointItem>();
             oneNewPoint.transform.position = startPos + new Vector2(onePointData.Pos.x * offSet.x, onePointData.Pos.y * offSet.y);
@@ -55,7 +59,7 @@ public class MazeListPanelCtrl : UIFormLogic
             mp.Name.text = onePointData.CurType.ToString();
             foreach (var linkPointData in onePointData.LinkPoint)
             {
-                if (linkPointData.Pos.x > onePointData.Pos.x || linkPointData.Pos.y > onePointData.Pos.y)
+                if (linkPointData.Pos.x > onePointData.Pos.x || (linkPointData.Pos.x == onePointData.Pos.x&&linkPointData.Pos.y > onePointData.Pos.y))
                 {
                     Vector3 linkPosition = startPos + new Vector2(linkPointData.Pos.x * offSet.x, linkPointData.Pos.y * offSet.y);
                     var oneNewLine = _linePool.Get();

@@ -17,8 +17,8 @@ namespace Procedure
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
-            MazeGenerator generator = new MazeGenerator();
-            SelfDataManager.Instance.CurMazeList = generator.GenerateMaze();
+            SelfDataManager.Instance.CurMaze = new MazeGenerator();
+            SelfDataManager.Instance.CurMazeList = SelfDataManager.Instance.CurMaze.GenerateMaze();
             //打开titleUI
             GameEntry.UI.OpenUIForm(UICtrlName.MainTitlePanel, "middle");
         }

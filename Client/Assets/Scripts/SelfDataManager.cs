@@ -16,4 +16,5 @@ public class SelfDataManager
         }
     }
     public List<MazePoint> CurMazeList;
+    public MazeGenerator CurMaze;
 }
