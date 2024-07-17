@@ -41,19 +41,19 @@ namespace Maze
         private List<MazePoint> mainPath;
         private List<MazePoint> usedPoints = new List<MazePoint>();
         private List<Vector2Int> directions;
-        private List<int> mainPathWeight = new List<int>(){4,2,2,4,3,5,1,3};
+        private List<int> mainPathWeight = new List<int>(){10,2,10,2,20,3,1,3};
         public MazeGenerator()
         {
             directions = new List<Vector2Int>
             {
-                new Vector2Int(1, 0), // Right
-                new Vector2Int(-1, 0), // Left
-                new Vector2Int(0, 1), // Down
-                new Vector2Int(0, -1), // Up
-                new Vector2Int(1, 1), // Down Right
-                new Vector2Int(1, -1), // Up Right
-                new Vector2Int(-1, 1), // Down Left
-                new Vector2Int(-1, -1) // Up Left
+                new Vector2Int(1, 0), // 右
+                new Vector2Int(-1, 0), // 左
+                new Vector2Int(0, 1), // 上
+                new Vector2Int(0, -1), // 下
+                new Vector2Int(1, 1), // 右上
+                new Vector2Int(1, -1), // 右下
+                new Vector2Int(-1, 1), // 左上
+                new Vector2Int(-1, -1) // 左下
             };
         }
 
@@ -98,6 +98,10 @@ namespace Maze
             ShuffleWithWeights(newDirectionsList,mainPathWeight);
             foreach (var direction in newDirectionsList)
             {
+                if ((x == Width - 1 && direction.y < 0)||(y==Height-1&&direction.x<0))
+                {
+                    continue;
+                }
                 int newX = x + direction.x;
                 int newY = y + direction.y;
 
@@ -270,6 +274,14 @@ namespace Maze
                 int index = weightedIndices[k];
                 (list[index], list[i]) = (list[i], list[index]);
                 weightedIndices.RemoveAll((item) => item == index);
+                for (var index1 = 0; index1 < weightedIndices.Count; index1++)
+                {
+                    var item = weightedIndices[index1];
+                    if (item == i)
+                    {
+                        weightedIndices[index1] = index;
+                    }
+                }
             }
         }
         private void Shuffle<T>(IList<T> list)
