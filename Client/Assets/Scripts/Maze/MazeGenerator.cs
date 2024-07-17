@@ -41,7 +41,7 @@ namespace Maze
         private List<MazePoint> mainPath;
         private List<MazePoint> usedPoints = new List<MazePoint>();
         private List<Vector2Int> directions;
-
+        private List<int> mainPathWeight = new List<int>(){4,2,2,4,3,5,1,3};
         public MazeGenerator()
         {
             directions = new List<Vector2Int>
@@ -95,8 +95,7 @@ namespace Maze
 
             var newDirectionsList = new List<Vector2Int>();
             newDirectionsList.AddRange(directions);
-            Shuffle(newDirectionsList);
-
+            ShuffleWithWeights(newDirectionsList,mainPathWeight);
             foreach (var direction in newDirectionsList)
             {
                 int newX = x + direction.x;
@@ -242,7 +241,37 @@ namespace Maze
                 }
             }
         }
+        private void ShuffleWithWeights<T>(IList<T> list, IList<int> weights)
+        {
+            if (list.Count != weights.Count)
+            {
+                throw new ArgumentException("List and weights must have the same length.");
+            }
 
+            // Create a list to hold weighted indices
+            List<int> weightedIndices = new List<int>();
+
+            // Populate weighted indices based on weights
+            for (int i = 0; i < weights.Count; i++)
+            {
+                for (int j = 0; j < weights[i]; j++)
+                {
+                    weightedIndices.Add(i);
+                }
+            }
+
+            int n = list.Count;
+            for (int i = 0; i < n - 1; i++)
+            {
+                // Get a random index from i to n-1 inclusive
+                int k = Utility.Random.GetRandom(weightedIndices.Count);
+
+                // Swap elements using weighted indices
+                int index = weightedIndices[k];
+                (list[index], list[i]) = (list[i], list[index]);
+                weightedIndices.RemoveAll((item) => item == index);
+            }
+        }
         private void Shuffle<T>(IList<T> list)
         {
             int n = list.Count;
