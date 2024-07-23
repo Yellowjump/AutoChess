@@ -24,7 +24,7 @@ namespace Maze
         public Vector2Int Pos { get; set; }
         public MazePointType CurType { get; set; }
         public List<MazePoint> LinkPoint { get; set; }
-
+        public bool CanSee = false;
         public MazePoint(Vector2Int pos)
         {
             Pos = pos;
@@ -35,8 +35,8 @@ namespace Maze
 
     public class MazeGenerator
     {
-        private const int Width = 8;
-        private const int Height = 7;
+        public int Width = 8;
+        public int Height = 7;
         private MazePoint[,] grid;
         private List<MazePoint> mainPath;
         private List<MazePoint> usedPoints = new List<MazePoint>();
@@ -222,13 +222,16 @@ namespace Maze
                 if (point.Pos.x == 0 && point.Pos.y == 0)
                 {
                     point.CurType = MazePointType.Start;
+                    point.CanSee = true;
                 }
                 else if (point.Pos.x == Width - 1 && point.Pos.y == Height - 1)
                 {
                     point.CurType = MazePointType.End;
+                    point.CanSee = true;
                 }
                 else
                 {
+                    point.CanSee = false;
                     point.CurType = (MazePointType)Utility.Random.GetRandom(2, Enum.GetValues(typeof(MazePointType)).Length - 1);
                 }
             }
@@ -237,10 +240,7 @@ namespace Maze
             {
                 if (point.CurType == MazePointType.Empty && !mainPath.Contains(point))
                 {
-                    if (point.LinkPoint.Count == 0)
-                    {
-                        Log.Error("should be Empty");
-                    }
+                    point.CanSee = false;
                     point.CurType = (MazePointType)Utility.Random.GetRandom(2, Enum.GetValues(typeof(MazePointType)).Length - 1);
                 }
             }
@@ -309,6 +309,15 @@ namespace Maze
             }
 
             return pointList;
+        }
+
+        public MazePoint GetPoint(int x, int y)
+        {
+            if (grid!=null&&x >= 0 && x < Width && y >= 0 && y < Height)
+            {
+                return grid[x, y];
+            }
+            return null;
         }
     }
 }

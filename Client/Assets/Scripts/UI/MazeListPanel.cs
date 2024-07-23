@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Maze;
@@ -14,9 +15,21 @@ public class MazeListPanelCtrl : UIFormLogic
     [SerializeField] private GameObject _invisbleParent;
     [SerializeField] private GameObject _showPointParent;
     [SerializeField] private GameObject _showLineParent;
+    [SerializeField] private Vector2 ItemStartPos = new Vector2(-500, -500);
+    [SerializeField] private Vector2 ItemOffSet = new Vector2(150, 150);
     private ObjectPool<GameObject> _pointPool;
     private ObjectPool<GameObject> _linePool;
     [SerializeField] private Button _btnClose;
+    //-----------fogStart-------------------
+    [SerializeField] private RawImage _fogImage;
+    [SerializeField] private int mapWidth=50;
+    [SerializeField] private int mapHeight=50;
+    [SerializeField] private int onePointFarRadius = 20;
+    //public Color32[] colorBuffer;//r装当前是否可见的透明度
+    [SerializeField] private Material _blurMat;//模糊的材质
+    private RenderBuffer FogTargetBuffer;//放入image中的renderBuffer;
+    private Texture2D _maskTexture;//生成的透明度mask
+    //-----------fogEnd
     protected override void OnInit(object userData)
     {
         base.OnInit(userData);
@@ -43,9 +56,7 @@ public class MazeListPanelCtrl : UIFormLogic
         {
             return;
         }
-
-        Vector2 startPos = new Vector2(-500, -500);
-        Vector2 offSet = new Vector2(150, 150);
+        
         foreach (var onePointData in mazeList)
         {
             if (onePointData.CurType == MazePointType.Empty)
@@ -54,14 +65,14 @@ public class MazeListPanelCtrl : UIFormLogic
             }
             var oneNewPoint = _pointPool.Get();
             MazePointItem mp = oneNewPoint.GetComponent<MazePointItem>();
-            oneNewPoint.transform.position = startPos + new Vector2(onePointData.Pos.x * offSet.x, onePointData.Pos.y * offSet.y);
+            oneNewPoint.transform.position = ItemStartPos + new Vector2(onePointData.Pos.x * ItemOffSet.x, onePointData.Pos.y * ItemOffSet.y);
             mp.Pos = onePointData.Pos;
             mp.Name.text = onePointData.CurType.ToString();
             foreach (var linkPointData in onePointData.LinkPoint)
             {
                 if (linkPointData.Pos.x > onePointData.Pos.x || (linkPointData.Pos.x == onePointData.Pos.x&&linkPointData.Pos.y > onePointData.Pos.y))
                 {
-                    Vector3 linkPosition = startPos + new Vector2(linkPointData.Pos.x * offSet.x, linkPointData.Pos.y * offSet.y);
+                    Vector3 linkPosition = ItemStartPos + new Vector2(linkPointData.Pos.x * ItemOffSet.x, linkPointData.Pos.y * ItemOffSet.y);
                     var oneNewLine = _linePool.Get();
                     var position = oneNewPoint.transform.position;
                     Vector3 direction = position - linkPosition;
@@ -71,10 +82,71 @@ public class MazeListPanelCtrl : UIFormLogic
                 }
             }
         }
+
+        InitFog();
     }
 
+    private void InitFog()
+    {
+        // 创建一张maskSize x maskSize的纹理
+        _maskTexture = new Texture2D(mapWidth, mapHeight, TextureFormat.RGBA32, false);
+        FreshFog();
+    }
+
+    public void FreshFog()
+    {
+        var mazeList = SelfDataManager.Instance.CurMazeList;
+        // 填充白色
+        for (int y = 0; y < mapHeight; y++)
+        {
+            for (int x = 0; x < mapWidth; x++)
+            {
+                Color color = Color.white;
+                _maskTexture.SetPixel(x, y, color);
+            }
+        }
+        var screenWidth = Screen.width;
+        var screenHeight = Screen.height;
+        var screenPosDir = new Vector2(screenWidth / 2.0f, screenHeight / 2.0f);
+        //对所有可见的point都改为black
+        foreach (var point in mazeList)
+        {
+            if (point.CanSee)
+            {
+                var localPos = ItemStartPos + new Vector2(point.Pos.x * ItemOffSet.x, point.Pos.y * ItemOffSet.y);
+                var screenPos = localPos + screenPosDir;
+                //获取对应位置的 mask 像素点xy
+                var maskXY = new Vector2Int((int)(screenPos.x * mapWidth / screenWidth), (int)(screenPos.y * mapHeight/screenHeight));
+                var startX = Math.Max(0, maskXY.x - onePointFarRadius);
+                var startY = Math.Max(0, maskXY.y - onePointFarRadius);
+                var endX = Math.Min(mapWidth, maskXY.x + onePointFarRadius);
+                var endY = Math.Min(mapHeight, maskXY.y + onePointFarRadius);
+                for (int maskTextureX = startX; maskTextureX < endX; maskTextureX++)
+                {
+                    for (int maskTextureY = startY; maskTextureY < endY; maskTextureY++)
+                    {
+                        if ((maskTextureX - maskXY.x) * (maskTextureX - maskXY.x) + (maskTextureY - maskXY.y) * (maskTextureY - maskXY.y) < onePointFarRadius * onePointFarRadius)
+                        {
+                            _maskTexture.SetPixel(maskTextureX, maskTextureY, Color.black);
+                        }
+                    }
+                }
+            }
+        }
+        // 应用更改
+        _maskTexture.Apply();
+        // 将生成的纹理传递给材质
+        if (_fogImage != null&&_fogImage.material!=null)
+        {
+            _fogImage.material.SetTexture("_MaskTex", _maskTexture);
+        }
+    }
     private void OnClickPoint(MazePointItem item)
     {
         Log.Info(item.Pos);
+        var mazeGen = SelfDataManager.Instance.CurMaze;
+        var point=mazeGen.GetPoint(item.Pos.x, item.Pos.y);
+        point.CanSee = true;
+        FreshFog();
     }
 }
