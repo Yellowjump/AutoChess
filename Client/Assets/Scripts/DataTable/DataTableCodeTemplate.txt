@@ -16,6 +16,7 @@ using System.Text;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 using SkillSystem;
+using Entity;
 
 namespace __DATA_TABLE_NAME_SPACE__
 {

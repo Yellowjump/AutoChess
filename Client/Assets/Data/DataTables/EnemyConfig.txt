@@ -1,0 +1,6 @@
+﻿#	敌人组配置表			
+#	Id		EnemyGroupType	EnemyInfo
+#	int		int	EnemyInfo
+#	enemyGroupID	敌人组备注	敌人组类型	敌人组信息
+#				
+	1	两只测试怪	0	7,6,1|1,7,1

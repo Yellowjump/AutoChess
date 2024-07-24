@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-06-06 20:50:51.050
+// 生成时间：2024-07-24 21:33:05.976
 //------------------------------------------------------------
 
 using GameFramework;
@@ -16,6 +16,7 @@ using System.Text;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 using SkillSystem;
+using Entity;
 
 namespace DataTable
 {

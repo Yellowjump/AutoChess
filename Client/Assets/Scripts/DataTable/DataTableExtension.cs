@@ -9,6 +9,7 @@ using GameFramework;
 using System;
 using System.IO;
 using System.Text;
+using Entity;
 using UnityEngine;
 using GameFramework.Resource;
 using UnityGameFramework.Runtime;
@@ -101,6 +102,26 @@ namespace DataTable
                 }
             }
             return newBuff;
+        }
+
+        public static EnemyInfo ParseEnemyInfo(string value)
+        {
+            EnemyInfo newInfo = new EnemyInfo();
+            string[] splitValue = value.Split('|');
+            for (int i = 0; i < splitValue.Length; i++)
+            {
+                string[] splitIntValue = splitValue[i].Split(',');
+                if (splitIntValue.Length != 3)
+                {
+                    Log.Error("EnemyInfo Error");
+                    return newInfo;
+                }
+                OneEnemyInfo oneInfo = new OneEnemyInfo();
+                oneInfo.Pos = new Vector2Int(int.Parse(splitIntValue[0]), int.Parse(splitIntValue[1]));
+                oneInfo.HeroID = int.Parse(splitIntValue[2]);
+                newInfo.InfoList.Add(oneInfo);
+            }
+            return newInfo;
         }
     }
 }

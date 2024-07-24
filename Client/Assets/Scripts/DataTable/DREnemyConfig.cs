@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-07-24 21:33:05.968
+// 生成时间：2024-07-24 21:33:05.972
 //------------------------------------------------------------
 
 using GameFramework;
@@ -22,14 +22,14 @@ namespace DataTable
 {
 
     /// <summary>
-    /// buff模板表。
+    /// 敌人组配置表。
     /// </summary>
-    public class DRBuffTemplate : DataRowBase
+    public class DREnemyConfig : DataRowBase
     {
         private int m_Id = 0;
 
         /// <summary>
-        /// 获取模板ID。
+        /// 获取enemyGroupID。
         /// </summary>
         public override int Id
         {
@@ -40,9 +40,18 @@ namespace DataTable
         }
 
         /// <summary>
-        /// 获取buff模板。
+        /// 获取敌人组类型。
         /// </summary>
-        public Buff BuffTemplate
+        public int EnemyGroupType
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取敌人组信息。
+        /// </summary>
+        public EnemyInfo EnemyInfo
         {
             get;
             private set;
@@ -59,7 +68,9 @@ namespace DataTable
             int index = 0;
             index++;
             m_Id = int.Parse(columnStrings[index++]);
-            BuffTemplate = DataTableExtension.ParseBuff(columnStrings[index++]);
+            index++;
+            EnemyGroupType = int.Parse(columnStrings[index++]);
+            EnemyInfo = DataTableExtension.ParseEnemyInfo(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -72,7 +83,8 @@ namespace DataTable
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
-                    BuffTemplate = binaryReader.ReadBuff();
+                    EnemyGroupType = binaryReader.Read7BitEncodedInt32();
+                    EnemyInfo = binaryReader.ReadEnemyInfo();
                 }
             }
 

@@ -7,6 +7,7 @@
 
 using System;
 using System.IO;
+using Entity;
 using SkillSystem;
 using UnityEngine;
 
@@ -76,6 +77,20 @@ namespace DataTable
             var newBuff =  SkillFactory.CreateNewBuff();
             newBuff.ReadFromFile(binaryReader);
             return newBuff;
+        }
+
+        public static EnemyInfo ReadEnemyInfo(this BinaryReader binaryReader)
+        {
+            var newInfo = new EnemyInfo();
+            int length = binaryReader.ReadInt32();
+            for (int i = 0; i < length; i++)
+            {
+                var newOneInfo = new OneEnemyInfo();
+                newOneInfo.Pos = new Vector2Int(binaryReader.ReadInt32(), binaryReader.ReadInt32());
+                newOneInfo.HeroID = binaryReader.ReadInt32();
+                newInfo.InfoList.Add(newOneInfo);
+            }
+            return newInfo;
         }
     }
 }

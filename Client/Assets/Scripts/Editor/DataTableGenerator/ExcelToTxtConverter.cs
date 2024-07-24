@@ -22,12 +22,14 @@ public class ExcelToTxtConverter : EditorWindow
         GetWindow<ExcelToTxtConverter>("Excel To Txt Converter");
     }
 
+    private void Awake()
+    {
+        LoadExcelFiles();
+    }
+
     private void OnGUI()
     {
         GUILayout.Label("Excel To Txt Converter", EditorStyles.boldLabel);
-
-        LoadExcelFiles();
-
         GUILayout.Label("Select Excel Files to Convert", EditorStyles.label);
         for (int i = 0; i < excelFiles.Count; i++)
         {
