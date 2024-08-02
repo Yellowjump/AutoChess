@@ -1,4 +1,4 @@
-﻿using GameFramework;
+﻿/*using GameFramework;
 using GameFramework.Event;
 using UnityGameFramework.Runtime;
 using System;
@@ -73,4 +73,4 @@ namespace DataTable
             Owner = null;
         }
     }
-}
+}*/

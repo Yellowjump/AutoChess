@@ -54,5 +54,10 @@ namespace Entity
             var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
             power.value = curPower / (float)maxPower;
         }
+
+        private void DestoryAttribute()
+        {
+            AttributeList.Clear();
+        }
     }
 }

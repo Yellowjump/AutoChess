@@ -13,22 +13,20 @@ namespace Procedure
 {
     public class ProcedureTitle: ProcedureBase
     {
-        private bool moveToBattle = false;
+        private bool moveToGame = false;
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
-            SelfDataManager.Instance.CurMaze = new MazeGenerator();
-            SelfDataManager.Instance.CurMazeList = SelfDataManager.Instance.CurMaze.GenerateMaze();
             //打开titleUI
             GameEntry.UI.OpenUIForm(UICtrlName.MainTitlePanel, "middle");
         }
         protected override void OnUpdate(ProcedureOwner procedureOwner, float elapseSeconds, float realElapseSeconds)
         {
             base.OnUpdate(procedureOwner, elapseSeconds, realElapseSeconds);
-            if (moveToBattle)
+            if (moveToGame)
             {
-                moveToBattle = false;
-                ChangeState<ProcedurePreBattle>(procedureOwner);
+                moveToGame = false;
+                ChangeState<ProcedureGame>(procedureOwner);
             }
         }
 
@@ -39,9 +37,9 @@ namespace Procedure
             GameEntry.UI.CloseUIForm(mainTitle);
         }
 
-        public void MoveToBattle()
+        public void MoveToGame()
         {
-            moveToBattle = true;
+            moveToGame = true;
         }
     }
 }

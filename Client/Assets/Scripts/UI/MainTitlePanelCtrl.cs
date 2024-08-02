@@ -24,13 +24,11 @@ public class MainTitlePanelCtrl : UIFormLogic
     private void OnClickContinueBtn()
     {
         Log.Info("OnClickContinueBtn OnClick");
-        //打开titleUI
-        GameEntry.UI.OpenUIForm(UICtrlName.MazePointList, "middle");
     }
     private void OnClickStartBtn()
     {
          var titleProcedure = GameEntry.Procedure.GetProcedure<ProcedureTitle>() as ProcedureTitle;
-         titleProcedure?.MoveToBattle();
+         titleProcedure?.MoveToGame();
     }
     private void OnClickSettingBtn()
     {

@@ -39,8 +39,6 @@ namespace Entity
             this.money = 1;
             this.GObj = Pool.instance.PoolObject[i].Get();
             this.GObj.transform.localScale = Vector3.one;
-            QiziGuanLi.Instance.QiziList.Add(this);
-            QiziGuanLi.Instance.QiziCXList.Add(this);
             xueliangnow = xueliangsum;
             powernow = 0;//初始化蓝量
             gongjiDistence = 1.2f;//初始化攻击距离
@@ -74,23 +72,19 @@ namespace Entity
         }
         public void Remove()
         {
-            if (rowIndex==-1)//如果棋子在场下
-            {
-                QiziGuanLi.Instance.QiziCXList.Remove(this);
-                QiziGuanLi.Instance.changxia[columnIndex] = -1;
-            }
-            else
-            {
-                QiziGuanLi.Instance.QiziCSList.Remove(this);
-            }
-            QiziGuanLi.Instance.QiziList.Remove(this);
             Pool.instance.PoolObject[this.HeroID].Release(this.GObj);
             Pool.instance.PoolEntity.Release(this);
             DestoryState();
+            DestorySkill();
+            DestoryAttribute();
         }
 
         public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds)
         {
+            if (IsValid == false)
+            {
+                return;
+            }
             SinceLastNormalAtk += elapseSeconds;
             UpdateState(elapseSeconds,realElapseSeconds);
             UpdateSkill(elapseSeconds, realElapseSeconds);
@@ -100,7 +94,7 @@ namespace Entity
         public void OnDead()
         {
             IsValid = false;
-            QiziGuanLi.instance.qige[rowIndex][columnIndex] = -1;
+            QiziGuanLi.instance.OnEntityDead(this);
             GObj.SetActive(false);
         }
     }

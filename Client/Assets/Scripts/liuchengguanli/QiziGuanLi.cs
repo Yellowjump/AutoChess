@@ -2,6 +2,7 @@ using Entity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SelfEventArg;
 using SkillSystem;
 using UnityEditor;
 using UnityEngine;
@@ -56,12 +57,12 @@ public partial class QiziGuanLi
     private int[] goumaiUiqiziPaikuFeiyong = new int[5];//记录UI购买界面的棋子
     public int dangqianliucheng = 0;//保存当前流程，0是prebattle,1是battle
     public List<Sprite> ListQiziLevelSprite = new List<Sprite>();//保存棋子星级图片
-    public int[][] qige = new int[8][];//保存棋格上是否有棋子 -1表示没有，其余是棋子uid
+    public int[][] qige = new int[8][];//保存棋格上是否有棋子 -1表示没有，其余是棋子uid 坐标是y，x
     public Vector3[][] qigepos = new Vector3[8][];//保存棋格位置
+    public float qigeXOffset = 1f;
     public Vector3[] cxqigepos = new Vector3[9];//保存场下棋格位置
     public int QiziCurUniqueIndex = 0;
     public GameObject showpath;
-
     private Vector2Int[] adjacentOffsetDoubleRow = new Vector2Int[6]
     {
         Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right, Vector2Int.one, Vector2Int.down + Vector2Int.right
@@ -153,6 +154,48 @@ public partial class QiziGuanLi
         //qizi3.x = -1.414214f;
         //qizi3.y = -1.414214f;
         //DirenList.Add(qizi3);
+    }
+
+    public void InitOneEnemy(OneEnemyInfo oneInfo)
+    {
+        EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
+        qizi.BelongCamp = CampType.Enemy;
+        qizi.Init(oneInfo.HeroID);
+        qizi.rowIndex =oneInfo.Pos.y;
+        qizi.columnIndex = oneInfo.Pos.x;
+        DirenList.Add(qizi);
+        qige[qizi.rowIndex][qizi.columnIndex] = qizi.HeroUID;
+        qizi.LogicPosition =GetGeziPos(qizi.rowIndex, qizi.columnIndex);
+        qizi.GObj.transform.rotation = Quaternion.Euler(new Vector3(0, -180, 0));
+    }
+
+    public EntityQizi AddNewFriendHero(int heroID)
+    {
+        EntityQizi qizi = Pool.instance.PoolEntity.Get() as EntityQizi;
+        qizi.BelongCamp = CampType.Friend;
+        qizi.Init(heroID);
+        var emptyPos = GetEmptyFriendPos();
+        qizi.rowIndex =emptyPos.y;
+        qizi.columnIndex = emptyPos.x;
+        QiziCSList.Add(qizi);
+        qige[qizi.rowIndex][qizi.columnIndex] = qizi.HeroUID;
+        qizi.LogicPosition =GetGeziPos(qizi.rowIndex, qizi.columnIndex);
+        return qizi;
+    }
+
+    private Vector2Int GetEmptyFriendPos()
+    {
+        for (int y = 0; y < qige.Length; y++)
+        {
+            for (int x = 0; x < qige[y].Length; x++)
+            {
+                if (qige[y][x] == -1)
+                {
+                    return new Vector2Int(x, y);
+                }
+            }
+        }
+        return Vector2Int.one;
     }
     void InitQige()
     {
@@ -415,6 +458,44 @@ public partial class QiziGuanLi
         }
         return new Vector2Int(-1, -1);
     }
+
+    public bool GetQiziByQigeIndex(Vector2Int geziPos,out EntityQizi curPosQizi)
+    {
+        curPosQizi = null;
+        try
+        {
+            var uid = qige[geziPos.y][geziPos.x];
+            foreach (var oneQizi in QiziCSList)
+            {
+                if (oneQizi.HeroUID == uid)
+                {
+                    curPosQizi = oneQizi;
+                    return true;
+                }
+            }
+
+            foreach (var oneQizi in DirenList)
+            {
+                if (oneQizi.HeroUID == uid)
+                {
+                    curPosQizi = oneQizi;
+                    return true;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error(e);
+        }
+        return false;
+    }
+
+    public void UpdateEntityPos(EntityQizi qizi, Vector2Int newPos)
+    {
+        qige[qizi.rowIndex][qizi.columnIndex] = -1;
+        qige[newPos.y][newPos.x] = qizi.HeroUID;
+        qizi.LogicPosition = qigepos[newPos.y][newPos.x];
+    }
     public Vector2Int Findpath(Vector2Int start, Vector2Int end,float gongjidistance)
     {
         /*if (gongjidistance == 1&&IsSurround(end))//攻击距离为1，先判断是否目标被围了一圈
@@ -587,6 +668,48 @@ public partial class QiziGuanLi
     {
         return row >= 0 ? qigepos[row][column] : cxqigepos[column];
     }
+
+    public bool CheckInGezi(Vector3 targetPos, out Vector2Int geziPos)
+    {
+        for (var rowIndex = 0; rowIndex < qigepos.Length; rowIndex++)
+        {
+            var oneline = qigepos[rowIndex];
+            for (int columnIndex = 0; columnIndex < oneline.Length; columnIndex++)
+            {
+                 var qigeCenterToTargetPos = targetPos - qigepos[rowIndex][columnIndex];
+                 if (qigeCenterToTargetPos.magnitude > qigeXOffset / Mathf.Sqrt(3))//在外圆外
+                 {
+                     continue;
+                 }
+                 var absX = Mathf.Abs(qigeCenterToTargetPos.x);
+                 var absY =  Mathf.Abs(qigeCenterToTargetPos.z);
+                 if (absX > qigeXOffset / 2)
+                 {
+                     continue;
+                 }
+
+                 if (absY < qigeXOffset / 2 / Mathf.Sqrt(3))
+                 {
+                     geziPos = new Vector2Int(columnIndex, rowIndex);
+                     return true;
+                 }
+
+                 if (qigeCenterToTargetPos.magnitude <= qigeXOffset / 2)//在内圈内
+                 {
+                     geziPos = new Vector2Int(columnIndex, rowIndex);
+                     return true;
+                 }
+
+                 if ((qigeXOffset / 2 - absX) / Mathf.Sqrt(3) + qigeXOffset / 2 / Mathf.Sqrt(3) > absY)
+                 {
+                     geziPos = new Vector2Int(columnIndex, rowIndex);
+                     return true;
+                 }
+            }
+        }
+        geziPos = Vector2Int.zero;
+        return false;
+    }
     /// <summary>
     /// 逻辑update
     /// </summary>
@@ -596,7 +719,7 @@ public partial class QiziGuanLi
     {
         List<EntityQizi> tempEntityList = ListPool<EntityQizi>.Get();
         //先轮询己方棋子，后续联机的话需要判断 玩家uid来确定先后
-        tempEntityList.AddRange(QiziList);
+        tempEntityList.AddRange(QiziCSList);
         tempEntityList.Sort((a,b)=>a.HeroUID.CompareTo(b.HeroUID));
         foreach (var oneEntity in tempEntityList)
         {
@@ -611,5 +734,49 @@ public partial class QiziGuanLi
         }
         ListPool<EntityQizi>.Release(tempEntityList);
         OnLogicUpdateBullet(elapseSeconds, realElapseSeconds);
+    }
+
+    public void OnEntityDead(EntityQizi qizi)
+    {
+        if (qizi == null)
+        {
+            return;
+        }
+        qige[qizi.rowIndex][qizi.columnIndex] = -1;
+        List<EntityQizi> qiziList = qizi.BelongCamp == CampType.Friend ? QiziCSList : DirenList;
+        qiziList.Remove(qizi);
+        if (qiziList.Count == 0)
+        {
+            GameEntry.Event.FireNow(this,BattleStopEventArgs.Create(qizi.BelongCamp==CampType.Enemy));
+        }
+    }
+    /// <summary>
+    /// 游戏结束回到主界面
+    /// </summary>
+    public void GameOver()
+    {
+        FreshQige();
+        foreach (var oneEntity in QiziCSList)
+        {
+            oneEntity.Remove();
+        }
+        QiziCSList.Clear();
+        foreach (var oneEntity in DirenList)
+        {
+            oneEntity.Remove();
+        }
+        DirenList.Clear();
+        dangqianliucheng = 0;
+    }
+
+    private void FreshQige()
+    {
+        for (int y = 0; y < qige.Length; y++)
+        {
+            for (int x = 0; x < qige[y].Length; x++)
+            {
+                qige[y][x] = -1;
+            }
+        }
     }
 }

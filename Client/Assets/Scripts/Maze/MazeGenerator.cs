@@ -4,7 +4,7 @@ using System.Linq;
 using GameFramework;
 using UnityEngine;
 using UnityGameFramework.Runtime;
-using Random = UnityEngine.Random;
+using SelfEventArg;
 
 namespace Maze
 {
@@ -14,17 +14,23 @@ namespace Maze
         End,
         SmallBattle,
         EliteBattle,
-        Rest,
         Event,
         Empty // Represent empty points in the maze
     }
 
     public class MazePoint
     {
+        public enum PointPassState
+        {
+            Lock,//锁定
+            Unlock,//可进入
+            Pass,//已通过
+        }
         public Vector2Int Pos { get; set; }
         public MazePointType CurType { get; set; }
         public List<MazePoint> LinkPoint { get; set; }
-        public bool CanSee = false;
+        public bool CanSee = false;//能看见
+        public PointPassState CurPassState = PointPassState.Lock;
         public MazePoint(Vector2Int pos)
         {
             Pos = pos;
@@ -42,6 +48,8 @@ namespace Maze
         private List<MazePoint> usedPoints = new List<MazePoint>();
         private List<Vector2Int> directions;
         private List<int> mainPathWeight = new List<int>(){10,2,10,2,20,3,1,3};
+
+        public MazePoint CurMazePoint;
         public MazeGenerator()
         {
             directions = new List<Vector2Int>
@@ -98,7 +106,7 @@ namespace Maze
             ShuffleWithWeights(newDirectionsList,mainPathWeight);
             foreach (var direction in newDirectionsList)
             {
-                if ((x == Width - 1 && direction.y < 0)||(y==Height-1&&direction.x<0))
+                if ((x == Width - 1 && direction.y <= 0)||(y==Height-1&&direction.x<=0))
                 {
                     continue;
                 }
@@ -223,6 +231,7 @@ namespace Maze
                 {
                     point.CurType = MazePointType.Start;
                     point.CanSee = true;
+                    point.CurPassState = MazePoint.PointPassState.Unlock;
                 }
                 else if (point.Pos.x == Width - 1 && point.Pos.y == Height - 1)
                 {
@@ -318,6 +327,24 @@ namespace Maze
                 return grid[x, y];
             }
             return null;
+        }
+
+        public void PassCurPoint()
+        {
+            if (CurMazePoint == null)
+            {
+                return;
+            }
+            CurMazePoint.CurPassState = MazePoint.PointPassState.Pass;
+            foreach (var linkPoint in CurMazePoint.LinkPoint)
+            {
+                if (linkPoint != null&&linkPoint.CurPassState == MazePoint.PointPassState.Lock)
+                {
+                    linkPoint.CurPassState = MazePoint.PointPassState.Unlock;
+                    linkPoint.CanSee = true;
+                }
+            }
+            GameEntry.Event.Fire(this,PassPointEventArgs.Create());
         }
     }
 }

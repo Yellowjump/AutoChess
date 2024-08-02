@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DataTable;
 using SkillSystem;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.UI;
@@ -206,12 +207,13 @@ namespace Entity
             if (willCastSkill.CurSkillCastTargetType != SkillCastTargetType.NoNeedTarget)
             {
                 bool canUseOldTarget = false;
-                if (CurAttackTarget != null)
+                if (CurAttackTarget != null&&CurAttackTarget.IsValid)
                 {
                     //如果之前存在攻击目标
                     //判断是否已死亡
                     //判断是否在范围内
-                    canUseOldTarget = CurAttackTarget.xueliangnow >= 0;
+                    int hp = (int)CurAttackTarget.GetAttribute(AttributeType.Hp).GetFinalValue();
+                    canUseOldTarget = hp >= 0;
                     //判断是否有不可选中之类
                     canUseOldTarget = canUseOldTarget&&!(GetDistanceSquare(CurAttackTarget) > gongjiDistence * gongjiDistence);
                     if (canUseOldTarget)
@@ -299,6 +301,15 @@ namespace Entity
                 //death
                 OnDead();
             }
+        }
+
+        private void DestorySkill()
+        {
+            NormalSkill=null;
+            SpSkill = null;
+            PassiveSkill = null;
+            CurBuffList.Clear();
+            CurTriggerDic.Clear();
         }
     }
 }

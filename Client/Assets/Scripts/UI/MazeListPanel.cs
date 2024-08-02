@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
+using SelfEventArg;
 
 public class MazeListPanelCtrl : UIFormLogic
 {
@@ -146,7 +147,8 @@ public class MazeListPanelCtrl : UIFormLogic
         Log.Info(item.Pos);
         var mazeGen = SelfDataManager.Instance.CurMaze;
         var point=mazeGen.GetPoint(item.Pos.x, item.Pos.y);
-        point.CanSee = true;
-        FreshFog();
+        GameEntry.Event.Fire(this,EnterPointEventArgs.Create(point));
+        //point.CanSee = true;
+        //FreshFog();
     }
 }

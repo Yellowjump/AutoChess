@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Entity;
 using Maze;
 
 public class SelfDataManager
@@ -17,4 +18,5 @@ public class SelfDataManager
     }
     public List<MazePoint> CurMazeList;
     public MazeGenerator CurMaze;
+    public List<EntityQizi> SelfHeroList = new List<EntityQizi>();
 }
