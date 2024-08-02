@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DataTable;
+using GameFramework;
 using SkillSystem;
 using UnityEditor;
 using UnityEngine;
@@ -215,7 +216,7 @@ namespace Entity
                     int hp = (int)CurAttackTarget.GetAttribute(AttributeType.Hp).GetFinalValue();
                     canUseOldTarget = hp >= 0;
                     //判断是否有不可选中之类
-                    canUseOldTarget = canUseOldTarget&&!(GetDistanceSquare(CurAttackTarget) > gongjiDistence * gongjiDistence);
+                    canUseOldTarget = canUseOldTarget&&!(Utility.TruncateFloat(GetDistanceSquare(CurAttackTarget),4)  > gongjiDistence * gongjiDistence);
                     if (canUseOldTarget)
                     {
                         inAttackRange = true;

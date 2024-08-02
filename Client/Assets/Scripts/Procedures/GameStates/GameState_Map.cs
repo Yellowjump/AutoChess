@@ -14,6 +14,11 @@ namespace Procedure.GameStates
             base.OnEnter(fsm);
             //打开titleUI
             _mapUIIndex = GameEntry.UI.OpenUIForm(UICtrlName.MazePointList, "middle");
+            var battleMainForm = GameEntry.UI.GetUIForm(UICtrlName.BattleMainPanel);
+            if (battleMainForm != null)
+            {
+                GameEntry.UI.CloseUIForm(battleMainForm);
+            }
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)

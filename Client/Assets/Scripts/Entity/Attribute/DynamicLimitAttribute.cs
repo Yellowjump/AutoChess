@@ -15,10 +15,26 @@ namespace Entity.Attribute
                 
             }
         }
+
+        public DynamicLimitAttribute()
+        {
+            
+        }
+        public DynamicLimitAttribute<T> Initialize(AttributeType limitMatchAttribute, EntityQizi owner)
+        {
+            _limitMatchAttribute = limitMatchAttribute;
+            _owner = owner;
+            return this;
+        }
         public DynamicLimitAttribute(AttributeType limitMatchAttribute, EntityQizi owner)
         {
             _limitMatchAttribute = limitMatchAttribute;
             _owner = owner;
+        }
+
+        public void Clear()
+        {
+            _owner = null;
         }
     }
 }

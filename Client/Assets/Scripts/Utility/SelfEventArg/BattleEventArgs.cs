@@ -135,4 +135,27 @@ namespace SelfEventArg
             return passPointEventArgs;
         }
     }
+    /// <summary>
+    /// 地图刷新
+    /// </summary>
+    public class MapFreshEventArgs:GameEventArgs
+    {
+        public static readonly int EventId = typeof(MapFreshEventArgs).GetHashCode();
+        public override int Id
+        {
+            get
+            {
+                return EventId;
+            }
+        }
+        public override void Clear()
+        {
+            
+        }
+        public static MapFreshEventArgs Create()
+        {
+            MapFreshEventArgs passPointEventArgs = ReferencePool.Acquire<MapFreshEventArgs>();
+            return passPointEventArgs;
+        }
+    }
 }

@@ -77,6 +77,7 @@ namespace Procedure
             _dataTableFlag.Add("BuffTemplate",(typeof(DRBuffTemplate),false));
             _dataTableFlag.Add("Bullet",(typeof(DRBullet),false));
             _dataTableFlag.Add("EnemyConfig",(typeof(DREnemyConfig),false));
+            _dataTableFlag.Add("HeroAttribute",(typeof(DRHeroAttribute),false));
             foreach (var tableName in _dataTableFlag)
             {
                 DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(tableName.Value.Item1, tableName.Key);

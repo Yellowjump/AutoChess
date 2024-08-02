@@ -1,6 +1,8 @@
+using GameFramework;
+
 namespace Entity.Attribute
 {
-    public interface IModifyAttribute
+    public interface IModifyAttribute:IReference
     {
         public object GetFinalValue();
         public void AddBaseNum(object addValue);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Entity;
+using GameFramework;
 using SkillSystem;
 using UnityEngine.Pool;
 
@@ -33,7 +34,7 @@ public partial class QiziGuanLi
                 minDistanceSquare = newDistanceSquare;
             }
         }
-        if (minDistanceSquare <source.gongjiDistence*source.gongjiDistence)
+        if (Utility.TruncateFloat(minDistanceSquare,4) <source.gongjiDistence*source.gongjiDistence)
         {
             return true;
         }

@@ -344,7 +344,7 @@ namespace Maze
                     linkPoint.CanSee = true;
                 }
             }
-            GameEntry.Event.Fire(this,PassPointEventArgs.Create());
+            GameEntry.Event.Fire(this,MapFreshEventArgs.Create());
         }
     }
 }

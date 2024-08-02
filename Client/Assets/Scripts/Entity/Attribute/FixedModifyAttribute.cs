@@ -1,3 +1,4 @@
+using GameFramework;
 using UnityGameFramework.Runtime;
 
 namespace Entity.Attribute
@@ -8,6 +9,18 @@ namespace Entity.Attribute
         private ILimitedAttribute<int> _curMinLimit;
         private ILimitedAttribute<int> _curMaxLimit;
 
+        public FixedModifyAttribute()
+        {
+            
+        }
+
+        public FixedModifyAttribute Initialize(int baseValue, ILimitedAttribute<int> minLimit, ILimitedAttribute<int> maxLimit)
+        {
+            _baseValue = baseValue;
+            _curMinLimit = minLimit;
+            _curMaxLimit = maxLimit;
+            return this;
+        }
         public FixedModifyAttribute(int baseValue, ILimitedAttribute<int> minLimit, ILimitedAttribute<int> maxLimit)
         {
             _baseValue = baseValue;
@@ -61,6 +74,22 @@ namespace Entity.Attribute
         public void AddPercent(int addPercent)
         {
             Log.Error("fixedModifyAttribute cant AddPercent");
+        }
+
+        public void Clear()
+        {
+            _baseValue = 0;
+            if (_curMinLimit != null)
+            {
+                ReferencePool.Release(_curMinLimit);
+                _curMinLimit = null;
+            }
+
+            if (_curMaxLimit != null)
+            {
+                ReferencePool.Release(_curMaxLimit);
+                _curMaxLimit = null;
+            }
         }
     }
 }

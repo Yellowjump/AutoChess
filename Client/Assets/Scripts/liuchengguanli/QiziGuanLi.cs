@@ -2,6 +2,7 @@ using Entity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using GameFramework;
 using SelfEventArg;
 using SkillSystem;
 using UnityEditor;
@@ -495,6 +496,8 @@ public partial class QiziGuanLi
         qige[qizi.rowIndex][qizi.columnIndex] = -1;
         qige[newPos.y][newPos.x] = qizi.HeroUID;
         qizi.LogicPosition = qigepos[newPos.y][newPos.x];
+        qizi.columnIndex = newPos.x;
+        qizi.rowIndex = newPos.y;
     }
     public Vector2Int Findpath(Vector2Int start, Vector2Int end,float gongjidistance)
     {
@@ -515,7 +518,8 @@ public partial class QiziGuanLi
             sortList.Sort((a,b)=>(xiaoHao[a]*xiaoHao[a]+getDistance(a, end)).CompareTo((xiaoHao[b]*xiaoHao[b]+getDistance(b, end))));
             Vector2Int current = sortList[0];
             sortList.Remove(current);
-            if (getDistance(current,end)<=gongjidistance*gongjidistance)
+            var dis = Utility.TruncateFloat(getDistance(current, end),4);
+            if (dis<=gongjidistance*gongjidistance)//一格斜着因为浮点精度计算出来距离大于1
             {
                 lastpos = current;
                 find = true;
@@ -750,6 +754,15 @@ public partial class QiziGuanLi
             GameEntry.Event.FireNow(this,BattleStopEventArgs.Create(qizi.BelongCamp==CampType.Enemy));
         }
     }
+
+    public void StartBattle()
+    {
+        dangqianliucheng = 1;
+        foreach (var oneEntity in QiziCSList)
+        {
+            oneEntity.SavePos = new Vector2Int(oneEntity.columnIndex, oneEntity.rowIndex);
+        }
+    }
     /// <summary>
     /// 游戏结束回到主界面
     /// </summary>
@@ -768,7 +781,27 @@ public partial class QiziGuanLi
         DirenList.Clear();
         dangqianliucheng = 0;
     }
-
+    /// <summary>
+    /// 该point通过，清理敌方以及刷新友方棋子
+    /// </summary>
+    public void FreshBattle()
+    {
+        FreshQige();
+        foreach (var oneEntity in DirenList)
+        {
+            oneEntity.Remove();
+        }
+        DirenList.Clear();
+        dangqianliucheng = 0;
+        foreach (var oneEntity in QiziCSList)
+        {
+            oneEntity.ReInit();
+            oneEntity.LogicPosition = GetGeziPos(oneEntity.SavePos.y, oneEntity.SavePos.x);
+            oneEntity.columnIndex = oneEntity.SavePos.x;
+            oneEntity.rowIndex = oneEntity.SavePos.y;
+            qige[oneEntity.SavePos.y][oneEntity.SavePos.x] = oneEntity.HeroUID;
+        }
+    }
     private void FreshQige()
     {
         for (int y = 0; y < qige.Length; y++)

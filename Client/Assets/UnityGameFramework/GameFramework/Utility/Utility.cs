@@ -5,6 +5,8 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using System;
+
 namespace GameFramework
 {
     /// <summary>
@@ -12,5 +14,10 @@ namespace GameFramework
     /// </summary>
     public static partial class Utility
     {
+        public static float TruncateFloat(float value, int digits)
+        {
+            var factor = Math.Pow(10, digits);
+            return (float)(Math.Floor(value * factor) / factor);
+        }
     }
 }

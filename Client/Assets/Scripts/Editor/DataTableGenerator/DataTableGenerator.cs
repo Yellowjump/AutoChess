@@ -41,7 +41,7 @@ namespace DataTable.Editor.DataTableTools
 
                 if (!NameRegex.IsMatch(name))
                 {
-                    Debug.LogWarning(Utility.Text.Format("Check raw data failure. DataTableName='{0}' Name='{1}'", dataTableName, name));
+                    Debug.LogError(Utility.Text.Format("Check raw data failure. DataTableName='{0}' Name='{1}'", dataTableName, name));
                     return false;
                 }
             }

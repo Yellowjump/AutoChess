@@ -70,7 +70,7 @@ namespace Procedure
             if (point != null && point.CurPassState == MazePoint.PointPassState.Unlock)
             {
                 mazeGen.CurMazePoint = point;
-                if (point.CurType is MazePointType.Start or MazePointType.SmallBattle or MazePointType.EliteBattle or MazePointType.End)
+                //if (point.CurType is MazePointType.Start or MazePointType.SmallBattle or MazePointType.EliteBattle or MazePointType.End)
                 {
                     _gameStateFsm.ChangeStatePublic<GameState_FormationBeforeBattle>();
                 }

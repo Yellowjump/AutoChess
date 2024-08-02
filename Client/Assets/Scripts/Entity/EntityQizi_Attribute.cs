@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using DataTable;
 using Entity.Attribute;
+using GameFramework;
 using SkillSystem;
 using UnityGameFramework.Runtime;
 
@@ -21,28 +23,43 @@ namespace Entity
 
         public void TryAddAttribute(CharacterAttribute newAttribute)
         {
-            if (newAttribute == null || AttributeList == null ||AttributeList.ContainsKey(newAttribute.CurAttribute))
+            if (newAttribute == null || AttributeList == null ||AttributeList.ContainsKey(newAttribute.CurAttributeType))
             {
                 Log.Error($"EntityQizi UID:{HeroUID} Add Attribute Error");
                 return;
             }
-            AttributeList.Add(newAttribute.CurAttribute,newAttribute);
+            AttributeList.Add(newAttribute.CurAttributeType,newAttribute);
         }
         public void InitAttribute()
         {
-            TryAddAttribute(new CharacterAttribute(AttributeType.MaxHp,1000,0,int.MaxValue));
-            TryAddAttribute(new CharacterAttribute(AttributeType.Hp,new FixedModifyAttribute(1000,new FixedLimitAttribute<int>(0),new DynamicLimitAttribute<int>(AttributeType.MaxHp,this))));
-            TryAddAttribute(new CharacterAttribute(AttributeType.MaxPower,new IntPercentModifyAttribute(100,new FixedLimitAttribute<int>(0),null)));
-            TryAddAttribute(new CharacterAttribute(AttributeType.Power,new FixedModifyAttribute(0,new FixedLimitAttribute<int>(0),new DynamicLimitAttribute<int>(AttributeType.MaxPower,this))));
-            TryAddAttribute(new CharacterAttribute(AttributeType.AttackDamage,50f));
-            TryAddAttribute(new CharacterAttribute(AttributeType.AbilityPower,0f));
-            TryAddAttribute(new CharacterAttribute(AttributeType.AttackSpeed,0.8f));
-            TryAddAttribute(new CharacterAttribute(AttributeType.Armor,50,isFixModify:false));
-            TryAddAttribute(new CharacterAttribute(AttributeType.MagicResist,50,isFixModify:false));
-            TryAddAttribute(new CharacterAttribute(AttributeType.ArmorPenetrationNum,0));
-            TryAddAttribute(new CharacterAttribute(AttributeType.ArmorPenetrationPercent,0));
-            TryAddAttribute(new CharacterAttribute(AttributeType.MagicPenetrationNum,0));
-            TryAddAttribute(new CharacterAttribute(AttributeType.MagicPenetrationPercent,0));
+            var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
+            if (!heroTable.HasDataRow(HeroID))
+            {
+                Log.Error($"heroID:{HeroID} invalid no match TableRow");
+                return;
+            }
+
+            var attributeID = heroTable[HeroID].AttributeID;
+            var heroAttributeTable = GameEntry.DataTable.GetDataTable<DRHeroAttribute>("HeroAttribute");
+            if (!heroAttributeTable.HasDataRow(attributeID))
+            {
+                Log.Error($"attributeID:{attributeID} invalid no match TableRow");
+                return;
+            }
+            var attributeData = heroAttributeTable[attributeID];
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MaxHp,attributeData.Hp,0,int.MaxValue));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.Hp,ReferencePool.Acquire<FixedModifyAttribute>().Initialize(attributeData.Hp,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<DynamicLimitAttribute<int>>().Initialize(AttributeType.MaxHp,this))));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MaxPower,attributeData.Power,0,int.MaxValue));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.Power,ReferencePool.Acquire<FixedModifyAttribute>().Initialize(0,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<DynamicLimitAttribute<int>>().Initialize(AttributeType.MaxPower,this))));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.AttackDamage,attributeData.AttackDamage,isFixModify:false));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.AbilityPower,attributeData.AbilityPower,isFixModify:false));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeFloatAttr(AttributeType.AttackSpeed,attributeData.AttackSpeed));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.Armor,attributeData.Armor,isFixModify:false));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MagicResist,attributeData.MagicResist,isFixModify:false));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.ArmorPenetrationNum,attributeData.ArmorPenetrationNum));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.ArmorPenetrationPercent,attributeData.ArmorPenetrationPercent));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MagicPenetrationNum,attributeData.MagicPenetrationNum));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MagicPenetrationPercent,attributeData.MagicPenetrationPercent));
         }
 
         private void UpdateShowSlider()
@@ -57,6 +74,13 @@ namespace Entity
 
         private void DestoryAttribute()
         {
+            if (AttributeList != null)
+            {
+                foreach (var oneAttrKeyValue in AttributeList)
+                {
+                    ReferencePool.Release(oneAttrKeyValue.Value);
+                }
+            }
             AttributeList.Clear();
         }
     }

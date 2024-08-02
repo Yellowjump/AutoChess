@@ -26,7 +26,7 @@ namespace Procedure.GameStates
         {
             base.OnEnter(fsm);
             battleTime = Time.time;
-            QiziGuanLi.instance.dangqianliucheng = 1;
+            QiziGuanLi.instance.StartBattle();
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
@@ -34,14 +34,17 @@ namespace Procedure.GameStates
             base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
             if (_battleEnd)
             {
+                _battleEnd = false;
                 if (_battleEndWin)
                 {
+                    _battleEndWin = false;
                     ChangeState<GameState_Reward>(fsm);
                 }
                 else
                 {
                     ChangeState<GameState_Lose>(fsm);
                 }
+                return;
             }
             if (Time.time-battleTime>30)
             {

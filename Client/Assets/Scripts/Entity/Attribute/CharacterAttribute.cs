@@ -1,55 +1,60 @@
 using System;
+using GameFramework;
 using SkillSystem;
 using UnityGameFramework.Runtime;
 
 namespace Entity.Attribute
 {
-    public class CharacterAttribute
+    public class CharacterAttribute:IReference
     {
-        public AttributeType CurAttribute;
+        public AttributeType CurAttributeType;
         private IModifyAttribute _curModify;
-        public AttributeType AttributeType => CurAttribute;
-        public object GetAttribute()
+
+        public CharacterAttribute()
         {
-            return this;
+            
         }
-        public CharacterAttribute(AttributeType attributeType, IModifyAttribute curModify)
+        public CharacterAttribute Initialize(AttributeType attributeTypeType, IModifyAttribute curModify)
         {
-            CurAttribute = attributeType;
+            CurAttributeType = attributeTypeType;
             if (curModify == null)
             {
-                Log.Error($"attribute:{attributeType} no Modify");
+                Log.Error($"attribute:{attributeTypeType} no Modify");
             }
             _curModify = curModify;
+            return this;
         }
 
-        public CharacterAttribute(AttributeType attributeType, int baseValue, int minValue = int.MinValue, int maxValue = int.MaxValue, bool isFixModify = true)
+        public CharacterAttribute InitializeIntAttr(AttributeType attributeTypeType, int baseValue, int minValue = int.MinValue, int maxValue = int.MaxValue, bool isFixModify = true)
         {
-            CurAttribute = attributeType;
-            ILimitedAttribute<int> minLimit = minValue == int.MinValue ? null : new FixedLimitAttribute<int>(minValue);
-            ILimitedAttribute<int> maxLimit = maxValue == int.MaxValue ? null : new FixedLimitAttribute<int>(maxValue);
+            CurAttributeType = attributeTypeType;
+            ILimitedAttribute<int> minLimit = minValue == int.MinValue ? null : ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(minValue);
+            ILimitedAttribute<int> maxLimit = maxValue == int.MaxValue ? null : ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(maxValue);
             if (isFixModify)
             {
-                _curModify = new FixedModifyAttribute(baseValue, minLimit, maxLimit);
+                _curModify = ReferencePool.Acquire<FixedModifyAttribute>().Initialize(baseValue, minLimit, maxLimit);
             }
             else
             {
-                _curModify = new IntPercentModifyAttribute(baseValue, minLimit, maxLimit);
+                _curModify = ReferencePool.Acquire<IntPercentModifyAttribute>().Initialize(baseValue, minLimit, maxLimit);
             }
+
+            return this;
         }
 
-        public CharacterAttribute(AttributeType attributeType, float baseValue, float minValue = float.MinValue, float maxValue = float.MaxValue)
+        public CharacterAttribute InitializeFloatAttr(AttributeType attributeTypeType, float baseValue, float minValue = float.MinValue, float maxValue = float.MaxValue)
         {
-            CurAttribute = attributeType;
-            ILimitedAttribute<float> minLimit = Math.Abs(minValue - float.MaxValue) < float.Epsilon ? null : new FixedLimitAttribute<float>(minValue);
-            ILimitedAttribute<float> maxLimit = Math.Abs(maxValue - float.MaxValue) < float.Epsilon ? null : new FixedLimitAttribute<float>(maxValue);
-            _curModify = new FloatPercentModifyAttribute(baseValue, minLimit, maxLimit);
+            CurAttributeType = attributeTypeType;
+            ILimitedAttribute<float> minLimit = Math.Abs(minValue - float.MinValue) < float.Epsilon ? null : ReferencePool.Acquire<FixedLimitAttribute<float>>().Initialize(minValue);
+            ILimitedAttribute<float> maxLimit = Math.Abs(maxValue - float.MaxValue) < float.Epsilon ? null : ReferencePool.Acquire<FixedLimitAttribute<float>>().Initialize(maxValue);
+            _curModify = ReferencePool.Acquire<FloatPercentModifyAttribute>().Initialize(baseValue, minLimit, maxLimit);
+            return this;
         }
         public object GetFinalValue()
         {
             if (_curModify == null)
             {
-                Log.Error($"attribute:{CurAttribute} no Modify");
+                Log.Error($"attribute:{CurAttributeType} no Modify");
                 return null;
             }
             return _curModify.GetFinalValue();
@@ -59,7 +64,7 @@ namespace Entity.Attribute
         {
             if (_curModify == null)
             {
-                Log.Error($"attribute:{CurAttribute} no Modify");
+                Log.Error($"attribute:{CurAttributeType} no Modify");
                 return;
             }
             _curModify.AddNum(addValue);
@@ -69,10 +74,16 @@ namespace Entity.Attribute
         {
             if (_curModify == null)
             {
-                Log.Error($"attribute:{CurAttribute} no Modify");
+                Log.Error($"attribute:{CurAttributeType} no Modify");
                 return;
             }
             _curModify.AddPercent(addPercentNum);
+        }
+
+        public void Clear()
+        {
+            ReferencePool.Release(_curModify);
+            _curModify = null;
         }
     }
 }

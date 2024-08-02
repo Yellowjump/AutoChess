@@ -21,6 +21,7 @@ namespace Entity
         public float powernow;//当前蓝
         public int rowIndex;
         public int columnIndex;//在棋盘上的位置下标,左下角是0，0,如果在备战棋格，rowIndex = -1，columnIndex是第几个
+        public Vector2Int SavePos;//进入战斗时的位置
         public float gongjiDistence;//攻击距离
 
         public float AtkSpeed=1;//每秒攻击次数
@@ -66,7 +67,7 @@ namespace Entity
             IsValid = true;
             CurBuffList.Clear();
             fsm.ChangeStatePublic<StateIdle0>();
-            AttributeList.Clear();
+            DestoryAttribute();
             InitAttribute();
             InitPassiveSkill();
         }

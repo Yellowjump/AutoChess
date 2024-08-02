@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using GameFramework.Event;
 using Maze;
 using UnityEditor;
 using UnityEngine;
@@ -83,8 +84,8 @@ public class MazeListPanelCtrl : UIFormLogic
                 }
             }
         }
-
         InitFog();
+        GameEntry.Event.Subscribe(MapFreshEventArgs.EventId,OnMapFresh);
     }
 
     private void InitFog()
@@ -150,5 +151,14 @@ public class MazeListPanelCtrl : UIFormLogic
         GameEntry.Event.Fire(this,EnterPointEventArgs.Create(point));
         //point.CanSee = true;
         //FreshFog();
+    }
+    public void OnMapFresh(object sender,GameEventArgs e)
+    {
+        MapFreshEventArgs ne = (MapFreshEventArgs)e;
+        if (ne == null)
+        {
+            return;
+        }
+        FreshFog();
     }
 }

@@ -10,4 +10,5 @@ public class UICtrlName
     public const string BattleFormationPanel = "Assets/UIPrefab/battle_formation.prefab";
     public const string BattleMainPanel = "Assets/UIPrefab/battle_main.prefab";
     public const string BattleLosePanel = "Assets/UIPrefab/battle_lose.prefab";
+    public const string BattleRewardPanel = "Assets/UIPrefab/battle_reward.prefab";
 }

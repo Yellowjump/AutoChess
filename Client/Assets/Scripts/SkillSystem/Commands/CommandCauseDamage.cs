@@ -47,7 +47,7 @@ namespace SkillSystem
                 {
                     if (CurDamageComputeType == DamageComputeType.NormalDamage)
                     {
-                        damageParam = (float)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
+                        damageParam = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
                     }
                     else if (CurDamageComputeType == DamageComputeType.FixNumAddAttrPercent)
                     {

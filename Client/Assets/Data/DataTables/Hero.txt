@@ -1,6 +1,6 @@
-﻿#	角色表	
-#	Id	SkillID
-#	int	int
-#	角色ID	技能ID
-	1	1
-	2	2
+﻿#	角色表			
+#	Id		SkillID	AttributeID
+#	int		int	int
+#	角色ID	角色备注	技能ID	属性ID
+	1	主角	1	1
+	2	测试小兵	2	2
