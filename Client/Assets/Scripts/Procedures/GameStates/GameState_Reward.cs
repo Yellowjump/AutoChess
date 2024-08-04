@@ -11,7 +11,7 @@ namespace Procedure.GameStates
     /// </summary>
     public class GameState_Reward:FsmState<ProcedureGame>
     {
-        private bool _continueToMap;
+        private bool _continueToMap = false;
         protected override void OnInit(IFsm<ProcedureGame> fsm)
         {
             GameEntry.Event.Subscribe(PassPointEventArgs.EventId,OnGetRewardAndContinue);

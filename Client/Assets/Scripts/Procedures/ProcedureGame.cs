@@ -32,6 +32,7 @@ namespace Procedure
             SelfDataManager.Instance.CurMazeList = SelfDataManager.Instance.CurMaze.GenerateMaze();
             var oneHero = QiziGuanLi.instance.AddNewFriendHero(1);
             SelfDataManager.Instance.SelfHeroList.Add(oneHero);
+            SelfDataManager.Instance.ItemBag.Clear();
             _gameStateFsm = Fsm<ProcedureGame>.Create("",this, new GameState_Map(),new GameState_FormationBeforeBattle(),new GameState_Reward(),new GameState_Lose(),new GameState_Battle(),new GameState_SpEvent());
             _gameStateFsm.Start<GameState_Map>();
         }
