@@ -19,6 +19,7 @@ namespace DataTable.Editor.DataTableTools
 {
     public sealed class DataTableGenerator
     {
+        private const string ListPattern = "list<([^<>]*)>";
         private const string DataTablePath = "Assets/Data/DataTables";
         private const string CSharpCodePath = "Assets/Scripts/DataTable";
         private const string CSharpCodeTemplateFileName = "Assets/Scripts/DataTable/DataTableCodeTemplate.txt";
@@ -171,6 +172,11 @@ namespace DataTable.Editor.DataTableTools
                         stringBuilder.AppendFormat("            {0} = {1}.Parse(columnStrings[index++]);", dataTableProcessor.GetName(i), languageKeyword).AppendLine();
                     }
                 }
+                else if (IsValidListFormat(languageKeyword))
+                {
+                    string readFunctionName = ReplaceList(languageKeyword);
+                    stringBuilder.AppendFormat("                {0} = DataTableExtension.Parse{1}(columnStrings[index++]);", dataTableProcessor.GetName(i), readFunctionName).AppendLine();
+                }
                 else if (languageKeyword.Contains("[]"))
                 {
                     string readFunctionName = dataTableProcessor.GetType(i).Name.Replace("[]", "Array");
@@ -213,6 +219,11 @@ namespace DataTable.Editor.DataTableTools
                 if (languageKeyword == "int" || languageKeyword == "uint" || languageKeyword == "long" || languageKeyword == "ulong")
                 {
                     stringBuilder.AppendFormat("                    {0} = binaryReader.Read7BitEncoded{1}();", dataTableProcessor.GetName(i), dataTableProcessor.GetType(i).Name).AppendLine();
+                }
+                else if (IsValidListFormat(languageKeyword))
+                {
+                    string readFunctionName = ReplaceList(languageKeyword);
+                    stringBuilder.AppendFormat("                        {0} = binaryReader.Read{1}();", dataTableProcessor.GetName(i), readFunctionName).AppendLine();
                 }
                 else if (languageKeyword.Contains("[]"))
                 {
@@ -518,6 +529,26 @@ namespace DataTable.Editor.DataTableTools
 
             stringBuilder.AppendLine("\t\t};");
             return stringBuilder.ToString();
+        }
+        static bool IsValidListFormat(string input)
+        {
+            // Define the regex pattern to match list<>
+            string pattern = @"^List<(.+)>$";
+            return Regex.IsMatch(input, pattern);
+        }
+
+        static string ReplaceList(string content)
+        {
+            // Replace nested lists
+            content = Regex.Replace(content, @"List<([^<>]*)>", match => "List"+ReplaceList(match.Groups[1].Value));
+
+            // Replace tuple format
+            content = Regex.Replace(content, @"\((\w+),(\w+)\)", match => ReplaceList(match.Groups[1].Value)+ReplaceList(match.Groups[2].Value));
+
+            // Capitalize the first letter of each word
+            content = Regex.Replace(content, @"\b\w", match => match.Value.ToUpper());
+
+            return content;
         }
     }
 }

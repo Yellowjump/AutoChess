@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 using SelfEventArg;
+using TMPro;
 using UnityEngine.Pool;
 using UnityEngine.Serialization;
 
@@ -13,6 +14,14 @@ public class BattleBagPanelCtrl : UIFormLogic
 {
     [SerializeField]
     private Button _btnContinue;
+    [SerializeField]
+    private Button _btnCraft;
+    [SerializeField]
+    private BattleBagItem _craftItem;
+    [SerializeField] private Transform _craftParent;
+    [SerializeField] private TextMeshProUGUI _craftItemName;
+    [SerializeField] private TextMeshProUGUI _craftItemDesc;
+    [SerializeField] private Transform _joinCraftItemParent;
     [SerializeField]
     private BattleBagItem _bagItemTemp;
     [SerializeField] private Transform _itemParent;

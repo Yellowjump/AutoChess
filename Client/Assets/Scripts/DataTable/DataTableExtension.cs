@@ -7,6 +7,7 @@
 
 using GameFramework;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Entity;
@@ -122,6 +123,29 @@ namespace DataTable
                 newInfo.InfoList.Add(oneInfo);
             }
             return newInfo;
+        }
+
+        public static List<(int, int)> ParseListIntInt(string value)
+        {
+            List<(int,int)> result = new();
+            if (string.IsNullOrEmpty(value))
+            {
+                return result;
+            }
+            string[] splitValue = value.Split(';');
+            for (int i = 0; i < splitValue.Length; i++)
+            {
+                string[] splitInt = splitValue[i].Split(",");
+                if (splitInt.Length != 2)
+                {
+                    Log.Error("Format Error");
+                    throw new GameFrameworkException("Format Error");
+                    continue;
+                }
+                result.Add((int.Parse(splitInt[0]),int.Parse(splitInt[1])));
+            }
+
+            return result;
         }
     }
 }

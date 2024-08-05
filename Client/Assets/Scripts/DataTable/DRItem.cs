@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-08-04 08:00:14.982
+// 生成时间：2024-08-06 05:40:12.281
 //------------------------------------------------------------
 
 using GameFramework;
@@ -66,6 +66,15 @@ namespace DataTable
             private set;
         }
 
+        /// <summary>
+        /// 获取合成材料。
+        /// </summary>
+        public List<(int,int)> CraftList
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -80,6 +89,7 @@ namespace DataTable
             Name = columnStrings[index++];
             Rarity = int.Parse(columnStrings[index++]);
             IconID = int.Parse(columnStrings[index++]);
+                CraftList = DataTableExtension.ParseListIntInt(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -95,6 +105,7 @@ namespace DataTable
                     Name = binaryReader.ReadString();
                     Rarity = binaryReader.Read7BitEncodedInt32();
                     IconID = binaryReader.Read7BitEncodedInt32();
+                        CraftList = binaryReader.ReadListIntInt();
                 }
             }
 

@@ -6,6 +6,7 @@
 //------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Entity;
 using SkillSystem;
@@ -91,6 +92,17 @@ namespace DataTable
                 newInfo.InfoList.Add(newOneInfo);
             }
             return newInfo;
+        }
+
+        public static List<(int, int)> ReadListIntInt(this BinaryReader binaryReader)
+        {
+            List<(int, int)> listIntInt = new();
+            int length = binaryReader.ReadInt32();
+            for (int i = 0; i < length; i++)
+            {
+                listIntInt.Add((binaryReader.ReadInt32(),binaryReader.ReadInt32()));
+            }
+            return listIntInt;
         }
     }
 }
