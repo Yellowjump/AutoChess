@@ -28,10 +28,14 @@ namespace Procedure
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
+            
+            //一局关卡游戏初始化
             SelfDataManager.Instance.CurMaze = new MazeGenerator();//todo 后续读取游戏存档获取地图
             SelfDataManager.Instance.CurMazeList = SelfDataManager.Instance.CurMaze.GenerateMaze();
             var oneHero = QiziGuanLi.instance.AddNewFriendHero(1);
             SelfDataManager.Instance.SelfHeroList.Add(oneHero);
+            GameEntry.UI.OpenUIForm(UICtrlName.GameHudPanel, "tips");
+            
             SelfDataManager.Instance.ItemBag.Clear();
             _gameStateFsm = Fsm<ProcedureGame>.Create("",this, new GameState_Map(),new GameState_FormationBeforeBattle(),new GameState_Reward(),new GameState_Lose(),new GameState_Battle(),new GameState_SpEvent());
             _gameStateFsm.Start<GameState_Map>();
@@ -50,6 +54,11 @@ namespace Procedure
         protected override void OnLeave(ProcedureOwner procedureOwner, bool isShutdown)
         {
             base.OnLeave(procedureOwner, isShutdown);
+            var hud = GameEntry.UI.GetUIForm(UICtrlName.GameHudPanel);
+            if (hud != null)
+            {
+                GameEntry.UI.CloseUIForm(hud);
+            }
         }
 
         protected override void OnDestroy(ProcedureOwner procedureOwner)
