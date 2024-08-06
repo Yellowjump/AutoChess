@@ -34,11 +34,7 @@ public class BattleMainCtrl : UIFormLogic
     private bool GetOrNotGetQizi = false;
     EntityQizi qizi;
     EntityQizi qiziother;
-    protected override void OnInit(object userData)
-    {
-        base.OnInit(userData);
-    }
-    protected override void OnUpdate(float elapseSeconds, float realElapseSeconds)
+    public override void OnUpdate(float elapseSeconds, float realElapseSeconds)
     {
         if (Input.GetMouseButtonDown(1))//显示棋子属性面板
         {

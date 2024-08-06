@@ -99,7 +99,7 @@ namespace UnityGameFramework.Runtime
         /// 界面初始化。
         /// </summary>
         /// <param name="userData">用户自定义数据。</param>
-        protected internal virtual void OnInit(object userData)
+        public virtual void OnInit(object userData)
         {
             if (m_CachedTransform == null)
             {
@@ -113,7 +113,7 @@ namespace UnityGameFramework.Runtime
         /// <summary>
         /// 界面回收。
         /// </summary>
-        protected internal virtual void OnRecycle()
+        public virtual void OnRecycle()
         {
         }
 
@@ -121,7 +121,7 @@ namespace UnityGameFramework.Runtime
         /// 界面打开。
         /// </summary>
         /// <param name="userData">用户自定义数据。</param>
-        protected internal virtual void OnOpen(object userData)
+        public virtual void OnOpen(object userData)
         {
             m_Available = true;
             Visible = true;
@@ -132,7 +132,7 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         /// <param name="isShutdown">是否是关闭界面管理器时触发。</param>
         /// <param name="userData">用户自定义数据。</param>
-        protected internal virtual void OnClose(bool isShutdown, object userData)
+        public virtual void OnClose(bool isShutdown, object userData)
         {
             gameObject.SetLayerRecursively(m_OriginalLayer);
             Visible = false;
@@ -142,7 +142,7 @@ namespace UnityGameFramework.Runtime
         /// <summary>
         /// 界面暂停。
         /// </summary>
-        protected internal virtual void OnPause()
+        public virtual void OnPause()
         {
             Visible = false;
         }
@@ -150,7 +150,7 @@ namespace UnityGameFramework.Runtime
         /// <summary>
         /// 界面暂停恢复。
         /// </summary>
-        protected internal virtual void OnResume()
+        public virtual void OnResume()
         {
             Visible = true;
         }
@@ -158,14 +158,14 @@ namespace UnityGameFramework.Runtime
         /// <summary>
         /// 界面遮挡。
         /// </summary>
-        protected internal virtual void OnCover()
+        public virtual void OnCover()
         {
         }
 
         /// <summary>
         /// 界面遮挡恢复。
         /// </summary>
-        protected internal virtual void OnReveal()
+        public virtual void OnReveal()
         {
         }
 
@@ -173,7 +173,7 @@ namespace UnityGameFramework.Runtime
         /// 界面激活。
         /// </summary>
         /// <param name="userData">用户自定义数据。</param>
-        protected internal virtual void OnRefocus(object userData)
+        public virtual void OnRefocus(object userData)
         {
         }
 
@@ -182,7 +182,7 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         /// <param name="elapseSeconds">逻辑流逝时间，以秒为单位。</param>
         /// <param name="realElapseSeconds">真实流逝时间，以秒为单位。</param>
-        protected internal virtual void OnUpdate(float elapseSeconds, float realElapseSeconds)
+        public virtual void OnUpdate(float elapseSeconds, float realElapseSeconds)
         {
         }
 
@@ -191,7 +191,7 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         /// <param name="uiGroupDepth">界面组深度。</param>
         /// <param name="depthInUIGroup">界面在界面组中的深度。</param>
-        protected internal virtual void OnDepthChanged(int uiGroupDepth, int depthInUIGroup)
+        public virtual void OnDepthChanged(int uiGroupDepth, int depthInUIGroup)
         {
         }
 
@@ -199,7 +199,7 @@ namespace UnityGameFramework.Runtime
         /// 设置界面的可见性。
         /// </summary>
         /// <param name="visible">界面的可见性。</param>
-        protected virtual void InternalSetVisible(bool visible)
+        public virtual void InternalSetVisible(bool visible)
         {
             gameObject.SetActive(visible);
         }

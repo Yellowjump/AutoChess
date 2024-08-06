@@ -28,7 +28,8 @@ public class BattleBagPanelCtrl : UIFormLogic
     
     private ObjectPool<BattleBagItem> _rewardItemPool;
     private List<BattleBagItem> _curShowItemList = new() ;
-    protected override void OnInit(object userData)
+
+    public override void OnInit(object userData)
     {
         base.OnInit(userData);
         _btnContinue.onClick.AddListener(OnClickContinueBtn);
@@ -45,7 +46,7 @@ public class BattleBagPanelCtrl : UIFormLogic
         }, (item) => {item.gameObject.SetActive(false);}, (item) => {item.gameObject.SetActive(false);}, (item) => { Destroy(item.gameObject); });
     }
 
-    protected override void OnOpen(object userData)
+    public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
         var bagDic = SelfDataManager.Instance.ItemBag;
@@ -60,7 +61,7 @@ public class BattleBagPanelCtrl : UIFormLogic
         }
     }
 
-    protected override void OnClose(bool isShutdown, object userData)
+    public override void OnClose(bool isShutdown, object userData)
     {
         base.OnClose(isShutdown, userData);
         foreach (var item in _curShowItemList)

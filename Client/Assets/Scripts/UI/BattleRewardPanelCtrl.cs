@@ -17,7 +17,7 @@ public class BattleRewardPanelCtrl : UIFormLogic
     
     private ObjectPool<BattleRewardItem> _rewardItemPool;
     private List<BattleRewardItem> _curShowItemList = new() ;
-    protected override void OnInit(object userData)
+    public override void OnInit(object userData)
     {
         base.OnInit(userData);
         _btnContinue.onClick.AddListener(OnClickContinueBtn);
@@ -34,7 +34,7 @@ public class BattleRewardPanelCtrl : UIFormLogic
         }, (item) => {item.gameObject.SetActive(false);}, (item) => {item.gameObject.SetActive(false);}, (item) => { Destroy(item.gameObject); });
     }
 
-    protected override void OnOpen(object userData)
+    public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
         _btnContinue.gameObject.SetActive(false);
@@ -52,7 +52,7 @@ public class BattleRewardPanelCtrl : UIFormLogic
         }
     }
 
-    protected override void OnClose(bool isShutdown, object userData)
+    public override void OnClose(bool isShutdown, object userData)
     {
         base.OnClose(isShutdown, userData);
         foreach (var item in _curShowItemList)
@@ -64,15 +64,7 @@ public class BattleRewardPanelCtrl : UIFormLogic
 
     private void OnClickRewardItem(BattleRewardItem battleRewardItem)
     {
-        var containItem = SelfDataManager.Instance.ItemBag.ContainsKey(battleRewardItem.ItemID);
-        if (!containItem)
-        {
-            SelfDataManager.Instance.ItemBag.Add(battleRewardItem.ItemID,1);
-        }
-        else
-        {
-            SelfDataManager.Instance.ItemBag[battleRewardItem.ItemID]++;
-        }
+        SelfDataManager.Instance.AddOneItem(battleRewardItem.ItemID, 1);
         //关闭奖励选项
         _itemParent.gameObject.SetActive(false);
         _btnContinue.gameObject.SetActive(true);

@@ -9,7 +9,7 @@ public class TestUICtrl : UIFormLogic
     [SerializeField]
     private Button _btnTest;
 
-    protected override void OnInit(object userData)
+    public override void OnInit(object userData)
     {
         _btnTest.onClick.AddListener(OnClickTestBtn);
         base.OnInit(userData);

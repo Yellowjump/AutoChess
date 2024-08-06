@@ -13,7 +13,7 @@ public class MainTitlePanelCtrl : UIFormLogic
     private Button _btnStart;
     [SerializeField]
     private Button _btnSetting;
-    protected override void OnInit(object userData)
+    public override void OnInit(object userData)
     {
         base.OnInit(userData);
         _btnContinue.onClick.AddListener(OnClickContinueBtn);

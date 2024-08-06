@@ -9,8 +9,8 @@ public class GameHudCtrl : UIFormLogic
 {
     [SerializeField]
     private Button _btnBag;
-    
-    protected override void OnInit(object userData)
+
+    public override void OnInit(object userData)
     {
         base.OnInit(userData);
         _btnBag.onClick.AddListener(OnClickBagBtn);

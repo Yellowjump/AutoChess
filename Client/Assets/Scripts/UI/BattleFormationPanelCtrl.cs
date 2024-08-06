@@ -10,7 +10,8 @@ public class BattleFormationPanelCtrl : UIFormLogic
 {
     [SerializeField]
     private Button _btnContinue;
-    protected override void OnInit(object userData)
+
+    public override void OnInit(object userData)
     {
         base.OnInit(userData);
         _btnContinue.onClick.AddListener(OnClickContinueBtn);

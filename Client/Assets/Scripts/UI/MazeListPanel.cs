@@ -32,7 +32,7 @@ public class MazeListPanelCtrl : UIFormLogic
     private RenderBuffer FogTargetBuffer;//放入image中的renderBuffer;
     private Texture2D _maskTexture;//生成的透明度mask
     //-----------fogEnd
-    protected override void OnInit(object userData)
+    public override void OnInit(object userData)
     {
         base.OnInit(userData);
         _btnClose.onClick.AddListener(() => { GameEntry.UI.CloseUIForm(UIForm);});

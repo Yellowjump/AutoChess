@@ -85,7 +85,7 @@ namespace UnityGameFramework.Runtime
         private NetworkInformationWindow m_NetworkInformationWindow = new NetworkInformationWindow();
         private SettingsWindow m_SettingsWindow = new SettingsWindow();
         private OperationsWindow m_OperationsWindow = new OperationsWindow();
-
+        private CommandWindow m_CommandWindow = new CommandWindow();
         private FpsCounter m_FpsCounter = null;
 
         /// <summary>
@@ -184,6 +184,7 @@ namespace UnityGameFramework.Runtime
         private void Start()
         {
             RegisterDebuggerWindow("Console", m_ConsoleWindow);
+            RegisterDebuggerWindow("Command", m_CommandWindow);
             RegisterDebuggerWindow("Information/System", m_SystemInformationWindow);
             RegisterDebuggerWindow("Information/Environment", m_EnvironmentInformationWindow);
             RegisterDebuggerWindow("Information/Screen", m_ScreenInformationWindow);

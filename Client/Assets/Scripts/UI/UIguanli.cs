@@ -89,7 +89,7 @@ public class UIguanli : UIFormLogic
 
     private List<Sprite>ListQiziSprite = new List<Sprite>();//保存棋子图片
     private List<Sprite> ListQiziShuxingSprite = new List<Sprite>();//保存棋子图片
-    protected override void OnInit(object userData)
+    public override void OnInit(object userData)
     {
         
         JinBi.text = jinqian.GetJinBiNum().ToString();
@@ -310,7 +310,7 @@ public class UIguanli : UIFormLogic
         levelqizi.sprite = QiziGuanLi.Instance.ListQiziLevelSprite[qz.level - 1];
         qiziImage.sprite = ListQiziShuxingSprite[qz.HeroID];
     }
-    protected override void OnUpdate(float elapseSeconds, float realElapseSeconds)
+    public override void OnUpdate(float elapseSeconds, float realElapseSeconds)
     {
         if (!GetOrNotGetQizi)
         {
