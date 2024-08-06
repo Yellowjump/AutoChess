@@ -77,6 +77,12 @@ namespace UnityGameFramework.Runtime
                     {
                         GameEntry.Event.Fire(this,CMDGetItemEventArgs.Create(_itemIDList[_curSelectIndex],itemNum));
                     }
+                    if (GUILayout.Button("添加道具合成测试"))
+                    {
+                        GameEntry.Event.Fire(this,CMDGetItemEventArgs.Create(1,5));
+                        GameEntry.Event.Fire(this,CMDGetItemEventArgs.Create(2,3));
+                        GameEntry.Event.Fire(this,CMDGetItemEventArgs.Create(5,2));
+                    }
                 }
                 GUILayout.EndVertical();
             }

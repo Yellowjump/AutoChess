@@ -257,6 +257,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e5ae81696ec497ba17315c3957bd483, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CurItemType: 0
   Icon: {fileID: 3249810174298408667}
   Rarity: {fileID: 1384863511527433050}
   BtnClick: {fileID: 873820372465699872}
@@ -697,6 +698,7 @@ RectTransform:
   - {fileID: 2590997840710892471}
   - {fileID: 8937780318972872242}
   - {fileID: 4444784095368761594}
+  - {fileID: 2626085398340962150}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -732,7 +734,8 @@ MonoBehaviour:
   _craftItemDesc: {fileID: 7594797382471873676}
   _joinCraftItemParent: {fileID: 6958462723052800677}
   _bagItemTemp: {fileID: 1400899033719080383}
-  _itemParent: {fileID: 436969715664984948}
+  _bagItemParent: {fileID: 436969715664984948}
+  _releaseItemPa: {fileID: 2626085398340962150}
 --- !u!1 &2223659580288670718
 GameObject:
   m_ObjectHideFlags: 0
@@ -1526,6 +1529,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e5ae81696ec497ba17315c3957bd483, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CurItemType: 0
   Icon: {fileID: 5734590300856718147}
   Rarity: {fileID: 2242022530791323482}
   BtnClick: {fileID: 8323668559532978129}
@@ -1758,6 +1762,41 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_HorizontalFit: 0
   m_VerticalFit: 2
+--- !u!1 &5078207793340560325
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2626085398340962150}
+  m_Layer: 5
+  m_Name: ReleaseBagItemPa
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &2626085398340962150
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5078207793340560325}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4531485726772508009}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &5304752896929447884
 GameObject:
   m_ObjectHideFlags: 0
@@ -2633,6 +2672,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e5ae81696ec497ba17315c3957bd483, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CurItemType: 0
   Icon: {fileID: 2986339416778843998}
   Rarity: {fileID: 8214011257208722864}
   BtnClick: {fileID: 4564972424577994063}

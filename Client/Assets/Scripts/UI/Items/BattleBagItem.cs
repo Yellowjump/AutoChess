@@ -8,6 +8,23 @@ using UnityGameFramework.Runtime;
 
 public class BattleBagItem:MonoBehaviour
 {
+    public enum ItemType
+    {
+        /// <summary>
+        /// 在背包中，点击参与合成
+        /// </summary>
+        Bag,
+        /// <summary>
+        /// 在合成中，点击退出合成列表
+        /// </summary>
+        InJoinCraft,
+        /// <summary>
+        /// 合成结果
+        /// </summary>
+        CraftResult,
+    }
+
+    public ItemType CurItemType = ItemType.Bag;
     public Image Icon;
     public Image Rarity;
     public Button BtnClick;
@@ -32,11 +49,16 @@ public class BattleBagItem:MonoBehaviour
             return;
         }
 
-        ItemNumTmp.text = itemNum.ToString();
+        FreshNum();
         var itemData = itemTable[ItemID];
         GameEntry.Resource.LoadAsset("Assets/Image/Icons/ItemIcon/axe.png",typeof(Sprite),_loadIconCallback);
     }
 
+    public void FreshNum()
+    {
+        ItemNumTmp.gameObject.SetActive(CurItemType!=ItemType.CraftResult);
+        ItemNumTmp.text = itemNum.ToString();
+    }
     private void OnIconLoadSuccessCallback(string assetName, object asset, float duration, object userData)
     {
         Sprite sp = asset as Sprite;
@@ -48,6 +70,6 @@ public class BattleBagItem:MonoBehaviour
     }
     private void OnClickBtn()
     {
-        OnClickPointCallback.Invoke(this);
+        OnClickPointCallback?.Invoke(this);
     }
 }

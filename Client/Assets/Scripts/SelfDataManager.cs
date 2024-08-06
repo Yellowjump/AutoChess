@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DataTable;
 using Entity;
 using GameFramework.Event;
 using Maze;
@@ -61,5 +62,42 @@ public class SelfDataManager
                 ItemBag[id] = curNum + changeNum;
             }
         }
+    }
+
+    public bool TryCraftItem(int itemID)
+    {
+        var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
+        if (itemTable.HasDataRow(itemID))
+        {
+            var itemData = itemTable[itemID];
+            var needItemList = itemData.CraftList;
+            if (MeetCraftItemNeed(needItemList))
+            {
+                foreach (var idAndNum in needItemList)
+                {
+                    AddOneItem(idAndNum.Item1,-idAndNum.Item2);
+                }
+                AddOneItem(itemID,1);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool MeetCraftItemNeed(List<(int, int)> needItem)
+    {
+        if (ItemBag == null || needItem == null || needItem.Count==0)
+        {
+            return false;
+        }
+
+        foreach (var idAndNum in needItem)
+        {
+            if ((ItemBag.ContainsKey(idAndNum.Item1) &&ItemBag[idAndNum.Item1] >= idAndNum.Item2) == false)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
