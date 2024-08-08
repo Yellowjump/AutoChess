@@ -1,6 +1,8 @@
 using GameFramework;
 using SkillSystem;
 using Unity.VisualScripting;
+using UnityEngine;
+using UnityGameFramework.Runtime;
 
 namespace Entity.Bullet
 {
@@ -10,6 +12,17 @@ namespace Entity.Bullet
         public EntityQizi Caster;//创建者
         public EntityQizi Target;
         public TriggerList OwnerTriggerList;
+
+        public override void Init(int id)
+        {
+            BulletID = id;
+            GameEntry.HeroManager.GetBulletObjByID(BulletID,OnGetHeroGObjCallback);
+        }
+        private void OnGetHeroGObjCallback(GameObject obj)
+        {
+            GObj = obj;
+            GObj.transform.position = LogicPosition;
+        }
         public virtual void LogicUpdate(float elapseSeconds, float realElapseSeconds)
         {
             //各自的飞行逻辑
@@ -25,11 +38,14 @@ namespace Entity.Bullet
         public virtual void OnDead()
         {
             OwnerTriggerList?.OnTrigger(TriggerType.OnDestory);
-            QiziGuanLi.instance.DestoryBullet(this);
+            GameEntry.HeroManager.DestoryBullet(this);
         }
 
         public void Clear()
         {
+            GameEntry.HeroManager.ReleaseBulletGameObject(BulletID,GObj,OnGetHeroGObjCallback);
+            BulletID = 0;
+            GObj = null;
             Caster = null;
             Target = null;
             OwnerTriggerList = null;

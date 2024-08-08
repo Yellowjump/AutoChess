@@ -32,7 +32,7 @@ namespace Procedure
             //一局关卡游戏初始化
             SelfDataManager.Instance.CurMaze = new MazeGenerator();//todo 后续读取游戏存档获取地图
             SelfDataManager.Instance.CurMazeList = SelfDataManager.Instance.CurMaze.GenerateMaze();
-            var oneHero = QiziGuanLi.instance.AddNewFriendHero(1);
+            var oneHero = GameEntry.HeroManager.AddNewFriendHero(1);
             SelfDataManager.Instance.SelfHeroList.Add(oneHero);
             GameEntry.UI.OpenUIForm(UICtrlName.GameHudPanel, "tips");
             
@@ -89,7 +89,7 @@ namespace Procedure
 
         public void ReturnToTitle(object sender, GameEventArgs e)
         {
-            QiziGuanLi.instance.GameOver();
+            GameEntry.HeroManager.GameOver();
             _gameStateFsm.Clear();
             _gameStateFsm = null;
             _exitGame = true;

@@ -32,7 +32,7 @@ namespace Procedure.GameStates
                 _continueToMap = false;
                 ChangeState<GameState_Map>(fsm);
             }
-            QiziGuanLi.Instance.OnLogicUpdate(GameEntry.LogicDeltaTime,realElapseSeconds);
+            GameEntry.HeroManager.OnLogicUpdate(GameEntry.LogicDeltaTime,realElapseSeconds);
         }
 
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)
@@ -42,7 +42,7 @@ namespace Procedure.GameStates
         public void OnGetRewardAndContinue(object sender, GameEventArgs e)
         {
             _continueToMap = true;
-            QiziGuanLi.instance.FreshBattle();
+            GameEntry.HeroManager.FreshBattle();
         }
     }
 }

@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-08-06 05:40:12.281
+// 生成时间：2024-08-09 03:31:01.162
 //------------------------------------------------------------
 
 using GameFramework;
@@ -49,6 +49,15 @@ namespace DataTable
         }
 
         /// <summary>
+        /// 获取道具描述。
+        /// </summary>
+        public string Decs
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// 获取稀有度。
         /// </summary>
         public int Rarity
@@ -75,6 +84,15 @@ namespace DataTable
             private set;
         }
 
+        /// <summary>
+        /// 获取对应技能ID。
+        /// </summary>
+        public int SkillID
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -87,9 +105,11 @@ namespace DataTable
             index++;
             m_Id = int.Parse(columnStrings[index++]);
             Name = columnStrings[index++];
+            Decs = columnStrings[index++];
             Rarity = int.Parse(columnStrings[index++]);
             IconID = int.Parse(columnStrings[index++]);
                 CraftList = DataTableExtension.ParseListIntInt(columnStrings[index++]);
+            SkillID = int.Parse(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -103,9 +123,11 @@ namespace DataTable
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
                     Name = binaryReader.ReadString();
+                    Decs = binaryReader.ReadString();
                     Rarity = binaryReader.Read7BitEncodedInt32();
                     IconID = binaryReader.Read7BitEncodedInt32();
                         CraftList = binaryReader.ReadListIntInt();
+                    SkillID = binaryReader.Read7BitEncodedInt32();
                 }
             }
 

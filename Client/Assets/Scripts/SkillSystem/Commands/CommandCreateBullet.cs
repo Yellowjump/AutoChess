@@ -15,7 +15,7 @@ namespace SkillSystem
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
             
-            var newBullet = QiziGuanLi.instance.CreateBullet(CurBulletID.Value);
+            var newBullet = GameEntry.HeroManager.CreateBullet(CurBulletID.Value);
             newBullet.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
             newBullet.Target = trigger.CurTarget as EntityQizi;
             newBullet.LogicPosition = newBullet.Caster.LogicPosition;

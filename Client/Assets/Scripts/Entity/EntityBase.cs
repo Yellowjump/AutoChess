@@ -19,7 +19,10 @@ namespace Entity
             set
             {
                 _logicPosition = value;
-                GObj.transform.position = value;
+                if (GObj != null)
+                {
+                    GObj.transform.position = value;
+                }
             }
         }
 

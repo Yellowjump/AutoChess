@@ -70,7 +70,7 @@ public class StateMove0 : FsmState<EntityQizi>
                 owner.LogicPosition = nextpos;
                 //已到达目标点
                 _moving = false;
-                var v2 = QiziGuanLi.instance.GetIndexQizi(owner);
+                var v2 = GameEntry.HeroManager.GetIndexQizi(owner);
                 owner.columnIndex = v2.x;
                 owner.rowIndex = v2.y;
             }
@@ -81,24 +81,24 @@ public class StateMove0 : FsmState<EntityQizi>
         {
             timetemp = Time.time+0.5f;
             Findtarget();
-            if (QiziGuanLi.Instance.dangqianliucheng == 0 || qizitarget == null)
+            if (GameEntry.HeroManager.dangqianliucheng == 0 || qizitarget == null)
             {
                 ChangeState<StateIdle0>(fsm);
             }
             if (qizi.gongjiDistence * qizi.gongjiDistence <= mindistance)
             {
-                Vector2Int start = QiziGuanLi.Instance.getIndexQige(qizi.GObj.transform.position);
+                Vector2Int start = GameEntry.HeroManager.getIndexQige(qizi.GObj.transform.position);
                 //寻路
                 while (nextPosIndex.x==-1&&qizitarget!=null)
                 {
-                    Vector2Int end = QiziGuanLi.Instance.getIndexQige(qizitarget.GObj.transform.position);
-                    nextPosIndex = QiziGuanLi.Instance.Findpath(start, end, qizi.gongjiDistence);
+                    Vector2Int end = GameEntry.HeroManager.getIndexQige(qizitarget.GObj.transform.position);
+                    nextPosIndex = GameEntry.HeroManager.Findpath(start, end, qizi.gongjiDistence);
                     if (nextPosIndex.x != -1)
                     {
                         qizi.animator.Play("RUN00_F");
-                        nextpos = QiziGuanLi.Instance.qigepos[nextPosIndex.x][nextPosIndex.y];
-                        QiziGuanLi.Instance.qige[nextPosIndex.x][nextPosIndex.y] = 1;
-                        QiziGuanLi.Instance.qige[start.x][start.y] = 0;
+                        nextpos = GameEntry.HeroManager.qigepos[nextPosIndex.x][nextPosIndex.y];
+                        GameEntry.HeroManager.qige[nextPosIndex.x][nextPosIndex.y] = 1;
+                        GameEntry.HeroManager.qige[start.x][start.y] = 0;
                         findpath = true;
                         qizi.GObj.transform.LookAt(nextpos);
                         timebegin = Time.time;
@@ -147,16 +147,16 @@ public class StateMove0 : FsmState<EntityQizi>
         else if (result == CheckCastSkillResult.TargetOutRange)
         {
             owner.CurAttackTarget = target;
-            Vector2Int ownerIndex = QiziGuanLi.Instance.GetIndexQizi(owner);
-            Vector2Int targetIndex = QiziGuanLi.Instance.GetIndexQizi(target);
-            nextPosIndex = QiziGuanLi.Instance.Findpath(ownerIndex, targetIndex, owner.gongjiDistence);
+            Vector2Int ownerIndex = GameEntry.HeroManager.GetIndexQizi(owner);
+            Vector2Int targetIndex = GameEntry.HeroManager.GetIndexQizi(target);
+            nextPosIndex = GameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.gongjiDistence);
             if (nextPosIndex != new Vector2Int(-1, -1))
             {
                 _moving = true;
                 startpos = owner.LogicPosition;
-                nextpos = QiziGuanLi.Instance.qigepos[nextPosIndex.y][nextPosIndex.x];
-                QiziGuanLi.Instance.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
-                QiziGuanLi.Instance.qige[ownerIndex.y][ownerIndex.x] =-1;
+                nextpos = GameEntry.HeroManager.qigepos[nextPosIndex.y][nextPosIndex.x];
+                GameEntry.HeroManager.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
+                GameEntry.HeroManager.qige[ownerIndex.y][ownerIndex.x] =-1;
                 return;
             }
         }
@@ -169,18 +169,18 @@ public class StateMove0 : FsmState<EntityQizi>
         else if (result == CheckCastSkillResult.TargetOutRange)
         {
             owner.CurAttackTarget = target;
-            Vector2Int ownerIndex = QiziGuanLi.Instance.GetIndexQizi(owner);
-            Vector2Int targetIndex = QiziGuanLi.Instance.GetIndexQizi(target);
-            nextPosIndex = QiziGuanLi.Instance.Findpath(ownerIndex, targetIndex, owner.gongjiDistence);
+            Vector2Int ownerIndex = GameEntry.HeroManager.GetIndexQizi(owner);
+            Vector2Int targetIndex = GameEntry.HeroManager.GetIndexQizi(target);
+            nextPosIndex = GameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.gongjiDistence);
             if (nextPosIndex != new Vector2Int(-1, -1)&&nextPosIndex!=ownerIndex)
             {
                 _moving = true;
                 startpos = owner.LogicPosition;
-                nextpos = QiziGuanLi.Instance.qigepos[nextPosIndex.y][nextPosIndex.x];
-                owner.animator.Play("RUN00_F");
-                owner.GObj.transform.LookAt(nextpos);
-                QiziGuanLi.Instance.qige[ownerIndex.y][ownerIndex.x] = -1;
-                QiziGuanLi.Instance.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
+                nextpos = GameEntry.HeroManager.qigepos[nextPosIndex.y][nextPosIndex.x];
+                owner.AddAnimCommand("RUN00_F");
+                owner.GObj?.transform.LookAt(nextpos);
+                GameEntry.HeroManager.qige[ownerIndex.y][ownerIndex.x] = -1;
+                GameEntry.HeroManager.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
             }
         }
     }

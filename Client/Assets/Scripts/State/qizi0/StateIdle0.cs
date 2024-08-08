@@ -8,9 +8,6 @@ using UnityGameFramework.Runtime;
 
 public class StateIdle0 : FsmState<EntityQizi>
 {
-    float mindistance = 10000;
-    int zhenying;//0为自己阵营，1为敌方
-    float timebegin;
     protected override void OnInit(IFsm<EntityQizi> fsm)
     {
         base.OnInit(fsm);
@@ -24,9 +21,7 @@ public class StateIdle0 : FsmState<EntityQizi>
         }
 
         var owner = fsm.Owner;
-        owner.animator.Play("WAIT00");
-        mindistance = 10000;
-        timebegin = Time.time;
+        owner.AddAnimCommand("WAIT00");
         // 检测是否能释放SpSkill
         CheckChangeState(fsm);
     }
@@ -34,7 +29,7 @@ public class StateIdle0 : FsmState<EntityQizi>
     {
         base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
         CheckChangeState(fsm);
-        /*if (Time.time - timebegin > 0.5f&&qizi.y != -4.5 && QiziGuanLi.Instance.dangqianliucheng == 1)//0.5s每次
+        /*if (Time.time - timebegin > 0.5f&&qizi.y != -4.5 && GameEntry.HeroManager.dangqianliucheng == 1)//0.5s每次
         {
             timebegin = Time.time+0.5f;
             Findtarget();
@@ -62,7 +57,7 @@ public class StateIdle0 : FsmState<EntityQizi>
             return;
         }
 
-        if (QiziGuanLi.instance.dangqianliucheng == 0||owner.rowIndex==-1)//非战斗状态或者 没上场就一直在idle状态
+        if (GameEntry.HeroManager.dangqianliucheng == 0||owner.rowIndex==-1)//非战斗状态或者 没上场就一直在idle状态
         {
             return;
         }

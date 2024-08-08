@@ -26,7 +26,7 @@ namespace Procedure.GameStates
         {
             base.OnEnter(fsm);
             battleTime = Time.time;
-            QiziGuanLi.instance.StartBattle();
+            GameEntry.HeroManager.StartBattle();
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
@@ -56,7 +56,7 @@ namespace Procedure.GameStates
                 // 当累积时间大于等于固定的DeltaTime时，执行selfLogicUpdate方法
                 while (timeAccumulator >= GameEntry.LogicDeltaTime)
                 {
-                    QiziGuanLi.Instance.OnLogicUpdate(GameEntry.LogicDeltaTime,realElapseSeconds);
+                    GameEntry.HeroManager.OnLogicUpdate(GameEntry.LogicDeltaTime,realElapseSeconds);
                     timeAccumulator -= GameEntry.LogicDeltaTime;
                 }
             }

@@ -41,6 +41,7 @@ namespace Entity
         public float SinceLastNormalAtk = float.MaxValue;
         private void InitSkill()
         {
+            SinceLastNormalAtk = float.MaxValue;
             var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
             if (!heroTable.HasDataRow(HeroID))
             {
@@ -265,7 +266,7 @@ namespace Entity
             switch (willCastSkill.CurSkillCastTargetType)
             {
                 case SkillCastTargetType.NearestEnemy:
-                    return QiziGuanLi.instance.GetNearestTarget(this,CampType.Enemy,out target);
+                    return GameEntry.HeroManager.GetNearestTarget(this,CampType.Enemy,out target);
                 case SkillCastTargetType.NoNeedTarget:
                     return true;
             }

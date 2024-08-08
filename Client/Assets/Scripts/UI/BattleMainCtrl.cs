@@ -48,7 +48,7 @@ public class BattleMainCtrl : UIFormLogic
             }
         }
 
-        if (QiziGuanLi.Instance.dangqianliucheng == 0)
+        if (GameEntry.HeroManager.dangqianliucheng == 0)
         {
             if (!GetOrNotGetQizi)
             {
@@ -85,16 +85,16 @@ public class BattleMainCtrl : UIFormLogic
                     if (GetMousePosGezi(out var geziPos, false))
                     {
                         //另一个格子里有hero
-                        if (QiziGuanLi.instance.GetQiziByQigeIndex(geziPos, out var curPosQizi))
+                        if (GameEntry.HeroManager.GetQiziByQigeIndex(geziPos, out var curPosQizi))
                         {
-                            QiziGuanLi.instance.UpdateEntityPos(curPosQizi,new Vector2Int(qizi.columnIndex,qizi.rowIndex));
+                            GameEntry.HeroManager.UpdateEntityPos(curPosQizi,new Vector2Int(qizi.columnIndex,qizi.rowIndex));
                         }
-                        QiziGuanLi.instance.UpdateEntityPos(qizi,geziPos);
+                        GameEntry.HeroManager.UpdateEntityPos(qizi,geziPos);
                     }
                     else
                     {
                         //不在格子中释放qizi
-                        qizi.LogicPosition = QiziGuanLi.instance.GetGeziPos(qizi.rowIndex,qizi.columnIndex);
+                        qizi.LogicPosition = GameEntry.HeroManager.GetGeziPos(qizi.rowIndex,qizi.columnIndex);
                     }
                     qizi = null;
                 }
@@ -110,21 +110,21 @@ public class BattleMainCtrl : UIFormLogic
         EntityQizi target;
         if (Physics.Raycast(ray, out hit) && hit.transform.tag == "qizi")
         {
-            for (int i = 0; i < QiziGuanLi.Instance.QiziCSList.Count; i++)
+            for (int i = 0; i < GameEntry.HeroManager.QiziCSList.Count; i++)
             {
-                if (hit.transform == QiziGuanLi.Instance.QiziCSList[i].GObj.transform)
+                if (GameEntry.HeroManager.QiziCSList[i].GObj!=null&& hit.transform == GameEntry.HeroManager.QiziCSList[i].GObj.transform)
                 {
-                    return QiziGuanLi.Instance.QiziCSList[i];
+                    return GameEntry.HeroManager.QiziCSList[i];
                 }
             }
 
             if (containEnemy)
             {
-                for (int i = 0; i < QiziGuanLi.Instance.DirenList.Count; i++)
+                for (int i = 0; i < GameEntry.HeroManager.DirenList.Count; i++)
                 {
-                    if (hit.transform == QiziGuanLi.Instance.DirenList[i].GObj.transform)
+                    if (GameEntry.HeroManager.DirenList[i].GObj!=null&&hit.transform == GameEntry.HeroManager.DirenList[i].GObj.transform)
                     {
-                        return QiziGuanLi.Instance.DirenList[i];
+                        return GameEntry.HeroManager.DirenList[i];
                     }
                 }
             }
@@ -142,7 +142,7 @@ public class BattleMainCtrl : UIFormLogic
         {
             // 计算相交点
             var hitPoint = ray.GetPoint(enter);
-            if (QiziGuanLi.instance.CheckInGezi(hitPoint, out geziPos))
+            if (GameEntry.HeroManager.CheckInGezi(hitPoint, out geziPos))
             {
                 return containEnemy || geziPos.y <= 3;
             }
@@ -158,7 +158,7 @@ public class BattleMainCtrl : UIFormLogic
         powsum.text = qz.powersum.ToString();
         _slderXuetiao.value = qz.xueliangnow / qz.xueliangsum;
         _slderPow.value = qz.powernow / qz.powersum;
-        levelqizi.sprite = QiziGuanLi.Instance.ListQiziLevelSprite[qz.level - 1];
+        //levelqizi.sprite = GameEntry.HeroManager.ListQiziLevelSprite[qz.level - 1];
         //qiziImage.sprite = ListQiziShuxingSprite[qz.HeroID];
     }
 }

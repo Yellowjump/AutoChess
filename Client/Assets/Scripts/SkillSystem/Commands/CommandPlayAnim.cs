@@ -12,7 +12,7 @@ namespace SkillSystem
         {
             if (trigger.CurTarget != null&&trigger.CurTarget is EntityQizi qizi )
             {
-                qizi.animator.Play(AnimName.Value);
+                qizi.AddAnimCommand(AnimName.Value);
             }
         }
 

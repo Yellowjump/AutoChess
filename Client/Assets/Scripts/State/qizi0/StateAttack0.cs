@@ -38,7 +38,7 @@ public class StateAttack0 : FsmState<EntityQizi>
         /*if (Time.time-timebegin>0.5f)
         {
             timebegin = Time.time + 0.5f;
-            if (QiziGuanLi.Instance.dangqianliucheng == 0 || qizitarget == null)
+            if (GameEntry.HeroManager.dangqianliucheng == 0 || qizitarget == null)
             {
                 ChangeState<StateIdle0>(fsm);
             }
@@ -86,7 +86,7 @@ public class StateAttack0 : FsmState<EntityQizi>
         if (result == CheckCastSkillResult.CanCast)
         {
             owner.CastSkill(true);
-            owner.GObj.transform.LookAt(target.GObj.transform);
+            owner.GObj?.transform.LookAt(target.GObj.transform);
             curSpSkill = true;
             return;
         }
@@ -95,7 +95,7 @@ public class StateAttack0 : FsmState<EntityQizi>
         if (result == CheckCastSkillResult.CanCast)
         {
             owner.CastSkill(false);
-            owner.GObj.transform.LookAt(target.GObj.transform);
+            owner.GObj?.transform.LookAt(target.GObj.transform);
             curSpSkill = false;
             return;
         }

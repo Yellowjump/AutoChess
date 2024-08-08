@@ -34,36 +34,37 @@ namespace Entity
         public bool IsValid = true;
         public override void Init(int i)
         {
+            IsValid = true;
             HeroID = i;
-            HeroUID = QiziGuanLi.Instance.QiziCurUniqueIndex++;
-            this.level = 1;
-            this.money = 1;
-            this.GObj = Pool.instance.PoolObject[i].Get();
-            this.GObj.transform.localScale = Vector3.one;
+            HeroUID = GameEntry.HeroManager.QiziCurUniqueIndex++;
+            level = 1;
+            money = 1;
+            GameEntry.HeroManager.GetHeroObjByID(HeroID,OnGetHeroGObjCallback);
             xueliangnow = xueliangsum;
             powernow = 0;//初始化蓝量
             gongjiDistence = 1.2f;//初始化攻击距离
-            this.xuetiao = this.GObj.transform.Find("xuetiao_qizi/xuetiao").GetComponent<Slider>();
-            this.xuetiao.value = this.xueliangnow / this.xueliangnow;
-            this.power = this.GObj.transform.Find("xuetiao_qizi/pow").GetComponent<Slider>();
-            this.power.value = this.powernow / this.powersum;
-            this.levelImage = this.GObj.transform.Find("xuetiao_qizi/level").GetComponent<Image>();
-            this.levelImage.sprite = QiziGuanLi.Instance.ListQiziLevelSprite[0];
-            this.animator = this.GObj.GetComponent<Animator>();
-            //GameEntry.UI.OpenUIForm("Assets/UIPrefab/xuetiao_qizi.prefab", "middle");
-            //this.GObj.GetComponent<Fsm_qizi0>().Init();
-            //Log.Info("hfk:qizichushihua:" + this.GObj.name+"list.size: " + Pool.instance.list.Count + "list[0]position:" + Pool.instance.list[0].GObj.transform.localPosition);
-            //HeroID = 1;//todo 后续 从棋子购买处获取ID
             InitAttribute();
             InitSkill();
             InitState();
+        }
+
+        private void OnGetHeroGObjCallback(GameObject obj)
+        {
+            GObj = obj;
+            GObj.SetActive(true);
+            GObj.transform.position = LogicPosition;
+            GObj.transform.localScale = Vector3.one;
+            xuetiao = GObj.transform.Find("xuetiao_qizi/xuetiao").GetComponent<Slider>();
+            power = GObj.transform.Find("xuetiao_qizi/pow").GetComponent<Slider>();
+            levelImage = this.GObj.transform.Find("xuetiao_qizi/level").GetComponent<Image>();
+            animator = this.GObj.GetComponent<Animator>();
         }
         /// <summary>
         /// 战斗结束后回到初始状态
         /// </summary>
         public void ReInit()
         {
-            GObj.SetActive(true);
+            GObj?.SetActive(true);
             IsValid = true;
             CurBuffList.Clear();
             fsm.ChangeStatePublic<StateIdle0>();
@@ -73,11 +74,13 @@ namespace Entity
         }
         public void Remove()
         {
-            Pool.instance.PoolObject[this.HeroID].Release(this.GObj);
-            Pool.instance.PoolEntity.Release(this);
+            animator?.Play("WAIT00");
+            GameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
+            GObj = null;
             DestoryState();
             DestorySkill();
             DestoryAttribute();
+            GameEntry.HeroManager.ReleaseEntityQizi(this);
         }
 
         public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds)
@@ -90,13 +93,14 @@ namespace Entity
             UpdateState(elapseSeconds,realElapseSeconds);
             UpdateSkill(elapseSeconds, realElapseSeconds);
             UpdateShowSlider();
+            UpdateAnimCommand();
         }
 
         public void OnDead()
         {
             IsValid = false;
-            QiziGuanLi.instance.OnEntityDead(this);
-            GObj.SetActive(false);
+            GameEntry.HeroManager.OnEntityDead(this);
+            GObj?.SetActive(false);
         }
     }
 }

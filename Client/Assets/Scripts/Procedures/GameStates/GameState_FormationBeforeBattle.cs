@@ -64,7 +64,7 @@ namespace Procedure.GameStates
                  var enemyInfo = enemyConfigs[1].EnemyInfo;
                  foreach (var oneInfo in enemyInfo.InfoList)
                  {
-                     QiziGuanLi.instance.InitOneEnemy(oneInfo);
+                     GameEntry.HeroManager.InitOneEnemy(oneInfo);
                  }
             }
         }

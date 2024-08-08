@@ -187,7 +187,7 @@ namespace UnityGameFramework.Runtime
             get;
             private set;
         }
-
+        public static HeroComponent HeroManager;
         public static void InitBuiltinComponents()
         {
             Base = GetComponent<BaseComponent>();
@@ -210,6 +210,7 @@ namespace UnityGameFramework.Runtime
             Sound = GetComponent<SoundComponent>();
             UI = GetComponent<UIComponent>();
             WebRequest = GetComponent<WebRequestComponent>();
+            HeroManager = GetComponent<HeroComponent>();
         }
     }
 }

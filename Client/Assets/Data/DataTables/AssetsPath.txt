@@ -10,6 +10,6 @@
 	2001	关卡选择按钮	Assets/GameMain/UI/Dynamic/LevelSelectionButton.prefab
 	2002	构建炮塔按钮	Assets/GameMain/UI/Dynamic/TowerBuildButton.prefab
 #Entity(3000			
-	3001	突击加农炮预览	Assets/GameMain/Entity/AssaultCannon/AssaultCannonPreview.prefab
+	3001	角色test	Assets/Prefeb/Charactor/qizi0/unitychan.prefab
 #Sound(10000			
 #			
