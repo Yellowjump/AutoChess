@@ -6,7 +6,7 @@
 #UI(1000开始)			
 	1001	主菜单	Assets/GameMain/UI/UIForms/UIMainMenuForm.prefab
 #Item(2000			
-	2000	测试子弹	Assets/Prefeb/Bullets/Bullet.prefab
+	2000	测试子弹	Assets/Prefeb/Bullets/bullet_handle.prefab
 	2001	关卡选择按钮	Assets/GameMain/UI/Dynamic/LevelSelectionButton.prefab
 	2002	构建炮塔按钮	Assets/GameMain/UI/Dynamic/TowerBuildButton.prefab
 #Entity(3000			

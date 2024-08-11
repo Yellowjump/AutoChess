@@ -30,6 +30,11 @@ namespace Entity
         {
             Log.Info("hfk:base");
         }
+
+        public virtual void InitGObj()
+        {
+            
+        }
         public virtual void AddBuff(Buff buff)
         {
             

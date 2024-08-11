@@ -1,3 +1,4 @@
+using DataTable;
 using GameFramework;
 using SkillSystem;
 using Unity.VisualScripting;
@@ -12,13 +13,17 @@ namespace Entity.Bullet
         public EntityQizi Caster;//创建者
         public EntityQizi Target;
         public TriggerList OwnerTriggerList;
-
-        public override void Init(int id)
+        public DRBullet CurBulletData;
+        public virtual void SetParamValue(TableParamInt[] paramIntArray)
         {
-            BulletID = id;
+            
+        }
+        public override void InitGObj()
+        {
+            OwnerTriggerList?.OnTrigger(TriggerType.OnActive);
             GameEntry.HeroManager.GetBulletObjByID(BulletID,OnGetHeroGObjCallback);
         }
-        private void OnGetHeroGObjCallback(GameObject obj)
+        protected virtual void OnGetHeroGObjCallback(GameObject obj)
         {
             GObj = obj;
             GObj.transform.position = LogicPosition;
@@ -41,7 +46,7 @@ namespace Entity.Bullet
             GameEntry.HeroManager.DestoryBullet(this);
         }
 
-        public void Clear()
+        public virtual void Clear()
         {
             GameEntry.HeroManager.ReleaseBulletGameObject(BulletID,GObj,OnGetHeroGObjCallback);
             BulletID = 0;

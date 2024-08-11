@@ -28,13 +28,19 @@ namespace UnityGameFramework.Runtime
                 switch ((BulletType)bulletData.BulletType)
                 {
                     case BulletType.TrackingBullet:
+                        ret = ReferencePool.Acquire<BulletTracking>();
+                        break;
+                    case BulletType.RotateOwner:
+                        ret = ReferencePool.Acquire<BulletRotateOwner>();
+                        break;
                     default:
                         ret = ReferencePool.Acquire<BulletTracking>();
                         break;
                 }
 
                 BulletList.Add(ret);
-                ret.Init(bulletID);
+                ret.BulletID = bulletID;
+                ret.CurBulletData = bulletData;
                 return ret;
             }
 

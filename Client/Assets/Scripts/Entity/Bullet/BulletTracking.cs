@@ -7,8 +7,8 @@ namespace Entity.Bullet
         public float MoveSpeed = 10;
         public override void LogicUpdate(float elapseSeconds, float realElapseSeconds)
         {
-            
-            if (Target == null)
+            base.LogicUpdate(elapseSeconds,realElapseSeconds);
+            if (Target == null||Target.IsValid==false)
             {
                 OnDead();
                 return;
@@ -21,6 +21,10 @@ namespace Entity.Bullet
                 return;
             }
             LogicPosition += dir.normalized * (MoveSpeed * elapseSeconds);
+            if (GObj != null)
+            {
+                GObj.transform.LookAt(Target.LogicPosition);
+            }
         }
     }
 }

@@ -257,5 +257,7 @@ namespace SkillSystem
     {
         [InspectorName("追踪子弹")]
         TrackingBullet,
+        [InspectorName("围绕持有者旋转子弹")]
+        RotateOwner,
     }
 }

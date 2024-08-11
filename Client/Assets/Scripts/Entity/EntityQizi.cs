@@ -2,6 +2,7 @@ using GameFramework.Fsm;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SkillSystem;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -39,7 +40,6 @@ namespace Entity
             HeroUID = GameEntry.HeroManager.QiziCurUniqueIndex++;
             level = 1;
             money = 1;
-            GameEntry.HeroManager.GetHeroObjByID(HeroID,OnGetHeroGObjCallback);
             xueliangnow = xueliangsum;
             powernow = 0;//初始化蓝量
             gongjiDistence = 1.2f;//初始化攻击距离
@@ -48,12 +48,18 @@ namespace Entity
             InitState();
         }
 
+        public override void InitGObj()
+        {
+            GameEntry.HeroManager.GetHeroObjByID(HeroID,OnGetHeroGObjCallback);
+        }
+
         private void OnGetHeroGObjCallback(GameObject obj)
         {
             GObj = obj;
             GObj.SetActive(true);
             GObj.transform.position = LogicPosition;
             GObj.transform.localScale = Vector3.one;
+            GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
             xuetiao = GObj.transform.Find("xuetiao_qizi/xuetiao").GetComponent<Slider>();
             power = GObj.transform.Find("xuetiao_qizi/pow").GetComponent<Slider>();
             levelImage = this.GObj.transform.Find("xuetiao_qizi/level").GetComponent<Image>();

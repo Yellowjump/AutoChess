@@ -39,10 +39,18 @@ namespace Editor.SkillSystem
                     {
                         var oneCommand = oneTrigger.CurCommandList[commandIndex];
                         EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.BeginVertical(GUILayout.Width(20));
                         if (GUILayout.Button("X", GUILayout.Width(20)))
                         {
                             oneTrigger.CurCommandList.Remove(oneCommand);
                         }
+                        if (GUILayout.Button("C", GUILayout.Width(20)))//clone
+                        {
+                            var cloneCmd = SkillFactory.CreateCommand(oneCommand.CurCommandType);
+                            oneCommand.Clone(cloneCmd);
+                            oneTrigger.CurCommandList.Add(cloneCmd);
+                        }
+                        EditorGUILayout.EndVertical();
                         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                         
                         // 绘制边界线

@@ -14,6 +14,8 @@ namespace Editor.SkillSystem.Commands
                 EditorGUILayout.LabelField("创建子弹");
                 EditorGUILayout.LabelField("子弹ID");
                 SkillSystemDrawerCenter.DrawOneInstance(commandCreateBullet.CurBulletID);
+                EditorGUILayout.LabelField("额外int参数");
+                SkillSystemDrawerCenter.DrawOneInstance(commandCreateBullet.ParamInt1);
                 EditorGUILayout.LabelField("子弹上的触发器");
                 SkillSystemDrawerCenter.DrawOneInstance(commandCreateBullet.BulletTrigger);
             }

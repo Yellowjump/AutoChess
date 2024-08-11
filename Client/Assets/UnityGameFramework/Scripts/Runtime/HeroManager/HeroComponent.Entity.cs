@@ -27,7 +27,7 @@ namespace UnityGameFramework.Runtime
             DirenList.Add(qizi);
             qige[qizi.rowIndex][qizi.columnIndex] = qizi.HeroUID;
             qizi.LogicPosition =GetGeziPos(qizi.rowIndex, qizi.columnIndex);
-            qizi.GObj.transform.rotation = Quaternion.Euler(new Vector3(0, -180, 0));
+            qizi.InitGObj();
         }
 
         public EntityQizi AddNewFriendHero(int heroID)
@@ -41,6 +41,7 @@ namespace UnityGameFramework.Runtime
             QiziCSList.Add(qizi);
             qige[qizi.rowIndex][qizi.columnIndex] = qizi.HeroUID;
             qizi.LogicPosition =GetGeziPos(qizi.rowIndex, qizi.columnIndex);
+            qizi.InitGObj();
             return qizi;
         }
 
@@ -57,6 +58,11 @@ namespace UnityGameFramework.Runtime
                 }
             }
             return Vector2Int.one;
+        }
+
+        public List<EntityQizi> GetEnemyList(CampType ownerCamp)
+        {
+            return ownerCamp == CampType.Friend ? DirenList:QiziCSList;
         }
         public bool GetNearestTarget(EntityQizi source, CampType targetCamp, out EntityQizi target)
         {
@@ -85,6 +91,7 @@ namespace UnityGameFramework.Runtime
                     minDistanceSquare = newDistanceSquare;
                 }
             }
+            ListPool<EntityQizi>.Release(waitCheckList);
             if (Utility.TruncateFloat(minDistanceSquare,4) <source.gongjiDistence*source.gongjiDistence)
             {
                 return true;
