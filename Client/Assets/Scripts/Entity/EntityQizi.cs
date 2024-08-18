@@ -32,6 +32,7 @@ namespace Entity
         public Image levelImage;
         public Animator animator;//动画管理器
 
+        public List<int> EquipItemList = new List<int>();
         public bool IsValid = true;
         public override void Init(int i)
         {
@@ -95,7 +96,6 @@ namespace Entity
             {
                 return;
             }
-            SinceLastNormalAtk += elapseSeconds;
             UpdateState(elapseSeconds,realElapseSeconds);
             UpdateSkill(elapseSeconds, realElapseSeconds);
             UpdateShowSlider();

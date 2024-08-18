@@ -22,6 +22,10 @@ public class BattleBagItem:MonoBehaviour
         /// 合成结果
         /// </summary>
         CraftResult,
+        /// <summary>
+        /// 英雄装备
+        /// </summary>
+        HeroEquip,
     }
 
     public ItemType CurItemType = ItemType.Bag;
@@ -54,9 +58,16 @@ public class BattleBagItem:MonoBehaviour
         GameEntry.Resource.LoadAsset("Assets/Image/Icons/ItemIcon/axe.png",typeof(Sprite),_loadIconCallback);
     }
 
+    public void OnRelease()
+    {
+        if (Icon.sprite != null)
+        {
+            GameEntry.Resource.UnloadAsset(Icon.sprite);
+        }
+    }
     public void FreshNum()
     {
-        ItemNumTmp.gameObject.SetActive(CurItemType!=ItemType.CraftResult);
+        ItemNumTmp.gameObject.SetActive(CurItemType is ItemType.Bag or ItemType.InJoinCraft);
         ItemNumTmp.text = itemNum.ToString();
     }
     private void OnIconLoadSuccessCallback(string assetName, object asset, float duration, object userData)

@@ -75,22 +75,30 @@ public class StateIdle0 : FsmState<EntityQizi>
             ChangeState<StateMove0>(fsm);
             return;
         }
-        //普攻
-        result = owner.CheckCanCastSkill(out target, false);
-        if (result == CheckCastSkillResult.CanCast)
+
+        for (var normalSkillIndex = 0; normalSkillIndex < owner.NormalSkillList.Count; normalSkillIndex++)
         {
-            owner.CurAttackTarget = target;
-            ChangeState<StateAttack0>(fsm);
+            //普攻
+            result = owner.CheckCanCastSkill(out target, false,normalSkillIndex);
+            if (result == CheckCastSkillResult.CanCast)
+            {
+                owner.CurAttackTarget = target;
+                ChangeState<StateAttack0>(fsm);
+                break;
+            }
+            else if (result == CheckCastSkillResult.TargetOutRange)
+            {
+                owner.CurAttackTarget = target;
+                ChangeState<StateMove0>(fsm);
+                break;
+            }
+            else if (result == CheckCastSkillResult.NormalAtkWait)
+            {
+                owner.CurAttackTarget = target;//普攻等待，但是目标要锁定
+            }
         }
-        else if (result == CheckCastSkillResult.TargetOutRange)
-        {
-            owner.CurAttackTarget = target;
-            ChangeState<StateMove0>(fsm);
-        }
-        else if (result == CheckCastSkillResult.NormalAtkWait)
-        {
-            owner.CurAttackTarget = target;//普攻等待，但是目标要锁定
-        }
+
+        
     }
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {

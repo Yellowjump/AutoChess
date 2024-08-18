@@ -64,7 +64,7 @@ namespace UnityGameFramework.Runtime
         {
             return ownerCamp == CampType.Friend ? DirenList:QiziCSList;
         }
-        public bool GetNearestTarget(EntityQizi source, CampType targetCamp, out EntityQizi target)
+        public bool GetNearestTarget(EntityQizi source, CampType targetCamp, out EntityQizi target,int skillRange)
         {
             target = null;
             List<EntityQizi> waitCheckList = ListPool<EntityQizi>.Get();
@@ -92,11 +92,30 @@ namespace UnityGameFramework.Runtime
                 }
             }
             ListPool<EntityQizi>.Release(waitCheckList);
-            if (Utility.TruncateFloat(minDistanceSquare,4) <source.gongjiDistence*source.gongjiDistence)
+            if (Utility.TruncateFloat(minDistanceSquare,4) <skillRange*skillRange)
             {
                 return true;
             }
             return false;
+        }
+
+        public EntityQizi GetEntityByUID(int uid)
+        {
+            foreach (var oneEntity in QiziCSList)
+            {
+                if (oneEntity.HeroUID == uid)
+                {
+                    return oneEntity;
+                }
+            }
+            foreach (var oneEntity in DirenList)
+            {
+                if (oneEntity.HeroUID == uid)
+                {
+                    return oneEntity;
+                }
+            }
+            return null;
         }
     }
 }

@@ -100,4 +100,71 @@ public class SelfDataManager
         }
         return true;
     }
+
+    public bool TryEquipItem(int heroUID,int itemID)
+    {
+        if (!ItemBag.ContainsKey(itemID))
+        {
+            return false;
+        }
+
+        if (ItemBag[itemID] <= 0)
+        {
+            return false;
+        }
+        EntityQizi targetHero = null;
+        foreach (var oneHero in SelfHeroList)
+        {
+            if (oneHero.HeroUID == heroUID)
+            {
+                targetHero = oneHero;
+                break;
+            }
+        }
+
+        if (targetHero.EquipItemList == null)
+        {
+            return false;
+        }
+
+        if (targetHero.EquipItemList.Count >= 5)//todo 可能不同角色的装备上限不同
+        {
+            return false;
+        }
+
+        AddOneItem(itemID, -1);
+        targetHero.EquipItemList.Add(itemID);
+        return true;
+    }
+
+    public bool TryRemoveEquip(int heroUID, int itemID,int equipIndex)
+    {
+        EntityQizi targetHero = null;
+        foreach (var oneHero in SelfHeroList)
+        {
+            if (oneHero.HeroUID == heroUID)
+            {
+                targetHero = oneHero;
+                break;
+            }
+        }
+
+        if (targetHero.EquipItemList == null)
+        {
+            return false;
+        }
+
+        if (targetHero.EquipItemList.Count <= equipIndex)
+        {
+            return false;
+        }
+
+        if (targetHero.EquipItemList[equipIndex] != itemID)
+        {
+            return false;
+        }
+        targetHero.EquipItemList.RemoveAt(equipIndex);
+        AddOneItem(itemID,1);
+        return true;
+    }
 }

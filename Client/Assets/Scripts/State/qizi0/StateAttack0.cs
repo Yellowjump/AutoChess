@@ -9,12 +9,8 @@ using UnityGameFramework.Runtime;
 
 public class StateAttack0 : FsmState<EntityQizi>
 {
-    EntityQizi qizi;//状态机挂载的棋子类
-    int zhenying =0;//0表明是自己这边的棋子，1表明是地方阵营的
-    EntityQizi qizitarget;//目标棋子
-    float mindistance=10000;
-    float timebegin;
     private bool curSpSkill = false;
+    private int curNormalIndex = 0;
     private float durationAccumulate = 0f;
     protected override void OnInit(IFsm<EntityQizi> fsm)
     {
@@ -23,13 +19,6 @@ public class StateAttack0 : FsmState<EntityQizi>
     protected override void OnEnter(IFsm<EntityQizi> fsm)
     {
         base.OnEnter(fsm);
-        
-        //Log.Info("hfk 棋子进入attack");
-        qizitarget = null;
-        mindistance = 10000;
-        //找到距离该棋子最近的棋子
-        //Findtarget();
-        timebegin = Time.time;
         CheckCastSkill(fsm);
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
@@ -60,7 +49,7 @@ public class StateAttack0 : FsmState<EntityQizi>
         var owner = fsm.Owner;
         durationAccumulate += elapseSeconds;
         //update 技能时间
-        var curSkill = curSpSkill ? owner.SpSkill : owner.NormalSkill;
+        var curSkill = curSpSkill ? owner.SpSkill : owner.NormalSkillList[curNormalIndex];
         if (durationAccumulate * 1000 >= curSkill.ShakeBeforeMs && durationAccumulate * 1000 < curSkill.ShakeBeforeMs + elapseSeconds * 1000)
         {
             curSkill.OnSkillBeforeShakeEnd();
@@ -91,13 +80,17 @@ public class StateAttack0 : FsmState<EntityQizi>
             return;
         }
 
-        result = owner.CheckCanCastSkill(out target, false);
-        if (result == CheckCastSkillResult.CanCast)
+        for (var normalSkillIndex = 0; normalSkillIndex < owner.NormalSkillList.Count; normalSkillIndex++)
         {
-            owner.CastSkill(false);
-            owner.GObj?.transform.LookAt(target.GObj.transform);
-            curSpSkill = false;
-            return;
+            result = owner.CheckCanCastSkill(out target, false,normalSkillIndex);
+            if (result == CheckCastSkillResult.CanCast)
+            {
+                owner.CastSkill(false,normalSkillIndex);
+                owner.GObj?.transform.LookAt(target.GObj.transform);
+                curSpSkill = false;
+                curNormalIndex = normalSkillIndex;
+                return;
+            }
         }
         ChangeState<StateIdle0>(fsm);
     }
@@ -106,6 +99,7 @@ public class StateAttack0 : FsmState<EntityQizi>
         base.OnLeave(fsm, isShutdown);
         durationAccumulate = 0;
         curSpSkill = false;
+        curNormalIndex = 0;
     }
     protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {

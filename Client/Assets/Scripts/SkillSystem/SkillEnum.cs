@@ -147,6 +147,10 @@ namespace SkillSystem
         /// </summary>
         NormalSkill,
         /// <summary>
+        /// 无动画攻击技能
+        /// </summary>
+        NoAnimSkill,
+        /// <summary>
         /// 特殊技能
         /// </summary>
         SpSkill,

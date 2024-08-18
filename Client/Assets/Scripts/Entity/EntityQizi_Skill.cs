@@ -15,7 +15,7 @@ namespace Entity
 {
     public partial class EntityQizi
     {
-        public Skill NormalSkill;
+        public List<Skill> NormalSkillList = new List<Skill>();
         public Skill SpSkill;
         public Skill PassiveSkill;
         public Dictionary<TriggerType, List<OneTrigger>> CurTriggerDic = new Dictionary<TriggerType, List<OneTrigger>>();
@@ -25,7 +25,7 @@ namespace Entity
         /// <summary>
         /// 普攻动画加速时间
         /// </summary>
-        public float CurNormalAtkAniRate
+        /*public float CurNormalAtkAniRate
         {
             get
             {
@@ -35,13 +35,10 @@ namespace Entity
                 }
                 return 1;
             }
-        }
-
-        public float NormalAtkInterval => AtkSpeed <= 0 ? float.MaxValue : 1 / AtkSpeed;
-        public float SinceLastNormalAtk = float.MaxValue;
+        }*/
+        
         private void InitSkill()
         {
-            SinceLastNormalAtk = float.MaxValue;
             var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
             if (!heroTable.HasDataRow(HeroID))
             {
@@ -65,7 +62,7 @@ namespace Entity
                 return;
             }
 
-            NormalSkill = new Skill
+            var  oneNormalSkill = new Skill
             {
                 SkillID = skillID,
                 CurSkillType = SkillType.NormalSkill,
@@ -76,9 +73,11 @@ namespace Entity
             };
 
             var temp = skillTemplates[skillTableData.TemplateID].SkillTemplate;
-            temp.Clone(NormalSkill);
-            NormalSkill.OwnTriggerList.Owner = this;
-            NormalSkill.SetSkillValue(skillTableData);
+            temp.Clone(oneNormalSkill);
+            oneNormalSkill.OwnTriggerList.Owner = this;
+            oneNormalSkill.SetSkillValue(skillTableData);
+            NormalSkillList.Add(oneNormalSkill);
+            NormalSkillList.Sort((a,b)=>a.SkillRange.CompareTo(b.SkillRange));//按照攻击距离排序
             gongjiDistence = skillTableData.SkillRange;
 
             InitPassiveSkill();
@@ -163,7 +162,15 @@ namespace Entity
                 }
                 ListPool<OneTrigger>.Release(tempList);
             }
+            UpdateBuffTime(elapseSeconds, realElapseSeconds);
+            foreach (var oneNormalSkill in NormalSkillList)
+            {
+                oneNormalSkill.LogicUpdate(elapseSeconds,realElapseSeconds);
+            }
+        }
 
+        private void UpdateBuffTime(float elapseSeconds, float realElapseSeconds)
+        {
             List<Buff> tempBuffList = ListPool<Buff>.Get();
             tempBuffList.AddRange(CurBuffList);
             foreach (var buff in tempBuffList)
@@ -187,7 +194,7 @@ namespace Entity
                 }
             }
         }
-        public CheckCastSkillResult CheckCanCastSkill(out EntityQizi target,bool isSpSkill = false)
+        public CheckCastSkillResult CheckCanCastSkill(out EntityQizi target,bool isSpSkill = false,int normalSkillIndex = 0)
         {
             target = null;
             //判断是否需要蓝量
@@ -198,8 +205,20 @@ namespace Entity
                     return CheckCastSkillResult.NoPower;
                 }
             }
+
+            Skill willCastSkill = null;
             //判断目标
-            var willCastSkill = isSpSkill ? SpSkill : NormalSkill;
+            if (isSpSkill)
+            {
+                willCastSkill = SpSkill;
+            }
+            else
+            {
+                if (normalSkillIndex < NormalSkillList.Count)
+                {
+                    willCastSkill = NormalSkillList[normalSkillIndex];
+                }
+            }
             if (willCastSkill == null)
             {
                 return CheckCastSkillResult.Error;
@@ -217,7 +236,7 @@ namespace Entity
                     int hp = (int)CurAttackTarget.GetAttribute(AttributeType.Hp).GetFinalValue();
                     canUseOldTarget = hp >= 0;
                     //判断是否有不可选中之类
-                    canUseOldTarget = canUseOldTarget&&!(Utility.TruncateFloat(GetDistanceSquare(CurAttackTarget),4)  > gongjiDistence * gongjiDistence);
+                    canUseOldTarget = canUseOldTarget&&!(Utility.TruncateFloat(GetDistanceSquare(CurAttackTarget),4)  > willCastSkill.SkillRange * willCastSkill.SkillRange);
                     if (canUseOldTarget)
                     {
                         inAttackRange = true;
@@ -240,7 +259,7 @@ namespace Entity
                 return CheckCastSkillResult.TargetOutRange;
             }
 
-            if (isSpSkill == false&&SinceLastNormalAtk<NormalAtkInterval)
+            if (isSpSkill == false&&willCastSkill.InCD)
             {
                 return CheckCastSkillResult.NormalAtkWait;
             }
@@ -252,28 +271,38 @@ namespace Entity
         /// <param name="target">技能目标</param>
         /// <param name="isSpSkill"></param>
         /// <returns>是否在攻击范围内</returns>
-        public bool GetSkillNewTarget(out EntityQizi target, bool isSpSkill = false)
+        public bool GetSkillNewTarget(out EntityQizi target, bool isSpSkill = false,int normalSkillIndex =0)
         {
             target = null;
+            Skill willCastSkill = null;
             //判断目标
-            var willCastSkill = isSpSkill ? SpSkill : NormalSkill;
+            if (isSpSkill)
+            {
+                willCastSkill = SpSkill;
+            }
+            else
+            {
+                if (normalSkillIndex < NormalSkillList.Count)
+                {
+                    willCastSkill = NormalSkillList[normalSkillIndex];
+                }
+            }
             if (willCastSkill == null)
             {
                 return false;
             }
-
             bool inAttackRange = false;
             switch (willCastSkill.CurSkillCastTargetType)
             {
                 case SkillCastTargetType.NearestEnemy:
-                    return GameEntry.HeroManager.GetNearestTarget(this,CampType.Enemy,out target);
+                    return GameEntry.HeroManager.GetNearestTarget(this,CampType.Enemy,out target,willCastSkill.SkillRange);
                 case SkillCastTargetType.NoNeedTarget:
                     return true;
             }
             return false;
         }
 
-        public void CastSkill(bool isSpSkill)
+        public void CastSkill(bool isSpSkill,int normalSkillIndex = 0)
         {
             if (isSpSkill)
             {
@@ -281,8 +310,10 @@ namespace Entity
             }
             else
             {
-                SinceLastNormalAtk = 0;
-                NormalSkill.Cast();
+                if (normalSkillIndex < NormalSkillList.Count)
+                {
+                    NormalSkillList[normalSkillIndex].Cast();
+                }
             }
         }
 
@@ -307,7 +338,7 @@ namespace Entity
 
         private void DestorySkill()
         {
-            NormalSkill=null;
+            NormalSkillList=null;
             SpSkill = null;
             PassiveSkill = null;
             CurBuffList.Clear();
