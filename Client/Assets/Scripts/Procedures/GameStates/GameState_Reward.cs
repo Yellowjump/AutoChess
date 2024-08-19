@@ -20,6 +20,7 @@ namespace Procedure.GameStates
         protected override void OnEnter(IFsm<ProcedureGame> fsm)
         {
             base.OnEnter(fsm);
+            _continueToMap = false;
             SelfDataManager.Instance.CurMaze.PassCurPoint();
             GameEntry.UI.OpenUIForm(UICtrlName.BattleRewardPanel, "middle");
         }

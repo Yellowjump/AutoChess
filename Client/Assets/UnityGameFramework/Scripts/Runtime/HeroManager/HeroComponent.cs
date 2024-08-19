@@ -411,6 +411,7 @@ namespace UnityGameFramework.Runtime
                 oneEntity.Remove();
             }
 
+            ClearBullet();
             DirenList.Clear();
             dangqianliucheng = 0;
             foreach (var oneEntity in QiziCSList)
@@ -433,5 +434,7 @@ namespace UnityGameFramework.Runtime
                 }
             }
         }
+
+        
     }
 }

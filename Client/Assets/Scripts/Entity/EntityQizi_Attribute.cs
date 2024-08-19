@@ -62,6 +62,11 @@ namespace Entity
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MagicPenetrationPercent,attributeData.MagicPenetrationPercent));
         }
 
+        public void TryAddAttrValue(AttributeType attrType,int value)
+        {
+            var attr = GetAttribute(attrType);
+            attr.AddNum(value);
+        }
         private void UpdateShowSlider()
         {
             var maxHp = (int)GetAttribute(AttributeType.MaxHp).GetFinalValue();

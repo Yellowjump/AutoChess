@@ -169,7 +169,8 @@ public class SkillSystemEditorWindow : EditorWindow
         bool needSave = false;
         if (selectedToggleIndex == (int)ToggleName.SkillTemplate)
         {
-            foreach (var skillPair in SkillMap)
+            var keys = SkillMap.ToList();
+            foreach (var skillPair in keys)
             {
                 if (skillPair.Value)
                 {
@@ -186,7 +187,8 @@ public class SkillSystemEditorWindow : EditorWindow
         }
         else if (selectedToggleIndex == (int)ToggleName.BuffTemplate)
         {
-            foreach (var buffPair in BuffMap)
+            var keys = BuffMap.ToList();
+            foreach (var buffPair in keys)
             {
                 if (buffPair.Value)
                 {

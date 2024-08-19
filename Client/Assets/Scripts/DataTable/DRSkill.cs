@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-08-03 03:44:01.799
+// 生成时间：2024-08-19 05:59:11.544
 //------------------------------------------------------------
 
 using GameFramework;
@@ -22,10 +22,12 @@ namespace DataTable
 {
 	public enum DRSkillField
 	{
+	    SkillType,
 	    TemplateID,
 	    SkillAnim,
-	    Duration,
 	    BeforeShakeEndMs,
+	    AniDuration,
+	    CDMs,
 	    TargetType,
 	    SkillRange,
 	    IntParam1,
@@ -56,6 +58,15 @@ namespace DataTable
         }
 
         /// <summary>
+        /// 获取技能类型。
+        /// </summary>
+        public int SkillType
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// 获取模板ID。
         /// </summary>
         public int TemplateID
@@ -74,18 +85,27 @@ namespace DataTable
         }
 
         /// <summary>
-        /// 获取持续时间ms。
+        /// 获取动画前摇结束ms。
         /// </summary>
-        public int Duration
+        public int BeforeShakeEndMs
         {
             get;
             private set;
         }
 
         /// <summary>
-        /// 获取动画前摇结束ms。
+        /// 获取动画时间ms。
         /// </summary>
-        public int BeforeShakeEndMs
+        public int AniDuration
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取默认冷却时间。
+        /// </summary>
+        public int CDMs
         {
             get;
             private set;
@@ -184,10 +204,12 @@ namespace DataTable
             index++;
             m_Id = int.Parse(columnStrings[index++]);
             index++;
+            SkillType = int.Parse(columnStrings[index++]);
             TemplateID = int.Parse(columnStrings[index++]);
             SkillAnim = columnStrings[index++];
-            Duration = int.Parse(columnStrings[index++]);
             BeforeShakeEndMs = int.Parse(columnStrings[index++]);
+            AniDuration = int.Parse(columnStrings[index++]);
+            CDMs = int.Parse(columnStrings[index++]);
             TargetType = int.Parse(columnStrings[index++]);
             SkillRange = int.Parse(columnStrings[index++]);
             IntParam1 = int.Parse(columnStrings[index++]);
@@ -209,10 +231,12 @@ namespace DataTable
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
+                    SkillType = binaryReader.Read7BitEncodedInt32();
                     TemplateID = binaryReader.Read7BitEncodedInt32();
                     SkillAnim = binaryReader.ReadString();
-                    Duration = binaryReader.Read7BitEncodedInt32();
                     BeforeShakeEndMs = binaryReader.Read7BitEncodedInt32();
+                    AniDuration = binaryReader.Read7BitEncodedInt32();
+                    CDMs = binaryReader.Read7BitEncodedInt32();
                     TargetType = binaryReader.Read7BitEncodedInt32();
                     SkillRange = binaryReader.Read7BitEncodedInt32();
                     IntParam1 = binaryReader.Read7BitEncodedInt32();
@@ -318,10 +342,12 @@ namespace DataTable
 		/// </summary>
 		/// <typeparam name="T"> 
 		///     <para>
+		///         <see cref="DRSkillField.SkillType"/> 对应的是 int,
 		///         <see cref="DRSkillField.TemplateID"/> 对应的是 int,
 		///         <see cref="DRSkillField.SkillAnim"/> 对应的是 string,
-		///         <see cref="DRSkillField.Duration"/> 对应的是 int,
 		///         <see cref="DRSkillField.BeforeShakeEndMs"/> 对应的是 int,
+		///         <see cref="DRSkillField.AniDuration"/> 对应的是 int,
+		///         <see cref="DRSkillField.CDMs"/> 对应的是 int,
 		///         <see cref="DRSkillField.TargetType"/> 对应的是 int,
 		///         <see cref="DRSkillField.SkillRange"/> 对应的是 int,
 		///         <see cref="DRSkillField.IntParam1"/> 对应的是 int,
@@ -354,10 +380,12 @@ namespace DataTable
 		}
 		private static readonly Dictionary<DRSkillField, Func<DRSkill, (object, Type)>> FieldMap = new Dictionary<DRSkillField, Func<DRSkill, (object, Type)>>()
 		{
+		    { DRSkillField.SkillType, obj => (obj.SkillType, typeof(int)) },
 		    { DRSkillField.TemplateID, obj => (obj.TemplateID, typeof(int)) },
 		    { DRSkillField.SkillAnim, obj => (obj.SkillAnim, typeof(string)) },
-		    { DRSkillField.Duration, obj => (obj.Duration, typeof(int)) },
 		    { DRSkillField.BeforeShakeEndMs, obj => (obj.BeforeShakeEndMs, typeof(int)) },
+		    { DRSkillField.AniDuration, obj => (obj.AniDuration, typeof(int)) },
+		    { DRSkillField.CDMs, obj => (obj.CDMs, typeof(int)) },
 		    { DRSkillField.TargetType, obj => (obj.TargetType, typeof(int)) },
 		    { DRSkillField.SkillRange, obj => (obj.SkillRange, typeof(int)) },
 		    { DRSkillField.IntParam1, obj => (obj.IntParam1, typeof(int)) },

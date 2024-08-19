@@ -26,6 +26,8 @@ namespace Procedure.GameStates
         {
             base.OnEnter(fsm);
             battleTime = Time.time;
+            _battleEnd = false;
+            _battleEndWin = false;
             GameEntry.HeroManager.StartBattle();
         }
 

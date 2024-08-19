@@ -145,19 +145,19 @@ namespace SkillSystem
         /// <summary>
         /// 普工
         /// </summary>
-        NormalSkill,
+        NormalSkill = 1,
         /// <summary>
         /// 无动画攻击技能
         /// </summary>
-        NoAnimSkill,
+        NoAnimSkill = 2,
         /// <summary>
         /// 特殊技能
         /// </summary>
-        SpSkill,
+        SpSkill = 3,
         /// <summary>
         /// 被动技能
         /// </summary>
-        PassiveSkill,
+        PassiveSkill = 4,
     }
     /// <summary>
     /// buff标签

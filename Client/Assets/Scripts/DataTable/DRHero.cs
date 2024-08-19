@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-08-09 01:31:07.867
+// 生成时间：2024-08-19 05:59:11.538
 //------------------------------------------------------------
 
 using GameFramework;
@@ -42,7 +42,25 @@ namespace DataTable
         /// <summary>
         /// 获取技能ID。
         /// </summary>
-        public int SkillID
+        public int PassiveSkillID
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取技能ID。
+        /// </summary>
+        public int SpSkillID
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取默认初始携带道具。
+        /// </summary>
+        public int[] DefaultItemID
         {
             get;
             private set;
@@ -78,7 +96,9 @@ namespace DataTable
             index++;
             m_Id = int.Parse(columnStrings[index++]);
             index++;
-            SkillID = int.Parse(columnStrings[index++]);
+            PassiveSkillID = int.Parse(columnStrings[index++]);
+            SpSkillID = int.Parse(columnStrings[index++]);
+                DefaultItemID = DataTableExtension.ParseInt32Array(columnStrings[index++]);
             AttributeID = int.Parse(columnStrings[index++]);
             AssetID = int.Parse(columnStrings[index++]);
 
@@ -93,7 +113,9 @@ namespace DataTable
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
-                    SkillID = binaryReader.Read7BitEncodedInt32();
+                    PassiveSkillID = binaryReader.Read7BitEncodedInt32();
+                    SpSkillID = binaryReader.Read7BitEncodedInt32();
+                        DefaultItemID = binaryReader.ReadInt32Array();
                     AttributeID = binaryReader.Read7BitEncodedInt32();
                     AssetID = binaryReader.Read7BitEncodedInt32();
                 }

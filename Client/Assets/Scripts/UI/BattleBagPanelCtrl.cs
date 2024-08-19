@@ -60,7 +60,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     private List<BattleBagHeroToggleItem> _curHeroToggleItemList = new();
     private List<BattleBagItem> _curHeroEquipItemList = new();
 
-    private int _curShowHeroUID = 0;
+    private int _curShowHeroUID = -1;
     //------------heroEquip--------------
     public override void OnInit(object userData)
     {
@@ -156,6 +156,7 @@ public class BattleBagPanelCtrl : UIFormLogic
         ClearAllJoinCraftItem();
         ClearCurHeroEquipItem();
         ClearHeroToggleItem();
+        _curShowHeroUID = -1;
     }
 
     private void ClearShowBagItem()

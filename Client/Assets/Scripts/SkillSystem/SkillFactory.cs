@@ -89,7 +89,7 @@ namespace SkillSystem
         public static Skill CreateNewSkill()
         {
             var newSkill = new Skill();
-            newSkill.OwnTriggerList = CreateNewEmptyTriggerList();
+            newSkill.OwnTriggerList = CreateNewEmptyTriggerList(newSkill);
             return newSkill;
         }
 

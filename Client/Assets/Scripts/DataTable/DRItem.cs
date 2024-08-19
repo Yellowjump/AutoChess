@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-08-09 03:31:01.162
+// 生成时间：2024-08-19 05:59:11.543
 //------------------------------------------------------------
 
 using GameFramework;
@@ -85,6 +85,15 @@ namespace DataTable
         }
 
         /// <summary>
+        /// 获取属性加成。
+        /// </summary>
+        public List<(int,int)> AttrAdd
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// 获取对应技能ID。
         /// </summary>
         public int SkillID
@@ -109,6 +118,7 @@ namespace DataTable
             Rarity = int.Parse(columnStrings[index++]);
             IconID = int.Parse(columnStrings[index++]);
                 CraftList = DataTableExtension.ParseListIntInt(columnStrings[index++]);
+                AttrAdd = DataTableExtension.ParseListIntInt(columnStrings[index++]);
             SkillID = int.Parse(columnStrings[index++]);
 
             GeneratePropertyArray();
@@ -127,6 +137,7 @@ namespace DataTable
                     Rarity = binaryReader.Read7BitEncodedInt32();
                     IconID = binaryReader.Read7BitEncodedInt32();
                         CraftList = binaryReader.ReadListIntInt();
+                        AttrAdd = binaryReader.ReadListIntInt();
                     SkillID = binaryReader.Read7BitEncodedInt32();
                 }
             }

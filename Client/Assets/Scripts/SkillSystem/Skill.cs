@@ -13,14 +13,14 @@ namespace SkillSystem
         public TriggerList OwnTriggerList;
         public EntityQizi Caster;
         public int DefaultAnimationDurationMs;//默认技能动画时长，也是默认技能时长
-        public int DefaultSkillCD;//默认技能CD
+        public int DefaultSkillCDMs;//默认技能CD
         public float LeftSkillCD;//剩余的冷却时间
         public bool InCD => LeftSkillCD > 0;// 技能还没冷却好
         public int ShakeBeforeMs;//技能前摇
         public SkillCastTargetType CurSkillCastTargetType;//释放目标类型
         public void Cast()
         {
-            LeftSkillCD = DefaultSkillCD/1000.0f;//todo 读取角色CD缩减
+            LeftSkillCD = DefaultSkillCDMs/1000.0f;//todo 读取角色CD缩减
             OwnTriggerList.OnActive();
         }
 

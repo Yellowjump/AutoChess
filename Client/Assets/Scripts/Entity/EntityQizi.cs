@@ -2,6 +2,7 @@ using GameFramework.Fsm;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DataTable;
 using SkillSystem;
 using UnityEditor;
 using UnityEngine;
@@ -44,6 +45,7 @@ namespace Entity
             xueliangnow = xueliangsum;
             powernow = 0;//初始化蓝量
             gongjiDistence = 1.2f;//初始化攻击距离
+            InitAddDefaultItemToList();
             InitAttribute();
             InitSkill();
             InitState();
@@ -65,6 +67,26 @@ namespace Entity
             power = GObj.transform.Find("xuetiao_qizi/pow").GetComponent<Slider>();
             levelImage = this.GObj.transform.Find("xuetiao_qizi/level").GetComponent<Image>();
             animator = this.GObj.GetComponent<Animator>();
+            UpdateShowSlider();//加载完obj就刷新一次
+        }
+
+        private void InitAddDefaultItemToList()
+        {
+            var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
+            if (!heroTable.HasDataRow(HeroID))
+            {
+                Log.Error($"heroID:{HeroID} invalid no match TableRow");
+                return;
+            }
+
+            var heroTableData = heroTable[HeroID];
+            if (heroTableData.DefaultItemID != null && heroTableData.DefaultItemID.Length != 0)
+            {
+                foreach (var itemID in heroTableData.DefaultItemID)
+                {
+                    EquipItemList.Add(itemID);
+                }
+            }
         }
         /// <summary>
         /// 战斗结束后回到初始状态
@@ -77,7 +99,16 @@ namespace Entity
             fsm.ChangeStatePublic<StateIdle0>();
             DestoryAttribute();
             InitAttribute();
-            InitPassiveSkill();
+            DestorySkill();
+            InitSkill();
+        }
+
+        public void OnChangeEquipItem()
+        {
+            DestoryAttribute();
+            InitAttribute();
+            DestorySkill();
+            InitSkill();
         }
         public void Remove()
         {

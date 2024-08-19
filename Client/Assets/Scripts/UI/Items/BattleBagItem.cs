@@ -33,7 +33,8 @@ public class BattleBagItem:MonoBehaviour
     public Image Rarity;
     public Button BtnClick;
     public TextMeshProUGUI ItemNumTmp;
-    
+    public TextMeshProUGUI ItemNameTmp;
+
     public int ItemID;
     public int itemNum = 0;
     public Action<BattleBagItem> OnClickPointCallback;
@@ -53,6 +54,7 @@ public class BattleBagItem:MonoBehaviour
             return;
         }
 
+        ItemNameTmp.text = itemTable[ItemID].Name;
         FreshNum();
         var itemData = itemTable[ItemID];
         GameEntry.Resource.LoadAsset("Assets/Image/Icons/ItemIcon/axe.png",typeof(Sprite),_loadIconCallback);

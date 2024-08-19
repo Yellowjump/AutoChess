@@ -68,5 +68,12 @@ namespace UnityGameFramework.Runtime
                 oneBullet.LogicUpdate(elapseSeconds, realElapseSeconds);
             }
         }
+        private void ClearBullet()
+        {
+            for (int i = BulletList.Count - 1; i >= 0; i--)
+            {
+                DestoryBullet(BulletList[i]);
+            }
+        }
     }
 }

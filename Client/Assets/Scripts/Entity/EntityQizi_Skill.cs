@@ -16,8 +16,9 @@ namespace Entity
     public partial class EntityQizi
     {
         public List<Skill> NormalSkillList = new List<Skill>();
+        public List<Skill> NoAnimAtkSkillList = new List<Skill>();
         public Skill SpSkill;
-        public Skill PassiveSkill;
+        public List<Skill> PassiveSkillList = new List<Skill>();
         public Dictionary<TriggerType, List<OneTrigger>> CurTriggerDic = new Dictionary<TriggerType, List<OneTrigger>>();
         public List<Buff> CurBuffList = new List<Buff>();
 
@@ -39,6 +40,66 @@ namespace Entity
         
         private void InitSkill()
         {
+            InitItemSkillAndAttr();
+            InitHeroTableSkill();
+            CastPassiveSkill();
+        }
+
+        private void InitItemSkillAndAttr()
+        {
+            var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
+            if (!heroTable.HasDataRow(HeroID))
+            {
+                Log.Error($"heroID:{HeroID} invalid no match TableRow");
+                return;
+            }
+            var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
+            foreach (var oneItemID in EquipItemList)
+            {
+                if (!itemTable.HasDataRow(oneItemID))
+                {
+                    Log.Error($"Error ItemID{oneItemID}");
+                    continue;
+                }
+
+                var itemData = itemTable[oneItemID];
+                if (itemData.SkillID != 0)
+                {
+                    var skillID = itemData.SkillID;
+                    var oneNewSkill = AddOneNewSkill(skillID);
+                    if (oneNewSkill == null)
+                    {
+                        continue;
+                    }
+                    if (oneNewSkill.CurSkillType == SkillType.NormalSkill)
+                    {
+                        NormalSkillList.Add(oneNewSkill);
+                    }
+                    else if (oneNewSkill.CurSkillType == SkillType.PassiveSkill)
+                    {
+                        PassiveSkillList.Add(oneNewSkill);
+                    }
+                    else if (oneNewSkill.CurSkillType == SkillType.NoAnimSkill)
+                    {
+                        NoAnimAtkSkillList.Add(oneNewSkill);
+                    }
+                }
+                if (itemData.AttrAdd != null && itemData.AttrAdd.Count != 0)
+                {
+                    //添加属性
+                    foreach (var typeAndValue in itemData.AttrAdd)
+                    {
+                        TryAddAttrValue((AttributeType)typeAndValue.Item1, typeAndValue.Item2);
+                    }
+                }
+            }
+            NormalSkillList.Sort((a,b)=>b.SkillRange.CompareTo(a.SkillRange));//按照攻击距离排序
+        }
+        /// <summary>
+        /// 初始化被动技能
+        /// </summary>
+        public void InitHeroTableSkill()
+        {
             var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
             if (!heroTable.HasDataRow(HeroID))
             {
@@ -46,49 +107,58 @@ namespace Entity
                 return;
             }
 
-            var skillID = heroTable[HeroID].SkillID;
-            var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill"); //先只初始化 normalSkill
-            if (!skillTable.HasDataRow(skillID))
+            var heroTableData = heroTable[HeroID];
+            var passiveSkillID = heroTableData.PassiveSkillID;
+            var passiveSkill = AddOneNewSkill(passiveSkillID);
+            if (passiveSkill != null && passiveSkill.CurSkillType == SkillType.PassiveSkill)
             {
-                Log.Error($"heroID:{HeroID} skillID{skillID} invalid no match TableRow");
-                return;
+                PassiveSkillList.Add(passiveSkill);
             }
 
-            var skillTableData = skillTable[skillID];
-            var skillTemplates = GameEntry.DataTable.GetDataTable<DRSkillTemplate>("SkillTemplate");
-            if (!skillTemplates.HasDataRow(skillTableData.TemplateID))
+            var spSkillID = heroTableData.SpSkillID;
+            var oneSpSkill = AddOneNewSkill(spSkillID);
+            if (oneSpSkill != null && oneSpSkill.CurSkillType == SkillType.SpSkill)
             {
-                Log.Error($"skillID{skillID} no match Template{skillTableData.TemplateID}");
-                return;
+                SpSkill = oneSpSkill;
             }
-
-            var  oneNormalSkill = new Skill
-            {
-                SkillID = skillID,
-                CurSkillType = SkillType.NormalSkill,
-                Caster = this,
-                DefaultAnimationDurationMs = skillTableData.Duration,
-                ShakeBeforeMs = skillTableData.BeforeShakeEndMs, //todo 后续在skill表中添加前摇时间
-                CurSkillCastTargetType = (SkillCastTargetType)skillTableData.TargetType,
-            };
-
-            var temp = skillTemplates[skillTableData.TemplateID].SkillTemplate;
-            temp.Clone(oneNormalSkill);
-            oneNormalSkill.OwnTriggerList.Owner = this;
-            oneNormalSkill.SetSkillValue(skillTableData);
-            NormalSkillList.Add(oneNormalSkill);
-            NormalSkillList.Sort((a,b)=>a.SkillRange.CompareTo(b.SkillRange));//按照攻击距离排序
-            gongjiDistence = skillTableData.SkillRange;
-
-            InitPassiveSkill();
         }
 
-        /// <summary>
-        /// 初始化被动技能
-        /// </summary>
-        public void InitPassiveSkill()
+        private Skill AddOneNewSkill(int skillID)
         {
-            
+            if (skillID != 0)
+            {
+                var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
+                if (!skillTable.HasDataRow(skillID))
+                {
+                    Log.Error($"heroID:{HeroID} skillID{skillID} invalid no match TableRow");
+                    return null;
+                }
+
+                //持有技能
+                var skillTableData = skillTable[skillID];
+                var skillTemplates = GameEntry.DataTable.GetDataTable<DRSkillTemplate>("SkillTemplate");
+                if (!skillTemplates.HasDataRow(skillTableData.TemplateID))
+                {
+                    Log.Error($"skillID{skillID} no match Template{skillTableData.TemplateID}");
+                    return null;
+                }
+                var oneSkill = SkillFactory.CreateNewSkill();
+                
+                oneSkill.SkillID = skillID;
+                oneSkill.CurSkillType = (SkillType)skillTableData.SkillType;
+                oneSkill.SkillRange = skillTableData.SkillRange;
+                oneSkill.Caster = this;
+                oneSkill.DefaultAnimationDurationMs = skillTableData.AniDuration;
+                oneSkill.ShakeBeforeMs = skillTableData.BeforeShakeEndMs;
+                oneSkill.CurSkillCastTargetType = (SkillCastTargetType)skillTableData.TargetType;
+                oneSkill.DefaultSkillCDMs = skillTableData.CDMs;
+                var temp = skillTemplates[skillTableData.TemplateID].SkillTemplate;
+                temp.Clone(oneSkill);
+                oneSkill.OwnTriggerList.Owner = this;
+                oneSkill.SetSkillValue(skillTableData);
+                return oneSkill;
+            }
+            return null;
         }
         public void AddTriggerListen(OneTrigger oneTrigger)
         {
@@ -119,6 +189,11 @@ namespace Entity
 
             var curTypeList = CurTriggerDic[triggerType];
             curTypeList.Remove(oneTrigger);
+            if (curTypeList.Count == 0)
+            {
+                CurTriggerDic.Remove(triggerType);
+                ListPool<OneTrigger>.Release(curTypeList);
+            }
         }
         
         public void OnTrigger(TriggerType triggerType, object arg = null)
@@ -146,26 +221,41 @@ namespace Entity
             buff.OnActive();
         }
 
+        private void CastPassiveSkill()
+        {
+            foreach (var passiveSkill in PassiveSkillList)
+            {
+                passiveSkill.Cast();
+            }
+        }
         private void UpdateSkill(float elapseSeconds, float realElapseSeconds)
         {
             if (CurTriggerDic != null && CurTriggerDic.TryGetValue(TriggerType.PerTick, out var perTickList))
             {
-                if (perTickList == null || perTickList.Count == 0)
+                if (perTickList != null && perTickList.Count > 0)
                 {
-                    return;
+                    List<OneTrigger> tempList = ListPool<OneTrigger>.Get();
+                    tempList.AddRange(perTickList);
+                    foreach (var oneT in tempList)
+                    {
+                        oneT.OnTrigger();
+                    }
+                    ListPool<OneTrigger>.Release(tempList);
                 }
-                List<OneTrigger> tempList = ListPool<OneTrigger>.Get();
-                tempList.AddRange(perTickList);
-                foreach (var oneT in tempList)
-                {
-                    oneT.OnTrigger();
-                }
-                ListPool<OneTrigger>.Release(tempList);
             }
             UpdateBuffTime(elapseSeconds, realElapseSeconds);
             foreach (var oneNormalSkill in NormalSkillList)
             {
                 oneNormalSkill.LogicUpdate(elapseSeconds,realElapseSeconds);
+            }
+
+            foreach (var noAnimSkill in NoAnimAtkSkillList)
+            {
+                noAnimSkill.LogicUpdate(elapseSeconds,realElapseSeconds);
+                if (!noAnimSkill.InCD)
+                {
+                    noAnimSkill.Cast();
+                }
             }
         }
 
@@ -247,7 +337,7 @@ namespace Entity
                 if (canUseOldTarget == false)
                 {
                     //之前目标不可用，重新选择目标
-                    inAttackRange = GetSkillNewTarget(out target, isSpSkill);
+                    inAttackRange = GetSkillNewTarget(out target, isSpSkill,normalSkillIndex);
                 }
             }
             if (target == null)
@@ -338,9 +428,10 @@ namespace Entity
 
         private void DestorySkill()
         {
-            NormalSkillList=null;
+            NormalSkillList.Clear();
+            NoAnimAtkSkillList.Clear();
             SpSkill = null;
-            PassiveSkill = null;
+            PassiveSkillList.Clear();
             CurBuffList.Clear();
             CurTriggerDic.Clear();
         }

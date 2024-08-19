@@ -149,7 +149,7 @@ public class StateMove0 : FsmState<EntityQizi>
             owner.CurAttackTarget = target;
             Vector2Int ownerIndex = GameEntry.HeroManager.GetIndexQizi(owner);
             Vector2Int targetIndex = GameEntry.HeroManager.GetIndexQizi(target);
-            nextPosIndex = GameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.gongjiDistence);
+            nextPosIndex = GameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.SpSkill.SkillRange);
             if (nextPosIndex != new Vector2Int(-1, -1))
             {
                 _moving = true;
@@ -160,29 +160,37 @@ public class StateMove0 : FsmState<EntityQizi>
                 return;
             }
         }
-        result = owner.CheckCanCastSkill(out target, false);
-        if (result == CheckCastSkillResult.CanCast)
+
+        for (var normalSkillIndex = 0; normalSkillIndex < owner.NormalSkillList.Count; normalSkillIndex++)
         {
-            owner.CurAttackTarget = target;
-            ChangeState<StateAttack0>(fsm);
-        }
-        else if (result == CheckCastSkillResult.TargetOutRange)
-        {
-            owner.CurAttackTarget = target;
-            Vector2Int ownerIndex = GameEntry.HeroManager.GetIndexQizi(owner);
-            Vector2Int targetIndex = GameEntry.HeroManager.GetIndexQizi(target);
-            nextPosIndex = GameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.gongjiDistence);
-            if (nextPosIndex != new Vector2Int(-1, -1)&&nextPosIndex!=ownerIndex)
+            result = owner.CheckCanCastSkill(out target, false,normalSkillIndex);
+            if (result == CheckCastSkillResult.CanCast)
             {
-                _moving = true;
-                startpos = owner.LogicPosition;
-                nextpos = GameEntry.HeroManager.qigepos[nextPosIndex.y][nextPosIndex.x];
-                owner.AddAnimCommand("RUN00_F");
-                owner.GObj?.transform.LookAt(nextpos);
-                GameEntry.HeroManager.qige[ownerIndex.y][ownerIndex.x] = -1;
-                GameEntry.HeroManager.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
+                owner.CurAttackTarget = target;
+                ChangeState<StateAttack0>(fsm);
+                break;
+            }
+            else if (result == CheckCastSkillResult.TargetOutRange)
+            {
+                owner.CurAttackTarget = target;
+                Vector2Int ownerIndex = GameEntry.HeroManager.GetIndexQizi(owner);
+                Vector2Int targetIndex = GameEntry.HeroManager.GetIndexQizi(target);
+                nextPosIndex = GameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.NormalSkillList[normalSkillIndex].SkillRange);
+                if (nextPosIndex != new Vector2Int(-1, -1)&&nextPosIndex!=ownerIndex)
+                {
+                    _moving = true;
+                    startpos = owner.LogicPosition;
+                    nextpos = GameEntry.HeroManager.qigepos[nextPosIndex.y][nextPosIndex.x];
+                    owner.AddAnimCommand("RUN00_F");
+                    owner.GObj?.transform.LookAt(nextpos);
+                    GameEntry.HeroManager.qige[ownerIndex.y][ownerIndex.x] = -1;
+                    GameEntry.HeroManager.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
+                }
+                break;
             }
         }
+
+        
     }
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {

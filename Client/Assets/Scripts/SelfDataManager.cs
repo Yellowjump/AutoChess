@@ -134,6 +134,7 @@ public class SelfDataManager
 
         AddOneItem(itemID, -1);
         targetHero.EquipItemList.Add(itemID);
+        targetHero.OnChangeEquipItem();
         return true;
     }
 
@@ -164,6 +165,7 @@ public class SelfDataManager
             return false;
         }
         targetHero.EquipItemList.RemoveAt(equipIndex);
+        targetHero.OnChangeEquipItem();
         AddOneItem(itemID,1);
         return true;
     }
