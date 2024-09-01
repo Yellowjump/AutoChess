@@ -21,7 +21,7 @@ namespace Procedure.GameStates
         {
             base.OnEnter(fsm);
             _continueToMap = false;
-            SelfDataManager.Instance.CurMaze.PassCurPoint();
+            SelfDataManager.Instance.PassCurPoint();
             GameEntry.UI.OpenUIForm(UICtrlName.BattleRewardPanel, "middle");
         }
 

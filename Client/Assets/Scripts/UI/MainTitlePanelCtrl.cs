@@ -24,6 +24,8 @@ public class MainTitlePanelCtrl : UIFormLogic
     private void OnClickContinueBtn()
     {
         Log.Info("OnClickContinueBtn OnClick");
+        var titleProcedure = GameEntry.Procedure.GetProcedure<ProcedureTitle>() as ProcedureTitle;
+        titleProcedure?.MoveToContinueGame();
     }
     private void OnClickStartBtn()
     {

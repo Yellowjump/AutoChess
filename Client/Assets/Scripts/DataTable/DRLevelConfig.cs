@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-08-31 11:43:49.384
+// 生成时间：2024-08-31 11:43:49.379
 //------------------------------------------------------------
 
 using GameFramework;
@@ -22,14 +22,14 @@ namespace DataTable
 {
 
     /// <summary>
-    /// 技能模板表。
+    /// 关卡配置表。
     /// </summary>
-    public class DRSkillTemplate : DataRowBase
+    public class DRLevelConfig : DataRowBase
     {
         private int m_Id = 0;
 
         /// <summary>
-        /// 获取模板ID。
+        /// 获取关卡ID。
         /// </summary>
         public override int Id
         {
@@ -40,9 +40,18 @@ namespace DataTable
         }
 
         /// <summary>
-        /// 获取技能模板。
+        /// 获取关卡点类型。
         /// </summary>
-        public Skill SkillTemplate
+        public int MazePointType
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取关卡信息。
+        /// </summary>
+        public int LevelInfo
         {
             get;
             private set;
@@ -59,7 +68,9 @@ namespace DataTable
             int index = 0;
             index++;
             m_Id = int.Parse(columnStrings[index++]);
-            SkillTemplate = DataTableExtension.ParseSkill(columnStrings[index++]);
+            index++;
+            MazePointType = int.Parse(columnStrings[index++]);
+            LevelInfo = int.Parse(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -72,7 +83,8 @@ namespace DataTable
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
-                    SkillTemplate = binaryReader.ReadSkill();
+                    MazePointType = binaryReader.Read7BitEncodedInt32();
+                    LevelInfo = binaryReader.Read7BitEncodedInt32();
                 }
             }
 

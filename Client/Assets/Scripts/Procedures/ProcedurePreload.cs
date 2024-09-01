@@ -79,6 +79,7 @@ namespace Procedure
             _dataTableFlag.Add("EnemyConfig",(typeof(DREnemyConfig),false));
             _dataTableFlag.Add("HeroAttribute",(typeof(DRHeroAttribute),false));
             _dataTableFlag.Add("Item",(typeof(DRItem),false));
+            _dataTableFlag.Add("LevelConfig",(typeof(DRLevelConfig),false));
             foreach (var tableName in _dataTableFlag)
             {
                 DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(tableName.Value.Item1, tableName.Key);

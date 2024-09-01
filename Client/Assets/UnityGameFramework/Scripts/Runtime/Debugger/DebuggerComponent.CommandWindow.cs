@@ -83,6 +83,14 @@ namespace UnityGameFramework.Runtime
                         GameEntry.Event.Fire(this,CMDGetItemEventArgs.Create(2,3));
                         GameEntry.Event.Fire(this,CMDGetItemEventArgs.Create(5,2));
                     }
+                    if (GUILayout.Button("测试存档"))
+                    {
+                        GameEntry.HeroManager.Save();
+                    }
+                    if (GUILayout.Button("测试读档"))
+                    {
+                        GameEntry.HeroManager.Load();
+                    }
                 }
                 GUILayout.EndVertical();
             }

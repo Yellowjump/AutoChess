@@ -56,8 +56,6 @@ namespace Procedure.GameStates
 
         private void InitEnemy()
         {
-            var mazeGen = SelfDataManager.Instance.CurMaze;
-            var curPoint = mazeGen.CurMazePoint;
             var enemyConfigs = GameEntry.DataTable.GetDataTable<DREnemyConfig>("EnemyConfig");
             if (enemyConfigs.HasDataRow(1))
             {
