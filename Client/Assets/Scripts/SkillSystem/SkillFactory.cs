@@ -54,6 +54,8 @@ namespace SkillSystem
                     return new TargetPickerArg();
                 case TargetPickerType.TriggerOwner:
                     return new TargetPickerTriggerOwner();
+                case TargetPickerType.RelatedDamageTarget:
+                    return new TargetPickerRelatedDamageTarget();
                 default:
                     return new TargetPickerBase();
             }

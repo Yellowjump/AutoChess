@@ -89,6 +89,18 @@ namespace SkillSystem
         Arg,
         [InspectorName("触发器持有者")]
         TriggerOwner,
+        [InspectorName("伤害相关目标")]
+        RelatedDamageTarget,
+    }
+
+    public enum DamageDataTargetType
+    {
+        [InspectorName("伤害来源")]
+        Caster,
+        [InspectorName("伤害受击者")]
+        Target,
+        [InspectorName("伤害来源和受击者")]
+        both,
     }
 
     public enum CommandType

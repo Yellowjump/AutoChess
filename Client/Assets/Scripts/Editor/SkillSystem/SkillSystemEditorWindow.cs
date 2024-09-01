@@ -438,7 +438,7 @@ public class SkillSystemEditorWindow : EditorWindow
             BuffIDList.Add(newEmptyBuff);
             BuffMap.Add(newEmptyBuff,false);
         }
-        BuffIDList.Sort();
+        BuffIDList.Sort((a,b)=>a.TempleteID.CompareTo(b.TempleteID));
     }
     private void DrawBuffTemplate()
     {
