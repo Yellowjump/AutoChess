@@ -14,7 +14,7 @@ namespace DataTable
     /// <summary>
     /// LitJSON 函数集辅助器。
     /// </summary>
-    internal class LitJsonHelper : Utility.Json.IJsonHelper
+    public class LitJsonHelper : Utility.Json.IJsonHelper
     {
         /// <summary>
         /// 将对象序列化为 JSON 字符串。

@@ -16,15 +16,30 @@ namespace GameFramework
         /// </summary>
         public static class Random
         {
-            private static System.Random s_Random = new System.Random((int)DateTime.UtcNow.Ticks);
-
+            private static System.Random s_Random;
+            private static System.Random AttrRandom
+            {
+                get
+                {
+                    if (s_Random != null) return s_Random;
+                    Seed = (int)DateTime.UtcNow.Ticks;
+                    NextCount = 0;
+                    s_Random = new System.Random((int)DateTime.UtcNow.Ticks);
+                    return s_Random;
+                }
+                set => s_Random = value;
+            }
+            public static int Seed;
+            public static int NextCount;
             /// <summary>
             /// 设置随机数种子。
             /// </summary>
             /// <param name="seed">随机数种子。</param>
             public static void SetSeed(int seed)
             {
-                s_Random = new System.Random(seed);
+                Seed = seed;
+                NextCount = 0;
+                AttrRandom = new System.Random(seed);
             }
 
             /// <summary>
@@ -33,7 +48,8 @@ namespace GameFramework
             /// <returns>大于等于零且小于 System.Int32.MaxValue 的 32 位带符号整数。</returns>
             public static int GetRandom()
             {
-                return s_Random.Next();
+                NextCount ++;
+                return AttrRandom.Next();
             }
 
             /// <summary>
@@ -43,7 +59,8 @@ namespace GameFramework
             /// <returns>大于等于零且小于 maxValue 的 32 位带符号整数，即：返回值的范围通常包括零但不包括 maxValue。不过，如果 maxValue 等于零，则返回 maxValue。</returns>
             public static int GetRandom(int maxValue)
             {
-                return s_Random.Next(maxValue);
+                NextCount ++;
+                return AttrRandom.Next(maxValue);
             }
 
             /// <summary>
@@ -54,7 +71,8 @@ namespace GameFramework
             /// <returns>一个大于等于 minValue 且小于 maxValue 的 32 位带符号整数，即：返回的值范围包括 minValue 但不包括 maxValue。如果 minValue 等于 maxValue，则返回 minValue。</returns>
             public static int GetRandom(int minValue, int maxValue)
             {
-                return s_Random.Next(minValue, maxValue);
+                NextCount ++;
+                return AttrRandom.Next(minValue, maxValue);
             }
 
             /// <summary>
@@ -63,7 +81,8 @@ namespace GameFramework
             /// <returns>大于等于 0.0 并且小于 1.0 的双精度浮点数。</returns>
             public static double GetRandomDouble()
             {
-                return s_Random.NextDouble();
+                NextCount ++;
+                return AttrRandom.NextDouble();
             }
 
             /// <summary>
@@ -72,7 +91,8 @@ namespace GameFramework
             /// <param name="buffer">包含随机数的字节数组。</param>
             public static void GetRandomBytes(byte[] buffer)
             {
-                s_Random.NextBytes(buffer);
+                NextCount ++;
+                AttrRandom.NextBytes(buffer);
             }
         }
     }

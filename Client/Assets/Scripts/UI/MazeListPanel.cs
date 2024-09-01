@@ -146,8 +146,7 @@ public class MazeListPanelCtrl : UIFormLogic
     private void OnClickPoint(MazePointItem item)
     {
         Log.Info(item.Pos);
-        var mazeGen = SelfDataManager.Instance.CurMaze;
-        var point=mazeGen.GetPoint(item.Pos.x, item.Pos.y);
+        var point=SelfDataManager.Instance.GetPoint(item.Pos.x, item.Pos.y);
         GameEntry.Event.Fire(this,EnterPointEventArgs.Create(point));
         //point.CanSee = true;
         //FreshFog();

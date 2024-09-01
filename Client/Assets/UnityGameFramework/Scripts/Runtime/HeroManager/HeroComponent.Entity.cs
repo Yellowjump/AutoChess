@@ -30,17 +30,21 @@ namespace UnityGameFramework.Runtime
             qizi.InitGObj();
         }
 
-        public EntityQizi AddNewFriendHero(int heroID)
+        public EntityQizi AddNewFriendHero(int heroID,int row = -1,int column = -1)
         {
             EntityQizi qizi = GameEntry.HeroManager.GetNewEntityQizi();
             qizi.BelongCamp = CampType.Friend;
             qizi.Init(heroID);
-            var emptyPos = GetEmptyFriendPos();
+            var emptyPos = new Vector2Int(column, row);
+            if (row == -1)
+            {
+                emptyPos = GetEmptyFriendPos();
+            }
             qizi.rowIndex =emptyPos.y;
             qizi.columnIndex = emptyPos.x;
             QiziCSList.Add(qizi);
             qige[qizi.rowIndex][qizi.columnIndex] = qizi.HeroUID;
-            qizi.LogicPosition =GetGeziPos(qizi.rowIndex, qizi.columnIndex);
+            qizi.LogicPosition = GetGeziPos(qizi.rowIndex, qizi.columnIndex);
             qizi.InitGObj();
             return qizi;
         }

@@ -22,13 +22,65 @@ public class SelfDataManager
         }
     }
     public List<MazePoint> CurMazeList;
-    public MazeGenerator CurMaze;
+    public MazePoint CurMazePoint;
     public List<EntityQizi> SelfHeroList = new List<EntityQizi>();
     public Dictionary<int, int> ItemBag = new Dictionary<int, int>();
 
     private void Init()
     {
         GameEntry.Event.Subscribe(CMDGetItemEventArgs.EventId,OnCMDGetItem);
+    }
+
+    public void InitDataFormData(HeroComponent.SaveData saveData)
+    {
+        if (saveData == null)
+        {
+            return;
+        }
+
+        var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
+        CurMazeList ??= new List<MazePoint>();
+        CurMazeList.Clear();
+        foreach (var onePointData in saveData.MazeData)
+        {
+            var newPoint = new MazePoint(onePointData.pos);
+            newPoint.CanSee = onePointData.CanSee;
+            if (levelConfigTable.HasDataRow(onePointData.levelID))
+            {
+                var levelData = levelConfigTable[onePointData.levelID];
+                newPoint.CurType = (MazePointType)levelData.MazePointType;
+            }
+            else
+            {
+                Log.Error($"No LevelConfig ID:{onePointData.levelID}");
+            }
+
+            newPoint.CurPassState = onePointData.state;
+            newPoint.CurLevelID = onePointData.levelID;
+            CurMazeList.Add(newPoint);
+        }
+
+        foreach (var onePointData in saveData.MazeData)
+        {
+            var curPoint = GetPoint(onePointData.pos.x, onePointData.pos.y);
+            foreach (var linkPos in onePointData.linkPos)
+            {
+                var linkPoint = GetPoint(linkPos.x, linkPos.y);
+                curPoint.LinkPoint.Add(linkPoint);
+            }
+        }
+        ItemBag.Clear();
+        foreach (var oneItemData in saveData.Bag)
+        {
+            ItemBag.Add(oneItemData.itemID,oneItemData.count);
+        }
+
+        foreach (var oneHeroData in saveData.HeroList)
+        {
+            var newFriendHero = GameEntry.HeroManager.AddNewFriendHero(oneHeroData.heroID, oneHeroData.pos.y, oneHeroData.pos.x);
+            newFriendHero.EquipItemList.AddRange(oneHeroData.equipItem);
+            SelfHeroList.Add(newFriendHero);
+        }
     }
     private void OnCMDGetItem(object sender, GameEventArgs e)
     {
@@ -168,5 +220,33 @@ public class SelfDataManager
         targetHero.OnChangeEquipItem();
         AddOneItem(itemID,1);
         return true;
+    }
+    public void PassCurPoint()
+    {
+        if (CurMazePoint == null)
+        {
+            return;
+        }
+        CurMazePoint.CurPassState = MazePoint.PointPassState.Pass;
+        foreach (var linkPoint in CurMazePoint.LinkPoint)
+        {
+            if (linkPoint != null&&linkPoint.CurPassState == MazePoint.PointPassState.Lock)
+            {
+                linkPoint.CurPassState = MazePoint.PointPassState.Unlock;
+                linkPoint.CanSee = true;
+            }
+        }
+        GameEntry.Event.Fire(this,MapFreshEventArgs.Create());
+    }
+    public MazePoint GetPoint(int x, int y)
+    {
+        foreach (var onePoint in CurMazeList)
+        {
+            if (onePoint.Pos.x == x && onePoint.Pos.y == y)
+            {
+                return onePoint;
+            }
+        }
+        return null;
     }
 }

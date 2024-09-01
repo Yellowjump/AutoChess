@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DataTable;
 using GameFramework;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 using SelfEventArg;
+using UnityEngine.Pool;
 
 namespace Maze
 {
@@ -20,6 +22,7 @@ namespace Maze
 
     public class MazePoint
     {
+        [Serializable]
         public enum PointPassState
         {
             Lock,//锁定
@@ -28,6 +31,7 @@ namespace Maze
         }
         public Vector2Int Pos { get; set; }
         public MazePointType CurType { get; set; }
+        public int CurLevelID;
         public List<MazePoint> LinkPoint { get; set; }
         public bool CanSee = false;//能看见
         public PointPassState CurPassState = PointPassState.Lock;
@@ -48,8 +52,6 @@ namespace Maze
         private List<MazePoint> usedPoints = new List<MazePoint>();
         private List<Vector2Int> directions;
         private List<int> mainPathWeight = new List<int>(){10,2,10,2,20,3,1,3};
-
-        public MazePoint CurMazePoint;
         public MazeGenerator()
         {
             directions = new List<Vector2Int>
@@ -313,38 +315,35 @@ namespace Maze
             {
                 for (int y = 0; y < Height; y++)
                 {
+                    if (grid[x, y].CurType == MazePointType.Empty)
+                    {
+                        continue;
+                    }
                     pointList.Add(grid[x, y]);
                 }
             }
 
+            foreach (var onePoint in pointList)
+            {
+                onePoint.CurLevelID = GetOneRandomLevelIDFormType(onePoint.CurType);
+            }
             return pointList;
         }
 
-        public MazePoint GetPoint(int x, int y)
+        private int GetOneRandomLevelIDFormType(MazePointType pointType)
         {
-            if (grid!=null&&x >= 0 && x < Width && y >= 0 && y < Height)
+            var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
+            List<DRLevelConfig> allMeetList = ListPool<DRLevelConfig>.Get();
+            foreach (var oneLevelConfig in levelConfigTable.GetAllDataRows())
             {
-                return grid[x, y];
-            }
-            return null;
-        }
-
-        public void PassCurPoint()
-        {
-            if (CurMazePoint == null)
-            {
-                return;
-            }
-            CurMazePoint.CurPassState = MazePoint.PointPassState.Pass;
-            foreach (var linkPoint in CurMazePoint.LinkPoint)
-            {
-                if (linkPoint != null&&linkPoint.CurPassState == MazePoint.PointPassState.Lock)
+                if (oneLevelConfig.MazePointType == (int)pointType)
                 {
-                    linkPoint.CurPassState = MazePoint.PointPassState.Unlock;
-                    linkPoint.CanSee = true;
+                    allMeetList.Add(oneLevelConfig);
                 }
             }
-            GameEntry.Event.Fire(this,MapFreshEventArgs.Create());
+
+            var levelIndex = Utility.Random.GetRandom(allMeetList.Count);
+            return allMeetList[levelIndex].Id;
         }
     }
 }

@@ -28,15 +28,7 @@ namespace Procedure
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
-            
-            //一局关卡游戏初始化
-            SelfDataManager.Instance.CurMaze = new MazeGenerator();//todo 后续读取游戏存档获取地图
-            SelfDataManager.Instance.CurMazeList = SelfDataManager.Instance.CurMaze.GenerateMaze();
-            var oneHero = GameEntry.HeroManager.AddNewFriendHero(1);
-            SelfDataManager.Instance.SelfHeroList.Add(oneHero);
             GameEntry.UI.OpenUIForm(UICtrlName.GameHudPanel, "tips");
-            
-            SelfDataManager.Instance.ItemBag.Clear();
             _gameStateFsm = Fsm<ProcedureGame>.Create("",this, new GameState_Map(),new GameState_FormationBeforeBattle(),new GameState_Reward(),new GameState_Lose(),new GameState_Battle(),new GameState_SpEvent());
             _gameStateFsm.Start<GameState_Map>();
         }
@@ -76,10 +68,9 @@ namespace Procedure
                 return;
             }
             MazePoint point = ne.TargetPoint;
-            var mazeGen = SelfDataManager.Instance.CurMaze;
             if (point != null && point.CurPassState == MazePoint.PointPassState.Unlock)
             {
-                mazeGen.CurMazePoint = point;
+                SelfDataManager.Instance.CurMazePoint = point;
                 //if (point.CurType is MazePointType.Start or MazePointType.SmallBattle or MazePointType.EliteBattle or MazePointType.End)
                 {
                     _gameStateFsm.ChangeStatePublic<GameState_FormationBeforeBattle>();
