@@ -270,7 +270,7 @@ namespace Entity
                     continue;
                 }
                 buff.RemainMs += elapseSeconds*1000;
-                if (buff.RemainMs >= buff.DurationMs)
+                if (buff.DurationMs!=0&&buff.RemainMs >= buff.DurationMs)
                 {
                     buff.OnDestory();
                 }

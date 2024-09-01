@@ -51,6 +51,7 @@ namespace SkillSystem
                                 var buffTemp = buffTempTable[buffTempId].BuffTemplate;
                                 var newBuff = SkillFactory.CreateNewBuff();
                                 buffTemp.Clone(newBuff);
+                                newBuff.BuffID = buffData.Id;
                                 newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
                                 newBuff.DurationMs = buffData.Duration;
                                 newBuff.SetSkillValue(buffData);

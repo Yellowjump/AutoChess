@@ -55,7 +55,7 @@ namespace SkillSystem
                         var attrValue = 0f;
                         if (ParamInt3.Value > 0)
                         {
-                             var attr = (float)caster.GetAttribute((AttributeType)ParamInt2.Value).GetFinalValue();
+                             var attr = (int)caster.GetAttribute((AttributeType)ParamInt2.Value).GetFinalValue();
                              attrValue = attr * ParamInt3.Value / 100;
                         }
                         damageParam = fixValue + attrValue;
