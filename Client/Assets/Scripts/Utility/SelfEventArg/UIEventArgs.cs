@@ -51,4 +51,28 @@ namespace SelfEventArg
             return bagPanelCheckToEquipEventArgs;
         }
     }
+    /// <summary>
+    /// 金币刷新
+    /// </summary>
+    public class FreshCoinNumArg : GameEventArgs
+    {
+        public static readonly int EventId = typeof(FreshCoinNumArg).GetHashCode();
+        public override int Id
+        {
+            get
+            {
+                return EventId;
+            }
+        }
+        
+        public override void Clear()
+        {
+           
+        }
+        public static FreshCoinNumArg Create()
+        {
+            FreshCoinNumArg freshCoinNumArg = ReferencePool.Acquire<FreshCoinNumArg>();
+            return freshCoinNumArg;
+        }
+    }
 }

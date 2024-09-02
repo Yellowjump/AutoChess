@@ -53,6 +53,7 @@ namespace UnityGameFramework.Runtime
             public string Version;
             public int RandomSeed;
             public int RandomCount;
+            public int CoinNum;
             // ditu
             public List<SaveMazePoint> MazeData;
             public List<oneItem> Bag;
@@ -117,6 +118,7 @@ namespace UnityGameFramework.Runtime
                 }
                 newSaveData.HeroList.Add(newHero);
             }
+            newSaveData.CoinNum = SelfDataManager.Instance.CoinNum;
             string json = Utility.Json.ToJson(newSaveData);
             File.WriteAllText(SaveDataFilePath, json);
         }

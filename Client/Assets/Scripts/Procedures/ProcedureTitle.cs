@@ -50,7 +50,7 @@ namespace Procedure
         private void InitNewGameData()
         {
             //一局关卡游戏初始化
-            var mazeGen = new MazeGenerator();//todo 后续读取游戏存档获取地图
+            var mazeGen = new MazeGenerator();
             SelfDataManager.Instance.CurMazeList = mazeGen.GenerateMaze();
             var oneHero = GameEntry.HeroManager.AddNewFriendHero(1);
             SelfDataManager.Instance.SelfHeroList.Add(oneHero);
