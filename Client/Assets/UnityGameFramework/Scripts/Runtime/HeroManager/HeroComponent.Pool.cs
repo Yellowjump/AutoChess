@@ -11,8 +11,10 @@ using DataTable;
 using Entity;
 using GameFramework.Resource;
 using SkillSystem;
+using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.UI;
 
 namespace UnityGameFramework.Runtime
 {
@@ -58,22 +60,27 @@ namespace UnityGameFramework.Runtime
             }
         }
 
-        class DamageNumber:IReference
+        public class DamageNumber:IReference
         {
             public int num;
             public bool Playing = false;
             public DamageType CurDamageType;
             public EntityQizi Owner;
             public GameObject NumberObj;
-            private float animDuration;
-            private float allAnimDuration;
+            public Text damageNumText;
+            public int TextSize;
+            public float animDuration;
+            public float allAnimDuration;
             public Vector3 targetPos;
             public void Clear()
             {
+                animDuration = -1;
+                allAnimDuration = -2;
                 num = 0;
+                TextSize = 0;
                 CurDamageType = DamageType.PhysicalDamage;
                 Owner = null;
-                GameEntry.HeroManager.ReleaseGameObject("", NumberObj);
+                GameEntry.HeroManager.ReleaseGameObject(DamageNumberPerfabPath, NumberObj);
                 NumberObj = null;
             }
             public void UpdateMove(float elapseSeconds, float realElapseSeconds)
@@ -82,17 +89,27 @@ namespace UnityGameFramework.Runtime
                 {
                     return;
                 }
-                
-                NumberObj.transform.position+=Vector3.Lerp(NumberObj.transform.position,targetPos,animDuration/allAnimDuration);
-                //if (animComplete)
+                if (damageNumText.fontSize >TextSize )
                 {
-                    //PlayingDmgNumberList.Remove(this);
+                    damageNumText.fontSize --;
+                }
+
+                if (animDuration!=null&&animDuration<allAnimDuration)
+                {
+                    NumberObj.transform.position=Vector3.Lerp(targetPos,targetPos+new Vector3(allAnimDuration/3, allAnimDuration*1.5f,0),animDuration/allAnimDuration);
+                    animDuration += elapseSeconds;
+                }
+                else
+                {
+                    
+                    GameEntry.HeroManager.PlayingDmgNumberList.Remove(this);
                     ReferencePool.Release(this);
                 }
+                
             }
         }
 
-        public const string DamageNumberPerfabPath = "";
+        public const string DamageNumberPerfabPath = "Assets/Prefeb/DamageNumber/DamageNumber.prefab";
         private List<DamageNumber> WaitDmgNumberList = new List<DamageNumber>();
         private List<DamageNumber> PlayingDmgNumberList = new List<DamageNumber>();
         public void ShowDamageNum(CauseDamageData data)
@@ -113,8 +130,35 @@ namespace UnityGameFramework.Runtime
             {
                 var oneDmg = WaitDmgNumberList[0];
                 oneDmg.NumberObj = obj;
+                //设置canvas
+                Canvas canvas = GameObject.Find("WorldCanvas").GetComponent<Canvas>();
+                oneDmg.NumberObj.transform.SetParent(canvas.transform);
+                //设置pos
+                oneDmg.NumberObj.transform.forward = Camera.main.transform.forward;
+                oneDmg.NumberObj.transform.position = oneDmg.targetPos;
                 //设置 text
-                //播放动画
+                oneDmg.damageNumText = oneDmg.NumberObj.GetComponent<Text>();
+                oneDmg.damageNumText.text = oneDmg.num.ToString();
+                oneDmg.TextSize = oneDmg.damageNumText.fontSize;
+                oneDmg.damageNumText.fontSize += 20;
+                switch (oneDmg.CurDamageType)
+                {
+                    case DamageType.PhysicalDamage:
+                        oneDmg.damageNumText.color = new Color(190/255f,86/255f,11/255f); 
+                        break;
+                    case DamageType.MagicDamage:
+                        oneDmg.damageNumText.color = Color.blue;
+                        break;
+                    case DamageType.TrueDamage:
+                        oneDmg.damageNumText.color = Color.white;
+                        break;
+                    default:
+                        break;
+                }
+                //设置动画参数
+                oneDmg.animDuration = 0f;
+                oneDmg.allAnimDuration = 0.8f;
+                oneDmg.Playing = true;
                 //设置动画回调
                 WaitDmgNumberList.Remove(oneDmg);
                 PlayingDmgNumberList.Add(oneDmg);
@@ -130,10 +174,7 @@ namespace UnityGameFramework.Runtime
             runList.AddRange(PlayingDmgNumberList);
             foreach (var oneDamage in runList)
             {
-                if (oneDamage.Playing)
-                {
-                    oneDamage.UpdateMove(elapseSeconds,realElapseSeconds);
-                }
+                oneDamage.UpdateMove(elapseSeconds,realElapseSeconds);
             }
             ListPool<DamageNumber>.Release(runList);
         }
