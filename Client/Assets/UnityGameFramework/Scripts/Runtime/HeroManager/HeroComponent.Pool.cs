@@ -30,6 +30,7 @@ namespace UnityGameFramework.Runtime
         private Transform m_InstanceRoot = null;
         [SerializeField]
         private Transform m_InstanceDisableRoot = null;
+        private Canvas m_InstanceWorldCanvas = null;
         private void InitPool()
         {
             PoolEntity = new ObjectPool<EntityQizi>(() => new EntityQizi(), null, null, null, true, 10, 1000);
@@ -131,7 +132,7 @@ namespace UnityGameFramework.Runtime
                 var oneDmg = WaitDmgNumberList[0];
                 oneDmg.NumberObj = obj;
                 //设置canvas
-                Canvas canvas = GameObject.Find("WorldCanvas").GetComponent<Canvas>();
+                Canvas canvas = m_InstanceWorldCanvas.GetComponent<Canvas>();
                 oneDmg.NumberObj.transform.SetParent(canvas.transform);
                 //设置pos
                 oneDmg.NumberObj.transform.forward = Camera.main.transform.forward;

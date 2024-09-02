@@ -59,6 +59,11 @@ namespace UnityGameFramework.Runtime
                 m_InstanceDisableRoot.localScale = Vector3.one;
                 m_InstanceDisableRoot.gameObject.SetActive(false);
             }
+
+            if (m_InstanceWorldCanvas == null)
+            {
+                m_InstanceWorldCanvas = GameObject.Find("WorldCanvas").GetComponent<Canvas>();
+            }
         }
 
         void InitQige()
