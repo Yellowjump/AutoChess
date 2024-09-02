@@ -25,6 +25,7 @@ namespace UnityGameFramework.Runtime
             private string itemIDStr = "1";
             private IDataTable<DRItem> _itemTablel;
             private List<int> _itemIDList = new List<int>();
+            private int _changeCoinNum = 0;
             public override void OnEnter()
             {
                 base.OnEnter();
@@ -90,6 +91,14 @@ namespace UnityGameFramework.Runtime
                     if (GUILayout.Button("测试读档"))
                     {
                         GameEntry.HeroManager.Load();
+                    }
+                    // 获取输入的文本
+                    string newCoinText = GUILayout.TextField(_changeCoinNum.ToString(), GUILayout.Width(200));
+                    // 只保留整数字符（包括负号）
+                    _changeCoinNum = RemoveNonIntegerCharactersAndConvertToInt(newCoinText);
+                    if (GUILayout.Button("修改金币"))
+                    {
+                        SelfDataManager.Instance.TryAddCoin(_changeCoinNum);
                     }
                 }
                 GUILayout.EndVertical();

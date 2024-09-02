@@ -32,6 +32,7 @@ namespace Procedure.GameStates
             {
                 _continueToMap = false;
                 ChangeState<GameState_Map>(fsm);
+                return;
             }
             GameEntry.HeroManager.OnLogicUpdate(GameEntry.LogicDeltaTime,realElapseSeconds);
         }

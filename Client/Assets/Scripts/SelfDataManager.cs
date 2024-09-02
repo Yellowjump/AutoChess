@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
 using DataTable;
 using Entity;
+using GameFramework;
 using GameFramework.Event;
 using Maze;
 using SelfEventArg;
+using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
 public class SelfDataManager
@@ -23,6 +26,7 @@ public class SelfDataManager
     }
     public List<MazePoint> CurMazeList;
     public MazePoint CurMazePoint;
+    public int CoinNum;
     public List<EntityQizi> SelfHeroList = new List<EntityQizi>();
     public Dictionary<int, int> ItemBag = new Dictionary<int, int>();
 
@@ -81,6 +85,7 @@ public class SelfDataManager
             newFriendHero.EquipItemList.AddRange(oneHeroData.equipItem);
             SelfHeroList.Add(newFriendHero);
         }
+        CoinNum = saveData.CoinNum;
     }
     private void OnCMDGetItem(object sender, GameEventArgs e)
     {
@@ -248,5 +253,28 @@ public class SelfDataManager
             }
         }
         return null;
+    }
+
+    public void TryAddCoin(int changeNum)
+    {
+        CoinNum += changeNum;
+        CoinNum = Math.Max(0, CoinNum);
+        GameEntry.Event.Fire(this,FreshCoinNumArg.Create());
+    }
+    public int GetOneRandomLevelIDFormType(MazePointType pointType)
+    {
+        var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
+        List<DRLevelConfig> allMeetList = ListPool<DRLevelConfig>.Get();
+        foreach (var oneLevelConfig in levelConfigTable.GetAllDataRows())
+        {
+            if (oneLevelConfig.MazePointType == (int)pointType)
+            {
+                allMeetList.Add(oneLevelConfig);
+            }
+        }
+        var levelIndex = Utility.Random.GetRandom(allMeetList.Count);
+        var retID = allMeetList[levelIndex].Id;
+        ListPool<DRLevelConfig>.Release(allMeetList);
+        return retID;
     }
 }

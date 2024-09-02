@@ -5,6 +5,7 @@
 	101	启动场景	Assets/GameMain/Scenes/GameStart/GameStart.unity
 #UI(1000开始)			
 	1001	主菜单	Assets/GameMain/UI/UIForms/UIMainMenuForm.prefab
+	1101	测试的事件UI	Assets/UIPrefab/EventPointUI/event_battleorlosecoin.prefab
 #Item(2000			
 	2000	测试子弹	Assets/Prefeb/Bullets/bullet_handle.prefab
 	2001	关卡选择按钮	Assets/GameMain/UI/Dynamic/LevelSelectionButton.prefab

@@ -1,13 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
+using GameFramework.Event;
 using Procedure;
+using Procedure.GameStates;
 using SelfEventArg;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 
 public class GameHudCtrl : UIFormLogic
 {
+    [SerializeField]
+    private TextMeshProUGUI CoinText;
     [SerializeField]
     private Button _btnBag;
     [SerializeField]
@@ -17,6 +22,7 @@ public class GameHudCtrl : UIFormLogic
         base.OnInit(userData);
         _btnBag.onClick.AddListener(OnClickBagBtn);
         _btnHeroEquip.onClick.AddListener(OnClickEquipBtn);
+        GameEntry.Event.Subscribe(FreshCoinNumArg.EventId,OnFreshCoinNum);
     }
 
     private void OnClickBagBtn()
@@ -43,5 +49,14 @@ public class GameHudCtrl : UIFormLogic
         {
             GameEntry.Event.Fire(this, BagPanelCheckToEquipEventArgs.Create());
         }
+    }
+    private void OnFreshCoinNum(object sender, GameEventArgs e)
+    {
+        FreshCoinNumArg ee = (FreshCoinNumArg)e;
+        if (ee == null)
+        {
+            return;
+        }
+        CoinText.text = SelfDataManager.Instance.CoinNum.ToString();
     }
 }

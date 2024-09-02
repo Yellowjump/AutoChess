@@ -22,8 +22,24 @@ namespace Procedure.GameStates
         protected override void OnEnter(IFsm<ProcedureGame> fsm)
         {
             base.OnEnter(fsm);
-            _UIIndex = GameEntry.UI.OpenUIForm(UICtrlName.BattleFormationPanel, "middle");
-            GameEntry.UI.OpenUIForm(UICtrlName.BattleMainPanel, "middle");
+            var curPoint = SelfDataManager.Instance.CurMazePoint;
+            if (curPoint == null)
+            {
+                Log.Error("No CurPoint");
+                return;
+            }
+            // type 是 event 或者 store 或者 chest都读取 levelInfo
+            var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
+            var assetsPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
+            if (levelConfigTable.HasDataRow(curPoint.CurLevelID))
+            {
+                var levelData = levelConfigTable[curPoint.CurLevelID];
+                if (assetsPathTable.HasDataRow(levelData.LevelInfo))
+                {
+                    var eventUIPath = assetsPathTable[levelData.LevelInfo].AssetPath;
+                    _UIIndex = GameEntry.UI.OpenUIForm(eventUIPath, "middle");
+                }
+            }
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
@@ -40,19 +56,6 @@ namespace Procedure.GameStates
         protected override void OnDestroy(IFsm<ProcedureGame> fsm)
         {
             base.OnDestroy(fsm);
-        }
-
-        private void InitEnemy()
-        {
-            var enemyConfigs = GameEntry.DataTable.GetDataTable<DREnemyConfig>("EnemyConfig");
-            if (enemyConfigs.HasDataRow(1))
-            {
-                 var enemyInfo = enemyConfigs[1].EnemyInfo;
-                 foreach (var oneInfo in enemyInfo.InfoList)
-                 {
-                     GameEntry.HeroManager.InitOneEnemy(oneInfo);
-                 }
-            }
         }
     }
 }

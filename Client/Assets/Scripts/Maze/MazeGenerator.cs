@@ -248,7 +248,7 @@ namespace Maze
                 }
                 if (point.Pos.x == 0 && point.Pos.y == 0)
                 {
-                    point.CurType = MazePointType.SmallBattle;
+                    point.CurType = MazePointType.Event;
                     point.CanSee = true;
                     point.CurPassState = MazePoint.PointPassState.Unlock;
                 }
@@ -342,25 +342,9 @@ namespace Maze
 
             foreach (var onePoint in pointList)
             {
-                onePoint.CurLevelID = GetOneRandomLevelIDFormType(onePoint.CurType);
+                onePoint.CurLevelID = SelfDataManager.Instance.GetOneRandomLevelIDFormType(onePoint.CurType);
             }
             return pointList;
-        }
-
-        private int GetOneRandomLevelIDFormType(MazePointType pointType)
-        {
-            var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
-            List<DRLevelConfig> allMeetList = ListPool<DRLevelConfig>.Get();
-            foreach (var oneLevelConfig in levelConfigTable.GetAllDataRows())
-            {
-                if (oneLevelConfig.MazePointType == (int)pointType)
-                {
-                    allMeetList.Add(oneLevelConfig);
-                }
-            }
-
-            var levelIndex = Utility.Random.GetRandom(allMeetList.Count);
-            return allMeetList[levelIndex].Id;
         }
     }
 }
