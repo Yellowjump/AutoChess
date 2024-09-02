@@ -10,14 +10,31 @@ using UnityEngine.Pool;
 
 namespace Maze
 {
+    /// <summary>
+    /// 地图点的类型，对应的是 地图上图标的不同，UnKnown可以是 战斗，商店，宝箱，或者事件,点击之后随机后确定。
+    /// </summary>
     public enum MazePointType
     {
-        Start,
-        End,
-        SmallBattle,
-        EliteBattle,
-        Event,
-        Empty // Represent empty points in the maze
+        /// <summary>
+        /// 小怪
+        /// </summary>
+        SmallBattle = 0,
+        /// <summary>
+        /// 精英怪
+        /// </summary>
+        EliteBattle = 1,
+        /// <summary>
+        /// 关底boss
+        /// </summary>
+        BossBattle = 2,
+        UnKnown = 3,
+        Store = 4,
+        /// <summary>
+        /// 宝箱
+        /// </summary>
+        Chest = 5,
+        Event = 6,
+        Empty = 7 // Represent empty points in the maze
     }
 
     public class MazePoint
@@ -231,19 +248,19 @@ namespace Maze
                 }
                 if (point.Pos.x == 0 && point.Pos.y == 0)
                 {
-                    point.CurType = MazePointType.Start;
+                    point.CurType = MazePointType.SmallBattle;
                     point.CanSee = true;
                     point.CurPassState = MazePoint.PointPassState.Unlock;
                 }
                 else if (point.Pos.x == Width - 1 && point.Pos.y == Height - 1)
                 {
-                    point.CurType = MazePointType.End;
+                    point.CurType = MazePointType.BossBattle;
                     point.CanSee = true;
                 }
                 else
                 {
                     point.CanSee = false;
-                    point.CurType = (MazePointType)Utility.Random.GetRandom(2, Enum.GetValues(typeof(MazePointType)).Length - 1);
+                    point.CurType = (MazePointType)Utility.Random.GetRandom(2, Enum.GetValues(typeof(MazePointType)).Length - 2);
                 }
             }
 
@@ -252,7 +269,7 @@ namespace Maze
                 if (point.CurType == MazePointType.Empty && !mainPath.Contains(point))
                 {
                     point.CanSee = false;
-                    point.CurType = (MazePointType)Utility.Random.GetRandom(2, Enum.GetValues(typeof(MazePointType)).Length - 1);
+                    point.CurType = (MazePointType)Utility.Random.GetRandom(2, Enum.GetValues(typeof(MazePointType)).Length - 2);
                 }
             }
         }

@@ -57,6 +57,86 @@ namespace UnityGameFramework.Runtime
                 }
             }
         }
+
+        class DamageNumber:IReference
+        {
+            public int num;
+            public bool Playing = false;
+            public DamageType CurDamageType;
+            public EntityQizi Owner;
+            public GameObject NumberObj;
+            private float animDuration;
+            private float allAnimDuration;
+            public Vector3 targetPos;
+            public void Clear()
+            {
+                num = 0;
+                CurDamageType = DamageType.PhysicalDamage;
+                Owner = null;
+                GameEntry.HeroManager.ReleaseGameObject("", NumberObj);
+                NumberObj = null;
+            }
+            public void UpdateMove(float elapseSeconds, float realElapseSeconds)
+            {
+                if (NumberObj == null)
+                {
+                    return;
+                }
+                
+                NumberObj.transform.position+=Vector3.Lerp(NumberObj.transform.position,targetPos,animDuration/allAnimDuration);
+                //if (animComplete)
+                {
+                    //PlayingDmgNumberList.Remove(this);
+                    ReferencePool.Release(this);
+                }
+            }
+        }
+
+        public const string DamageNumberPerfabPath = "";
+        private List<DamageNumber> WaitDmgNumberList = new List<DamageNumber>();
+        private List<DamageNumber> PlayingDmgNumberList = new List<DamageNumber>();
+        public void ShowDamageNum(CauseDamageData data)
+        {
+            var newDamageNumber = ReferencePool.Acquire<DamageNumber>();
+            var numPerfabPath = DamageNumberPerfabPath;
+            newDamageNumber.num = (int)data.DamageValue;
+            newDamageNumber.CurDamageType = data.CurDamageType;
+            newDamageNumber.Owner = data.Target;
+            newDamageNumber.targetPos = data.Target.LogicPosition + Vector3.up*0.2f+Vector3.right*0.2f;
+            WaitDmgNumberList.Add(newDamageNumber);
+            GetNewObjFromPool(numPerfabPath, OnLoadOneNewDamageNumberPrefab);
+        }
+
+        private void OnLoadOneNewDamageNumberPrefab(GameObject obj)
+        {
+            if (WaitDmgNumberList != null && WaitDmgNumberList.Count > 0)
+            {
+                var oneDmg = WaitDmgNumberList[0];
+                oneDmg.NumberObj = obj;
+                //设置 text
+                //播放动画
+                //设置动画回调
+                WaitDmgNumberList.Remove(oneDmg);
+                PlayingDmgNumberList.Add(oneDmg);
+            }
+            else
+            {
+                ReleaseGameObject(DamageNumberPerfabPath,obj);
+            }
+        }
+        private void UpdateDamageNumber(float elapseSeconds, float realElapseSeconds)
+        {
+            var runList = ListPool<DamageNumber>.Get();
+            runList.AddRange(PlayingDmgNumberList);
+            foreach (var oneDamage in runList)
+            {
+                if (oneDamage.Playing)
+                {
+                    oneDamage.UpdateMove(elapseSeconds,realElapseSeconds);
+                }
+            }
+            ListPool<DamageNumber>.Release(runList);
+        }
         public void GetBulletObjByID(int id,GetGObjSuccessCallback callback)
         {
             var bulletTable = GameEntry.DataTable.GetDataTable<DRBullet>("Bullet");

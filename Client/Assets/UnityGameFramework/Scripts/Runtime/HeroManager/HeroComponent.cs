@@ -353,6 +353,7 @@ namespace UnityGameFramework.Runtime
 
             ListPool<EntityQizi>.Release(tempEntityList);
             OnLogicUpdateBullet(elapseSeconds, realElapseSeconds);
+            UpdateDamageNumber(elapseSeconds,realElapseSeconds);
         }
 
         public void OnEntityDead(EntityQizi qizi)
