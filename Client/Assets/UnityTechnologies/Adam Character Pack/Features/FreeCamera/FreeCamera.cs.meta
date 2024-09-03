@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 914d865d1e3e9429ba78b8735e5bb2d5
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 74842
+  packageName: 'Adam Character Pack: Adam, Guard, Lu'
+  packageVersion: 2021.3
+  assetPath: Assets/UnityTechnologies/Adam Character Pack/Features/FreeCamera/FreeCamera.cs
+  uploadId: 562519

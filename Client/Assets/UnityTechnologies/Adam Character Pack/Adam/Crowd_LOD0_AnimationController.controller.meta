@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: db79048e638701443940a2318c5a7d8b
+timeCreated: 1473243814
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 74842
+  packageName: 'Adam Character Pack: Adam, Guard, Lu'
+  packageVersion: 2021.3
+  assetPath: Assets/UnityTechnologies/Adam Character Pack/Adam/Crowd_LOD0_AnimationController.controller
+  uploadId: 562519

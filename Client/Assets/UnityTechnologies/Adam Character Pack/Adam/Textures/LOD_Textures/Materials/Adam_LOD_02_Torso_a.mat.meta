@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ddad0d9c9644f4543bf021dbd088990d
+timeCreated: 1477772962
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 74842
+  packageName: 'Adam Character Pack: Adam, Guard, Lu'
+  packageVersion: 2021.3
+  assetPath: Assets/UnityTechnologies/Adam Character Pack/Adam/Textures/LOD_Textures/Materials/Adam_LOD_02_Torso_a.mat
+  uploadId: 562519

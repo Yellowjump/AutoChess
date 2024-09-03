@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7a2c2857ec451455f999540f490e2bf8
+timeCreated: 1501712903
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 74842
+  packageName: 'Adam Character Pack: Adam, Guard, Lu'
+  packageVersion: 2021.3
+  assetPath: Assets/UnityTechnologies/Adam Character Pack/license.txt
+  uploadId: 562519
