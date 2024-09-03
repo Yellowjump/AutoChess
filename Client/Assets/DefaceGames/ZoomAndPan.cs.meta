@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 61bae10751afecb4fb2a25e7adf1631d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 259318
+  packageName: Fantasy Map Assets Pack Lite
+  packageVersion: 1.0.2
+  assetPath: Assets/DefaceGames/ZoomAndPan.cs
+  uploadId: 606215
