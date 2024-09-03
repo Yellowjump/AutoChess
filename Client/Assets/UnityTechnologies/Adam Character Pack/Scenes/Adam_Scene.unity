@@ -1334,6 +1334,7 @@ GameObject:
   m_Component:
   - component: {fileID: 530365446}
   - component: {fileID: 530365445}
+  - component: {fileID: 530365447}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -1417,6 +1418,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 198350968}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &530365447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 530365444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
 --- !u!850595691 &772763601
 LightingSettings:
   m_ObjectHideFlags: 0
@@ -3710,6 +3734,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: ba3b208d3cc18d045b09b5af1e7925cb, type: 2}
     - target: {fileID: 2300172, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300172, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 371d27e98fd444d4c9de7b8acb1fe669, type: 2}
@@ -3720,6 +3748,10 @@ PrefabInstance:
     - target: {fileID: 9500000, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
       propertyPath: m_ApplyRootMotion
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 13700002, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 13700002, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -3733,6 +3765,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[2]'
       value: 
       objectReference: {fileID: 2100000, guid: a8bea89b2f705cc46925cd7427a523e6, type: 2}
+    - target: {fileID: 13700004, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 13700004, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -3782,6 +3818,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: ec4e14df88f64804391814f9533ae8ab, type: 2}
     - target: {fileID: 13700016, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 13700016, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: e10fef699645e904ca433c0ee0db622e, type: 2}
@@ -3794,9 +3834,17 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: 07925cd01561e234a9ea2ee639a7fcc8, type: 2}
     - target: {fileID: 13700018, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 13700018, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 76e465ee227cff34895e485b5d7647bb, type: 2}
+    - target: {fileID: 13700022, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 13700022, guid: f12f2d44b2688054986e54861cc211dc, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -4950,6 +4998,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1089795092}
   - component: {fileID: 1089795091}
+  - component: {fileID: 1089795093}
   m_Layer: 0
   m_Name: Spotlight
   m_TagString: Untagged
@@ -5033,6 +5082,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 198350968}
   m_LocalEulerAnglesHint: {x: 48.149002, y: 0, z: 0}
+--- !u!114 &1089795093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1089795090}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
 --- !u!1001 &1577064253
 PrefabInstance:
   m_ObjectHideFlags: 0
