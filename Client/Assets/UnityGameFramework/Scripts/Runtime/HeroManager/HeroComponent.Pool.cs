@@ -61,6 +61,74 @@ namespace UnityGameFramework.Runtime
             }
         }
 
+        public class HpBar : IReference
+        {
+            public GameObject HpBarObj;
+            public EntityQizi Owner;
+            public void Clear()
+            {
+                Owner = null;
+                GameEntry.HeroManager.ReleaseGameObject(HpBarPerfabPath, HpBarObj);
+                HpBarObj = null;
+            }
+
+            public void UpdataMoveHpBar(float elapseSeconds, float realElapseSeconds)
+            {
+                if (HpBarObj == null)
+                {
+                    return;
+                }
+                HpBarObj.transform.position = Owner.LogicPosition+Vector3.up*2;
+            }
+        }
+        public const string HpBarPerfabPath = "Assets/Prefeb/UIPrefab/xuetiao_qizi.prefab";
+        public List<HpBar> WaitHpBarList = new List<HpBar>();
+        public List<HpBar> PlayingHpBarList = new List<HpBar>();
+        
+        public void AddHpBar(EntityQizi qizi)
+        {
+            var newHpBar = ReferencePool.Acquire<HpBar>();
+            var hpBarPerfabPath = HpBarPerfabPath;
+            newHpBar.Owner = qizi;
+            qizi.HpBar = newHpBar;
+            WaitHpBarList.Add(newHpBar);
+            GetNewObjFromPool(hpBarPerfabPath, OnLoadOneNewHpBarPrefab);
+        }
+        private void OnLoadOneNewHpBarPrefab(GameObject obj)
+        {
+            if (GameEntry.HeroManager.WaitHpBarList != null && GameEntry.HeroManager.WaitHpBarList.Count > 0)
+            {
+                var oneHpBar = GameEntry.HeroManager.WaitHpBarList[0];
+                oneHpBar.HpBarObj = obj;
+                //设置canvas
+                Canvas canvas = m_InstanceWorldCanvas.GetComponent<Canvas>();
+                oneHpBar.HpBarObj.transform.SetParent(canvas.transform);
+                //设置pos
+                oneHpBar.HpBarObj.transform.forward = Camera.main.transform.forward;
+                oneHpBar.HpBarObj.transform.position = oneHpBar.Owner.LogicPosition+Vector3.up*2;
+                //绑定棋子血条
+                oneHpBar.Owner.xuetiao=obj.transform.Find("xuetiao").GetComponent<Slider>();
+                oneHpBar.Owner.power= obj.transform.Find("pow").GetComponent<Slider>();
+                //设置动画回调
+                WaitHpBarList.Remove(oneHpBar);
+                PlayingHpBarList.Add(oneHpBar);
+            }
+            else
+            {
+                ReleaseGameObject(HpBarPerfabPath,obj);
+            }
+        }
+        private void UpdateHpBar(float elapseSeconds, float realElapseSeconds)
+        {
+            var runList = ListPool<HpBar>.Get();
+            runList.AddRange(PlayingHpBarList);
+            foreach (var oneHpBar in runList)
+            {
+                oneHpBar.UpdataMoveHpBar(elapseSeconds,realElapseSeconds);
+            }
+            ListPool<HpBar>.Release(runList);
+        }
+        
         public class DamageNumber:IReference
         {
             public int num;
@@ -106,11 +174,10 @@ namespace UnityGameFramework.Runtime
                     GameEntry.HeroManager.PlayingDmgNumberList.Remove(this);
                     ReferencePool.Release(this);
                 }
-                
             }
         }
 
-        public const string DamageNumberPerfabPath = "Assets/Prefeb/DamageNumber/DamageNumber.prefab";
+        public const string DamageNumberPerfabPath = "Assets/Prefeb/UIPrefab/DamageNumber.prefab";
         private List<DamageNumber> WaitDmgNumberList = new List<DamageNumber>();
         private List<DamageNumber> PlayingDmgNumberList = new List<DamageNumber>();
         public void ShowDamageNum(CauseDamageData data)

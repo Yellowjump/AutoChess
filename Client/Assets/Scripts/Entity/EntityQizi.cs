@@ -1,10 +1,7 @@
-using GameFramework.Fsm;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using DataTable;
+using GameFramework;
 using SkillSystem;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
@@ -27,7 +24,7 @@ namespace Entity
         public float gongjiDistence;//攻击距离
 
         public float AtkSpeed=1;//每秒攻击次数
-        
+        public HeroComponent.HpBar HpBar;
         public Slider xuetiao;
         public Slider power;
         public Image levelImage;
@@ -53,6 +50,9 @@ namespace Entity
 
         public override void InitGObj()
         {
+            //添加血条预制体到worldcanvas
+            GameEntry.HeroManager.AddHpBar(this);
+            
             GameEntry.HeroManager.GetHeroObjByID(HeroID,OnGetHeroGObjCallback);
         }
 
@@ -63,9 +63,7 @@ namespace Entity
             GObj.transform.position = LogicPosition;
             GObj.transform.localScale = Vector3.one;
             GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
-            xuetiao = GObj.transform.Find("xuetiao_qizi/xuetiao").GetComponent<Slider>();
-            power = GObj.transform.Find("xuetiao_qizi/pow").GetComponent<Slider>();
-            levelImage = this.GObj.transform.Find("xuetiao_qizi/level").GetComponent<Image>();
+            
             animator = this.GObj.GetComponent<Animator>();
             UpdateShowSlider();//加载完obj就刷新一次
         }
@@ -135,9 +133,12 @@ namespace Entity
 
         public void OnDead()
         {
+            
+            ReferencePool.Release(HpBar);
             IsValid = false;
             GameEntry.HeroManager.OnEntityDead(this);
             GObj?.SetActive(false);
         }
+
     }
 }
