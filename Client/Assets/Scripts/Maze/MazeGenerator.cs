@@ -248,7 +248,7 @@ namespace Maze
                 }
                 if (point.Pos.x == 0 && point.Pos.y == 0)
                 {
-                    point.CurType = MazePointType.Event;
+                    point.CurType = MazePointType.Store;
                     point.CanSee = true;
                     point.CurPassState = MazePoint.PointPassState.Unlock;
                 }

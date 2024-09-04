@@ -39,11 +39,13 @@ public class ExcelToTxtConverter : EditorWindow
         if (GUILayout.Button("Convert Selected Files"))
         {
             ConvertSelectedExcelToTxt();
+            DataTable.Editor.DataTableTools.DataTableGeneratorMenu.GenerateDataTables();
         }
 
         if (GUILayout.Button("Convert All Files"))
         {
             ConvertAllExcelToTxt();
+            DataTable.Editor.DataTableTools.DataTableGeneratorMenu.GenerateDataTables();
         }
     }
 

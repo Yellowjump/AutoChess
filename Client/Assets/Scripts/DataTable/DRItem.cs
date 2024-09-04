@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-08-31 11:43:49.377
+// 生成时间：2024-09-04 18:35:40.436
 //------------------------------------------------------------
 
 using GameFramework;
@@ -102,6 +102,15 @@ namespace DataTable
             private set;
         }
 
+        /// <summary>
+        /// 获取商店售价。
+        /// </summary>
+        public int StoreCoin
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -120,6 +129,7 @@ namespace DataTable
                 CraftList = DataTableExtension.ParseListIntInt(columnStrings[index++]);
                 AttrAdd = DataTableExtension.ParseListIntInt(columnStrings[index++]);
             SkillID = int.Parse(columnStrings[index++]);
+            StoreCoin = int.Parse(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -139,6 +149,7 @@ namespace DataTable
                         CraftList = binaryReader.ReadListIntInt();
                         AttrAdd = binaryReader.ReadListIntInt();
                     SkillID = binaryReader.Read7BitEncodedInt32();
+                    StoreCoin = binaryReader.Read7BitEncodedInt32();
                 }
             }
 

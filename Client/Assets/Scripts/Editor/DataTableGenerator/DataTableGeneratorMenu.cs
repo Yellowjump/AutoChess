@@ -15,7 +15,7 @@ namespace DataTable.Editor.DataTableTools
     public sealed class DataTableGeneratorMenu
     {
         [MenuItem("Tools/Generate DataTables", false, 1)]
-        private static void GenerateDataTables()
+        public static void GenerateDataTables()
         {
             foreach (string dataTableName in GetDataTableNames())
             {

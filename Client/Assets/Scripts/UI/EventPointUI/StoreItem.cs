@@ -3,41 +3,19 @@ using DataTable;
 using GameFramework.Resource;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 
-public class BattleBagItem:MonoBehaviour
+public class StoreItem:MonoBehaviour
 {
-    public enum ItemType
-    {
-        /// <summary>
-        /// 在背包中，点击参与合成
-        /// </summary>
-        Bag,
-        /// <summary>
-        /// 在合成中，点击退出合成列表
-        /// </summary>
-        InJoinCraft,
-        /// <summary>
-        /// 合成结果
-        /// </summary>
-        CraftResult,
-        /// <summary>
-        /// 英雄装备
-        /// </summary>
-        HeroEquip,
-    }
-
-    public ItemType CurItemType = ItemType.Bag;
     public Image Icon;
     public Image Rarity;
     public Button BtnClick;
-    public TextMeshProUGUI ItemNumTmp;
-    public TextMeshProUGUI ItemNameTmp;
+    public TextMeshProUGUI ItemStoreCast;
 
     public int ItemID;
-    public int itemNum = 0;
-    public Action<BattleBagItem> OnClickPointCallback;
+    public Action<StoreItem> OnClickPointCallback;
     private LoadAssetCallbacks _loadIconCallback;
     public void Init()
     {
@@ -54,8 +32,7 @@ public class BattleBagItem:MonoBehaviour
             return;
         }
 
-        ItemNameTmp.text = itemTable[ItemID].Name;
-        FreshNum();
+        ItemStoreCast.text = "<sprite=7>" + itemTable[ItemID].StoreCoin.ToString();
         var itemData = itemTable[ItemID];
         var assetsTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
         if (!assetsTable.HasDataRow(itemData.IconID))
@@ -74,11 +51,6 @@ public class BattleBagItem:MonoBehaviour
         {
             GameEntry.Resource.UnloadAsset(Icon.sprite);
         }
-    }
-    public void FreshNum()
-    {
-        ItemNumTmp.gameObject.SetActive(CurItemType is ItemType.Bag or ItemType.InJoinCraft);
-        ItemNumTmp.text = itemNum.ToString();
     }
     private void OnIconLoadSuccessCallback(string assetName, object asset, float duration, object userData)
     {

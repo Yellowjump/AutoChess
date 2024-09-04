@@ -31,7 +31,15 @@ public class BattleRewardItem:MonoBehaviour
 
         var itemData = itemTable[ItemID];
         Name.text = itemData.Name;
-        GameEntry.Resource.LoadAsset("Assets/Image/Icons/ItemIcon/axe.png",typeof(Sprite),_loadIconCallback);
+        var assetsTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
+        if (!assetsTable.HasDataRow(itemData.IconID))
+        {
+            Log.Error($"assetsTable Table not Contain {itemData.IconID}");
+            return;
+        }
+
+        var assetData = assetsTable[itemData.IconID];
+        GameEntry.Resource.LoadAsset(assetData.AssetPath,typeof(Sprite),_loadIconCallback);
     }
 
     private void OnIconLoadSuccessCallback(string assetName, object asset, float duration, object userData)

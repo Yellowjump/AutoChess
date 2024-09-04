@@ -5,12 +5,22 @@
 	101	启动场景	Assets/GameMain/Scenes/GameStart/GameStart.unity
 #UI(1000开始)			
 	1001	主菜单	Assets/GameMain/UI/UIForms/UIMainMenuForm.prefab
-	1101	测试的事件UI	Assets/UIPrefab/EventPointUI/event_battleorlosecoin.prefab
+	1101	测试的事件UI	Assets/Prefeb/UIPrefab/EventPointUI/event_battleorlosecoin.prefab
+	1102	商店界面	Assets/Prefeb/UIPrefab/EventPointUI/event_store.prefab
 #Item(2000			
 	2000	测试子弹	Assets/Prefeb/Bullets/bullet_handle.prefab
 	2001	关卡选择按钮	Assets/GameMain/UI/Dynamic/LevelSelectionButton.prefab
 	2002	构建炮塔按钮	Assets/GameMain/UI/Dynamic/TowerBuildButton.prefab
 #Entity(3000			
 	3001	角色test	Assets/Prefeb/Charactor/qizi0/unitychan.prefab
+#Sprite(4000			
+	4000	苹果	Assets/Image/Icons/ItemIcon/Apple.png
+	4001	斧头	Assets/Image/Icons/ItemIcon/FreeFolkAxe.png
+	4002	子弹	Assets/Image/Icons/ItemIcon/BattleBow.png
+	4003	匕首	Assets/Image/Icons/ItemIcon/AssassinDagger.png
+	4004	护甲板	Assets/Image/Icons/ItemIcon/SteelTowerShield.png
+	4005	动能引擎	Assets/Image/Icons/ItemIcon/SmallPotion.png
+	4501	旋转斧头	Assets/Image/Icons/ItemIcon/BerserkAxe.png
+	4502	反甲	Assets/Image/Icons/ItemIcon/GreyKnight.png
 #Sound(10000			
 #			

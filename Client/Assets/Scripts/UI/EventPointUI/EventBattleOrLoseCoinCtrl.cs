@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 
-public class EventBattleOrLoseCoin : UIFormLogic
+public class EventBattleOrLoseCoinCtrl : UIFormLogic
 {
     [SerializeField]
     private Button _btnLoseCoin;
