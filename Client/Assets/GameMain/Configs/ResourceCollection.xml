@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<UnityGameFramework>
+  <ResourceCollection>
+    <Resources>
+      <Resource Name="Icon" LoadType="0" Packed="False" />
+    </Resources>
+    <Assets />
+  </ResourceCollection>
+</UnityGameFramework>
