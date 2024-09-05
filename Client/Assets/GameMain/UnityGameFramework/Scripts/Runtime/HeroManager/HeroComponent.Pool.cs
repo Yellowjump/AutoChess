@@ -72,7 +72,7 @@ namespace UnityGameFramework.Runtime
                 HpBarObj = null;
             }
 
-            public void UpdataMoveHpBar(float elapseSeconds, float realElapseSeconds)
+            public void UpdataMoveHpBar()
             {
                 if (HpBarObj == null)
                 {
@@ -118,13 +118,13 @@ namespace UnityGameFramework.Runtime
                 ReleaseGameObject(HpBarPerfabPath,obj);
             }
         }
-        private void UpdateHpBar(float elapseSeconds, float realElapseSeconds)
+        private void UpdateHpBar()
         {
             var runList = ListPool<HpBar>.Get();
             runList.AddRange(PlayingHpBarList);
             foreach (var oneHpBar in runList)
             {
-                oneHpBar.UpdataMoveHpBar(elapseSeconds,realElapseSeconds);
+                oneHpBar.UpdataMoveHpBar();
             }
             ListPool<HpBar>.Release(runList);
         }
