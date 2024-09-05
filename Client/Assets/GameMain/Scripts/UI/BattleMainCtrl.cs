@@ -78,6 +78,7 @@ public class BattleMainCtrl : UIFormLogic
                     qizi.LogicPosition = hitPoint + Vector3.up*0.5f;
                 
                 }
+                qizi.HpBar.UpdataMoveHpBar();
                 if (Input.GetMouseButtonUp(0))//抬起鼠标并且当前有拉起己方棋子，放下棋子
                 {
                     GetOrNotGetQizi = false;
@@ -96,8 +97,10 @@ public class BattleMainCtrl : UIFormLogic
                         //不在格子中释放qizi
                         qizi.LogicPosition = GameEntry.HeroManager.GetGeziPos(qizi.rowIndex,qizi.columnIndex);
                     }
+                    qizi.HpBar.UpdataMoveHpBar();
                     qizi = null;
                 }
+                
             }
         }
         base.OnUpdate(elapseSeconds, realElapseSeconds);
