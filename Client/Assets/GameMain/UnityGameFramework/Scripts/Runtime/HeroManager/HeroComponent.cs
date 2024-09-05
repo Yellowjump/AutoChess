@@ -41,6 +41,9 @@ namespace UnityGameFramework.Runtime
         {
             Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right, Vector2Int.left+Vector2Int.up, Vector2Int.left+ Vector2Int.down
         };
+        public GameObject QigePrefab;
+        [SerializeField]
+        private Transform m_QigeRoot = null;
         protected override void Awake()
         {
             base.Awake();
@@ -59,10 +62,32 @@ namespace UnityGameFramework.Runtime
                 m_InstanceDisableRoot.localScale = Vector3.one;
                 m_InstanceDisableRoot.gameObject.SetActive(false);
             }
-
+            if (m_QigeRoot == null)
+            {
+                m_QigeRoot = new GameObject("Instances_QigeRoot").transform;
+                m_QigeRoot.SetParent(gameObject.transform);
+                m_QigeRoot.localScale = Vector3.one;
+            }
             if (m_InstanceWorldCanvas == null)
             {
                 m_InstanceWorldCanvas = GameObject.Find("WorldCanvas").GetComponent<Canvas>();
+            }
+        }
+
+        private void Start()
+        {
+            var offsetX = -3.5f;
+            var offsetZ = -3;
+            for (int i = 0; i < 8; i++)
+            {
+                var startPosX = i % 2 == 0 ? 0.5f : 0f;
+                for (int indexX = 0; indexX < 7; indexX++)
+                {
+                    Vector3 pos = new Vector3(startPosX + indexX+offsetX, 0, offsetZ+Mathf.Sqrt(3) * i / 2);
+                    GameObject qg = Instantiate(QigePrefab, pos, Quaternion.Euler(0, 0, 0));
+                    qg.transform.parent = m_QigeRoot;
+                    qigepos[i][indexX] = pos;
+                }
             }
         }
 

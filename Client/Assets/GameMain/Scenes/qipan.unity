@@ -340,55 +340,8 @@ Transform:
   m_LocalPosition: {x: 0, y: -0.3, z: 0}
   m_LocalScale: {x: 12, y: 0.3, z: 10}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 573954246}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &573954244
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 573954246}
-  - component: {fileID: 573954245}
-  m_Layer: 0
-  m_Name: qipan
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &573954245
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 573954244}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66d05faa70756b94a88cc5a02069a143, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  qige: {fileID: 3531539621356819610, guid: 91aa2c49f43eccc44b105cd62b643063, type: 3}
-  qige2: {fileID: 613257466680777229, guid: 0ef37d727bf3b084ea936ae8a8840f79, type: 3}
---- !u!4 &573954246
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 573954244}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.083333336, y: 3.333333, z: 0.1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 535097042}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &624110765 stripped
 Transform:
@@ -661,6 +614,10 @@ PrefabInstance:
       propertyPath: m_EditorResourceMode
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 101547476716185174, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: QigePrefab
+      value: 
+      objectReference: {fileID: 613257466680777229, guid: 0ef37d727bf3b084ea936ae8a8840f79, type: 3}
     - target: {fileID: 774146608696107557, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_ClearFlags
       value: 4
