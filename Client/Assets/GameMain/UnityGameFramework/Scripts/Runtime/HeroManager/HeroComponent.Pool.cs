@@ -178,7 +178,7 @@ namespace UnityGameFramework.Runtime
         }
 
 
-        public const string DamageNumberPerfabPath = "Assets/GameMain/Prefeb/DamageNumber/DamageNumber.prefab";
+        public const string DamageNumberPerfabPath = "Assets/GameMain/Prefeb/UIPrefab/DamageNumber.prefab";
         private List<DamageNumber> WaitDmgNumberList = new List<DamageNumber>();
         private List<DamageNumber> PlayingDmgNumberList = new List<DamageNumber>();
         public void ShowDamageNum(CauseDamageData data)
