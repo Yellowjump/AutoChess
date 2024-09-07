@@ -1,5 +1,6 @@
 using System.IO;
 using DataTable;
+using GameFramework;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
@@ -12,7 +13,8 @@ namespace SkillSystem
         /// 是否创建buff表中的buff
         /// </summary>
         public bool UseTemplateBuff;
-        public TableParamInt BuffID = new TableParamInt();
+
+        public TableParamInt BuffID;
         /// <summary>
         /// <para>UseTemplateBuff 是 false时是临时buff（id为0）</para>
         /// <para>UseTemplateBuff 是 true时是 表格中的buff</para>
@@ -54,6 +56,7 @@ namespace SkillSystem
                                 newBuff.BuffID = buffData.Id;
                                 newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
                                 newBuff.DurationMs = buffData.Duration;
+                                newBuff.MaxLayerNum = buffData.MaxLayerNum;
                                 newBuff.SetSkillValue(buffData);
                                 newBuff.Owner = trigger.CurTarget;
                                 trigger.CurTarget.AddBuff(newBuff);
@@ -129,6 +132,17 @@ namespace SkillSystem
             {
                 BuffID.SetSkillValue(dataTable);
             }
+        }
+
+        public override void Clear()
+        {
+            if (TemporaryBuff != null)
+            {
+                ReferencePool.Release(TemporaryBuff);
+                TemporaryBuff = null;
+            }
+            ReferencePool.Release(BuffID);
+            BuffID = null;
         }
     }
 }

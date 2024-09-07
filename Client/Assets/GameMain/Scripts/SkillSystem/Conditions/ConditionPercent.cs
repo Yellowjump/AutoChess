@@ -43,5 +43,14 @@ namespace SkillSystem
         {
             PercentTarget.SetSkillValue(dataTable);
         }
+
+        public override void Clear()
+        {
+            if (PercentTarget != null)
+            {
+                ReferencePool.Release(PercentTarget);
+                PercentTarget = null;
+            }
+        }
     }
 }

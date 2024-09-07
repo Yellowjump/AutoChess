@@ -1,11 +1,12 @@
 using System;
 using System.IO;
 using DataTable;
+using GameFramework;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
 {
-    public class TableParamInt
+    public class TableParamInt:IReference
     {
         public int Value;
         public GenerateEnumDataTables CurMatchTable;
@@ -46,6 +47,13 @@ namespace SkillSystem
                     Value = buffTable.GetFieldValue<int>((DRBuffField)CurMatchPropertyIndex);
                 }
             }
+        }
+
+        public void Clear()
+        {
+            Value = 0;
+            CurMatchTable = GenerateEnumDataTables.None;
+            CurMatchPropertyIndex = 0;
         }
     }
 }

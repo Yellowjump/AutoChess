@@ -1,11 +1,12 @@
 using System;
 using System.IO;
 using Entity;
+using GameFramework;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
 {
-    public class TargetPickerBase
+    public class TargetPickerBase:IReference
     {
         public OneTrigger ParentTrigger;
         public virtual TargetPickerType CurTargetPickerType => TargetPickerType.NoTarget;
@@ -28,6 +29,11 @@ namespace SkillSystem
             
         }
         public virtual void SetSkillValue(DataRowBase dataTable)
+        {
+            
+        }
+
+        public void Clear()
         {
             
         }

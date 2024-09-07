@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using DataTable;
 using UnityGameFramework.Runtime;
+using GameFramework;
+using UnityEngine.Pool;
 
 namespace SkillSystem
 {
@@ -11,17 +13,29 @@ namespace SkillSystem
             switch (type)
             {
                 case CommandType.DoNothing:
-                    return new CommandBase();
+                    return ReferencePool.Acquire<CommandBase>();
                 case CommandType.CauseDamage:
-                    return new CommandCauseDamage();
+                    var commandCauseDamage = ReferencePool.Acquire<CommandCauseDamage>();
+                    commandCauseDamage.ParamInt1 = CreateTableParamInt();
+                    commandCauseDamage.ParamInt2 = CreateTableParamInt();
+                    commandCauseDamage.ParamInt3 = CreateTableParamInt();
+                    return commandCauseDamage;
                 case CommandType.CreateBuff:
-                    return new CommandCreateBuff();
+                    var commandCauseBuff = ReferencePool.Acquire<CommandCreateBuff>();
+                    commandCauseBuff.BuffID = CreateTableParamInt();
+                    return commandCauseBuff;
                 case CommandType.PlayAnim:
-                    return new CommandPlayAnim();
+                    var commandPlayAnim = ReferencePool.Acquire<CommandPlayAnim>();
+                    commandPlayAnim.AnimName = CreateTableParamString();
+                    return commandPlayAnim;
                 case CommandType.CreateBullet:
-                    return new CommandCreateBullet();
+                    var commandCauseBullet = ReferencePool.Acquire<CommandCreateBullet>();
+                    commandCauseBullet.ParamInt1 = CreateTableParamInt();
+                    commandCauseBullet.CurBulletID = CreateTableParamInt();
+                    commandCauseBullet.BulletTrigger = CreateNewEmptyTriggerList();
+                    return commandCauseBullet;
                 default:
-                    return new CommandBase();
+                    return ReferencePool.Acquire<CommandBase>();
             }
         }
         public static ConditionBase CreateCondition(ConditionType type)
@@ -29,15 +43,21 @@ namespace SkillSystem
             switch (type)
             {
                 case ConditionType.NoCondition:
-                    return new ConditionBase();
+                    return ReferencePool.Acquire<ConditionBase>();
                 case ConditionType.ConditionGroup:
-                    return new ConditionGroup();
+                    var conditionGroup = ReferencePool.Acquire<ConditionGroup>();
+                    conditionGroup.ConditionList = ListPool<ConditionBase>.Get();
+                    return conditionGroup;
                 case ConditionType.Percentage:
-                    return new ConditionPercent();
+                    var conditionPercent = ReferencePool.Acquire<ConditionPercent>();
+                    conditionPercent.PercentTarget = CreateTableParamInt();
+                    return conditionPercent;
                 case ConditionType.Timed:
-                    return new ConditionTimed();
+                    var conditionTimed = ReferencePool.Acquire<ConditionTimed>();
+                    conditionTimed.TimeIntervalMs = CreateTableParamInt();
+                    return conditionTimed;
                 default:
-                    return new ConditionBase();
+                    return ReferencePool.Acquire<ConditionBase>();
             }
         }
         public static TargetPickerBase CreateTargetPicker(TargetPickerType type)
@@ -45,61 +65,72 @@ namespace SkillSystem
             switch (type)
             {
                 case TargetPickerType.NoTarget:
-                    return new TargetPickerBase();
+                    return ReferencePool.Acquire<TargetPickerBase>();
                 case TargetPickerType.SkillCasterCurTarget:
-                    return new TargetPickerSkillCasterCurTarget();
+                    return ReferencePool.Acquire<TargetPickerSkillCasterCurTarget>();
                 case TargetPickerType.SkillCaster:
-                    return new TargetPickerSkillCaster();
+                    return ReferencePool.Acquire<TargetPickerSkillCaster>();
                 case TargetPickerType.Arg:
-                    return new TargetPickerArg();
+                    return ReferencePool.Acquire<TargetPickerArg>();
                 case TargetPickerType.TriggerOwner:
-                    return new TargetPickerTriggerOwner();
+                    return ReferencePool.Acquire<TargetPickerTriggerOwner>();
                 case TargetPickerType.RelatedDamageTarget:
-                    return new TargetPickerRelatedDamageTarget();
+                    return ReferencePool.Acquire<TargetPickerRelatedDamageTarget>();
                 default:
-                    return new TargetPickerBase();
+                    return ReferencePool.Acquire<TargetPickerBase>();
             }
         }
 
+        public static TableParamInt CreateTableParamInt()
+        {
+            return ReferencePool.Acquire<TableParamInt>();
+        }
+        public static TableParamString CreateTableParamString()
+        {
+            return ReferencePool.Acquire<TableParamString>();
+        }
         public static TriggerList CreateNewEmptyTriggerList(Skill skill = null)
         {
-            var emptyTriggerList = new TriggerList();
+            var emptyTriggerList = ReferencePool.Acquire<TriggerList>();
+            emptyTriggerList.CurTriggerList = ListPool<OneTrigger>.Get();
             emptyTriggerList.ParentSkill = skill;
             return emptyTriggerList;
         }
         public static OneTrigger CreateNewDefaultTrigger()
         {
-            var emptyTrigger = new OneTrigger
-            {
-                CurCondition = CreateCondition(ConditionType.NoCondition),
-                CurTargetPicker = CreateTargetPicker(TargetPickerType.NoTarget),
-            };
+            var emptyTrigger =  ReferencePool.Acquire<OneTrigger>();
+            emptyTrigger.CurCommandList = ListPool<CommandBase>.Get();
+            emptyTrigger.CurCondition = CreateCondition(ConditionType.NoCondition);
+            emptyTrigger.CurTargetPicker = CreateTargetPicker(TargetPickerType.NoTarget);
             return emptyTrigger;
         }
         public static OneTrigger CreateNewEmptyTrigger()
         {
-            var emptyTrigger = new OneTrigger();
+            var emptyTrigger = ReferencePool.Acquire<OneTrigger>();
+            emptyTrigger.CurCommandList = ListPool<CommandBase>.Get();
             return emptyTrigger;
         }
 
         public static Buff CreateNewBuff()
         {
-            var newBuff = new Buff();
+            var newBuff = ReferencePool.Acquire<Buff>();
+            newBuff.CurTriggerList = ListPool<OneTrigger>.Get();
             return newBuff;
         }
 
         public static Skill CreateNewSkill()
         {
-            var newSkill = new Skill();
-            newSkill.OwnTriggerList = CreateNewEmptyTriggerList(newSkill);
+            var newSkill = ReferencePool.Acquire<Skill>();
+            newSkill.CurTriggerList = ListPool<OneTrigger>.Get();
+            newSkill.ParentSkill = newSkill;
             return newSkill;
         }
 
         public static Skill CreateDefaultSkill()
         {
-            var newSkill = new Skill();
-            newSkill.OwnTriggerList = CreateNewEmptyTriggerList();
-            
+            var newSkill = ReferencePool.Acquire<Skill>();;
+            newSkill.CurTriggerList = ListPool<OneTrigger>.Get();
+            newSkill.ParentSkill = newSkill;
             var playAniTrigger = CreateNewEmptyTrigger();
             playAniTrigger.CurTriggerType = TriggerType.OnActive;
             playAniTrigger.CurCondition = CreateCondition(ConditionType.NoCondition);;
@@ -111,13 +142,13 @@ namespace SkillSystem
                 playAniCommand.AnimName.CurMatchPropertyIndex = (int)DRSkillField.SkillAnim;
                 playAniTrigger.CurCommandList.Add(playAniCommand);
             }
-            newSkill.OwnTriggerList.CurTriggerList.Add(playAniTrigger);
+            newSkill.CurTriggerList.Add(playAniTrigger);
 
             var beforeShakeEndTrigger = CreateNewEmptyTrigger();
             beforeShakeEndTrigger.CurTriggerType = TriggerType.SkillBeforeShakeEnd;
             beforeShakeEndTrigger.CurCondition = CreateCondition(ConditionType.NoCondition);;
             beforeShakeEndTrigger.CurTargetPicker = CreateTargetPicker(TargetPickerType.SkillCasterCurTarget);
-            newSkill.OwnTriggerList.CurTriggerList.Add(beforeShakeEndTrigger);
+            newSkill.CurTriggerList.Add(beforeShakeEndTrigger);
             
             return newSkill;
         }

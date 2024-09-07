@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
+using GameFramework;
+using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
@@ -8,7 +10,7 @@ namespace SkillSystem
     {
         public override ConditionType CurConditionType => ConditionType.ConditionGroup;
         public LogicOperator CurLogicOperator = LogicOperator.And;
-        public List<ConditionBase> ConditionList = new List<ConditionBase>();
+        public List<ConditionBase> ConditionList;
         public override bool OnCheck(OneTrigger trigger,object arg = null)
         {
             if (ConditionList == null || ConditionList.Count == 0)
@@ -85,6 +87,19 @@ namespace SkillSystem
             foreach (var oneCondition in ConditionList)
             {
                 oneCondition.SetSkillValue(dataTable);
+            }
+        }
+
+        public override void Clear()
+        {
+            if (ConditionList != null)
+            {
+                foreach (var oneCondition in ConditionList)
+                {
+                    ReferencePool.Release(oneCondition);
+                }
+                ListPool<ConditionBase>.Release(ConditionList);
+                ConditionList = null;
             }
         }
     }

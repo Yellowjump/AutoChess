@@ -1,17 +1,19 @@
 using System.Collections.Generic;
 using System.IO;
 using Entity;
+using GameFramework;
+using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
 {
-    public class OneTrigger
+    public class OneTrigger:IReference
     {
         public TriggerList ParentTriggerList;
         public TriggerType CurTriggerType;
         public ConditionBase CurCondition;
         public TargetPickerBase CurTargetPicker;
-        public List<CommandBase> CurCommandList = new List<CommandBase>();
+        public List<CommandBase> CurCommandList;
         public EntityBase CurTarget;
         public void OnActive()
         {
@@ -111,6 +113,32 @@ namespace SkillSystem
             {
                 oneCommand.SetSkillValue(dataTable);
             }
+        }
+
+        public void Clear()
+        {
+            ParentTriggerList = null;
+            CurTriggerType = TriggerType.OnActive;
+            if (CurCondition != null)
+            {
+                ReferencePool.Release(CurCondition);
+                CurCondition = null;
+            }
+            if (CurTargetPicker != null)
+            {
+                ReferencePool.Release(CurTargetPicker);
+                CurTargetPicker = null;
+            }
+            if (CurCommandList != null)
+            {
+                foreach (var oneCommand in CurCommandList)
+                {
+                    ReferencePool.Release(oneCommand);
+                }
+                ListPool<CommandBase>.Release(CurCommandList);
+                CurCommandList = null;
+            }
+            CurTarget = null;
         }
     }
 }

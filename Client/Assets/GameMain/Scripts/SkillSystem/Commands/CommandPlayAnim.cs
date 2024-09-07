@@ -1,5 +1,6 @@
 using System.IO;
 using Entity;
+using GameFramework;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
@@ -7,7 +8,7 @@ namespace SkillSystem
     public class CommandPlayAnim:CommandBase
     {
         public override CommandType CurCommandType => CommandType.PlayAnim;
-        public TableParamString AnimName = new TableParamString();
+        public TableParamString AnimName;
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
             if (trigger.CurTarget != null&&trigger.CurTarget is EntityQizi qizi )
@@ -37,6 +38,12 @@ namespace SkillSystem
             {
                 AnimName.Clone(copyAnim.AnimName);
             }
+        }
+
+        public override void Clear()
+        {
+            ReferencePool.Release(AnimName);
+            AnimName = null;
         }
     }
 }

@@ -110,7 +110,6 @@ namespace Entity
         }
         public void Remove()
         {
-            animator?.Play("WAIT00");
             GameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
             GObj = null;
             DestoryState();

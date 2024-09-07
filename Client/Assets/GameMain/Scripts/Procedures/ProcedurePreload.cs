@@ -16,7 +16,7 @@ namespace Procedure
     {
         private Dictionary<string,(Type,bool)> _dataTableFlag = new Dictionary<string, (Type, bool)>();
         private Dictionary<string, bool> m_LoadedFlag = new Dictionary<string, bool>();
-
+        private bool m_ResourceLoaded = false;
         protected override void OnInit(ProcedureOwner procedureOwner)
         {
             base.OnInit(procedureOwner);
@@ -38,6 +38,7 @@ namespace Procedure
 
         private void OnInitResourceComplete()
         {
+            m_ResourceLoaded = true;
             GameEntry.Event.Subscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
             GameEntry.Event.Subscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
             PreloadDataTable();
@@ -46,7 +47,10 @@ namespace Procedure
         protected override void OnUpdate(ProcedureOwner procedureOwner, float elapseSeconds, float realElapseSeconds)
         {
             base.OnUpdate(procedureOwner, elapseSeconds, realElapseSeconds);
-
+            if (m_ResourceLoaded == false)
+            {
+                return;
+            }
             foreach (var item in m_LoadedFlag)
             {
                 if (!item.Value)

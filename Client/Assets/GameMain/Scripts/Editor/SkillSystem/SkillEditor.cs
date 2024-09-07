@@ -14,7 +14,7 @@ namespace Editor.SkillSystem
                 OldTempleteID = skill.TempleteID;
             }
             skill.TempleteID = EditorGUILayout.IntField("当前技能模板ID:", skill.TempleteID);
-            SkillSystemDrawerCenter.DrawOneInstance(skill.OwnTriggerList);
+            TriggerListEditor.DrawTriggerList(skill);
         }
         
     }

@@ -4,5 +4,9 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/GameMain/Scenes/qipan.unity
+    guid: b55d9d15d2e91904684aeff46cf0ebe3
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

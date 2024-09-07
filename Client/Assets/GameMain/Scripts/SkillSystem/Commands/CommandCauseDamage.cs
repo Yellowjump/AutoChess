@@ -31,9 +31,9 @@ namespace SkillSystem
         public override CommandType CurCommandType => CommandType.CauseDamage;
         public DamageComputeType CurDamageComputeType = DamageComputeType.NormalDamage;
         public DamageType CurDamageType;
-        public TableParamInt ParamInt1 = new TableParamInt();
-        public TableParamInt ParamInt2 = new TableParamInt();
-        public TableParamInt ParamInt3 = new TableParamInt();
+        public TableParamInt ParamInt1;
+        public TableParamInt ParamInt2;
+        public TableParamInt ParamInt3;
         public override void OnExecute(OneTrigger trigger,object arg=null)
         {
             if (trigger != null && trigger.CurTarget != null)
@@ -140,6 +140,16 @@ namespace SkillSystem
             ParamInt1.SetSkillValue(dataTable);
             ParamInt2.SetSkillValue(dataTable);
             ParamInt3.SetSkillValue(dataTable);
+        }
+
+        public override void Clear()
+        {
+            ReferencePool.Release(ParamInt1);
+            ReferencePool.Release(ParamInt2);
+            ReferencePool.Release(ParamInt3);
+            ParamInt1 = null;
+            ParamInt2 = null;
+            ParamInt3 = null;
         }
     }
 }

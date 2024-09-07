@@ -3,7 +3,9 @@ using System.IO;
 using DataTable;
 using GameFramework.DataTable;
 using Entity;
+using GameFramework;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
@@ -11,9 +13,9 @@ namespace SkillSystem
     /// <summary>
     /// 包含多个触发器的容器
     /// </summary>
-    public class TriggerList
+    public class TriggerList:IReference
     {
-        public List<OneTrigger> CurTriggerList = new List<OneTrigger>();
+        public List<OneTrigger> CurTriggerList;
         public Skill ParentSkill;
         public EntityBase Owner;
         public virtual void WriteToFile(BinaryWriter writer)
@@ -121,6 +123,21 @@ namespace SkillSystem
                     oneTrigger.OnTrigger(arg);
                 }
             }
+        }
+
+        public virtual void Clear()
+        {
+            if (CurTriggerList != null)
+            {
+                foreach (var oneTrigger in CurTriggerList)
+                {
+                    ReferencePool.Release(oneTrigger);
+                }
+                ListPool<OneTrigger>.Release(CurTriggerList);
+                CurTriggerList = null;
+            }
+            ParentSkill = null;
+            Owner = null;
         }
     }
 }

@@ -2,8 +2,108 @@
 <UnityGameFramework>
   <ResourceCollection>
     <Resources>
-      <Resource Name="Icon" LoadType="0" Packed="False" />
+      <Resource Name="All" LoadType="0" Packed="False" />
+      <Resource Name="GameMain/Scenes/qipan" LoadType="0" Packed="False" />
+      <Resource Name="Shader" LoadType="0" Packed="False" />
     </Resources>
-    <Assets />
+    <Assets>
+      <Asset Guid="055946f0860dad84c8a97f9a2f511bab" ResourceName="All" />
+      <Asset Guid="05ffddeb76949fe4aa6842e41a881875" ResourceName="All" />
+      <Asset Guid="066d134a470edbd4d945c690acd504eb" ResourceName="All" />
+      <Asset Guid="071579d59d456bc4f98e49a12319529a" ResourceName="All" />
+      <Asset Guid="07343b4f343cf3943b91a1dbc032800a" ResourceName="All" />
+      <Asset Guid="090fc9ea3181dd040ab58947557b5988" ResourceName="All" />
+      <Asset Guid="0a1826a0c12db4843bd7a7729fdba7d9" ResourceName="All" />
+      <Asset Guid="0ef37d727bf3b084ea936ae8a8840f79" ResourceName="All" />
+      <Asset Guid="10b4a16800edbb44184e8b52ba152f95" ResourceName="All" />
+      <Asset Guid="18b5567aa5fdcbd4b9d2c2aa2eb41d86" ResourceName="All" />
+      <Asset Guid="1ada902f01959d94eb5f470be9ad262d" ResourceName="All" />
+      <Asset Guid="1af59f129534c9a498a9af42522161cc" ResourceName="All" />
+      <Asset Guid="1d25acc32d10c4141a6e73f7d25dd3f1" ResourceName="All" />
+      <Asset Guid="1d43eb4790dcdf343b79d15693e6ed62" ResourceName="All" />
+      <Asset Guid="20862257a4c080645a19e2f7f9404ea2" ResourceName="All" />
+      <Asset Guid="2109077e00a4d9c409333d99672e19e0" ResourceName="All" />
+      <Asset Guid="2373192046d49cd489ab32a0e3f8e1ca" ResourceName="All" />
+      <Asset Guid="23c49ad2a50199e4b98c360d5d773bbd" ResourceName="All" />
+      <Asset Guid="2784484865e765d4194dd5d990b81290" ResourceName="All" />
+      <Asset Guid="2b882de582765ea4583f67b08a4276fe" ResourceName="All" />
+      <Asset Guid="2dc946ac73769784eb128018b86fc3be" ResourceName="All" />
+      <Asset Guid="2e165dae8bf70b444b95dca998bf7805" ResourceName="All" />
+      <Asset Guid="3215859107e8f7e4d8b4d52318560c25" ResourceName="All" />
+      <Asset Guid="3702132d4aaba7d438f5e9b904a1e2fd" ResourceName="All" />
+      <Asset Guid="39a9a6192eebf354b977880d8ae746da" ResourceName="All" />
+      <Asset Guid="3f60f4c741fa2664e810d50d6bd5b305" ResourceName="All" />
+      <Asset Guid="410161a86ded891499fffb6e083746a2" ResourceName="All" />
+      <Asset Guid="43957b1496d9f574ead4fa483cf45134" ResourceName="All" />
+      <Asset Guid="4611489083dab104ebcbb9127bfd9f72" ResourceName="All" />
+      <Asset Guid="4b6eba43649be0145862b33681f9a3ae" ResourceName="All" />
+      <Asset Guid="4fe558315d9265d45a42860b8e7d22c3" ResourceName="All" />
+      <Asset Guid="5105bd45f5df02d4290a46f835ab181c" ResourceName="All" />
+      <Asset Guid="541434b94a4b96a43a2a3b258d9c94da" ResourceName="Shader" />
+      <Asset Guid="551fdbb4ac22a89409814e2721bc8045" ResourceName="All" />
+      <Asset Guid="5cd7956ab902b504ebfd5449d2e572b6" ResourceName="Shader" />
+      <Asset Guid="615b1d723817011418eb3ace4387420b" ResourceName="All" />
+      <Asset Guid="630b46ee6f251434fbf3a55b9c428048" ResourceName="Shader" />
+      <Asset Guid="659366083e6d801468f52a500e4bdab3" ResourceName="All" />
+      <Asset Guid="6cc1e1a1545944949b30f17d19a5d00d" ResourceName="All" />
+      <Asset Guid="6d2fcb70ef83d6e44acc610660f810d0" ResourceName="All" />
+      <Asset Guid="71b37f250d1c45244bcf9c979495b813" ResourceName="All" />
+      <Asset Guid="7424a9605a8306245b474f3d274c1720" ResourceName="All" />
+      <Asset Guid="776bf8ba17da37d45b08832f846f6142" ResourceName="All" />
+      <Asset Guid="77fdd53358e08754386a5bde84d3f8ba" ResourceName="Shader" />
+      <Asset Guid="7ae956b4f54394e80818898d8f4d30c6" ResourceName="All" />
+      <Asset Guid="7c07cd629d1883840bba99bfb9e6367f" ResourceName="All" />
+      <Asset Guid="7c7d0041c0cb65a468a29f773c5bb8aa" ResourceName="All" />
+      <Asset Guid="82374e6eb0ef6fb4588593edb421a3f0" ResourceName="All" />
+      <Asset Guid="84a090ef864c2cc498132d6ed4618221" ResourceName="All" />
+      <Asset Guid="853cf8171aaff854b86dcb5bc3060d28" ResourceName="All" />
+      <Asset Guid="8a009edd0483c5749bb54e44f3490d47" ResourceName="All" />
+      <Asset Guid="8d9c1ce00a8633949a2b7d81e44671ed" ResourceName="All" />
+      <Asset Guid="8e9b5510fe26f3643aa5f289b8655037" ResourceName="All" />
+      <Asset Guid="8f6ce7b5d1a6da44d9764feda252fa58" ResourceName="All" />
+      <Asset Guid="9056ffb6cabdd99408675a451565fde3" ResourceName="All" />
+      <Asset Guid="91aa2c49f43eccc44b105cd62b643063" ResourceName="All" />
+      <Asset Guid="94518fe8db5974f4bb41dfe29d458780" ResourceName="All" />
+      <Asset Guid="98a2d92830453a24989173510ea81c7c" ResourceName="All" />
+      <Asset Guid="9b4941de72a993346a22d1f3bbbd8a7d" ResourceName="All" />
+      <Asset Guid="9b498f1c1a67c6b43b75570e8d12e08b" ResourceName="All" />
+      <Asset Guid="9b7fdbff696d836459fae63ee535c5f8" ResourceName="All" />
+      <Asset Guid="9f2addb634a6ae14d9ed294722acd663" ResourceName="All" />
+      <Asset Guid="a15ecaf150f49944da358fb20b6b28d1" ResourceName="All" />
+      <Asset Guid="a4e63fc22c0b16e4f9b6d4cb06fe38d4" ResourceName="All" />
+      <Asset Guid="a74a6e7b93c2acd4eaa24bb5b6da4017" ResourceName="All" />
+      <Asset Guid="a90146740bb646f4ea7a749ef469a24a" ResourceName="All" />
+      <Asset Guid="aafc99c83a57e81459bf4ec25507cffa" ResourceName="All" />
+      <Asset Guid="ab01e4674dc2e0848b41c3e1ba59f5a9" ResourceName="All" />
+      <Asset Guid="b431c815d89fb3946aaac14bbc784162" ResourceName="All" />
+      <Asset Guid="b55d9d15d2e91904684aeff46cf0ebe3" ResourceName="GameMain/Scenes/qipan" />
+      <Asset Guid="b7653fb971c294d4ba09926348a658ab" ResourceName="All" />
+      <Asset Guid="bc0d9666a97c448498be32769d793327" ResourceName="All" />
+      <Asset Guid="c1c438e87ff49804fa6945594e21498b" ResourceName="All" />
+      <Asset Guid="c2299f4abbd83ad47a90059fc8bb5047" ResourceName="All" />
+      <Asset Guid="c2b57ea0005b5f041999fdabf3deaeff" ResourceName="All" />
+      <Asset Guid="c7687e23dd74421418298aa9a425e697" ResourceName="All" />
+      <Asset Guid="c7ff7455ac480944a943db36038afb84" ResourceName="All" />
+      <Asset Guid="cb216642070d7954b91cafbf2a79cd04" ResourceName="All" />
+      <Asset Guid="cc4be4d847eb89e498db1b3b60377190" ResourceName="All" />
+      <Asset Guid="ceaabd19746c5a0498fee64d807d3b0d" ResourceName="All" />
+      <Asset Guid="d1a4e7eeccbabf84f8fe57c6afaf0642" ResourceName="All" />
+      <Asset Guid="d51b6e6fa79b61a43a3949ccebeccc1f" ResourceName="All" />
+      <Asset Guid="d82a3f9e384078143a0ab9a81f8f642a" ResourceName="All" />
+      <Asset Guid="d9062e0791bb5d84f9f6b73d18c4c1a9" ResourceName="All" />
+      <Asset Guid="da55837302168cd4aaea66e6cea2e671" ResourceName="All" />
+      <Asset Guid="da92fa9fb410ce84a9ddcba677023952" ResourceName="All" />
+      <Asset Guid="daeb1d3e775972f49a3a6bc181832da1" ResourceName="All" />
+      <Asset Guid="db4f3ccebc95e4f498cbb2d43dfbae41" ResourceName="All" />
+      <Asset Guid="e1e5eaca3d06239448865116704150b5" ResourceName="All" />
+      <Asset Guid="e20d7cdc56c64244695fc226c92ea5f7" ResourceName="All" />
+      <Asset Guid="e764ec941ada81e4383c6b8a8e4f3f96" ResourceName="All" />
+      <Asset Guid="eef7e2ca5f8233a468d237b3b7d3979d" ResourceName="All" />
+      <Asset Guid="f0956835f417fe84a886e501e152ae1d" ResourceName="All" />
+      <Asset Guid="f64e54054298f004b8c63eb4f00e0414" ResourceName="All" />
+      <Asset Guid="f69cf657694b1cb4ba1461c012726e57" ResourceName="Shader" />
+      <Asset Guid="faf1ad32a0218304cab8bc5b6ac4463e" ResourceName="All" />
+      <Asset Guid="fe8889fe456fd14499b2ea473074e761" ResourceName="All" />
+    </Assets>
   </ResourceCollection>
 </UnityGameFramework>

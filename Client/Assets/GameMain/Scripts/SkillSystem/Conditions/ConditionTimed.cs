@@ -46,5 +46,14 @@ namespace SkillSystem
         {
             TimeIntervalMs.SetSkillValue(dataTable);
         }
+
+        public override void Clear()
+        {
+            if (TimeIntervalMs != null)
+            {
+                ReferencePool.Release(TimeIntervalMs);
+                TimeIntervalMs = null;
+            }
+        }
     }
 }

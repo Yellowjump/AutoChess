@@ -1,7 +1,4 @@
 using SkillSystem;
-using UnityEditor;
-using UnityEngine;
-
 namespace Editor.SkillSystem.Conditions
 {
     [SkillDrawer(typeof(ConditionPercent))]

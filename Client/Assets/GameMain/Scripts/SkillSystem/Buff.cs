@@ -10,6 +10,7 @@ namespace SkillSystem
         public int BuffID;
         public int TempleteID;
         public BuffTag OwnBuffTag;
+        public int MaxLayerNum;
         public int DurationMs;
         public float RemainMs;
         public bool IsValid = true;
@@ -56,6 +57,18 @@ namespace SkillSystem
             }
             IsValid = false;
             base.OnDestory();
+        }
+
+        public override void Clear()
+        {
+            BuffID = 0;
+            TempleteID = 0;
+            OwnBuffTag = BuffTag.None;;
+            MaxLayerNum = 0;
+            DurationMs = 0;
+            RemainMs = 0;
+            IsValid = true;
+            base.Clear();
         }
     }
 }

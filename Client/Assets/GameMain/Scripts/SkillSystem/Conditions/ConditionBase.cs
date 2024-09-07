@@ -1,9 +1,10 @@
 using System.IO;
+using GameFramework;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
 {
-    public class ConditionBase
+    public class ConditionBase:IReference
     {
         public OneTrigger ParentTrigger;
         public virtual ConditionType CurConditionType => ConditionType.NoCondition;
@@ -28,6 +29,11 @@ namespace SkillSystem
             copy.ReverseResult = ReverseResult;
         }
         public virtual void SetSkillValue(DataRowBase dataTable)
+        {
+            
+        }
+
+        public virtual void Clear()
         {
             
         }

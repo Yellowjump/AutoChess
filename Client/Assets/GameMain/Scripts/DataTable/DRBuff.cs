@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-09-04 18:35:40.424
+// 生成时间：2024-09-06 17:47:58.820
 //------------------------------------------------------------
 
 using GameFramework;
@@ -24,6 +24,7 @@ namespace DataTable
 	{
 	    TemplateID,
 	    Duration,
+	    MaxLayerNum,
 	    IntParam1,
 	    IntParam2,
 	    IntParam3,
@@ -64,6 +65,15 @@ namespace DataTable
         /// 获取持续时间ms。
         /// </summary>
         public int Duration
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取最大叠加层数。
+        /// </summary>
+        public int MaxLayerNum
         {
             get;
             private set;
@@ -146,6 +156,7 @@ namespace DataTable
             index++;
             TemplateID = int.Parse(columnStrings[index++]);
             Duration = int.Parse(columnStrings[index++]);
+            MaxLayerNum = int.Parse(columnStrings[index++]);
             IntParam1 = int.Parse(columnStrings[index++]);
             IntParam2 = int.Parse(columnStrings[index++]);
             IntParam3 = int.Parse(columnStrings[index++]);
@@ -167,6 +178,7 @@ namespace DataTable
                     m_Id = binaryReader.Read7BitEncodedInt32();
                     TemplateID = binaryReader.Read7BitEncodedInt32();
                     Duration = binaryReader.Read7BitEncodedInt32();
+                    MaxLayerNum = binaryReader.Read7BitEncodedInt32();
                     IntParam1 = binaryReader.Read7BitEncodedInt32();
                     IntParam2 = binaryReader.Read7BitEncodedInt32();
                     IntParam3 = binaryReader.Read7BitEncodedInt32();
@@ -272,6 +284,7 @@ namespace DataTable
 		///     <para>
 		///         <see cref="DRBuffField.TemplateID"/> 对应的是 int,
 		///         <see cref="DRBuffField.Duration"/> 对应的是 int,
+		///         <see cref="DRBuffField.MaxLayerNum"/> 对应的是 int,
 		///         <see cref="DRBuffField.IntParam1"/> 对应的是 int,
 		///         <see cref="DRBuffField.IntParam2"/> 对应的是 int,
 		///         <see cref="DRBuffField.IntParam3"/> 对应的是 int,
@@ -304,6 +317,7 @@ namespace DataTable
 		{
 		    { DRBuffField.TemplateID, obj => (obj.TemplateID, typeof(int)) },
 		    { DRBuffField.Duration, obj => (obj.Duration, typeof(int)) },
+		    { DRBuffField.MaxLayerNum, obj => (obj.MaxLayerNum, typeof(int)) },
 		    { DRBuffField.IntParam1, obj => (obj.IntParam1, typeof(int)) },
 		    { DRBuffField.IntParam2, obj => (obj.IntParam2, typeof(int)) },
 		    { DRBuffField.IntParam3, obj => (obj.IntParam3, typeof(int)) },

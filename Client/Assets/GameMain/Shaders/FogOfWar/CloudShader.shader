@@ -2,7 +2,7 @@ Shader "Custom/CloudShader"
 {
     Properties
     {
-        _CloudTex("Cloud Texture", 2D) = "white" {}
+        _MainTex ("Texture", 2D) = "white" {}
         _MaskTex("Mask Texture", 2D) = "white" {}
         _TilingFactor("Tiling Factor", Float) = 1.0
         _CloudSpeed("Cloud Speed", Vector) = (1, 1, 1, 1)
@@ -33,7 +33,7 @@ Shader "Custom/CloudShader"
                 float4 vertex : SV_POSITION;
             };
 
-            sampler2D _CloudTex;
+            sampler2D _MainTex;
             float _TilingFactor;
             float4 _CloudSpeed;
             sampler2D _MaskTex;
@@ -47,11 +47,11 @@ Shader "Custom/CloudShader"
 
             float4 BlendTwoCloud(float2 uv)
             {
-                float4 c = tex2D(_CloudTex, uv * _TilingFactor + _Time.x * _CloudSpeed.xy);
+                float4 c = tex2D(_MainTex, uv * _TilingFactor + _Time.x * _CloudSpeed.xy);
                 c.g = c.r;
                 c.b = c.r;
                 c.a = min(c.r*5,1);
-                float4 c2 = tex2D(_CloudTex, uv + _Time.x * _CloudSpeed.zw);
+                float4 c2 = tex2D(_MainTex, uv + _Time.x * _CloudSpeed.zw);
                 c2.r = c2.g;
                 c2.b = c2.g;
                 c2.a = min(c2.g*5,1);

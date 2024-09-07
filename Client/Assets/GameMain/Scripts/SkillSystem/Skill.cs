@@ -4,13 +4,12 @@ using UnityGameFramework.Runtime;
 
 namespace SkillSystem
 {
-    public class Skill
+    public class Skill:TriggerList
     {
         public int SkillID;
         public int TempleteID;
         public SkillType CurSkillType;
         public int SkillRange;//攻击距离
-        public TriggerList OwnTriggerList;
         public EntityQizi Caster;
         public int DefaultAnimationDurationMs;//默认技能动画时长，也是默认技能时长
         public int DefaultSkillCDMs;//默认技能CD
@@ -21,39 +20,35 @@ namespace SkillSystem
         public void Cast()
         {
             LeftSkillCD = DefaultSkillCDMs/1000.0f;//todo 读取角色CD缩减
-            OwnTriggerList.OnActive();
+            base.OnActive();
         }
-
-        public void OnDestory()
+        public override void Clone(TriggerList copy)
         {
-            OwnTriggerList.OnDestory();
-        }
-        public void Clone(Skill copy)
-        {
-            copy.TempleteID = TempleteID;
-            copy.OwnTriggerList ??= SkillFactory.CreateNewEmptyTriggerList(copy);
-            OwnTriggerList.Clone(copy.OwnTriggerList);
+            if (copy is Skill copySkill)
+            {
+                copySkill.TempleteID = TempleteID;
+            }
+            base.Clone(copy);
         }
         public void ReadFromFile(BinaryReader reader)
         {
             TempleteID = reader.ReadInt32();
-            OwnTriggerList ??= SkillFactory.CreateNewEmptyTriggerList(this);
-            OwnTriggerList.ReadFromFile(reader);
+            base.ReadFromFile(reader);
         }
 
         public void WriteToFile(BinaryWriter writer)
         {
             writer.Write(TempleteID);
-            OwnTriggerList?.WriteToFile(writer);
+            base.WriteToFile(writer);
         }
         public void SetSkillValue(DataRowBase dataTable)
         {
-            OwnTriggerList?.SetSkillValue(dataTable);
+            base.SetSkillValue(dataTable);
         }
 
         public void OnSkillBeforeShakeEnd()
         {
-            OwnTriggerList?.OnTrigger(TriggerType.SkillBeforeShakeEnd);
+            OnTrigger(TriggerType.SkillBeforeShakeEnd);
         }
 
         public void LogicUpdate(float elapseSeconds, float realElapseSeconds)

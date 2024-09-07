@@ -1,14 +1,9 @@
-using GameFramework.Fsm;
-using System;
-using System.Collections;
+
 using System.Collections.Generic;
 using DataTable;
 using GameFramework;
 using SkillSystem;
-using UnityEditor;
-using UnityEngine;
 using UnityEngine.Pool;
-using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 
 namespace Entity
@@ -154,7 +149,7 @@ namespace Entity
                 oneSkill.DefaultSkillCDMs = skillTableData.CDMs;
                 var temp = skillTemplates[skillTableData.TemplateID].SkillTemplate;
                 temp.Clone(oneSkill);
-                oneSkill.OwnTriggerList.Owner = this;
+                oneSkill.Owner = this;
                 oneSkill.SetSkillValue(skillTableData);
                 return oneSkill;
             }
@@ -217,6 +212,30 @@ namespace Entity
                 return;
             }
             // todo 判断是否有 免疫之类的判断
+            if (buff.MaxLayerNum != 0)//有层数限制
+            {
+                var buffCount = 0;
+                var minRemainingTime = 0f;
+                Buff buffToRemove = null;
+                foreach (var b in CurBuffList)
+                {
+                    if (b.BuffID == buff.BuffID&&b.IsValid)
+                    {
+                        buffCount++;
+                        // 如果已存在同 buffID 的 buff，且剩余时间最少的 buff 未找到或当前 buff 剩余时间更少
+                        if (b.DurationMs-b.RemainMs < minRemainingTime)
+                        {
+                            minRemainingTime = b.DurationMs-b.RemainMs;
+                            buffToRemove = b;
+                        }
+                    }
+                }
+                // 检查是否超过层数限制
+                if (buffCount >= buff.MaxLayerNum && buffToRemove != null)
+                {
+                    buffToRemove.OnDestory();
+                }
+            }
             CurBuffList.Add(buff);
             buff.OnActive();
         }
@@ -280,6 +299,7 @@ namespace Entity
             {
                 if (CurBuffList[i].IsValid == false)
                 {
+                    ReferencePool.Release(CurBuffList[i]);
                     CurBuffList.RemoveAt(i);
                 }
             }
@@ -431,11 +451,43 @@ namespace Entity
 
         private void DestorySkill()
         {
-            NormalSkillList.Clear();
-            NoAnimAtkSkillList.Clear();
-            SpSkill = null;
-            PassiveSkillList.Clear();
-            CurBuffList.Clear();
+            if (NormalSkillList != null)
+            {
+                foreach (var oneSkill in NormalSkillList)
+                {
+                    ReferencePool.Release(oneSkill);
+                }
+                NormalSkillList.Clear();
+            }
+            if (NoAnimAtkSkillList != null)
+            {
+                foreach (var oneSkill in NoAnimAtkSkillList)
+                {
+                    ReferencePool.Release(oneSkill);
+                }
+                NoAnimAtkSkillList.Clear();
+            }
+            if (SpSkill != null)
+            {
+                ReferencePool.Release(SpSkill);
+                SpSkill = null;
+            }
+            if (PassiveSkillList != null)
+            {
+                foreach (var oneSkill in PassiveSkillList)
+                {
+                    ReferencePool.Release(oneSkill);
+                }
+                PassiveSkillList.Clear();
+            }
+            if (CurBuffList != null)
+            {
+                foreach (var oneBuff in CurBuffList)
+                {
+                    ReferencePool.Release(oneBuff);
+                }
+                CurBuffList.Clear();
+            }
             CurTriggerDic.Clear();
         }
     }

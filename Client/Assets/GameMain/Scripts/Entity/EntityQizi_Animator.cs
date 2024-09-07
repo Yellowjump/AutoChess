@@ -11,7 +11,7 @@ namespace Entity
         {
             if (animator!=null&&!string.IsNullOrEmpty(_waitPlayAniList))
             {
-                animator.Play(_waitPlayAniList);
+                animator.CrossFade(_waitPlayAniList,0.2f);
                 _waitPlayAniList = string.Empty;
             }
         }
