@@ -191,7 +191,9 @@ namespace SkillSystem
         [InspectorName("治疗")]
         Healing = 1 << 5,      // 00100000
         [InspectorName("不可免疫")]
-        Immune = 1 << 6        // 01000000
+        Immune = 1 << 6,        // 01000000
+        [InspectorName("护盾")]
+        Shield = 1 << 7        // 01000000
     }
 
     public enum CheckCastSkillResult
