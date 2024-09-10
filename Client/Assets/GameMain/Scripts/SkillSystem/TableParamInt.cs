@@ -15,13 +15,27 @@ namespace SkillSystem
         {
             writer.Write(Value);
             writer.Write((int)CurMatchTable);
-            writer.Write(CurMatchPropertyIndex);
+            if (CurMatchTable == GenerateEnumDataTables.Skill)
+            {
+                writer.Write(((DRSkillField)CurMatchPropertyIndex).ToString());
+            }
+            else if (CurMatchTable == GenerateEnumDataTables.Buff)
+            {
+                writer.Write(((DRBuffField)CurMatchPropertyIndex).ToString());
+            }
         }
         public void ReadFromFile(BinaryReader reader)
         {
             Value = reader.ReadInt32();
             CurMatchTable = (GenerateEnumDataTables)reader.ReadInt32();
-            CurMatchPropertyIndex = reader.ReadInt32();
+            if (CurMatchTable == GenerateEnumDataTables.Skill)
+            {
+                CurMatchPropertyIndex = (int)Enum.Parse(typeof(DRSkillField), reader.ReadString());
+            }
+            else if (CurMatchTable == GenerateEnumDataTables.Buff)
+            {
+                CurMatchPropertyIndex = (int)Enum.Parse(typeof(DRBuffField), reader.ReadString());
+            }
         }
 
         public void Clone(TableParamInt copy)
