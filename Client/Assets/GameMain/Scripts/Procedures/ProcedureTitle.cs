@@ -4,7 +4,7 @@ using GameFramework;
 using GameFramework.Procedure;
 using Entity;
 using Maze;
-using UnityChan;
+
 using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
