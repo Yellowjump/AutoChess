@@ -21,7 +21,7 @@ public class StateIdle0 : FsmState<EntityQizi>
         }
 
         var owner = fsm.Owner;
-        owner.AddAnimCommand("WAIT00");
+        owner.AddAnimCommand("WAIT");
         // 检测是否能释放SpSkill
         CheckChangeState(fsm);
     }
