@@ -65,6 +65,7 @@ namespace Entity
             GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
             
             animator = this.GObj.GetComponent<Animator>();
+            InitAnimation();
             UpdateShowSlider();//加载完obj就刷新一次
         }
 

@@ -181,7 +181,7 @@ public class StateMove0 : FsmState<EntityQizi>
                     _moving = true;
                     startpos = owner.LogicPosition;
                     nextpos = GameEntry.HeroManager.qigepos[nextPosIndex.y][nextPosIndex.x];
-                    owner.AddAnimCommand("RUN");
+                    owner.AddAnimCommand("Assets/GameMain/Prefeb/Charactor/enemy0/Z_Run.anim");
                     owner.GObj?.transform.LookAt(nextpos);
                     GameEntry.HeroManager.qige[ownerIndex.y][ownerIndex.x] = -1;
                     GameEntry.HeroManager.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
