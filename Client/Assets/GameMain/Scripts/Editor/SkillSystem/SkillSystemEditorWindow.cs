@@ -95,6 +95,11 @@ public class SkillSystemEditorWindow : EditorWindow
         {
             OnClickSaveAllTemplate();
         }
+        string saveAllTempForce = selectedToggleIndex == (int)ToggleName.SkillTemplate ? "强制保存所有技能模板" : "强制保存所有buff模板";
+        if (GUILayout.Button(saveAllTempForce))
+        {
+            OnClickSaveAllTemplateForce();
+        }
         GUILayout.EndHorizontal();
 
         if (selectedToggleIndex == (int)ToggleName.SkillTemplate)
@@ -202,6 +207,32 @@ public class SkillSystemEditorWindow : EditorWindow
                 SaveBuffTemplateToTxt();
                 DataTableGeneratorMenu.GenerateBuffTemplateDataTables();
             }
+        }
+    }
+
+    private void OnClickSaveAllTemplateForce()
+    {
+        if (selectedToggleIndex == (int)ToggleName.SkillTemplate)
+        {
+            var keys = SkillMap.ToList();
+            foreach (var skillPair in keys)
+            {
+                SaveSkillTemp(skillPair.Key);
+            }
+            //保存重写进txt，并且生成byte
+            SaveSkillTemplateToTxt();
+            DataTableGeneratorMenu.GenerateSkillTemplateDataTables();
+        }
+        else if (selectedToggleIndex == (int)ToggleName.BuffTemplate)
+        {
+            var keys = BuffMap.ToList();
+            foreach (var buffPair in keys)
+            {
+                SaveBuffTemp(buffPair.Key);
+            }
+            //保存重写进txt，并且生成byte
+            SaveBuffTemplateToTxt();
+            DataTableGeneratorMenu.GenerateBuffTemplateDataTables();
         }
     }
     #region 技能模板
@@ -350,11 +381,11 @@ public class SkillSystemEditorWindow : EditorWindow
                         //删除旧byte文件
                         DelSkillFile(skillEditor.OldTempleteID.ToString());
                     }
-                    SaveSkillFile(skillTemplate);
-                    SkillMap[skillTemplate] = false;
-                    return true;
                 }
             }
+            SaveSkillFile(skillTemplate);
+            SkillMap[skillTemplate] = false;
+            return true;
         }
         return false;
     }

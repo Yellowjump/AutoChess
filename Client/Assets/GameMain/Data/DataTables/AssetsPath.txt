@@ -23,5 +23,12 @@
 	4005	动能引擎	Assets/GameMain/Image/Icons/ItemIcon/SmallPotion.png
 	4501	旋转斧头	Assets/GameMain/Image/Icons/ItemIcon/BerserkAxe.png
 	4502	反甲	Assets/GameMain/Image/Icons/ItemIcon/GreyKnight.png
+#Anim(6000			
+	6001	僵尸idle	Assets/GameMain/Prefeb/Charactor/enemy0/Z_Idle.anim
+	6002	僵尸run	Assets/GameMain/Prefeb/Charactor/enemy0/Z_Run.anim
+	6003	僵尸攻击	Assets/GameMain/Prefeb/Charactor/enemy0/Z_Attack.anim
+	6004	僵尸倒地	Assets/GameMain/Prefeb/Charactor/enemy0/Z_FallingBack.anim
+	6011	主角idle	Assets/GameMain/Prefeb/Charactor/qizi0/WAIT00.anim
+	6012	主角run	Assets/GameMain/Prefeb/Charactor/qizi0/RUN00_F.anim
 #Sound(10000			
 #			

@@ -38,7 +38,6 @@ namespace Entity
             InitItemSkillAndAttr();
             InitHeroTableSkill();
             CastPassiveSkill();
-            InitAnimationClip();
         }
 
         private void InitItemSkillAndAttr()

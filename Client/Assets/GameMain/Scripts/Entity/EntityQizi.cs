@@ -45,6 +45,7 @@ namespace Entity
             InitAddDefaultItemToList();
             InitAttribute();
             InitSkill();
+            InitAnimationClip();
             InitState();
         }
 
@@ -100,6 +101,8 @@ namespace Entity
             InitAttribute();
             DestorySkill();
             InitSkill();
+            ReleaseAnim();
+            InitAnimationClip();
         }
 
         public void OnChangeEquipItem()
@@ -112,6 +115,7 @@ namespace Entity
         public void Remove()
         {
             GameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
+            ReleaseAnim();
             GObj = null;
             DestoryState();
             DestorySkill();

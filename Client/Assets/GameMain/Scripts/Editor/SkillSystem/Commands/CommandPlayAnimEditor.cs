@@ -12,7 +12,7 @@ namespace Editor.SkillSystem.Commands
             if (commandPlayAnim != null)
             {
                 EditorGUILayout.LabelField("播放动作");
-                SkillSystemDrawerCenter.DrawOneInstance(commandPlayAnim.AnimName);
+                SkillSystemDrawerCenter.DrawOneInstance(commandPlayAnim.AnimAssetID);
             }
         }
     }

@@ -26,7 +26,7 @@ namespace SkillSystem
                     return commandCauseBuff;
                 case CommandType.PlayAnim:
                     var commandPlayAnim = ReferencePool.Acquire<CommandPlayAnim>();
-                    commandPlayAnim.AnimName = CreateTableParamString();
+                    commandPlayAnim.AnimAssetID = CreateTableParamInt();
                     return commandPlayAnim;
                 case CommandType.CreateBullet:
                     var commandCauseBullet = ReferencePool.Acquire<CommandCreateBullet>();
@@ -138,8 +138,8 @@ namespace SkillSystem
             CommandPlayAnim playAniCommand = CreateCommand(CommandType.PlayAnim) as CommandPlayAnim;
             if (playAniCommand != null)
             {
-                playAniCommand.AnimName.CurMatchTable = GenerateEnumDataTables.Skill;
-                playAniCommand.AnimName.CurMatchPropertyIndex = (int)DRSkillField.SkillAnim;
+                playAniCommand.AnimAssetID.CurMatchTable = GenerateEnumDataTables.Skill;
+                playAniCommand.AnimAssetID.CurMatchPropertyIndex = (int)DRSkillField.SkillAnim;
                 playAniTrigger.CurCommandList.Add(playAniCommand);
             }
             newSkill.CurTriggerList.Add(playAniTrigger);

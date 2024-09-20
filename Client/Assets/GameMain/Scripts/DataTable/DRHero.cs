@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-09-04 18:35:40.432
+// 生成时间：2024-09-20 17:20:34.748
 //------------------------------------------------------------
 
 using GameFramework;
@@ -84,6 +84,24 @@ namespace DataTable
             private set;
         }
 
+        /// <summary>
+        /// 获取idle动画。
+        /// </summary>
+        public int IdleAnimID
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取run动画。
+        /// </summary>
+        public int RunAnimID
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -101,6 +119,9 @@ namespace DataTable
                 DefaultItemID = DataTableExtension.ParseInt32Array(columnStrings[index++]);
             AttributeID = int.Parse(columnStrings[index++]);
             AssetID = int.Parse(columnStrings[index++]);
+            IdleAnimID = int.Parse(columnStrings[index++]);
+            RunAnimID = int.Parse(columnStrings[index++]);
+            index++;
 
             GeneratePropertyArray();
             return true;
@@ -118,6 +139,8 @@ namespace DataTable
                         DefaultItemID = binaryReader.ReadInt32Array();
                     AttributeID = binaryReader.Read7BitEncodedInt32();
                     AssetID = binaryReader.Read7BitEncodedInt32();
+                    IdleAnimID = binaryReader.Read7BitEncodedInt32();
+                    RunAnimID = binaryReader.Read7BitEncodedInt32();
                 }
             }
 

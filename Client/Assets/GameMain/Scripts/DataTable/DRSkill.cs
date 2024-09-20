@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-09-04 18:35:40.441
+// 生成时间：2024-09-20 17:20:34.756
 //------------------------------------------------------------
 
 using GameFramework;
@@ -76,9 +76,9 @@ namespace DataTable
         }
 
         /// <summary>
-        /// 获取技能动画。
+        /// 获取技能动画资源ID。
         /// </summary>
-        public string SkillAnim
+        public int SkillAnim
         {
             get;
             private set;
@@ -206,7 +206,7 @@ namespace DataTable
             index++;
             SkillType = int.Parse(columnStrings[index++]);
             TemplateID = int.Parse(columnStrings[index++]);
-            SkillAnim = columnStrings[index++];
+            SkillAnim = int.Parse(columnStrings[index++]);
             BeforeShakeEndMs = int.Parse(columnStrings[index++]);
             AniDuration = int.Parse(columnStrings[index++]);
             CDMs = int.Parse(columnStrings[index++]);
@@ -233,7 +233,7 @@ namespace DataTable
                     m_Id = binaryReader.Read7BitEncodedInt32();
                     SkillType = binaryReader.Read7BitEncodedInt32();
                     TemplateID = binaryReader.Read7BitEncodedInt32();
-                    SkillAnim = binaryReader.ReadString();
+                    SkillAnim = binaryReader.Read7BitEncodedInt32();
                     BeforeShakeEndMs = binaryReader.Read7BitEncodedInt32();
                     AniDuration = binaryReader.Read7BitEncodedInt32();
                     CDMs = binaryReader.Read7BitEncodedInt32();
@@ -344,7 +344,7 @@ namespace DataTable
 		///     <para>
 		///         <see cref="DRSkillField.SkillType"/> 对应的是 int,
 		///         <see cref="DRSkillField.TemplateID"/> 对应的是 int,
-		///         <see cref="DRSkillField.SkillAnim"/> 对应的是 string,
+		///         <see cref="DRSkillField.SkillAnim"/> 对应的是 int,
 		///         <see cref="DRSkillField.BeforeShakeEndMs"/> 对应的是 int,
 		///         <see cref="DRSkillField.AniDuration"/> 对应的是 int,
 		///         <see cref="DRSkillField.CDMs"/> 对应的是 int,
@@ -382,7 +382,7 @@ namespace DataTable
 		{
 		    { DRSkillField.SkillType, obj => (obj.SkillType, typeof(int)) },
 		    { DRSkillField.TemplateID, obj => (obj.TemplateID, typeof(int)) },
-		    { DRSkillField.SkillAnim, obj => (obj.SkillAnim, typeof(string)) },
+		    { DRSkillField.SkillAnim, obj => (obj.SkillAnim, typeof(int)) },
 		    { DRSkillField.BeforeShakeEndMs, obj => (obj.BeforeShakeEndMs, typeof(int)) },
 		    { DRSkillField.AniDuration, obj => (obj.AniDuration, typeof(int)) },
 		    { DRSkillField.CDMs, obj => (obj.CDMs, typeof(int)) },

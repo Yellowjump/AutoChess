@@ -21,7 +21,7 @@ public class StateIdle0 : FsmState<EntityQizi>
         }
 
         var owner = fsm.Owner;
-        owner.AddAnimCommand("Assets/GameMain/Prefeb/Charactor/enemy0/Z_Idle.anim");
+        owner.AddAnimCommandIdle();
         // 检测是否能释放SpSkill
         CheckChangeState(fsm);
     }
