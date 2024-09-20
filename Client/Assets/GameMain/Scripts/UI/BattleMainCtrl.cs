@@ -155,12 +155,13 @@ public class BattleMainCtrl : UIFormLogic
     }
     private void shuxinxianshi(EntityQizi qz)
     {
-        xuetiaonow.text = qz.xueliangnow.ToString();
-        xuetiaosum.text = qz.xueliangsum.ToString();
-        pownow.text = qz.powernow.ToString();
-        powsum.text = qz.powersum.ToString();
-        _slderXuetiao.value = qz.xueliangnow / qz.xueliangsum;
-        _slderPow.value = qz.powernow / qz.powersum;
+        // xuetiaonow.text = qz.xueliangnow.ToString();
+        // xuetiaosum.text = qz.xueliangsum.ToString();
+        // pownow.text = qz.powernow.ToString();
+        // powsum.text = qz.powersum.ToString();
+        // _slderXuetiao.value = qz.xueliangnow / qz.xueliangsum;
+        // _slderPow.value = qz.powernow / qz.powersum;
+        
         //levelqizi.sprite = GameEntry.HeroManager.ListQiziLevelSprite[qz.level - 1];
         //qiziImage.sprite = ListQiziShuxingSprite[qz.HeroID];
     }
