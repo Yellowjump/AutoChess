@@ -16,22 +16,33 @@ namespace SkillSystem
 
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
-            var newBullet = GameEntry.HeroManager.CreateBullet(CurBulletID.Value);
-            newBullet.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
-            newBullet.BelongCamp = newBullet.Caster.BelongCamp;
-            newBullet.Target = trigger.CurTarget as EntityQizi;
-            newBullet.LogicPosition = newBullet.Caster.LogicPosition;
-            if (BulletTrigger != null)
+            if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
             {
-                var newTriggerList = SkillFactory.CreateNewEmptyTriggerList();
-                BulletTrigger.Clone(newTriggerList);
-                newTriggerList.ParentSkill = trigger.ParentTriggerList.ParentSkill;
-                newTriggerList.Owner = newBullet;
-                newBullet.OwnerTriggerList = newTriggerList;
-            }
+                foreach (var oneTarget in trigger.CurTargetList)
+                {
+                    EntityQizi target = oneTarget as EntityQizi;
+                    if (target == null || target.IsValid == false)
+                    {
+                        continue;
+                    }
+                    var newBullet = GameEntry.HeroManager.CreateBullet(CurBulletID.Value);
+                    newBullet.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
+                    newBullet.BelongCamp = newBullet.Caster.BelongCamp;
+                    newBullet.Target = target;
+                    newBullet.LogicPosition = newBullet.Caster.LogicPosition;
+                    if (BulletTrigger != null)
+                    {
+                        var newTriggerList = SkillFactory.CreateNewEmptyTriggerList();
+                        BulletTrigger.Clone(newTriggerList);
+                        newTriggerList.ParentSkill = trigger.ParentTriggerList.ParentSkill;
+                        newTriggerList.Owner = newBullet;
+                        newBullet.OwnerTriggerList = newTriggerList;
+                    }
 
-            newBullet.SetParamValue(new[] { ParamInt1 });
-            newBullet.InitGObj();
+                    newBullet.SetParamValue(new[] { ParamInt1 });
+                    newBullet.InitGObj();
+                }
+            }
         }
 
         public override void Clone(CommandBase copy)

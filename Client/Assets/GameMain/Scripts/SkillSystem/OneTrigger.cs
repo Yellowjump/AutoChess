@@ -3,6 +3,7 @@ using System.IO;
 using Entity;
 using GameFramework;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
@@ -14,7 +15,7 @@ namespace SkillSystem
         public ConditionBase CurCondition;
         public TargetPickerBase CurTargetPicker;
         public List<CommandBase> CurCommandList;
-        public EntityBase CurTarget;
+        [FormerlySerializedAs("CurTarget")] public List<EntityBase> CurTargetList;
         public void OnActive()
         {
             if (CurTriggerType == TriggerType.OnActive)
@@ -28,7 +29,7 @@ namespace SkillSystem
             {
                 if (CurTargetPicker != null)
                 {
-                    CurTarget = CurTargetPicker.GetTarget(this,arg);
+                    CurTargetList = CurTargetPicker.GetTarget(this,arg);
                 }
 
                 if (CurCommandList != null && CurCommandList.Count != 0)
@@ -38,7 +39,10 @@ namespace SkillSystem
                         oneCommand?.OnExecute(this,arg);
                     }
                 }
-                
+                if (CurTargetList != null)
+                {
+                    ListPool<EntityBase>.Release(CurTargetList);
+                }
             }
         }
 
@@ -138,7 +142,7 @@ namespace SkillSystem
                 ListPool<CommandBase>.Release(CurCommandList);
                 CurCommandList = null;
             }
-            CurTarget = null;
+            CurTargetList = null;
         }
     }
 }

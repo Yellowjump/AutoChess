@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Entity;
 using GameFramework;
@@ -10,7 +11,7 @@ namespace SkillSystem
     {
         public OneTrigger ParentTrigger;
         public virtual TargetPickerType CurTargetPickerType => TargetPickerType.NoTarget;
-        public virtual EntityBase GetTarget(OneTrigger trigger,object arg = null)
+        public virtual List<EntityBase> GetTarget(OneTrigger trigger,object arg = null)
         {
             return null;
         }

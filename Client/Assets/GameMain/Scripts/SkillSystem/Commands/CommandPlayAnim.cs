@@ -12,9 +12,17 @@ namespace SkillSystem
         public TableParamInt AnimAssetID;
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
-            if (trigger.CurTarget != null&&trigger.CurTarget is EntityQizi qizi )
+            if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
             {
-                qizi.AddAnimCommand(AnimAssetID.Value);
+                foreach (var oneTarget in trigger.CurTargetList)
+                {
+                    EntityQizi target = oneTarget as EntityQizi;
+                    if (target == null || target.IsValid == false)
+                    {
+                        continue;
+                    }
+                    target.AddAnimCommand(AnimAssetID.Value);
+                }
             }
         }
 

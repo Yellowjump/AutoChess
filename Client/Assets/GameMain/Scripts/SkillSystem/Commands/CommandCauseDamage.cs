@@ -15,8 +15,8 @@ namespace SkillSystem
 
         public CauseDamageData()
         {
-            
         }
+
         public void Clear()
         {
             Caster = null;
@@ -26,7 +26,8 @@ namespace SkillSystem
             DamageValue = 0;
         }
     }
-    public class CommandCauseDamage:CommandBase
+
+    public class CommandCauseDamage : CommandBase
     {
         public override CommandType CurCommandType => CommandType.CauseDamage;
         public DamageComputeType CurDamageComputeType = DamageComputeType.NormalDamage;
@@ -34,64 +35,74 @@ namespace SkillSystem
         public TableParamInt ParamInt1;
         public TableParamInt ParamInt2;
         public TableParamInt ParamInt3;
-        public override void OnExecute(OneTrigger trigger,object arg=null)
-        {
-            if (trigger != null && trigger.CurTarget != null)
-            {
-                EntityQizi target = trigger.CurTarget as EntityQizi;
-                //对当前 target 造成伤害
-                EntityQizi caster = GetDamageCaster();
-                float damageParam = 0;
-                float finalDamage = 0;
-                if (caster != null)
-                {
-                    if (CurDamageComputeType == DamageComputeType.NormalDamage)
-                    {
-                        damageParam = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
-                    }
-                    else if (CurDamageComputeType == DamageComputeType.FixNumAddAttrPercent)
-                    {
-                        var fixValue = ParamInt1.Value;
-                        var attrValue = 0f;
-                        if (ParamInt3.Value > 0)
-                        {
-                             var attr = (int)caster.GetAttribute((AttributeType)ParamInt2.Value).GetFinalValue();
-                             attrValue = attr * ParamInt3.Value / 100;
-                        }
-                        damageParam = fixValue + attrValue;
-                    }
-                }
 
-                if (CurDamageType == DamageType.PhysicalDamage)
+        public override void OnExecute(OneTrigger trigger, object arg = null)
+        {
+            if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
+            {
+                foreach (var oneTarget in trigger.CurTargetList)
                 {
-                    var armor = (int)target.GetAttribute(AttributeType.Armor).GetFinalValue();
-                    var app = (int)target.GetAttribute(AttributeType.ArmorPenetrationPercent).GetFinalValue();
-                    var appn = armor * app / 100f;
-                    var apn = (int)target.GetAttribute(AttributeType.ArmorPenetrationNum).GetFinalValue();
-                    finalDamage = 100 / (armor - appn - apn + 100) * damageParam;
+                    EntityQizi target = oneTarget as EntityQizi;
+                    if (target == null || target.IsValid == false)
+                    {
+                        continue;
+                    }
+                    //对当前 target 造成伤害
+                    EntityQizi caster = GetDamageCaster();
+                    float damageParam = 0;
+                    float finalDamage = 0;
+                    if (caster != null)
+                    {
+                        if (CurDamageComputeType == DamageComputeType.NormalDamage)
+                        {
+                            damageParam = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
+                        }
+                        else if (CurDamageComputeType == DamageComputeType.FixNumAddAttrPercent)
+                        {
+                            var fixValue = ParamInt1.Value;
+                            var attrValue = 0f;
+                            if (ParamInt3.Value > 0)
+                            {
+                                var attr = (int)caster.GetAttribute((AttributeType)ParamInt2.Value).GetFinalValue();
+                                attrValue = attr * ParamInt3.Value / 100;
+                            }
+
+                            damageParam = fixValue + attrValue;
+                        }
+                    }
+
+                    if (CurDamageType == DamageType.PhysicalDamage)
+                    {
+                        var armor = (int)target.GetAttribute(AttributeType.Armor).GetFinalValue();
+                        var app = (int)target.GetAttribute(AttributeType.ArmorPenetrationPercent).GetFinalValue();
+                        var appn = armor * app / 100f;
+                        var apn = (int)target.GetAttribute(AttributeType.ArmorPenetrationNum).GetFinalValue();
+                        finalDamage = 100 / (armor - appn - apn + 100) * damageParam;
+                    }
+                    else if (CurDamageType == DamageType.MagicDamage)
+                    {
+                        var magicResist = (int)target.GetAttribute(AttributeType.MagicResist).GetFinalValue();
+                        var mpp = (int)target.GetAttribute(AttributeType.MagicPenetrationPercent).GetFinalValue();
+                        var mppn = magicResist * mpp / 100f;
+                        var mpn = (int)target.GetAttribute(AttributeType.MagicPenetrationNum).GetFinalValue();
+                        finalDamage = 100 / (magicResist - mppn - mpn + 100) * damageParam;
+                    }
+                    else
+                    {
+                        finalDamage = damageParam;
+                    }
+
+                    CauseDamageData beforeCauseDamageData = ReferencePool.Acquire<CauseDamageData>();
+                    beforeCauseDamageData.Caster = caster;
+                    beforeCauseDamageData.SourceSkill = trigger.ParentTriggerList.ParentSkill;
+                    beforeCauseDamageData.Target = target;
+                    beforeCauseDamageData.CurDamageType = CurDamageType;
+                    beforeCauseDamageData.DamageValue = finalDamage;
+                    caster.OnTrigger(TriggerType.BeforeCauseDamage, beforeCauseDamageData);
+                    target.OnTrigger(TriggerType.BeforeBeCauseDamage, beforeCauseDamageData);
+                    target.BeCauseDamage(beforeCauseDamageData);
+                    ReferencePool.Release(beforeCauseDamageData);
                 }
-                else if (CurDamageType == DamageType.MagicDamage)
-                {
-                    var magicResist = (int)target.GetAttribute(AttributeType.MagicResist).GetFinalValue();
-                    var mpp = (int)target.GetAttribute(AttributeType.MagicPenetrationPercent).GetFinalValue();
-                    var mppn = magicResist * mpp / 100f;
-                    var mpn = (int)target.GetAttribute(AttributeType.MagicPenetrationNum).GetFinalValue();
-                    finalDamage = 100 / (magicResist - mppn - mpn + 100) * damageParam;
-                }
-                else
-                {
-                    finalDamage = damageParam;
-                }
-                CauseDamageData beforeCauseDamageData = ReferencePool.Acquire<CauseDamageData>();
-                beforeCauseDamageData.Caster = caster;
-                beforeCauseDamageData.SourceSkill = trigger.ParentTriggerList.ParentSkill;
-                beforeCauseDamageData.Target = target;
-                beforeCauseDamageData.CurDamageType = CurDamageType;
-                beforeCauseDamageData.DamageValue = finalDamage;
-                caster.OnTrigger(TriggerType.BeforeCauseDamage,beforeCauseDamageData);
-                target.OnTrigger(TriggerType.BeforeBeCauseDamage,beforeCauseDamageData);
-                target.BeCauseDamage(beforeCauseDamageData);
-                ReferencePool.Release(beforeCauseDamageData);
             }
         }
 
@@ -101,8 +112,10 @@ namespace SkillSystem
             {
                 return ParentTrigger.ParentTriggerList.ParentSkill.Caster;
             }
+
             return null;
         }
+
         public override void WriteToFile(BinaryWriter writer)
         {
             writer.Write((int)CurDamageComputeType);

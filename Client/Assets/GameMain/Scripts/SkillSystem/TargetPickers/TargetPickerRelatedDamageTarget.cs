@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.IO;
 using Entity;
+using UnityEngine.Pool;
 
 namespace SkillSystem
 {
@@ -7,17 +9,20 @@ namespace SkillSystem
     {
         public override TargetPickerType CurTargetPickerType => TargetPickerType.RelatedDamageTarget;
         public DamageDataTargetType CurDamageDataTargetType;
-        public override EntityBase GetTarget(OneTrigger trigger, object arg = null)
+        public override List<EntityBase> GetTarget(OneTrigger trigger, object arg = null)
         {
             if (arg is CauseDamageData damageData)
             {
+                List<EntityBase> targetList = ListPool<EntityBase>.Get();
                 if (CurDamageDataTargetType==DamageDataTargetType.Caster)
                 {
-                    return damageData.Caster;
+                    targetList.Add(damageData.Caster);
+                    return targetList;
                 }
                 else//后面需更改添加list列表，完善目标
                 {
-                    return damageData.Target;
+                    targetList.Add(damageData.Target);
+                    return targetList;
                 }
             }
             return null;
