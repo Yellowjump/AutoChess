@@ -34,6 +34,10 @@ namespace SkillSystem
                     commandCauseBullet.CurBulletID = CreateTableParamInt();
                     commandCauseBullet.BulletTrigger = CreateNewEmptyTriggerList();
                     return commandCauseBullet;
+                case CommandType.CreateHuDun:
+                    var commandHuDun = ReferencePool.Acquire<CommandHuDun>();
+                    commandHuDun.ParamInt1 = CreateTableParamInt();
+                    return commandHuDun;
                 default:
                     return ReferencePool.Acquire<CommandBase>();
             }

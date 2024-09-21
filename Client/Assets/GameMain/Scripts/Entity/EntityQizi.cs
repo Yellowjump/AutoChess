@@ -14,10 +14,6 @@ namespace Entity
         public int money;
         public int HeroID;//hero表中ID
         public int HeroUID;//qizi唯一id
-        public float xueliangsum=1000;//总血量
-        public float powersum =100;//总蓝
-        public float xueliangnow;//当前血量
-        public float powernow;//当前蓝
         public int rowIndex;
         public int columnIndex;//在棋盘上的位置下标,左下角是0，0,如果在备战棋格，rowIndex = -1，columnIndex是第几个
         public Vector2Int SavePos;//进入战斗时的位置
@@ -27,6 +23,7 @@ namespace Entity
         public HeroComponent.HpBar HpBar;
         public Slider xuetiao;
         public Slider power;
+        public Slider hudun;
         public Image levelImage;
         public Animator animator;//动画管理器
 
@@ -39,8 +36,6 @@ namespace Entity
             HeroUID = GameEntry.HeroManager.QiziCurUniqueIndex++;
             level = 1;
             money = 1;
-            xueliangnow = xueliangsum;
-            powernow = 0;//初始化蓝量
             gongjiDistence = 1.2f;//初始化攻击距离
             InitAddDefaultItemToList();
             InitAttribute();
@@ -148,12 +143,10 @@ namespace Entity
         }
         public void OnDead()
         {
-            
             ReferencePool.Release(HpBar);
             IsValid = false;
             GameEntry.HeroManager.OnEntityDead(this);
             GObj?.SetActive(false);
         }
-
     }
 }

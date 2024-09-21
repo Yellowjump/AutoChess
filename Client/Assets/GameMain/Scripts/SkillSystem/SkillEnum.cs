@@ -118,6 +118,8 @@ namespace SkillSystem
         PlayAnim,
         [InspectorName("创建子弹")]
         CreateBullet,
+        [InspectorName("创建护盾")]
+        CreateHuDun,
     }
 
     /// <summary>

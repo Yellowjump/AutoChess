@@ -109,6 +109,7 @@ namespace UnityGameFramework.Runtime
                 //绑定棋子血条
                 oneHpBar.Owner.xuetiao=obj.transform.Find("xuetiao").GetComponent<Slider>();
                 oneHpBar.Owner.power= obj.transform.Find("pow").GetComponent<Slider>();
+                oneHpBar.Owner.hudun=obj.transform.GetChild(1).GetChild(1).GetChild(0).Find("hudun").GetComponent<Slider>();
                 //设置动画回调
                 WaitHpBarList.Remove(oneHpBar);
                 PlayingHpBarList.Add(oneHpBar);

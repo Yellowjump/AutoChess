@@ -5,6 +5,7 @@ using UnityGameFramework.Runtime;
 
 namespace SkillSystem
 {
+
     public class Buff:TriggerList
     {
         public int BuffID;
@@ -14,6 +15,7 @@ namespace SkillSystem
         public int DurationMs;
         public float RemainMs;
         public bool IsValid = true;
+        public int paramInt;
         public override void Clone(TriggerList copy)
         {
             if (copy is Buff copyBuff)
@@ -49,6 +51,10 @@ namespace SkillSystem
             return result;
         }
 
+        public bool CheckBuffTag(BuffTag checkTag)
+        {
+            return (checkTag & OwnBuffTag) == checkTag;
+        }
         public override void OnDestory()
         {
             if (IsValid == false)
