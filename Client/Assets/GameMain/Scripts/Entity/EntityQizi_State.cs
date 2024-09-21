@@ -19,6 +19,11 @@ namespace Entity
         {
             fsm?.UpdatePublic(elapseSeconds,realElapseSeconds);
         }
+
+        private void ChangeToIdleState()
+        {
+            fsm?.ChangeStatePublic<StateIdle0>();
+        }
         private void DestoryState()
         {
             fsm?.ShutdownPublic();

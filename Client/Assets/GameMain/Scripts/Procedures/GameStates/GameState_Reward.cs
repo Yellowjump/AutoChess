@@ -23,6 +23,7 @@ namespace Procedure.GameStates
             _continueToMap = false;
             SelfDataManager.Instance.PassCurPoint();
             GameEntry.UI.OpenUIForm(UICtrlName.BattleRewardPanel, "middle");
+            GameEntry.HeroManager.OnBattleWin();
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
@@ -34,7 +35,7 @@ namespace Procedure.GameStates
                 ChangeState<GameState_Map>(fsm);
                 return;
             }
-            GameEntry.HeroManager.OnLogicUpdate(GameEntry.LogicDeltaTime,realElapseSeconds);
+            GameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
         }
 
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)

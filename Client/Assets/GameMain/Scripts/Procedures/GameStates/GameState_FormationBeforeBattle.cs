@@ -38,7 +38,9 @@ namespace Procedure.GameStates
             {
                 _willChangeToBattle = false;
                 ChangeState<GameState_Battle>(fsm);
+                return;
             }
+            GameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
         }
 
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)

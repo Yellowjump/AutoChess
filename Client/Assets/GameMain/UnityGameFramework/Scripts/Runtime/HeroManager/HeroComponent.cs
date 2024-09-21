@@ -387,6 +387,28 @@ namespace UnityGameFramework.Runtime
             UpdateHpBar();
         }
 
+        public void UpdateNoBattle(float elapseSeconds, float realElapseSeconds)
+        {
+            List<EntityQizi> tempEntityList = ListPool<EntityQizi>.Get();
+            //先轮询己方棋子，后续联机的话需要判断 玩家uid来确定先后
+            tempEntityList.AddRange(QiziCSList);
+            tempEntityList.Sort((a, b) => a.HeroUID.CompareTo(b.HeroUID));
+            foreach (var oneEntity in tempEntityList)
+            {
+                oneEntity.UpdateNoBattle(elapseSeconds,realElapseSeconds);
+            }
+
+            tempEntityList.Clear();
+            tempEntityList.AddRange(DirenList);
+            tempEntityList.Sort((a, b) => a.HeroUID.CompareTo(b.HeroUID));
+            foreach (var oneEntity in tempEntityList)
+            {
+                oneEntity.UpdateNoBattle(elapseSeconds,realElapseSeconds);
+            }
+            ListPool<EntityQizi>.Release(tempEntityList);
+            UpdateDamageNumber(elapseSeconds,realElapseSeconds);
+            UpdateHpBar();
+        }
         public void OnEntityDead(EntityQizi qizi)
         {
             if (qizi == null)
@@ -411,6 +433,13 @@ namespace UnityGameFramework.Runtime
             }
         }
 
+        public void OnBattleWin()
+        {
+            foreach (var oneEntity in QiziCSList)
+            {
+                oneEntity.OnWinBattle();
+            }
+        }
         /// <summary>
         /// 游戏结束回到主界面
         /// </summary>

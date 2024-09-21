@@ -94,9 +94,10 @@ namespace Entity
         public void ReInit()
         {
             GObj?.SetActive(true);
+            GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
             IsValid = true;
             CurBuffList.Clear();
-            fsm.ChangeStatePublic<StateIdle0>();
+            ChangeToIdleState();
             DestoryAttribute();
             InitAttribute();
             DestorySkill();
@@ -135,6 +136,16 @@ namespace Entity
             UpdateAnimCommand();
         }
 
+        public void UpdateNoBattle(float elapseSeconds, float realElapseSeconds)
+        {
+            UpdateShowSlider();
+            UpdateAnimCommand();
+        }
+
+        public void OnWinBattle()
+        {
+            ChangeToIdleState();
+        }
         public void OnDead()
         {
             

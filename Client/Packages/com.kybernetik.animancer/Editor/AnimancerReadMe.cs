@@ -155,7 +155,6 @@ namespace Animancer.Editor
 
         private static void Execute()
         {
-            
             var assembly = typeof(AnimancerEditorUtilities).Assembly;
             var attributes = assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyDescriptionAttribute), false);
             if (attributes.Length != 1)
@@ -165,7 +164,7 @@ namespace Animancer.Editor
             }
 
             var attribute = (System.Reflection.AssemblyDescriptionAttribute)attributes[0];
-            if (attribute.Description.EndsWith($"Unity {ExpectedAssemblyTarget}+."))
+            //if (attribute.Description.EndsWith($"Unity {ExpectedAssemblyTarget}+."))
                 return;
 
             var actualAssemblyTarget = attribute.Description.Substring(attribute.Description.Length - 14, 13);
