@@ -14,6 +14,8 @@
 #Entity(3000			
 	3001	角色test	Assets/GameMain/Prefeb/Charactor/qizi0/qizi0.prefab
 	3051	敌人test	Assets/GameMain/Prefeb/Charactor/enemy0/enemy0.prefab
+#Sfx(3300			
+	3301	受击特效	Assets/GameMain/Prefeb/Sfx/CFXR3 Hit Fire B (Air).prefab
 #Sprite(4000			
 	4000	苹果	Assets/GameMain/Image/Icons/ItemIcon/Apple.png
 	4001	斧头	Assets/GameMain/Image/Icons/ItemIcon/FreeFolkAxe.png

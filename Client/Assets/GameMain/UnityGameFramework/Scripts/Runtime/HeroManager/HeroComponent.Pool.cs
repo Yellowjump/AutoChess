@@ -263,6 +263,22 @@ namespace UnityGameFramework.Runtime
                 }
             }
         }
+
+        public void GetSfxByID(int id,GetGObjSuccessCallback callback)
+        {
+            var sfxTable = GameEntry.DataTable.GetDataTable<DRSfx>("Sfx");
+            if (sfxTable.HasDataRow(id))
+            {
+                var sfxData = sfxTable[id];
+                var assetID = sfxData.AssetPathID;
+                var assetPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
+                if (assetPathTable.HasDataRow(assetID))
+                {
+                    var assetData = assetPathTable[assetID];
+                    GetNewObjFromPool(assetData.AssetPath,callback);
+                }
+            }
+        }
         private void GetNewObjFromPool(string path, GetGObjSuccessCallback callback)
         {
             if (!path.EndsWith(".prefab"))
@@ -374,6 +390,22 @@ namespace UnityGameFramework.Runtime
             if (bulletTable.HasDataRow(id))
             {
                 var bulletData = bulletTable[id];
+                var assetID = bulletData.AssetPathID;
+                var assetPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
+                if (assetPathTable.HasDataRow(assetID))
+                {
+                    var assetData = assetPathTable[assetID];
+                    if (obj != null) ReleaseGameObject(assetData.AssetPath, obj);
+                    RemoveOneWaitAssetLoadThenGet(assetData.AssetPath, callback);
+                }
+            }
+        }
+        public void ReleaseSfxGameObject(int id, GameObject obj,GetGObjSuccessCallback callback)
+        {
+            var sfxTable = GameEntry.DataTable.GetDataTable<DRSfx>("Sfx");
+            if (sfxTable.HasDataRow(id))
+            {
+                var bulletData = sfxTable[id];
                 var assetID = bulletData.AssetPathID;
                 var assetPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
                 if (assetPathTable.HasDataRow(assetID))

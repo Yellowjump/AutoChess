@@ -120,6 +120,8 @@ namespace SkillSystem
         CreateBullet,
         [InspectorName("创建护盾")]
         CreateHuDun,
+        [InspectorName("创建特效")]
+        CreateSfx,
     }
 
     /// <summary>

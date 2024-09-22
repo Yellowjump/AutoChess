@@ -88,6 +88,7 @@ namespace Entity
         /// </summary>
         public void ReInit()
         {
+            RemoveAllSfx();
             GObj?.SetActive(true);
             GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
             IsValid = true;
@@ -110,6 +111,7 @@ namespace Entity
         }
         public void Remove()
         {
+            RemoveAllSfx();
             GameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
             ReleaseAnim();
             GObj = null;
