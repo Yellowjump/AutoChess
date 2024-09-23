@@ -33,6 +33,10 @@ namespace UnityGameFramework.Editor
             }
         }
 
+        protected void ShowUnityInspectorGUI()
+        {
+            base.OnInspectorGUI();
+        }
         /// <summary>
         /// 编译开始事件。
         /// </summary>

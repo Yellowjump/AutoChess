@@ -92,7 +92,6 @@ namespace Entity
             GObj?.SetActive(true);
             GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
             IsValid = true;
-            CurBuffList.Clear();
             ChangeToIdleState();
             DestoryAttribute();
             InitAttribute();
@@ -118,6 +117,7 @@ namespace Entity
             DestoryState();
             DestorySkill();
             DestoryAttribute();
+            EquipItemList.Clear();
             GameEntry.HeroManager.ReleaseEntityQizi(this);
         }
 
