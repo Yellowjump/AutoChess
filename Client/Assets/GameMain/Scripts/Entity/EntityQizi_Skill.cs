@@ -506,7 +506,7 @@ namespace Entity
                 {
                     //护盾值大于伤害值，遍历buff,从剩余时间小的开始扣
                     int curDamageValue = (int)damageData.DamageValue;
-                    var shieldList = CurBuffList.FindAll(item => item.CheckBuffTag(BuffTag.Shield));
+                    var shieldList = GetAllShieldList();
                     shieldList.Sort((a,b)=>
                     {
                         if (a.DurationMs != 0 && b.DurationMs != 0)
@@ -539,6 +539,7 @@ namespace Entity
                             break;
                         }
                     }
+                    ListPool<Buff>.Release(shieldList);
                     hudunAttr.AddNum(-(int)damageData.DamageValue);
                 }
             }
@@ -561,6 +562,18 @@ namespace Entity
             }
         }
 
+        private List<Buff> GetAllShieldList()
+        {
+            List<Buff> shieldList = ListPool<Buff>.Get();
+            foreach (var buff in CurBuffList)
+            {
+                if (buff.IsValid && buff.CheckBuffTag(BuffTag.Shield))
+                {
+                    shieldList.Add(buff);
+                }
+            }
+            return shieldList;
+        }
         private void DestorySkill()
         {
             if (NormalSkillList != null)
