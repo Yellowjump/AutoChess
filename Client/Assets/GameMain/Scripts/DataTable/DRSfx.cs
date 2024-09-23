@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-09-22 19:41:18.382
+// 生成时间：2024-09-23 14:29:18.704
 //------------------------------------------------------------
 
 using GameFramework;
@@ -75,6 +75,24 @@ namespace DataTable
             private set;
         }
 
+        /// <summary>
+        /// 获取位置随机偏移限制。
+        /// </summary>
+        public Vector3 PosRandom
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取大小。
+        /// </summary>
+        public Vector3 SizeOffset
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -91,6 +109,8 @@ namespace DataTable
             DurationMs = int.Parse(columnStrings[index++]);
             IsOnlyOne = bool.Parse(columnStrings[index++]);
             PosOffset = DataTableExtension.ParseVector3(columnStrings[index++]);
+            PosRandom = DataTableExtension.ParseVector3(columnStrings[index++]);
+            SizeOffset = DataTableExtension.ParseVector3(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -107,6 +127,8 @@ namespace DataTable
                     DurationMs = binaryReader.Read7BitEncodedInt32();
                     IsOnlyOne = binaryReader.ReadBoolean();
                     PosOffset = binaryReader.ReadVector3();
+                    PosRandom = binaryReader.ReadVector3();
+                    SizeOffset = binaryReader.ReadVector3();
                 }
             }
 

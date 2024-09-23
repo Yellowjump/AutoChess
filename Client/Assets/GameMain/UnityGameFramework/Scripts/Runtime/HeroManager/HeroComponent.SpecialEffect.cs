@@ -24,8 +24,10 @@ namespace UnityGameFramework.Runtime
     {
         public EntityBase Owner;
         public GameObject GObj;
-        [FormerlySerializedAs("Duration")] public int DurationMs;
+        public float RemainDurationMs;
+        public int DurationMs;
         public Vector3 PosOffset= Vector3.zero;
+        public Vector3 SizeOffset = Vector3.one;
         public int SfxID;
         public int ExistNum;
         public void Clear()
@@ -33,6 +35,7 @@ namespace UnityGameFramework.Runtime
             GameEntry.HeroManager.ReleaseSfxGameObject(SfxID, GObj, OnGetHeroGObjCallback);
             Owner = null;
             PosOffset= Vector3.zero;
+            SizeOffset = Vector3.one;
             SfxID = 0;
             ExistNum = 0;
         }
@@ -43,6 +46,7 @@ namespace UnityGameFramework.Runtime
         protected virtual void OnGetHeroGObjCallback(GameObject obj)
         {
             GObj = obj;
+            GObj.transform.localScale = SizeOffset;
             GObj.transform.SetParent(Owner.GObj.transform);
             GObj.transform.localPosition = PosOffset;
         }
