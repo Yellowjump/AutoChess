@@ -11,23 +11,29 @@ namespace SkillSystem
     {
         public override CommandType CurCommandType => CommandType.CreateHuDun;
         public TableParamInt ParamInt1;
-
+        private Buff nowBuff;
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
             if (trigger.ParentTriggerList is Buff curBuff)
             {
                 if (curBuff.CheckBuffTag(BuffTag.Shield))
                 {
+                    nowBuff = curBuff;
                     curBuff.paramInt = ParamInt1.Value;
+                    if (curBuff.Owner is EntityQizi curqizi)
+                    {
+                        var hudun = curqizi.GetAttribute(AttributeType.HuDun);
+                        hudun.AddNum(curBuff.paramInt);
+                    }
                 }
             }
         }
 
         public override void Clone(CommandBase copy)
         {
-            if (copy is CommandHuDun copyCreateBullet)
+            if (copy is CommandHuDun copyCreateHuDunt)
             {
-                ParamInt1.Clone(copyCreateBullet.ParamInt1);
+                ParamInt1.Clone(copyCreateHuDunt.ParamInt1);
             }
         }
 
@@ -48,6 +54,11 @@ namespace SkillSystem
 
         public override void Clear()
         {
+            if (nowBuff.Owner is EntityQizi curqizi)
+            {
+                var hudun = curqizi.GetAttribute(AttributeType.HuDun);
+                hudun.AddNum(-nowBuff.paramInt);
+            }
             ReferencePool.Release(ParamInt1);
             ParamInt1 = null;
         }
