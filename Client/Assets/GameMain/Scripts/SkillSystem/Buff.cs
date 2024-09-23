@@ -12,6 +12,7 @@ namespace SkillSystem
         public int TempleteID;
         public BuffTag OwnBuffTag;
         public int MaxLayerNum;
+        public bool IsAura => MaxLayerNum < 0;
         public int DurationMs;
         public float RemainMs;
         public bool IsValid = true;
@@ -63,6 +64,13 @@ namespace SkillSystem
             }
             IsValid = false;
             base.OnDestory();
+            if (IsAura)
+            {
+                if (Owner is EntityQizi qizi)
+                {
+                    qizi.OnAuraBuffDestroy(this);
+                }
+            }
         }
 
         public override void Clear()

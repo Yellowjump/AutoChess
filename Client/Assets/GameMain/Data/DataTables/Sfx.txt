@@ -1,5 +1,5 @@
-﻿#	特效配置表					
-#	Id		AssetPathID	DurationMs	IsOnlyOne	PosOffset
-#	int		int	int	bool	vector3
-#	特效ID	备注	对应资源表ID	持续时间	是否单独存在	位置偏移
-	1	普通受击特效	3301	400	0	0,0.5,0
+﻿#	特效配置表							
+#	Id		AssetPathID	DurationMs	IsOnlyOne	PosOffset	PosRandom	SizeOffset
+#	int		int	int	bool	vector3	vector3	vector3
+#	特效ID	备注	对应资源表ID	持续时间	是否单独存在	位置偏移	位置随机偏移限制	大小
+	1	普通受击特效	3301	400	0	0,1,0	0.1,0.1,0.1	0.2,0.2,0.2

@@ -69,12 +69,19 @@ namespace Entity
         }
         private void UpdateShowSlider()
         {
-            var maxHp = (int)GetAttribute(AttributeType.MaxHp).GetFinalValue();
-            var curHp = (int)GetAttribute(AttributeType.Hp).GetFinalValue();
-            xuetiao.value = curHp / (float)maxHp;
-            var maxPower = (int)GetAttribute(AttributeType.MaxPower).GetFinalValue();
-            var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
-            power.value = curPower / (float)maxPower;
+            if (xuetiao != null)
+            {
+                var maxHp = (int)GetAttribute(AttributeType.MaxHp).GetFinalValue();
+                var curHp = (int)GetAttribute(AttributeType.Hp).GetFinalValue();
+                xuetiao.value = curHp / (float)maxHp;
+            }
+
+            if (power != null)
+            {
+                var maxPower = (int)GetAttribute(AttributeType.MaxPower).GetFinalValue();
+                var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
+                power.value = curPower / (float)maxPower;
+            }
         }
 
         private void DestoryAttribute()

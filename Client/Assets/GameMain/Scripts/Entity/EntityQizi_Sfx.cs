@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using DataTable;
 using GameFramework;
 using GameFramework.Fsm;
+using UnityEngine;
 using UnityGameFramework.Runtime;
 
 namespace Entity
@@ -25,16 +26,42 @@ namespace Entity
                 {
                     oneNewSfx = ReferencePool.Acquire<SfxEntity>();
                     oneNewSfx.SfxID = sfxID;
+                    oneNewSfx.DurationMs = sfxData.DurationMs;
                     oneNewSfx.Owner = this;
                     oneNewSfx.PosOffset = sfxData.PosOffset;
-                    oneNewSfx.DurationMs = sfxData.DurationMs;
+                    if (sfxData.PosRandom != Vector3.zero)
+                    {
+                        oneNewSfx.PosOffset +=new Vector3((float)Utility.Random.GetRandomNoLogic(-sfxData.PosRandom.x, sfxData.PosRandom.x),(float)Utility.Random.GetRandomNoLogic(-sfxData.PosRandom.y, sfxData.PosRandom.y),(float)Utility.Random.GetRandomNoLogic(-sfxData.PosRandom.z, sfxData.PosRandom.z))  ;
+                    }
+                    oneNewSfx.SizeOffset = sfxData.SizeOffset;
                     oneNewSfx.InitGObj();
                     SfxList.Add(oneNewSfx);
                 }
+                oneNewSfx.RemainDurationMs = 0;//刷新特效存在时间
                 oneNewSfx.ExistNum++;
             }
         }
 
+        public void UpdateSfxRemainTime(float elapseSeconds, float realElapseSeconds)
+        {
+            if (SfxList != null && SfxList.Count > 0)
+            {
+                for (var index = SfxList.Count-1; index >=0; index--)
+                {
+                    var oneSfx = SfxList[index];
+                    if (oneSfx.DurationMs == 0)//持续时间无线
+                    {
+                        continue;
+                    }
+                    oneSfx.RemainDurationMs += elapseSeconds * 1000;
+                    if (oneSfx.RemainDurationMs >= oneSfx.DurationMs)
+                    {
+                        ReferencePool.Release(oneSfx);
+                        SfxList.Remove(oneSfx);
+                    }
+                }
+            }
+        }
         public void RemoveSfx(int sfxID)
         {
             var oneSfx = SfxList.Find(entity => entity.SfxID == sfxID);

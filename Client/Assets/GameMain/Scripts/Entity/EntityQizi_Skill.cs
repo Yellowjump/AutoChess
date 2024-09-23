@@ -16,7 +16,7 @@ namespace Entity
         public List<Skill> PassiveSkillList = new List<Skill>();
         public Dictionary<TriggerType, List<OneTrigger>> CurTriggerDic = new Dictionary<TriggerType, List<OneTrigger>>();
         public List<Buff> CurBuffList = new List<Buff>();
-
+        public Dictionary<int, List<Buff>> AuraStack = new Dictionary<int, List<Buff>>();
         public EntityQizi CurAttackTarget;
         /// <summary>
         /// 普攻动画加速时间
@@ -214,32 +214,80 @@ namespace Entity
             // todo 判断是否有 免疫之类的判断
             if (buff.MaxLayerNum != 0)//有层数限制
             {
-                var buffCount = 0;
-                var minRemainingTime = 0f;
-                Buff buffToRemove = null;
-                foreach (var b in CurBuffList)
+                if (buff.MaxLayerNum < 0)//是光环
                 {
-                    if (b.BuffID == buff.BuffID&&b.IsValid)
+                    if (!AuraStack.ContainsKey(buff.BuffID))
                     {
-                        buffCount++;
-                        // 如果已存在同 buffID 的 buff，且剩余时间最少的 buff 未找到或当前 buff 剩余时间更少
-                        if (b.DurationMs-b.RemainMs < minRemainingTime)
-                        {
-                            minRemainingTime = b.DurationMs-b.RemainMs;
-                            buffToRemove = b;
-                        }
+                        var buffList = ListPool<Buff>.Get();
+                        buffList.Add(buff);
+                        AuraStack.Add(buff.BuffID,buffList);
+                    }
+                    else
+                    {
+                        var buffList = AuraStack[buff.BuffID];
+                        buffList.Add(buff);//之前有该光环效果只进入光环队列不触发
+                        return;
                     }
                 }
-                // 检查是否超过层数限制
-                if (buffCount >= buff.MaxLayerNum && buffToRemove != null)
+                else
                 {
-                    buffToRemove.OnDestory();
+                    var buffCount = 0;
+                    var minRemainingTime = 0f;
+                    Buff buffToRemove = null;
+                    foreach (var b in CurBuffList)
+                    {
+                        if (b.BuffID == buff.BuffID&&b.IsValid)
+                        {
+                            buffCount++;
+                            // 如果已存在同 buffID 的 buff，且剩余时间最少的 buff 未找到或当前 buff 剩余时间更少
+                            if (b.DurationMs-b.RemainMs < minRemainingTime)
+                            {
+                                minRemainingTime = b.DurationMs-b.RemainMs;
+                                buffToRemove = b;
+                            }
+                        }
+                    }
+                    // 检查是否超过层数限制
+                    if (buffCount >= buff.MaxLayerNum && buffToRemove != null)
+                    {
+                        buffToRemove.OnDestory();
+                    }
                 }
             }
             CurBuffList.Add(buff);
             buff.OnActive();
         }
 
+        public void OnAuraBuffDestroy(Buff buff)
+        {
+            if (AuraStack.ContainsKey(buff.BuffID))
+            {
+                var buffList = AuraStack[buff.BuffID];
+                if (buffList.Contains(buff))
+                {
+                    var index = buffList.FindIndex((bu)=>bu==buff);
+                    if (index == 0)
+                    {
+                        buffList.Remove(buff);
+                        if (buffList.Count == 0)
+                        {
+                            AuraStack.Remove(buff.BuffID);
+                            ListPool<Buff>.Release(buffList);
+                        }
+                        else
+                        {
+                            var oneBuff = buffList[0];
+                            CurBuffList.Add(buff);
+                            oneBuff.OnActive();
+                        }
+                    }
+                    else
+                    {
+                        buffList.Remove(buff);
+                    }
+                }
+            }
+        }
         private void CastPassiveSkill()
         {
             foreach (var passiveSkill in PassiveSkillList)
@@ -276,6 +324,8 @@ namespace Entity
                     noAnimSkill.Cast();
                 }
             }
+
+            UpdateSfxRemainTime(elapseSeconds, realElapseSeconds);
         }
 
         private void UpdateBuffTime(float elapseSeconds, float realElapseSeconds)
