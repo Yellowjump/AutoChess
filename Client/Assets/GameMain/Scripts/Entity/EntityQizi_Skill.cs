@@ -240,9 +240,9 @@ namespace Entity
                         {
                             buffCount++;
                             // 如果已存在同 buffID 的 buff，且剩余时间最少的 buff 未找到或当前 buff 剩余时间更少
-                            if (b.DurationMs-b.RemainMs < minRemainingTime)
+                            if (b.RemainMs < minRemainingTime)
                             {
-                                minRemainingTime = b.DurationMs-b.RemainMs;
+                                minRemainingTime = b.RemainMs;
                                 buffToRemove = b;
                             }
                         }
@@ -338,8 +338,8 @@ namespace Entity
                 {
                     continue;
                 }
-                buff.RemainMs += elapseSeconds*1000;
-                if (buff.DurationMs!=0&&buff.RemainMs >= buff.DurationMs)
+                buff.RemainMs -= elapseSeconds*1000;
+                if (buff.DurationMs!=0&&buff.RemainMs<=0)
                 {
                     buff.OnDestory();
                 }
@@ -486,50 +486,57 @@ namespace Entity
             //todo 计算护盾
             var hudunAttr = GetAttribute(AttributeType.HuDun);
             var hpAttr = GetAttribute(AttributeType.Hp);
-            if ((int)hudunAttr.GetFinalValue() >= 0)
+            var shieldValue = (int)hudunAttr.GetFinalValue();
+            if (shieldValue >= 0)
             {
-                if ((int)hudunAttr.GetFinalValue()<=(int)damageData.DamageValue)//护盾值小于伤害值
+                if (shieldValue<=(int)damageData.DamageValue)//护盾值小于伤害值
                 {
                     foreach (var curbuff in CurBuffList)
                     {
                         if (curbuff.CheckBuffTag(BuffTag.Shield))
                         {
                             curbuff.paramInt = 0;
+                            curbuff.OnDestory();
                         }
                     }
-                    hpAttr.AddNum(-((int)damageData.DamageValue-(int)hudunAttr.GetFinalValue()));
-                    hudunAttr.AddNum(-(int)hudunAttr.GetFinalValue());
+                    hudunAttr.AddNum(-shieldValue);
+                    hpAttr.AddNum(-(int)(damageData.DamageValue-shieldValue));
                 }
                 else 
                 {
                     //护盾值大于伤害值，遍历buff,从剩余时间小的开始扣
                     int curDamageValue = (int)damageData.DamageValue;
+                    var shieldList = CurBuffList.FindAll(item => item.CheckBuffTag(BuffTag.Shield));
+                    shieldList.Sort((a,b)=>
+                    {
+                        if (a.DurationMs != 0 && b.DurationMs != 0)
+                        {
+                            return a.RemainMs.CompareTo(b.RemainMs);
+                        }
+                        return (a.DurationMs == 0).CompareTo(b.DurationMs == 0);
+                    });
                     while (curDamageValue > 0)
                     {
-                        Buff nerBuff = null;
-                        foreach (var curbuff in CurBuffList)
+                        if (shieldList.Count > 0)
                         {
-                            if (curbuff.CheckBuffTag(BuffTag.Shield))
+                            var nerBuff = shieldList[0];
+                            if (curDamageValue>nerBuff.paramInt)
                             {
-                                if (nerBuff!=null&&curbuff.DurationMs<nerBuff.DurationMs&&curbuff.paramInt!=0)
-                                {
-                                    nerBuff = curbuff;
-                                }
-                                else
-                                {
-                                    nerBuff = curbuff;
-                                }
+                                curDamageValue -= nerBuff.paramInt;
+                                nerBuff.paramInt = 0;
+                                shieldList.Remove(nerBuff);
+                                nerBuff.OnDestory();
                             }
-                        }
-                        if (curDamageValue>nerBuff.paramInt)
-                        {
-                            curDamageValue -= nerBuff.paramInt;
-                            nerBuff.paramInt = 0;
+                            else
+                            {
+                                nerBuff.paramInt -= curDamageValue;
+                                curDamageValue = 0;
+                            }
                         }
                         else
                         {
-                            nerBuff.paramInt -= curDamageValue;
-                            curDamageValue = 0;
+                            Log.Error("No Shield But AttrShield Has Value");
+                            break;
                         }
                     }
                     hudunAttr.AddNum(-(int)damageData.DamageValue);

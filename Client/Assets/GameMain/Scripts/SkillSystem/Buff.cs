@@ -13,8 +13,8 @@ namespace SkillSystem
         public BuffTag OwnBuffTag;
         public int MaxLayerNum;
         public bool IsAura => MaxLayerNum < 0;
-        public int DurationMs;
-        public float RemainMs;
+        public int DurationMs;//总持续时间，无限是0
+        public float RemainMs;//剩余时间
         public bool IsValid = true;
         public int paramInt;
         public override void Clone(TriggerList copy)
@@ -63,6 +63,14 @@ namespace SkillSystem
                 return;
             }
             IsValid = false;
+            if (CheckBuffTag(BuffTag.Shield)&&paramInt>0)
+            {
+                if (Owner is EntityQizi curqizi)
+                {
+                    var hudun = curqizi.GetAttribute(AttributeType.HuDun);
+                    hudun.AddNum(-paramInt);
+                }
+            }
             base.OnDestory();
             if (IsAura)
             {

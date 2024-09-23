@@ -67,6 +67,7 @@ namespace SkillSystem
                                     newBuff.BuffID = buffData.Id;
                                     newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
                                     newBuff.DurationMs = buffData.Duration;
+                                    newBuff.RemainMs = buffData.Duration;
                                     newBuff.MaxLayerNum = buffData.MaxLayerNum;
                                     newBuff.SetSkillValue(buffData);
                                     newBuff.Owner = target;
