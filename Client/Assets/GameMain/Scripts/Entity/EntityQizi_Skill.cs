@@ -434,8 +434,63 @@ namespace Entity
                 return;
             }
             //todo 计算护盾
+            var hudunAttr = GetAttribute(AttributeType.HuDun);
             var hpAttr = GetAttribute(AttributeType.Hp);
-            hpAttr.AddNum(-(int)damageData.DamageValue);
+            if ((int)hudunAttr.GetFinalValue() >= 0)
+            {
+                if ((int)hudunAttr.GetFinalValue()<=(int)damageData.DamageValue)//护盾值小于伤害值
+                {
+                    foreach (var curbuff in CurBuffList)
+                    {
+                        if (curbuff.CheckBuffTag(BuffTag.Shield))
+                        {
+                            curbuff.paramInt = 0;
+                        }
+                    }
+                    hpAttr.AddNum(-((int)damageData.DamageValue-(int)hudunAttr.GetFinalValue()));
+                    hudunAttr.AddNum(-(int)hudunAttr.GetFinalValue());
+                }
+                else 
+                {
+                    //护盾值大于伤害值，遍历buff,从剩余时间小的开始扣
+                    int curDamageValue = (int)damageData.DamageValue;
+                    while (curDamageValue > 0)
+                    {
+                        Buff nerBuff = null;
+                        foreach (var curbuff in CurBuffList)
+                        {
+                            if (curbuff.CheckBuffTag(BuffTag.Shield))
+                            {
+                                if (nerBuff!=null&&curbuff.DurationMs<nerBuff.DurationMs&&curbuff.paramInt!=0)
+                                {
+                                    nerBuff = curbuff;
+                                }
+                                else
+                                {
+                                    nerBuff = curbuff;
+                                }
+                            }
+                        }
+                        if (curDamageValue>nerBuff.paramInt)
+                        {
+                            curDamageValue -= nerBuff.paramInt;
+                            nerBuff.paramInt = 0;
+                        }
+                        else
+                        {
+                            nerBuff.paramInt -= curDamageValue;
+                            curDamageValue = 0;
+                        }
+                    }
+                    hudunAttr.AddNum(-(int)damageData.DamageValue);
+                }
+            }
+            else
+            {
+                hpAttr.AddNum(-(int)damageData.DamageValue);
+            }
+            
+            
             damageData.Caster.OnTrigger(TriggerType.AfterCauseDamage,damageData);
             OnTrigger(TriggerType.AfterBeCauseDamage,damageData);
             

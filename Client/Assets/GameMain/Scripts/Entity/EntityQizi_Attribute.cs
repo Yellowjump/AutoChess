@@ -51,6 +51,7 @@ namespace Entity
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.Hp,ReferencePool.Acquire<FixedModifyAttribute>().Initialize(attributeData.Hp,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<DynamicLimitAttribute<int>>().Initialize(AttributeType.MaxHp,this))));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MaxPower,attributeData.Power,0,int.MaxValue));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.Power,ReferencePool.Acquire<FixedModifyAttribute>().Initialize(0,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<DynamicLimitAttribute<int>>().Initialize(AttributeType.MaxPower,this))));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.HuDun, ReferencePool.Acquire<FixedModifyAttribute>().Initialize(0,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(int.MaxValue))));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.AttackDamage,attributeData.AttackDamage,isFixModify:false));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.AbilityPower,attributeData.AbilityPower,isFixModify:false));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeFloatAttr(AttributeType.AttackSpeed,attributeData.AttackSpeed));
@@ -69,12 +70,30 @@ namespace Entity
         }
         private void UpdateShowSlider()
         {
-            var maxHp = (int)GetAttribute(AttributeType.MaxHp).GetFinalValue();
-            var curHp = (int)GetAttribute(AttributeType.Hp).GetFinalValue();
-            xuetiao.value = curHp / (float)maxHp;
-            var maxPower = (int)GetAttribute(AttributeType.MaxPower).GetFinalValue();
-            var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
-            power.value = curPower / (float)maxPower;
+            if (xuetiao != null)
+            {
+                var maxHp = (int)GetAttribute(AttributeType.MaxHp).GetFinalValue();
+                var curHp = (int)GetAttribute(AttributeType.Hp).GetFinalValue();
+                var curHuDun=(int)GetAttribute(AttributeType.HuDun).GetFinalValue();
+                if (curHp + curHuDun > maxHp)
+                {
+                    float curSum = curHp + curHuDun;
+                    xuetiao.value = curHp / curSum;
+                    hudun.value = curHuDun / curSum;
+                }
+                else
+                {
+                    xuetiao.value = curHp / (float)maxHp;
+                    hudun.value = curHuDun / (float)maxHp;
+                }
+            }
+
+            if (power != null)
+            {
+                var maxPower = (int)GetAttribute(AttributeType.MaxPower).GetFinalValue();
+                var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
+                power.value = curPower / (float)maxPower;
+            }
         }
 
         private void DestoryAttribute()

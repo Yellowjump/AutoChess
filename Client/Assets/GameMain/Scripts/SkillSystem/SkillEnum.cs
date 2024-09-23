@@ -254,6 +254,8 @@ namespace SkillSystem
         Power,
         [InspectorName("最大蓝量")]
         MaxPower,
+        [InspectorName("护盾")]
+        HuDun,
         [InspectorName("攻击力")]
         AttackDamage,
         [InspectorName("法强")]
