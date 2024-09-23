@@ -585,6 +585,32 @@ namespace Entity
                 }
                 PassiveSkillList.Clear();
             }
+
+            if (AuraStack != null)
+            {
+                foreach (var oneKeyValue in AuraStack)
+                {
+                    var list = oneKeyValue.Value;
+                    if (list != null)
+                    {
+                        if (list.Count > 1)
+                        {
+                            var buffIndex = -1;
+                            foreach (var oneBuff in list)
+                            {
+                                buffIndex++;
+                                if (buffIndex == 0)
+                                {
+                                    continue;
+                                }
+                                ReferencePool.Release(oneBuff);
+                            }
+                        }
+                        ListPool<Buff>.Release(list);
+                    }
+                }
+                AuraStack.Clear();
+            }
             if (CurBuffList != null)
             {
                 foreach (var oneBuff in CurBuffList)
