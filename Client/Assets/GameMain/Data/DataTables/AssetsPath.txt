@@ -24,7 +24,8 @@
 	4004	护甲板	Assets/GameMain/Image/Icons/ItemIcon/SteelTowerShield.png
 	4005	动能引擎	Assets/GameMain/Image/Icons/ItemIcon/SmallPotion.png
 	4501	旋转斧头	Assets/GameMain/Image/Icons/ItemIcon/BerserkAxe.png
-	4502	反甲	Assets/GameMain/Image/Icons/ItemIcon/GreyKnight.png
+	4502	反甲	Assets/GameMain/Image/Icons/ItemIcon/DarkMountain.png
+	4503	充能护甲	Assets/GameMain/Image/Icons/ItemIcon/GreyKnight.png
 #Anim(6000			
 	6001	僵尸idle	Assets/GameMain/Prefeb/Charactor/enemy0/Z_Idle.anim
 	6002	僵尸run	Assets/GameMain/Prefeb/Charactor/enemy0/Z_Run.anim
