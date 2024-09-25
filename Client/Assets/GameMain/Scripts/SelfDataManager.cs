@@ -25,6 +25,7 @@ public class SelfDataManager
         }
     }
     public List<MazePoint> CurMazeList;
+    public List<MazePointItem> CurMazeItemList;
     public MazePoint CurMazePoint;
     public int CoinNum;
     public List<EntityQizi> SelfHeroList = new List<EntityQizi>();

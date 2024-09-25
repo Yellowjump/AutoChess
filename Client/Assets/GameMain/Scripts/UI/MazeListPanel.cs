@@ -36,12 +36,15 @@ public class MazeListPanelCtrl : UIFormLogic
     {
         base.OnInit(userData);
         _btnClose.onClick.AddListener(() => { GameEntry.UI.CloseUIForm(UIForm);});
+        SelfDataManager.Instance.CurMazeItemList ??= new();
+        SelfDataManager.Instance.CurMazeItemList.Clear();
         _pointPool ??= new ObjectPool<GameObject>(() =>
         {
             GameObject ob = Instantiate(_pointTemp, _invisbleParent.transform);
             MazePointItem mp = ob.GetComponent<MazePointItem>();
             if (mp != null)
             {
+                SelfDataManager.Instance.CurMazeItemList.Add(mp);
                 mp.OnClickPointCallback = OnClickPoint;
             }
             return ob;
@@ -70,6 +73,8 @@ public class MazeListPanelCtrl : UIFormLogic
             oneNewPoint.transform.position = ItemStartPos + new Vector2(onePointData.Pos.x * ItemOffSet.x, onePointData.Pos.y * ItemOffSet.y);
             mp.Pos = onePointData.Pos;
             mp.Name.text = onePointData.CurType.ToString();
+            mp.IsPassImg.SetActive(false);
+            
             foreach (var linkPointData in onePointData.LinkPoint)
             {
                 if (linkPointData.Pos.x > onePointData.Pos.x || (linkPointData.Pos.x == onePointData.Pos.x&&linkPointData.Pos.y > onePointData.Pos.y))
@@ -151,6 +156,19 @@ public class MazeListPanelCtrl : UIFormLogic
         //point.CanSee = true;
         //FreshFog();
     }
+
+    private void FreshMazePointItem()
+    {
+        var mazeItemList = SelfDataManager.Instance.CurMazeItemList;
+        foreach (var curItem in mazeItemList)
+        {
+            var point=SelfDataManager.Instance.GetPoint(curItem.Pos.x, curItem.Pos.y);
+            if (point.CurPassState==MazePoint.PointPassState.Pass)
+            {
+                curItem.IsPassImg.SetActive(true);
+            }
+        }
+    }
     public void OnMapFresh(object sender,GameEventArgs e)
     {
         MapFreshEventArgs ne = (MapFreshEventArgs)e;
@@ -158,6 +176,7 @@ public class MazeListPanelCtrl : UIFormLogic
         {
             return;
         }
+        FreshMazePointItem();
         FreshFog();
     }
 }
