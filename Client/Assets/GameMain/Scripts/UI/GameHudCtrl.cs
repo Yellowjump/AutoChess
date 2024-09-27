@@ -25,6 +25,12 @@ public class GameHudCtrl : UIFormLogic
         GameEntry.Event.Subscribe(FreshCoinNumArg.EventId,OnFreshCoinNum);
     }
 
+    public override void OnOpen(object userData)
+    {
+        base.OnOpen(userData);
+        CoinText.text = SelfDataManager.Instance.CoinNum.ToString();
+    }
+
     private void OnClickBagBtn()
     {
         Log.Info("OnClickContinueBtn OnClick");

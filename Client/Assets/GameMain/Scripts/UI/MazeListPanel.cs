@@ -12,6 +12,7 @@ using SelfEventArg;
 
 public class MazeListPanelCtrl : UIFormLogic
 {
+    private List<MazePointItem> _curMazeItemList;
     [SerializeField] private GameObject _pointTemp;
     [SerializeField] private GameObject _lineTemp;
     [SerializeField] private GameObject _invisbleParent;
@@ -36,15 +37,15 @@ public class MazeListPanelCtrl : UIFormLogic
     {
         base.OnInit(userData);
         _btnClose.onClick.AddListener(() => { GameEntry.UI.CloseUIForm(UIForm);});
-        SelfDataManager.Instance.CurMazeItemList ??= new();
-        SelfDataManager.Instance.CurMazeItemList.Clear();
+        _curMazeItemList ??= new();
+        _curMazeItemList.Clear();
         _pointPool ??= new ObjectPool<GameObject>(() =>
         {
             GameObject ob = Instantiate(_pointTemp, _invisbleParent.transform);
             MazePointItem mp = ob.GetComponent<MazePointItem>();
             if (mp != null)
             {
-                SelfDataManager.Instance.CurMazeItemList.Add(mp);
+                _curMazeItemList.Add(mp);
                 mp.OnClickPointCallback = OnClickPoint;
             }
             return ob;
@@ -74,7 +75,10 @@ public class MazeListPanelCtrl : UIFormLogic
             mp.Pos = onePointData.Pos;
             mp.Name.text = onePointData.CurType.ToString();
             mp.IsPassImg.SetActive(false);
-            
+            if (onePointData.CurPassState==MazePoint.PointPassState.Pass)
+            {
+                mp.IsPassImg.SetActive(true);
+            }
             foreach (var linkPointData in onePointData.LinkPoint)
             {
                 if (linkPointData.Pos.x > onePointData.Pos.x || (linkPointData.Pos.x == onePointData.Pos.x&&linkPointData.Pos.y > onePointData.Pos.y))
@@ -159,7 +163,7 @@ public class MazeListPanelCtrl : UIFormLogic
 
     private void FreshMazePointItem()
     {
-        var mazeItemList = SelfDataManager.Instance.CurMazeItemList;
+        var mazeItemList = _curMazeItemList;
         foreach (var curItem in mazeItemList)
         {
             var point=SelfDataManager.Instance.GetPoint(curItem.Pos.x, curItem.Pos.y);

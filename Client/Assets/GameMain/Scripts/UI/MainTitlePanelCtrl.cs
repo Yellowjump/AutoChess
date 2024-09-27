@@ -21,6 +21,13 @@ public class MainTitlePanelCtrl : UIFormLogic
         _btnSetting.onClick.AddListener(OnClickSettingBtn);
     }
 
+    public override void OnOpen(object userData)
+    {
+        base.OnOpen(userData);
+        var hasData = GameEntry.HeroManager.HasSaveData();
+        _btnContinue.gameObject.SetActive(hasData);
+    }
+
     private void OnClickContinueBtn()
     {
         Log.Info("OnClickContinueBtn OnClick");
