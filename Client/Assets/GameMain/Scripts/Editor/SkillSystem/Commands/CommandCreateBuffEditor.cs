@@ -15,7 +15,10 @@ namespace Editor.SkillSystem.Commands
                 commandCreateBuff.UseTemplateBuff = GUILayout.Toggle(commandCreateBuff.UseTemplateBuff,"是否使用buff表中的buff");
                 if (commandCreateBuff.UseTemplateBuff)
                 {
+                    EditorGUILayout.LabelField("buffID");
                     SkillSystemDrawerCenter.DrawOneInstance(commandCreateBuff.BuffID);
+                    EditorGUILayout.LabelField("buffIDList");
+                    SkillSystemDrawerCenter.DrawOneInstance(commandCreateBuff.BuffList);
                 }
                 else
                 {

@@ -66,6 +66,7 @@ namespace Entity
                     {
                         continue;
                     }
+                    oneNewSkill.FromItemID = oneItemID;
                     if (oneNewSkill.CurSkillType == SkillType.NormalSkill)
                     {
                         NormalSkillList.Add(oneNewSkill);

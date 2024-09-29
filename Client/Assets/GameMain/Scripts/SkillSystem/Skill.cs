@@ -8,6 +8,7 @@ namespace SkillSystem
     {
         public int SkillID;
         public int TempleteID;
+        public int FromItemID;//来源道具ID
         public SkillType CurSkillType;
         public int SkillRange;//攻击距离
         public EntityQizi Caster;

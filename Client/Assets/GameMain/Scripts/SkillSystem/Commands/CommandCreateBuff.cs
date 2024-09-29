@@ -1,8 +1,11 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using DataTable;
 using Entity;
 using GameFramework;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
@@ -17,7 +20,7 @@ namespace SkillSystem
         public bool UseTemplateBuff;
 
         public TableParamInt BuffID;
-
+        public TableParamString BuffList;
         /// <summary>
         /// <para>UseTemplateBuff 是 false时是临时buff（id为0）</para>
         /// <para>UseTemplateBuff 是 true时是 表格中的buff</para>
@@ -55,33 +58,48 @@ namespace SkillSystem
                         {
                             var buffTempTable = GameEntry.DataTable.GetDataTable<DRBuffTemplate>("BuffTemplate");
                             var buffTable = GameEntry.DataTable.GetDataTable<DRBuff>("Buff");
-                            if (buffTable.HasDataRow(BuffID.Value))
+                            var tempBuffIDList = ListPool<int>.Get();
+                            if (BuffID.Value != 0)
                             {
-                                var buffData = buffTable[BuffID.Value];
-                                var buffTempId = buffData.TemplateID;
-                                if (buffTempTable != null && buffTempTable.HasDataRow(buffTempId))
+                                tempBuffIDList.Add(BuffID.Value);
+                            }
+
+                            if (!string.IsNullOrEmpty(BuffList.Value))
+                            {
+                                tempBuffIDList.AddRange(BuffList.Value.Split(',').Select(int.Parse));
+                            }
+
+                            foreach (var oneBuffID in tempBuffIDList)
+                            {
+                                if (buffTable.HasDataRow(oneBuffID))
                                 {
-                                    var buffTemp = buffTempTable[buffTempId].BuffTemplate;
-                                    var newBuff = SkillFactory.CreateNewBuff();
-                                    buffTemp.Clone(newBuff);
-                                    newBuff.BuffID = buffData.Id;
-                                    newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
-                                    newBuff.DurationMs = buffData.Duration;
-                                    newBuff.RemainMs = buffData.Duration;
-                                    newBuff.MaxLayerNum = buffData.MaxLayerNum;
-                                    newBuff.SetSkillValue(buffData);
-                                    newBuff.Owner = target;
-                                    target.AddBuff(newBuff);
+                                    var buffData = buffTable[oneBuffID];
+                                    var buffTempId = buffData.TemplateID;
+                                    if (buffTempTable != null && buffTempTable.HasDataRow(buffTempId))
+                                    {
+                                        var buffTemp = buffTempTable[buffTempId].BuffTemplate;
+                                        var newBuff = SkillFactory.CreateNewBuff();
+                                        buffTemp.Clone(newBuff);
+                                        newBuff.BuffID = buffData.Id;
+                                        newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
+                                        newBuff.DurationMs = buffData.Duration;
+                                        newBuff.RemainMs = buffData.Duration;
+                                        newBuff.MaxLayerNum = buffData.MaxLayerNum;
+                                        newBuff.SetSkillValue(buffData);
+                                        newBuff.Owner = target;
+                                        target.AddBuff(newBuff);
+                                    }
+                                    else
+                                    {
+                                        Log.Error($"No BuffTemplate ID:{buffTempId}");
+                                    }
                                 }
                                 else
                                 {
-                                    Log.Error($"No BuffTemplate ID:{buffTempId}");
+                                    Log.Error($"No BuffID:{oneBuffID}");
                                 }
                             }
-                            else
-                            {
-                                Log.Error($"No BuffID:{BuffID.Value}");
-                            }
+                            ListPool<int>.Release(tempBuffIDList);
                         }
                     }
                 }
@@ -96,6 +114,7 @@ namespace SkillSystem
                 if (UseTemplateBuff)
                 {
                     BuffID.Clone(copyCreateBuff.BuffID);
+                    BuffList.Clone(copyCreateBuff.BuffList);
                 }
                 else
                 {
@@ -111,6 +130,7 @@ namespace SkillSystem
             if (UseTemplateBuff)
             {
                 BuffID.ReadFromFile(reader);
+                BuffList.ReadFromFile(reader);
             }
             else
             {
@@ -125,6 +145,7 @@ namespace SkillSystem
             if (UseTemplateBuff)
             {
                 BuffID.WriteToFile(writer);
+                BuffList.WriteToFile(writer);
             }
             else
             {
@@ -144,6 +165,7 @@ namespace SkillSystem
             if (UseTemplateBuff)
             {
                 BuffID.SetSkillValue(dataTable);
+                BuffList.SetSkillValue(dataTable);
             }
         }
 
@@ -157,6 +179,8 @@ namespace SkillSystem
 
             ReferencePool.Release(BuffID);
             BuffID = null;
+            ReferencePool.Release(BuffList);
+            BuffList = null;
         }
     }
 }

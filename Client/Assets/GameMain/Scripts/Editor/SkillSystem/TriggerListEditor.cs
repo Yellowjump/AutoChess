@@ -31,11 +31,18 @@ namespace Editor.SkillSystem
                 {
                     var oneTrigger = triggerList.CurTriggerList[triggerIndex];
                     EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.BeginVertical(GUILayout.Width(20));
                     if (GUILayout.Button("X", GUILayout.Width(20)))
                     {
                         triggerList.CurTriggerList.Remove(oneTrigger);
                     }
-
+                    if (GUILayout.Button("C", GUILayout.Width(20)))//clone
+                    {
+                        var cloneOneTrigger = SkillFactory.CreateNewDefaultTrigger();
+                        oneTrigger.Clone(cloneOneTrigger);
+                        triggerList.CurTriggerList.Add(cloneOneTrigger);
+                    }
+                    EditorGUILayout.EndVertical();
                     EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                     // 绘制边界线
                     Rect rect = GUILayoutUtility.GetRect(0, 0);

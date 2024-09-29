@@ -23,6 +23,7 @@ namespace SkillSystem
                 case CommandType.CreateBuff:
                     var commandCauseBuff = ReferencePool.Acquire<CommandCreateBuff>();
                     commandCauseBuff.BuffID = CreateTableParamInt();
+                    commandCauseBuff.BuffList = CreateTableParamString();
                     return commandCauseBuff;
                 case CommandType.PlayAnim:
                     var commandPlayAnim = ReferencePool.Acquire<CommandPlayAnim>();
