@@ -43,6 +43,10 @@ namespace SkillSystem
                     var commandCreateSfx = ReferencePool.Acquire<CommandCreateSfx>();
                     commandCreateSfx.SfxID = CreateTableParamInt();
                     return commandCreateSfx;
+                case CommandType.ShowWeapon:
+                    var commandShowWeapon = ReferencePool.Acquire<CommandShowWeapon>();
+                    commandShowWeapon.ShowWeaponItemID = CreateTableParamInt();
+                    return commandShowWeapon;
                 default:
                     return ReferencePool.Acquire<CommandBase>();
             }

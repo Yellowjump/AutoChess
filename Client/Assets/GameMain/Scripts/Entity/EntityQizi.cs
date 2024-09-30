@@ -52,7 +52,7 @@ namespace Entity
             GameEntry.HeroManager.GetHeroObjByID(HeroID,OnGetHeroGObjCallback);
         }
 
-        private void OnGetHeroGObjCallback(GameObject obj)
+        private void OnGetHeroGObjCallback(GameObject obj,string path)
         {
             GObj = obj;
             GObj.SetActive(true);
@@ -62,6 +62,7 @@ namespace Entity
             
             animator = this.GObj.GetComponent<Animator>();
             InitAnimation();
+            InitObjWeaponHandle();
             UpdateShowSlider();//加载完obj就刷新一次
         }
 

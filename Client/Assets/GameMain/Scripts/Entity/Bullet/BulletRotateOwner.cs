@@ -40,7 +40,7 @@ namespace Entity.Bullet
             base.InitGObj();
             _curAngle = StartAngle;
         }
-        protected override void OnGetHeroGObjCallback(GameObject obj)
+        protected override void OnGetHeroGObjCallback(GameObject obj,string path)
         {
             GObj = obj;
             ComputeCurPosAndDir();

@@ -122,6 +122,8 @@ namespace SkillSystem
         CreateHuDun,
         [InspectorName("创建特效")]
         CreateSfx,
+        [InspectorName("显示武器")]
+        ShowWeapon,
     }
 
     /// <summary>
@@ -283,5 +285,15 @@ namespace SkillSystem
         TrackingBullet,
         [InspectorName("围绕持有者旋转子弹")]
         RotateOwner,
+    }
+
+    public enum WeaponHandleType
+    {
+        [InspectorName("无父物体")]
+        None,
+        [InspectorName("左手")]
+        LeftHand,
+        [InspectorName("右手")]
+        RightHand,
     }
 }

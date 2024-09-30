@@ -21,9 +21,10 @@ namespace UnityGameFramework.Runtime
     public sealed partial class HeroComponent
     {
         public ObjectPool<EntityQizi> PoolEntity;
+        public ObjectPool<GameObject> EmptyPool;
         public Dictionary<string, List<GetGObjSuccessCallback>> WaitAssetLoadThenGetFromPool = new();
         public Dictionary<string, ObjectPool<GameObject>> PoolDic = new();
-        public delegate void GetGObjSuccessCallback(GameObject asset);
+        public delegate void GetGObjSuccessCallback(GameObject asset,string path);
         private LoadAssetCallbacks OnLoadGameObjectCallback;
         
         [SerializeField]
@@ -33,7 +34,14 @@ namespace UnityGameFramework.Runtime
         private Canvas m_InstanceWorldCanvas = null;
         private void InitPool()
         {
+            OnLoadGameObjectCallback = new LoadAssetCallbacks(OnLoadGameObjCallback);
             PoolEntity = new ObjectPool<EntityQizi>(() => new EntityQizi(), null, null, null, true, 10, 1000);
+            EmptyPool = new ObjectPool<GameObject>(() => new GameObject(), null, (g) =>
+            {
+                g.transform.SetParent(m_InstanceDisableRoot);
+                g.transform.rotation = Quaternion.identity;
+                g.transform.localScale = Vector3.one;
+            }, Destroy);
         }
 
         public EntityQizi GetNewEntityQizi()
@@ -44,6 +52,16 @@ namespace UnityGameFramework.Runtime
         public void ReleaseEntityQizi(EntityQizi qizi)
         {
             PoolEntity?.Release(qizi);
+        }
+
+        public GameObject GetNewEmptyObj()
+        {
+            return EmptyPool?.Get();
+        }
+
+        public void ReleaseEmptyObj(GameObject obj)
+        {
+            EmptyPool?.Release(obj);
         }
         public void GetHeroObjByID(int id,GetGObjSuccessCallback callback)
         {
@@ -94,7 +112,7 @@ namespace UnityGameFramework.Runtime
             WaitHpBarList.Add(newHpBar);
             GetNewObjFromPool(hpBarPerfabPath, OnLoadOneNewHpBarPrefab);
         }
-        private void OnLoadOneNewHpBarPrefab(GameObject obj)
+        private void OnLoadOneNewHpBarPrefab(GameObject obj,string path)
         {
             if (GameEntry.HeroManager.WaitHpBarList != null && GameEntry.HeroManager.WaitHpBarList.Count > 0)
             {
@@ -194,7 +212,7 @@ namespace UnityGameFramework.Runtime
             GetNewObjFromPool(numPerfabPath, OnLoadOneNewDamageNumberPrefab);
         }
 
-        private void OnLoadOneNewDamageNumberPrefab(GameObject obj)
+        private void OnLoadOneNewDamageNumberPrefab(GameObject obj,string path)
         {
             if (WaitDmgNumberList != null && WaitDmgNumberList.Count > 0)
             {
@@ -279,6 +297,16 @@ namespace UnityGameFramework.Runtime
                 }
             }
         }
+
+        public void GetPrefabByAssetID(int assetID,GetGObjSuccessCallback callback)
+        {
+            var assetPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
+            if (assetPathTable.HasDataRow(assetID))
+            {
+                var assetData = assetPathTable[assetID];
+                GetNewObjFromPool(assetData.AssetPath,callback);
+            }
+        }
         private void GetNewObjFromPool(string path, GetGObjSuccessCallback callback)
         {
             if (!path.EndsWith(".prefab"))
@@ -291,7 +319,7 @@ namespace UnityGameFramework.Runtime
             {
                 var targetPool = PoolDic[path];
                 var obj = targetPool.Get();
-                callback?.Invoke(obj);
+                callback?.Invoke(obj,path);
             }
             else
             {
@@ -305,7 +333,7 @@ namespace UnityGameFramework.Runtime
                     List<GetGObjSuccessCallback> targetWaitCallbackList = ListPool<GetGObjSuccessCallback>.Get();
                     targetWaitCallbackList.Add(callback);
                     WaitAssetLoadThenGetFromPool.Add(path,targetWaitCallbackList);
-                    GameEntry.Resource.LoadAsset(path, new LoadAssetCallbacks(OnLoadGameObjCallback));
+                    GameEntry.Resource.LoadAsset(path, OnLoadGameObjectCallback);
                 }
                 
             }
@@ -317,7 +345,13 @@ namespace UnityGameFramework.Runtime
             {
                 if (asset is GameObject gObj)
                 {
-                    PoolDic.Add(path, new ObjectPool<GameObject>(() => Instantiate(gObj),(g)=>g.transform.SetParent(m_InstanceRoot),(g)=>g.transform.SetParent(m_InstanceDisableRoot),Destroy));
+                    PoolDic.Add(path, new ObjectPool<GameObject>(() => Instantiate(gObj),(g)=>g.transform.SetParent(m_InstanceRoot),
+                        (g)=>
+                    {
+                        g.transform.SetParent(m_InstanceDisableRoot);
+                        g.transform.rotation = Quaternion.identity;
+                        g.transform.localScale = Vector3.one;
+                    },Destroy));
                 }
             }
             var targetPool = PoolDic[path];
@@ -328,7 +362,7 @@ namespace UnityGameFramework.Runtime
                 foreach (var oneCallback in targetWaitCallbackList)
                 {
                     var obj = targetPool.Get();
-                    oneCallback?.Invoke(obj);
+                    oneCallback?.Invoke(obj,path);
                 }
             }
             WaitAssetLoadThenGetFromPool.Remove(path);
@@ -414,6 +448,17 @@ namespace UnityGameFramework.Runtime
                     if (obj != null) ReleaseGameObject(assetData.AssetPath, obj);
                     RemoveOneWaitAssetLoadThenGet(assetData.AssetPath, callback);
                 }
+            }
+        }
+
+        public void ReleaseAssetObj(int assetID, GameObject obj, GetGObjSuccessCallback callback)
+        {
+            var assetPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
+            if (assetPathTable.HasDataRow(assetID))
+            {
+                var assetData = assetPathTable[assetID];
+                if (obj != null) ReleaseGameObject(assetData.AssetPath, obj);
+                RemoveOneWaitAssetLoadThenGet(assetData.AssetPath, callback);
             }
         }
     }

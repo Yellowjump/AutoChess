@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using DataTable;
 using GameFramework;
 using GameFramework.Fsm;
+using SkillSystem;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
@@ -9,7 +10,7 @@ namespace Entity
 {
     public partial class EntityQizi
     {
-        private List<SfxEntity> SfxList = new List<SfxEntity>();
+        private List<SfxEntity> _sfxList = new List<SfxEntity>();
         public void AddSfx(int sfxID)
         {
             var sfxTable = GameEntry.DataTable.GetDataTable<DRSfx>("Sfx");
@@ -19,7 +20,7 @@ namespace Entity
                 SfxEntity oneNewSfx = null;
                 if (sfxData.IsOnlyOne)
                 {
-                    oneNewSfx = SfxList.Find(entity => entity.SfxID == sfxID);
+                    oneNewSfx = _sfxList.Find(entity => entity.SfxID == sfxID);
                 }
 
                 if (oneNewSfx == null)
@@ -35,7 +36,7 @@ namespace Entity
                     }
                     oneNewSfx.SizeOffset = sfxData.SizeOffset;
                     oneNewSfx.InitGObj();
-                    SfxList.Add(oneNewSfx);
+                    _sfxList.Add(oneNewSfx);
                 }
                 oneNewSfx.RemainDurationMs = 0;//刷新特效存在时间
                 oneNewSfx.ExistNum++;
@@ -44,11 +45,11 @@ namespace Entity
 
         public void UpdateSfxRemainTime(float elapseSeconds, float realElapseSeconds)
         {
-            if (SfxList != null && SfxList.Count > 0)
+            if (_sfxList != null && _sfxList.Count > 0)
             {
-                for (var index = SfxList.Count-1; index >=0; index--)
+                for (var index = _sfxList.Count-1; index >=0; index--)
                 {
-                    var oneSfx = SfxList[index];
+                    var oneSfx = _sfxList[index];
                     if (oneSfx.DurationMs == 0)//持续时间无线
                     {
                         continue;
@@ -57,29 +58,37 @@ namespace Entity
                     if (oneSfx.RemainDurationMs >= oneSfx.DurationMs)
                     {
                         ReferencePool.Release(oneSfx);
-                        SfxList.Remove(oneSfx);
+                        _sfxList.Remove(oneSfx);
                     }
                 }
             }
         }
         public void RemoveSfx(int sfxID)
         {
-            var oneSfx = SfxList.Find(entity => entity.SfxID == sfxID);
+            if (_sfxList == null || _sfxList.Count == 0)
+            {
+                return;
+            }
+            var oneSfx = _sfxList.Find(entity => entity.SfxID == sfxID);
             oneSfx.ExistNum--;
             if (oneSfx.ExistNum <= 0)
             {
                 ReferencePool.Release(oneSfx);
-                SfxList.Remove(oneSfx);
+                _sfxList.Remove(oneSfx);
             }
         }
 
         private void RemoveAllSfx()
         {
-            foreach (var oneSfx in SfxList)
+            if (_sfxList == null || _sfxList.Count == 0)
+            {
+                return;
+            }
+            foreach (var oneSfx in _sfxList)
             {
                 ReferencePool.Release(oneSfx);
             }
-            SfxList.Clear();
+            _sfxList.Clear();
         }
     }
 }

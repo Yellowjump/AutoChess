@@ -9,10 +9,12 @@
 	1102	商店界面	Assets/GameMain/Prefeb/UIPrefab/EventPointUI/event_store.prefab
 #Item(2000			
 	2000	测试子弹	Assets/GameMain/Prefeb/Bullets/bullet_handle.prefab
-	2001	关卡选择按钮	Assets/GameMain/GameMain/UI/Dynamic/LevelSelectionButton.prefab
-	2002	构建炮塔按钮	Assets/GameMain/GameMain/UI/Dynamic/TowerBuildButton.prefab
+	2001	宽匕首	Assets/GameMain/Prefeb/Weapons/Dagger_01.prefab
+	2002	单手锤	Assets/GameMain/Prefeb/Weapons/Hammer_01.prefab
+	2003	剑	Assets/GameMain/Prefeb/Weapons/Sword_01.prefab
+	2004	斧头	Assets/GameMain/Prefeb/Weapons/Ax_01.prefab
 #Entity(3000			
-	3001	角色test	Assets/GameMain/Prefeb/Charactor/qizi0/qizi0.prefab
+	3001	角色test	Assets/GameMain/Prefeb/Charactor/qizi0/KyleRobot.prefab
 	3051	敌人test	Assets/GameMain/Prefeb/Charactor/enemy0/enemy0.prefab
 #Sfx(3300			
 	3301	受击特效	Assets/GameMain/Prefeb/Sfx/CFXR3 Hit Fire B (Air).prefab
@@ -33,5 +35,6 @@
 	6004	僵尸倒地	Assets/GameMain/Prefeb/Charactor/enemy0/Z_FallingBack.anim
 	6011	主角idle	Assets/GameMain/Prefeb/Charactor/qizi0/WAIT00.anim
 	6012	主角run	Assets/GameMain/Prefeb/Charactor/qizi0/RUN00_F.anim
+	6101	挥砍	Assets/GameMain/Prefeb/Charactor/HorizontalSwing.anim
 #Sound(10000			
 #			

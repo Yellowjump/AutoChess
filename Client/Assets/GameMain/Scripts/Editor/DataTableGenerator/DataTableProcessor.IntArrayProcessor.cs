@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using UnityEngine;
 
 namespace DataTable.Editor.DataTableTools
@@ -34,6 +35,10 @@ namespace DataTable.Editor.DataTableTools
 
             public override int[] Parse(string value)
             {
+                if (string.IsNullOrEmpty(value))
+                {
+                    return Array.Empty<int>();
+                }
                 string[] splitValue = value.Split(',');
                 int[] result = new int[splitValue.Length];
                 for (int i = 0; i < splitValue.Length; i++)

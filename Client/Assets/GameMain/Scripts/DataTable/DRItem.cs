@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-09-04 18:35:40.436
+// 生成时间：2024-09-30 19:55:14.832
 //------------------------------------------------------------
 
 using GameFramework;
@@ -76,6 +76,24 @@ namespace DataTable
         }
 
         /// <summary>
+        /// 获取3d模型。
+        /// </summary>
+        public int[] AssetIDList
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取3d模型长度叠加。
+        /// </summary>
+        public int[] AssetObjLength
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// 获取合成材料。
         /// </summary>
         public List<(int,int)> CraftList
@@ -126,6 +144,8 @@ namespace DataTable
             Decs = columnStrings[index++];
             Rarity = int.Parse(columnStrings[index++]);
             IconID = int.Parse(columnStrings[index++]);
+                AssetIDList = DataTableExtension.ParseInt32Array(columnStrings[index++]);
+                AssetObjLength = DataTableExtension.ParseInt32Array(columnStrings[index++]);
                 CraftList = DataTableExtension.ParseListIntInt(columnStrings[index++]);
                 AttrAdd = DataTableExtension.ParseListIntInt(columnStrings[index++]);
             SkillID = int.Parse(columnStrings[index++]);
@@ -146,6 +166,8 @@ namespace DataTable
                     Decs = binaryReader.ReadString();
                     Rarity = binaryReader.Read7BitEncodedInt32();
                     IconID = binaryReader.Read7BitEncodedInt32();
+                        AssetIDList = binaryReader.ReadInt32Array();
+                        AssetObjLength = binaryReader.ReadInt32Array();
                         CraftList = binaryReader.ReadListIntInt();
                         AttrAdd = binaryReader.ReadListIntInt();
                     SkillID = binaryReader.Read7BitEncodedInt32();

@@ -23,7 +23,7 @@ namespace Entity.Bullet
             OwnerTriggerList?.OnTrigger(TriggerType.OnActive);
             GameEntry.HeroManager.GetBulletObjByID(BulletID,OnGetHeroGObjCallback);
         }
-        protected virtual void OnGetHeroGObjCallback(GameObject obj)
+        protected virtual void OnGetHeroGObjCallback(GameObject obj,string path)
         {
             GObj = obj;
             GObj.transform.position = LogicPosition;
