@@ -91,6 +91,8 @@ namespace SkillSystem
         TriggerOwner,
         [InspectorName("伤害相关目标")]
         RelatedDamageTarget,
+        [InspectorName("持有者当前方向")]
+        OwnerDirection,
     }
 
     public enum DamageDataTargetType

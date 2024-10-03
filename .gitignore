@@ -72,3 +72,4 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 Buildil2cpp/
 Client/BuildAssetBundle/
+Client/.idea/.idea.Client/.idea/workspace.xml

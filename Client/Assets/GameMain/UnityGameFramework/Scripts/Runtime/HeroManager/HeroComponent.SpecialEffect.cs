@@ -59,7 +59,7 @@ namespace UnityGameFramework.Runtime
         public WeaponHandleType CurHandleType;
         public List<int> WaitLoadWeaponAssetIDList;
         private List<(string,GameObject)> _weaponObjList;
-        private List<int> _itemPosOffset;
+        private List<int> SubItemID;
         public void Init(EntityQizi owner, WeaponHandleType handleType, int itemID)
         {
             Owner = owner;
@@ -67,13 +67,34 @@ namespace UnityGameFramework.Runtime
             _weaponObjList ??= ListPool<(string,GameObject)>.Get();
             _weaponObjList.Clear();
             WaitLoadWeaponAssetIDList = ListPool<int>.Get();
+            SubItemID = ListPool<int>.Get();
             var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
             if (itemTable.HasDataRow(itemID))
             {
                 var itemData = itemTable[itemID];
-                WaitLoadWeaponAssetIDList.AddRange(itemData.AssetIDList);
-                _itemPosOffset ??= ListPool<int>.Get();
-                _itemPosOffset.AddRange(itemData.AssetObjLength);
+                if (itemData.AssetIDList.Length == 1)
+                {
+                    WaitLoadWeaponAssetIDList.AddRange(itemData.AssetIDList);
+                }
+                else
+                {
+                    foreach (var oneItemID in itemData.AssetIDList)
+                    {
+                        if (itemTable.HasDataRow(oneItemID))
+                        {
+                            var subItemData = itemTable[oneItemID];
+                            if (subItemData.AssetIDList.Length == 1)
+                            {
+                                WaitLoadWeaponAssetIDList.AddRange(subItemData.AssetIDList);
+                                SubItemID.Add(oneItemID);
+                            }
+                            else
+                            {
+                                Log.Error($"itemID:{SubItemID} use multiple AssetObj");
+                            }
+                        }
+                    }
+                }
                 foreach (var oneID in WaitLoadWeaponAssetIDList)
                 {
                     GameEntry.HeroManager.GetPrefabByAssetID(oneID,OnGetOneWeaponObjCallback);
@@ -95,14 +116,14 @@ namespace UnityGameFramework.Runtime
                 WaitLoadWeaponAssetIDList = null;
                 _weaponObjList = null;
             }
+
+            if (SubItemID != null)
+            {
+                ListPool<int>.Release(SubItemID);
+                SubItemID = null;
+            }
             CurHandleType = WeaponHandleType.None;
             Owner = null;
-            if (_itemPosOffset != null)
-            {
-                ListPool<int>.Release(_itemPosOffset);
-                _itemPosOffset = null;
-            }
-
             if (GObj != null)
             {
                 GameEntry.HeroManager.ReleaseEmptyObj(GObj);
@@ -131,15 +152,20 @@ namespace UnityGameFramework.Runtime
                 _weaponObjList.Sort((x, y) => weaponSort.IndexOf(x.Item1).CompareTo(weaponSort.IndexOf(y.Item1)));
                 ListPool<string>.Release(weaponSort);
                 int posOffset = 0;
+                var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
                 for (var weaponIndex = 0; weaponIndex < _weaponObjList.Count; weaponIndex++)
                 {
                     var oneWeaponObjPack = _weaponObjList[weaponIndex];
                     var weaponObj = oneWeaponObjPack.Item2;
                     weaponObj.transform.SetParent(GObj.transform);
                     weaponObj.transform.localPosition = new Vector3(0,posOffset / 1000f,0);
-                    if (_itemPosOffset != null && _itemPosOffset.Count > weaponIndex)
+                    if (weaponIndex<_weaponObjList.Count-1)
                     {
-                        posOffset += _itemPosOffset[weaponIndex];
+                        var curItemID = SubItemID[weaponIndex];
+                        var nextItemID = SubItemID[weaponIndex + 1];
+                        var curItemData = itemTable[curItemID];
+                        var nextItemData = itemTable[nextItemID];
+                        posOffset += curItemData.AssetObjLength[0] + (nextItemData.AssetObjLength[1]-nextItemData.AssetObjLength[0]);
                     }
                     weaponObj.SetActive(true);
                 }

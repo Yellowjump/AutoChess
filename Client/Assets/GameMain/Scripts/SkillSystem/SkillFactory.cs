@@ -89,6 +89,11 @@ namespace SkillSystem
                     return ReferencePool.Acquire<TargetPickerTriggerOwner>();
                 case TargetPickerType.RelatedDamageTarget:
                     return ReferencePool.Acquire<TargetPickerRelatedDamageTarget>();
+                case TargetPickerType.OwnerDirection:
+                    var targetPickerOwnerDirection = ReferencePool.Acquire<TargetPickerOwnerDirection>();
+                    targetPickerOwnerDirection.WeaponLength = CreateTableParamInt();
+                    targetPickerOwnerDirection.ValidAngle = CreateTableParamInt();
+                    return targetPickerOwnerDirection;
                 default:
                     return ReferencePool.Acquire<TargetPickerBase>();
             }

@@ -60,5 +60,27 @@ namespace Entity
             ListPool<WeaponEntity>.Release(list);
             _weaponDic.Remove(skill);
         }
+
+        public void RemoveAllWeapon()
+        {
+            if (_weaponDic == null )
+            {
+                return;
+            }
+
+            foreach (var oneKeyValue in _weaponDic)
+            {
+                var list = oneKeyValue.Value;
+                if (list != null && list.Count > 0)
+                {
+                    foreach (var oneWeaponEntity in list)
+                    {
+                        ReferencePool.Release(oneWeaponEntity);
+                    }
+                }
+                ListPool<WeaponEntity>.Release(list);
+            }
+            _weaponDic.Clear();
+        }
     }
 }

@@ -95,6 +95,7 @@ namespace Entity
             IsValid = true;
             ChangeToIdleState();
             DestoryAttribute();
+            RemoveAllWeapon();
             InitAttribute();
             DestorySkill();
             InitSkill();
@@ -117,6 +118,7 @@ namespace Entity
             GObj = null;
             DestoryState();
             DestorySkill();
+            RemoveAllWeapon();
             DestoryAttribute();
             EquipItemList.Clear();
             GameEntry.HeroManager.ReleaseEntityQizi(this);

@@ -34,7 +34,7 @@ namespace SkillSystem
             
         }
 
-        public void Clear()
+        public virtual void Clear()
         {
             
         }
