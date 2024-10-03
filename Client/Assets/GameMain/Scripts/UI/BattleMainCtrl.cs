@@ -34,6 +34,13 @@ public class BattleMainCtrl : UIFormLogic
     private bool GetOrNotGetQizi = false;
     EntityQizi qizi;
     EntityQizi qiziother;
+    private Plane _plane;
+    public override void OnInit(object userData)
+    {
+        base.OnInit(userData);
+        _plane = new Plane(Vector3.up, Vector3.zero);
+    }
+
     public override void OnUpdate(float elapseSeconds, float realElapseSeconds)
     {
         if (Input.GetMouseButtonDown(1))//显示棋子属性面板
@@ -68,10 +75,8 @@ public class BattleMainCtrl : UIFormLogic
             {
                 //拉起棋子跟随鼠标移动
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                // 创建一个平面，平面法线方向为 Vector3.up，平面通过点 (0, 0, 0)
-                Plane plane = new Plane(Vector3.up, Vector3.zero);
                 // 检查射线是否与平面相交
-                if (plane.Raycast(ray, out var enter))
+                if (_plane.Raycast(ray, out var enter))
                 {
                     // 计算相交点
                     var hitPoint = ray.GetPoint(enter);
@@ -111,11 +116,13 @@ public class BattleMainCtrl : UIFormLogic
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         EntityQizi target;
-        if (Physics.Raycast(ray, out hit) && hit.transform.tag == "qizi")
+        if (_plane.Raycast(ray, out var enter))
         {
+            // 计算相交点
+            var hitPoint = ray.GetPoint(enter);
             for (int i = 0; i < GameEntry.HeroManager.QiziCSList.Count; i++)
             {
-                if (GameEntry.HeroManager.QiziCSList[i].GObj!=null&& hit.transform == GameEntry.HeroManager.QiziCSList[i].GObj.transform)
+                if (Vector3.Distance(GameEntry.HeroManager.QiziCSList[i].LogicPosition,hitPoint)<0.5f)
                 {
                     return GameEntry.HeroManager.QiziCSList[i];
                 }
@@ -125,7 +132,7 @@ public class BattleMainCtrl : UIFormLogic
             {
                 for (int i = 0; i < GameEntry.HeroManager.DirenList.Count; i++)
                 {
-                    if (GameEntry.HeroManager.DirenList[i].GObj!=null&&hit.transform == GameEntry.HeroManager.DirenList[i].GObj.transform)
+                    if (Vector3.Distance(GameEntry.HeroManager.DirenList[i].LogicPosition,hitPoint)<0.5f)
                     {
                         return GameEntry.HeroManager.DirenList[i];
                     }
@@ -138,10 +145,8 @@ public class BattleMainCtrl : UIFormLogic
     private bool GetMousePosGezi(out Vector2Int geziPos,bool containEnemy = true)
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        // 创建一个平面，平面法线方向为 Vector3.up，平面通过点 (0, 0, 0)
-        Plane plane = new Plane(Vector3.up, Vector3.zero);
         // 检查射线是否与平面相交
-        if (plane.Raycast(ray, out var enter))
+        if (_plane.Raycast(ray, out var enter))
         {
             // 计算相交点
             var hitPoint = ray.GetPoint(enter);

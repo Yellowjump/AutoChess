@@ -136,10 +136,7 @@ namespace UnityGameFramework.Runtime
                     var oneWeaponObjPack = _weaponObjList[weaponIndex];
                     var weaponObj = oneWeaponObjPack.Item2;
                     weaponObj.transform.SetParent(GObj.transform);
-                    if (weaponIndex > 0)
-                    {
-                        weaponObj.transform.localPosition = new Vector3(0,posOffset / 1000f,0);
-                    }
+                    weaponObj.transform.localPosition = new Vector3(0,posOffset / 1000f,0);
                     if (_itemPosOffset != null && _itemPosOffset.Count > weaponIndex)
                     {
                         posOffset += _itemPosOffset[weaponIndex];

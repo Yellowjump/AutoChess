@@ -122,6 +122,7 @@ namespace UnityGameFramework.Runtime
                 Canvas canvas = m_InstanceWorldCanvas.GetComponent<Canvas>();
                 oneHpBar.HpBarObj.transform.SetParent(canvas.transform);
                 //设置pos
+                oneHpBar.HpBarObj.transform.localScale = new Vector3(0.005f, 0.01f, 1);
                 oneHpBar.HpBarObj.transform.forward = Camera.main.transform.forward;
                 oneHpBar.HpBarObj.transform.position = oneHpBar.Owner.LogicPosition+Vector3.up*2;
                 //绑定棋子血条
@@ -218,6 +219,7 @@ namespace UnityGameFramework.Runtime
             {
                 var oneDmg = WaitDmgNumberList[0];
                 oneDmg.NumberObj = obj;
+                oneDmg.NumberObj.transform.localScale = new Vector3(0.01f, 0.01f, 1);
                 //设置canvas
                 Canvas canvas = m_InstanceWorldCanvas.GetComponent<Canvas>();
                 oneDmg.NumberObj.transform.SetParent(canvas.transform);
@@ -350,7 +352,6 @@ namespace UnityGameFramework.Runtime
                     {
                         g.transform.SetParent(m_InstanceDisableRoot);
                         g.transform.rotation = Quaternion.identity;
-                        g.transform.localScale = Vector3.one;
                     },Destroy));
                 }
             }
