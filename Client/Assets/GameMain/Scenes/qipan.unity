@@ -176,7 +176,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 320
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -542,7 +542,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 23
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -586,8 +586,8 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras:
-  - {fileID: 1187387460}
   - {fileID: 311040257}
+  - {fileID: 1187387460}
   m_RendererIndex: -1
   m_VolumeLayerMask:
     serializedVersion: 2
@@ -828,7 +828,7 @@ GameObject:
   - component: {fileID: 1331375393}
   - component: {fileID: 1331375392}
   - component: {fileID: 1331375391}
-  m_Layer: 6
+  m_Layer: 8
   m_Name: WorldCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -904,7 +904,7 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 2
-  m_Camera: {fileID: 311040257}
+  m_Camera: {fileID: 894640689}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
