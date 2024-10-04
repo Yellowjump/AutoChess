@@ -20,8 +20,10 @@ namespace SkillSystem
         public SkillCastTargetType CurSkillCastTargetType;//释放目标类型
         public void Cast()
         {
+            Caster?.OnTrigger(TriggerType.BeforeSkillCast,this);
             LeftSkillCD = DefaultSkillCDMs/1000.0f;//todo 读取角色CD缩减
             base.OnActive();
+            Caster?.OnTrigger(TriggerType.AfterSkillCast,this);
         }
         public override void Clone(TriggerList copy)
         {

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace SkillSystem
 {
     /// <summary>
-    /// 触发类型
+    /// 触发类型,（新类型只能往后加
     /// </summary>
     public enum TriggerType
     {
@@ -41,6 +41,10 @@ namespace SkillSystem
         AfterBeCauseDamage,
         [InspectorName("子弹命中目标")]
         OnBulletHitTarget,
+        [InspectorName("技能释放前")]
+        BeforeSkillCast,
+        [InspectorName("技能释放后")]
+        AfterSkillCast,
     }
 
     public enum ConditionType
@@ -61,7 +65,9 @@ namespace SkillSystem
         [InspectorName("概率触发")]
         Percentage,
         [InspectorName("定时触发")]
-        Timed
+        Timed,
+        [InspectorName("道具相关")]
+        RelateItem
     }
     public enum LogicOperator
     {
@@ -91,8 +97,10 @@ namespace SkillSystem
         TriggerOwner,
         [InspectorName("伤害相关目标")]
         RelatedDamageTarget,
-        [InspectorName("持有者当前方向")]
+        [InspectorName("持有者当前方向扇形")]
         OwnerDirection,
+        [InspectorName("随机选取")]
+        RandomFromList,
     }
 
     public enum DamageDataTargetType
@@ -126,6 +134,8 @@ namespace SkillSystem
         CreateSfx,
         [InspectorName("显示武器")]
         ShowWeapon,
+        [InspectorName("重复执行")]
+        RepeatExecute,
     }
 
     /// <summary>
@@ -297,5 +307,29 @@ namespace SkillSystem
         LeftHand,
         [InspectorName("右手")]
         RightHand,
+    }
+
+    public enum ConditionRelateItemFrom
+    {
+        [InspectorName("来源技能道具")]
+        SkillItem,
+        [InspectorName("来自参数中的技能道具")]
+        ArgSkillItem,
+    }
+
+    public enum ConditionRelateItemCheckType
+    {
+        [InspectorName("由目标道具合成")]
+        ContainItem,
+    }
+
+    public enum NumberCheckType
+    {
+        [InspectorName("固定次数")]
+        FixedNumber,
+        [InspectorName("来源技能含子道具的数量")]
+        ParentSkillContainSubItemNumber,
+        [InspectorName("arg技能含子道具的数量")]
+        ArgSkillContainSubItemNumber,
     }
 }

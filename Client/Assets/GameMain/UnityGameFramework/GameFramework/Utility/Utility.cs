@@ -6,6 +6,7 @@
 //------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
 namespace GameFramework
 {
@@ -18,6 +19,16 @@ namespace GameFramework
         {
             var factor = Math.Pow(10, digits);
             return (float)(Math.Floor(value * factor) / factor);
+        }
+        public static void Shuffle<T>(this List<T> list,bool logicRandom=true)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = logicRandom?Random.GetRandom(n + 1):Random.GetRandomNoLogic(n+1);
+                (list[k], list[n]) = (list[n], list[k]);
+            }
         }
     }
 }

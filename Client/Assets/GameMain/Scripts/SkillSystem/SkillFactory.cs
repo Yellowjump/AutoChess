@@ -47,6 +47,11 @@ namespace SkillSystem
                     var commandShowWeapon = ReferencePool.Acquire<CommandShowWeapon>();
                     commandShowWeapon.ShowWeaponItemID = CreateTableParamInt();
                     return commandShowWeapon;
+                case CommandType.RepeatExecute:
+                    var commandRepeatExecuteCmd = ReferencePool.Acquire<CommandRepeatExecuteCmd>();
+                    commandRepeatExecuteCmd.ParamInt1 = CreateTableParamInt();
+                    commandRepeatExecuteCmd.CurCommandList = ListPool<CommandBase>.Get();
+                    return commandRepeatExecuteCmd;
                 default:
                     return ReferencePool.Acquire<CommandBase>();
             }
@@ -69,6 +74,11 @@ namespace SkillSystem
                     var conditionTimed = ReferencePool.Acquire<ConditionTimed>();
                     conditionTimed.TimeIntervalMs = CreateTableParamInt();
                     return conditionTimed;
+                case ConditionType.RelateItem:
+                    var conditionRelateItem = ReferencePool.Acquire<ConditionRelateItem>();
+                    conditionRelateItem.ParamInt1 = CreateTableParamInt();
+                    conditionRelateItem.ParamInt2 = CreateTableParamInt();
+                    return conditionRelateItem;
                 default:
                     return ReferencePool.Acquire<ConditionBase>();
             }
@@ -94,6 +104,11 @@ namespace SkillSystem
                     targetPickerOwnerDirection.WeaponLength = CreateTableParamInt();
                     targetPickerOwnerDirection.ValidAngle = CreateTableParamInt();
                     return targetPickerOwnerDirection;
+                case TargetPickerType.RandomFromList:
+                    var targetPickerRandomFromList = ReferencePool.Acquire<TargetPickerRandomFromList>();
+                    targetPickerRandomFromList.ParamInt1 = CreateTableParamInt();
+                    targetPickerRandomFromList.WorkTargetPicker = CreateTargetPicker(TargetPickerType.NoTarget);
+                    return targetPickerRandomFromList;
                 default:
                     return ReferencePool.Acquire<TargetPickerBase>();
             }

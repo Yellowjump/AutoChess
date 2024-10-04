@@ -33,10 +33,6 @@ namespace SkillSystem
 
         public override void ReadFromFile(BinaryReader reader)
         {
-            /*var tempAnimString = new TableParamString();
-            tempAnimString.ReadFromFile(reader);
-            AnimAssetID.CurMatchPropertyIndex = tempAnimString.CurMatchPropertyIndex;
-            AnimAssetID.CurMatchTable = tempAnimString.CurMatchTable;*/
             AnimAssetID.ReadFromFile(reader);
         }
 

@@ -90,6 +90,11 @@ public class SkillSystemEditorWindow : EditorWindow
         {
             OnClickSaveCurTemplate();
         }
+        string cloneCurTemp = selectedToggleIndex == (int)ToggleName.SkillTemplate ? "clone当前技能模板" : "clone当前buff模板";
+        if (GUILayout.Button(cloneCurTemp))
+        {
+            OnClickCloneTemplate();
+        }
         string saveAllTemp = selectedToggleIndex == (int)ToggleName.SkillTemplate ? "保存所有技能模板" : "保存所有buff模板";
         if (GUILayout.Button(saveAllTemp))
         {
@@ -122,10 +127,10 @@ public class SkillSystemEditorWindow : EditorWindow
             }
             else
             {
-                selectedButtonIndex = SkillIDList.Count - 1;
                 CurShowSkill = SkillFactory.CreateDefaultSkill();
                 SkillIDList.Add(CurShowSkill);
                 SkillMap.Add(CurShowSkill,true);
+                selectedButtonIndex = SkillIDList.Count - 1;
                 SkillSystemDrawerCenter.ClearDrawInstanceMap();
             }
         }
@@ -137,11 +142,10 @@ public class SkillSystemEditorWindow : EditorWindow
             }
             else
             {
-                
-                selectedButtonIndex = BuffIDList.Count - 1;
                 CurShowBuff = SkillFactory.CreateNewBuff();
                 BuffIDList.Add(CurShowBuff);
                 BuffMap.Add(CurShowBuff,true);
+                selectedButtonIndex = BuffIDList.Count - 1;
                 SkillSystemDrawerCenter.ClearDrawInstanceMap();
             }
         }
@@ -169,6 +173,53 @@ public class SkillSystemEditorWindow : EditorWindow
         }
     }
 
+    private void OnClickCloneTemplate()
+    {
+        if (selectedToggleIndex == (int)ToggleName.SkillTemplate)
+        {
+            if (CurShowSkill == null)
+            {
+                EditorUtility.DisplayDialog("提示", "当前没有选中的技能模板", "确认");
+            }
+            else if (SkillIDList.Count(skill=>skill.TempleteID==0)>=1)
+            {
+                EditorUtility.DisplayDialog("提示", "已经有一个新建技能模板0未保存了", "确认");
+            }
+            else
+            {
+                var newSkill = SkillFactory.CreateDefaultSkill();
+                CurShowSkill.Clone(newSkill);
+                newSkill.TempleteID = 0;
+                SkillIDList.Add(newSkill);
+                SkillMap.Add(newSkill,true);
+                CurShowSkill = newSkill;
+                selectedButtonIndex = SkillIDList.Count - 1;
+                SkillSystemDrawerCenter.ClearDrawInstanceMap();
+            }
+        }
+        else if(selectedToggleIndex == (int)ToggleName.BuffTemplate)
+        {
+            if (CurShowBuff == null)
+            {
+                EditorUtility.DisplayDialog("提示", "当前没有选中的buff模板", "确认");
+            }
+            else if (BuffIDList.Count(buff=>buff.TempleteID==0)>=1)
+            {
+                EditorUtility.DisplayDialog("提示", "已经有一个新建buff模板0未保存了", "确认");
+            }
+            else
+            {
+                var newBuff = SkillFactory.CreateNewBuff();
+                CurShowBuff.Clone(newBuff);
+                newBuff.TempleteID = 0;
+                BuffIDList.Add(newBuff);
+                BuffMap.Add(newBuff,true);
+                CurShowBuff = newBuff;
+                selectedButtonIndex = BuffIDList.Count - 1;
+                SkillSystemDrawerCenter.ClearDrawInstanceMap();
+            }
+        }
+    }
     private void OnClickSaveAllTemplate()
     {
         bool needSave = false;

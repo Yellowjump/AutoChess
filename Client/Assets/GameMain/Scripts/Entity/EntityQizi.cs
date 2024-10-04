@@ -28,7 +28,6 @@ namespace Entity
         public Animator animator;//动画管理器
 
         public List<int> EquipItemList = new List<int>();
-        public bool IsValid = true;
         public override void Init(int i)
         {
             IsValid = true;

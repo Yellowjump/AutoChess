@@ -34,7 +34,7 @@ namespace SkillSystem
             {
                 foreach (var oneTarget in trigger.CurTargetList)
                 {
-                    EntityQizi target = oneTarget as EntityQizi;
+                    var target = oneTarget;
                     if (target == null || target.IsValid == false)
                     {
                         continue;
