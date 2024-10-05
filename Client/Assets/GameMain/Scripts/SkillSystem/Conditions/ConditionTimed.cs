@@ -8,7 +8,7 @@ namespace SkillSystem
     public class ConditionTimed:ConditionBase
     {
         public override ConditionType CurConditionType => ConditionType.Timed;
-        public TableParamInt TimeIntervalMs = new TableParamInt();
+        public TableParamInt TimeIntervalMs;
         private float _timeAccumulatorMs;
         public override bool OnCheck(OneTrigger trigger,object arg = null)
         {

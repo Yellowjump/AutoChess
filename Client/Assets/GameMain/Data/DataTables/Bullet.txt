@@ -2,5 +2,6 @@
 #	Id	BulletType	AssetPathID	ParamInt1	ParamInt2	ParamInt3	ParamInt4	ParamInt5	ParamStr1	ParamStr2
 #	int	int	int	int	int	int	int	int	string	string
 #	子弹ID	子弹类型	对应资源表ID	int参数1	int参数2	int参数3	int参数4	int参数5	str参数1	str参数2
-	1	0	2000							
+	1	0	2000	10000						
 	2	1	2000	1000	0	1200	360	1080		
+	3	2	2000	10000	700	1000	500	0		

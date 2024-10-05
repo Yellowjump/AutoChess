@@ -33,6 +33,9 @@ namespace UnityGameFramework.Runtime
                     case BulletType.RotateOwner:
                         ret = ReferencePool.Acquire<BulletRotateOwner>();
                         break;
+                    case BulletType.PenetratingBullet:
+                        ret = ReferencePool.Acquire<BulletPenetrating>();
+                        break;
                     default:
                         ret = ReferencePool.Acquire<BulletTracking>();
                         break;
@@ -67,6 +70,7 @@ namespace UnityGameFramework.Runtime
             {
                 oneBullet.LogicUpdate(elapseSeconds, realElapseSeconds);
             }
+            ListPool<BulletBase>.Release(tempBulletList);
         }
         private void ClearBullet()
         {

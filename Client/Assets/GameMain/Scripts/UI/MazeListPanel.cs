@@ -166,6 +166,10 @@ public class MazeListPanelCtrl : UIFormLogic
         var mazeItemList = _curMazeItemList;
         foreach (var curItem in mazeItemList)
         {
+            if (curItem == null)
+            {
+                continue;
+            }
             var point=SelfDataManager.Instance.GetPoint(curItem.Pos.x, curItem.Pos.y);
             if (point.CurPassState==MazePoint.PointPassState.Pass)
             {

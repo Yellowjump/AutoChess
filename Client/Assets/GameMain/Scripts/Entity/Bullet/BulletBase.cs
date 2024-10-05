@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DataTable;
 using GameFramework;
 using SkillSystem;
@@ -11,10 +12,11 @@ namespace Entity.Bullet
     {
         public int BulletID;
         public EntityQizi Caster;//创建者
+        public EntityBase Owner;//持有者也就是 子弹发射的地方
         public EntityQizi Target;
         public TriggerList OwnerTriggerList;
         public DRBullet CurBulletData;
-        public virtual void SetParamValue(TableParamInt[] paramIntArray)
+        public virtual void SetParamValue(List<TableParamInt> paramIntArray)
         {
             
         }
@@ -34,15 +36,16 @@ namespace Entity.Bullet
             OwnerTriggerList?.OnTrigger(TriggerType.PerTick);
         }
 
-        public virtual void OnHitTarget()
+        public virtual void OnHitTarget(EntityQizi target)
         {
-            OwnerTriggerList?.OnTrigger(TriggerType.OnBulletHitTarget,Target);
+            OwnerTriggerList?.OnTrigger(TriggerType.OnBulletHitTarget,target);
             OnDead();
         }
 
         public virtual void OnDead()
         {
             OwnerTriggerList?.OnTrigger(TriggerType.OnDestory);
+            IsValid = false;
             GameEntry.HeroManager.DestoryBullet(this);
         }
 
@@ -51,9 +54,15 @@ namespace Entity.Bullet
             GameEntry.HeroManager.ReleaseBulletGameObject(BulletID,GObj,OnGetHeroGObjCallback);
             BulletID = 0;
             GObj = null;
+            IsValid = true;
+            Owner = null;
             Caster = null;
             Target = null;
-            OwnerTriggerList = null;
+            if (OwnerTriggerList != null)
+            {
+                ReferencePool.Release(OwnerTriggerList);
+                OwnerTriggerList = null;
+            }
         }
     }
 }

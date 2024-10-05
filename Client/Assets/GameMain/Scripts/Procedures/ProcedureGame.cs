@@ -104,7 +104,7 @@ namespace Procedure
         public void ReturnToTitle(object sender, GameEventArgs e)
         {
             GameEntry.HeroManager.GameOver();
-            _gameStateFsm.Clear();
+            ReferencePool.Release(_gameStateFsm);
             _gameStateFsm = null;
             _exitGame = true;
         }

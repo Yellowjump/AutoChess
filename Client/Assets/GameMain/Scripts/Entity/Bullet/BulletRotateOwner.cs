@@ -18,9 +18,9 @@ namespace Entity.Bullet
         private float _curSumRotateAngle = 0;//当前共计旋转了多少度
         private int _rotateAngleSpeed = 1;//每秒旋转角度 顺时针为正
         public int StartAngle = 0;//初始的角度
-        public override void SetParamValue(TableParamInt[] paramIntArray)
+        public override void SetParamValue(List<TableParamInt> paramIntArray)
         {
-            if (paramIntArray != null && paramIntArray.Length > 0)
+            if (paramIntArray != null && paramIntArray.Count > 0)
             {
                 StartAngle = paramIntArray[0].Value;
             }
@@ -52,6 +52,7 @@ namespace Entity.Bullet
                 OnDead();
                 return;
             }
+            base.LogicUpdate(elapseSeconds,realElapseSeconds);
             CenterLogicPosition = Target.LogicPosition;
             var changeAngle = _rotateAngleSpeed * elapseSeconds;
             var beforeAngle = _curAngle;

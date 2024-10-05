@@ -297,6 +297,8 @@ namespace SkillSystem
         TrackingBullet,
         [InspectorName("围绕持有者旋转子弹")]
         RotateOwner,
+        [InspectorName("穿透子弹")]
+        PenetratingBullet,
     }
 
     public enum WeaponHandleType

@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using System.IO;
 using DataTable;
 using Entity;
 using GameFramework;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
@@ -29,7 +31,8 @@ namespace SkillSystem
                     newBullet.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
                     newBullet.BelongCamp = newBullet.Caster.BelongCamp;
                     newBullet.Target = target;
-                    newBullet.LogicPosition = newBullet.Caster.LogicPosition;
+                    newBullet.Owner = trigger.ParentTriggerList.Owner;
+                    newBullet.LogicPosition = newBullet.Owner.LogicPosition;
                     if (BulletTrigger != null)
                     {
                         var newTriggerList = SkillFactory.CreateNewEmptyTriggerList();
@@ -38,8 +41,10 @@ namespace SkillSystem
                         newTriggerList.Owner = newBullet;
                         newBullet.OwnerTriggerList = newTriggerList;
                     }
-
-                    newBullet.SetParamValue(new[] { ParamInt1 });
+                    List<TableParamInt> paramIntArray = ListPool<TableParamInt>.Get();
+                    paramIntArray.Add(ParamInt1);
+                    newBullet.SetParamValue(paramIntArray);
+                    ListPool<TableParamInt>.Release(paramIntArray);
                     newBullet.InitGObj();
                 }
             }

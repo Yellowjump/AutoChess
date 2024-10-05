@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using DataTable;
 using Entity;
+using GameFramework;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
@@ -164,12 +165,12 @@ namespace SkillSystem
         {
             if (WeaponLength != null)
             {
-                WeaponLength.Clear();
+                ReferencePool.Release(WeaponLength);
                 WeaponLength = null;
             }
             if (ValidAngle != null)
             {
-                ValidAngle.Clear();
+                ReferencePool.Release(ValidAngle);
                 ValidAngle = null;
             }
         }

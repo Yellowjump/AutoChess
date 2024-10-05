@@ -95,7 +95,18 @@ namespace GameFramework
                 NextCount ++;
                 return AttrRandom.NextDouble();
             }
-
+            /// <summary>
+            /// 返回一个指定范围内的随机数。
+            /// </summary>
+            /// <param name="minValue">返回的随机数的下界（随机数可取该下界值）。</param>
+            /// <param name="maxValue">返回的随机数的上界（随机数不能取该上界值）。maxValue 必须大于等于 minValue。</param>
+            /// <returns>一个大于等于 minValue 且小于 maxValue 的双精度浮点数，即：返回的值范围包括 minValue 但不包括 maxValue。如果 minValue 等于 maxValue，则返回 minValue。</returns>
+            public static double GetRandomDouble(double minValue, double maxValue)
+            {
+                if (minValue >= maxValue) return minValue;
+                var randomValue = GetRandomDouble();
+                return minValue + (randomValue * (maxValue - minValue));
+            }
             /// <summary>
             /// 用随机数填充指定字节数组的元素。
             /// </summary>
@@ -144,7 +155,7 @@ namespace GameFramework
             public static double GetRandomNoLogic(double minValue, double maxValue)
             {
                 if (minValue >= maxValue) return minValue;
-                var randomValue = AttrRandomNoLogic.NextDouble();
+                var randomValue = GetRandomDoubleNoLogic();
                 return minValue + (randomValue * (maxValue - minValue));
             }
             /// <summary>

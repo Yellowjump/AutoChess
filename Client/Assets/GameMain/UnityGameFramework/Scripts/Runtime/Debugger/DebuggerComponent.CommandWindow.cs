@@ -21,7 +21,7 @@ namespace UnityGameFramework.Runtime
             private int _curInputSelectIndex = 0;
             private int _curSliderSelectIndex = 0;
             private int _curSelectIndex = 0;
-            private int itemNum = 0;
+            private int itemNum = 1;
             private string itemIDStr = "1";
             private IDataTable<DRItem> _itemTablel;
             private List<int> _itemIDList = new List<int>();
@@ -91,6 +91,10 @@ namespace UnityGameFramework.Runtime
                     if (GUILayout.Button("测试读档"))
                     {
                         GameEntry.HeroManager.Load();
+                    }
+                    if (GUILayout.Button("回到主界面"))
+                    {
+                        GameEntry.Event.Fire(this,ReturnToTitleEventArgs.Create());
                     }
                     // 获取输入的文本
                     string newCoinText = GUILayout.TextField(_changeCoinNum.ToString(), GUILayout.Width(200));
