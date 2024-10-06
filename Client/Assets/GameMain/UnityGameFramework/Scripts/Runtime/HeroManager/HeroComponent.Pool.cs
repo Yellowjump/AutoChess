@@ -11,10 +11,10 @@ using DataTable;
 using Entity;
 using GameFramework.Resource;
 using SkillSystem;
-using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.UI;
+
 
 namespace UnityGameFramework.Runtime
 {
@@ -161,6 +161,7 @@ namespace UnityGameFramework.Runtime
             public float animDuration;
             public float allAnimDuration;
             public Vector3 targetPos;
+            public float addPosX;
             public void Clear()
             {
                 animDuration = -1;
@@ -185,7 +186,7 @@ namespace UnityGameFramework.Runtime
 
                 if (animDuration!=null&&animDuration<allAnimDuration)
                 {
-                    NumberObj.transform.position=Vector3.Lerp(targetPos,targetPos+new Vector3(allAnimDuration/3, allAnimDuration*1.5f,0),animDuration/allAnimDuration);
+                    NumberObj.transform.position=Vector3.Lerp(targetPos,targetPos+new Vector3(addPosX/2, 0,1),animDuration/allAnimDuration);
                     animDuration += elapseSeconds;
                 }
                 else
@@ -208,7 +209,7 @@ namespace UnityGameFramework.Runtime
             newDamageNumber.num = (int)data.DamageValue;
             newDamageNumber.CurDamageType = data.CurDamageType;
             newDamageNumber.Owner = data.Target;
-            newDamageNumber.targetPos = data.Target.LogicPosition + Vector3.up*0.2f+Vector3.right*0.2f;
+            newDamageNumber.targetPos = data.Target.LogicPosition + Vector3.up*0.5f;
             WaitDmgNumberList.Add(newDamageNumber);
             GetNewObjFromPool(numPerfabPath, OnLoadOneNewDamageNumberPrefab);
         }
@@ -249,6 +250,7 @@ namespace UnityGameFramework.Runtime
                 oneDmg.animDuration = 0f;
                 oneDmg.allAnimDuration = 0.8f;
                 oneDmg.Playing = true;
+                oneDmg.addPosX = (float)Utility.Random.GetRandomDouble(-1.2, 1.2);
                 //设置动画回调
                 WaitDmgNumberList.Remove(oneDmg);
                 PlayingDmgNumberList.Add(oneDmg);
