@@ -75,7 +75,10 @@ public class StateAttack0 : FsmState<EntityQizi>
         if (result == CheckCastSkillResult.CanCast)
         {
             owner.CastSkill(true);
-            owner.GObj?.transform.LookAt(target.GObj.transform);
+            if (target != null)
+            {
+                owner.GObj?.transform.LookAt(target.GObj.transform);
+            }
             curSpSkill = true;
             return;
         }
@@ -86,7 +89,10 @@ public class StateAttack0 : FsmState<EntityQizi>
             if (result == CheckCastSkillResult.CanCast)
             {
                 owner.CastSkill(false,normalSkillIndex);
-                owner.GObj?.transform.LookAt(target.GObj.transform);
+                if (target != null)
+                {
+                    owner.GObj?.transform.LookAt(target.GObj.transform);
+                }
                 curSpSkill = false;
                 curNormalIndex = normalSkillIndex;
                 return;

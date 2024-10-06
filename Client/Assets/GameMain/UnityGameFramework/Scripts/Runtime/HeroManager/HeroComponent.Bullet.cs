@@ -36,6 +36,9 @@ namespace UnityGameFramework.Runtime
                     case BulletType.PenetratingBullet:
                         ret = ReferencePool.Acquire<BulletPenetrating>();
                         break;
+                    case BulletType.MarkPoint:
+                        ret = ReferencePool.Acquire<BulletMarkPoint>();
+                        break;
                     default:
                         ret = ReferencePool.Acquire<BulletTracking>();
                         break;

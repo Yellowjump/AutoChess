@@ -58,6 +58,7 @@ namespace Entity.Bullet
             Owner = null;
             Caster = null;
             Target = null;
+            CurBulletData = null;
             if (OwnerTriggerList != null)
             {
                 ReferencePool.Release(OwnerTriggerList);

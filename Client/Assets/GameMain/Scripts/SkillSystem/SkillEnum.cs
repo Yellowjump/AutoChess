@@ -101,6 +101,8 @@ namespace SkillSystem
         OwnerDirection,
         [InspectorName("随机选取")]
         RandomFromList,
+        [InspectorName("选取子弹")]
+        Bullet,
     }
 
     public enum DamageDataTargetType
@@ -136,6 +138,10 @@ namespace SkillSystem
         ShowWeapon,
         [InspectorName("重复执行")]
         RepeatExecute,
+        [InspectorName("销毁buff")]
+        RemoveBuff,
+        [InspectorName("销毁bullet")]
+        RemoveBullet,
     }
 
     /// <summary>
@@ -299,6 +305,8 @@ namespace SkillSystem
         RotateOwner,
         [InspectorName("穿透子弹")]
         PenetratingBullet,
+        [InspectorName("标记物")]
+        MarkPoint,
     }
 
     public enum WeaponHandleType
@@ -333,5 +341,17 @@ namespace SkillSystem
         ParentSkillContainSubItemNumber,
         [InspectorName("arg技能含子道具的数量")]
         ArgSkillContainSubItemNumber,
+    }
+
+    public enum RelateEntityType
+    {
+        [InspectorName("持有者")]
+        Owner,
+        [InspectorName("释放者")]
+        Caster,
+        [InspectorName("目标")]
+        Target,
+        [InspectorName("参数中角色")]
+        Arg,
     }
 }

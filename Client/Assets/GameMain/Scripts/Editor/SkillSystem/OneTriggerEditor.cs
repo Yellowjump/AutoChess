@@ -13,12 +13,18 @@ namespace Editor.SkillSystem
             {
                 oneTrigger.CurTriggerType =(TriggerType)EditorGUILayout.EnumPopup("触发类型",oneTrigger.CurTriggerType);
                 var oldConditionType = oneTrigger.CurCondition.CurConditionType;
+                GUILayout.Space(10); // 添加一点空隙
+                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1)); // 绘制横线
+                GUILayout.Space(10); // 添加一点空隙
                 var newConditionType = (ConditionType)EditorGUILayout.EnumPopup("触发条件",oneTrigger.CurCondition.CurConditionType);
                 if (newConditionType != oldConditionType)
                 {
                     oneTrigger.CurCondition = SkillFactory.CreateCondition(newConditionType);
                 }
                 SkillSystemDrawerCenter.DrawOneInstance(oneTrigger.CurCondition);
+                GUILayout.Space(10); // 添加一点空隙
+                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1)); // 绘制横线
+                GUILayout.Space(10); // 添加一点空隙
                 var oldTargetPickerType = oneTrigger.CurTargetPicker.CurTargetPickerType;
                 var newTargetPickerType = (TargetPickerType)EditorGUILayout.EnumPopup("目标选择",oneTrigger.CurTargetPicker.CurTargetPickerType);
                 if (oldTargetPickerType != newTargetPickerType)
@@ -26,6 +32,9 @@ namespace Editor.SkillSystem
                     oneTrigger.CurTargetPicker = SkillFactory.CreateTargetPicker(newTargetPickerType);
                 }
                 SkillSystemDrawerCenter.DrawOneInstance(oneTrigger.CurTargetPicker);
+                GUILayout.Space(10); // 添加一点空隙
+                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1)); // 绘制横线
+                GUILayout.Space(10); // 添加一点空隙
                 if (GUILayout.Button("添加Command"))
                 {
                     oneTrigger.CurCommandList.Add(SkillFactory.CreateCommand(CommandType.CauseDamage));

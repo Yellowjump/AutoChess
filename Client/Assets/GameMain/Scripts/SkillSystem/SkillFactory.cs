@@ -52,6 +52,12 @@ namespace SkillSystem
                     commandRepeatExecuteCmd.ParamInt1 = CreateTableParamInt();
                     commandRepeatExecuteCmd.CurCommandList = ListPool<CommandBase>.Get();
                     return commandRepeatExecuteCmd;
+                case CommandType.RemoveBuff:
+                    var commandRemoveBuff = ReferencePool.Acquire<CommandRemoveBuff>();
+                    commandRemoveBuff.BuffID = CreateTableParamInt();
+                    return commandRemoveBuff;
+                case CommandType.RemoveBullet:
+                    return ReferencePool.Acquire<CommandRemoveBullet>();
                 default:
                     return ReferencePool.Acquire<CommandBase>();
             }
@@ -109,6 +115,10 @@ namespace SkillSystem
                     targetPickerRandomFromList.ParamInt1 = CreateTableParamInt();
                     targetPickerRandomFromList.WorkTargetPicker = CreateTargetPicker(TargetPickerType.NoTarget);
                     return targetPickerRandomFromList;
+                case TargetPickerType.Bullet:
+                    var targetPickerBullet = ReferencePool.Acquire<TargetPickerBullet>();
+                    targetPickerBullet.BulletID = CreateTableParamInt();
+                    return targetPickerBullet;
                 default:
                     return ReferencePool.Acquire<TargetPickerBase>();
             }

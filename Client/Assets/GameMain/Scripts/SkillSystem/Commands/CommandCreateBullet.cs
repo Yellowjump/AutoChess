@@ -15,22 +15,20 @@ namespace SkillSystem
         public TableParamInt CurBulletID;
         public TableParamInt ParamInt1;
         public TriggerList BulletTrigger;
-
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
             if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
             {
                 foreach (var oneTarget in trigger.CurTargetList)
                 {
-                    EntityQizi target = oneTarget as EntityQizi;
-                    if (target == null || target.IsValid == false)
+                    if (oneTarget == null || oneTarget.IsValid == false)
                     {
                         continue;
                     }
                     var newBullet = GameEntry.HeroManager.CreateBullet(CurBulletID.Value);
                     newBullet.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
                     newBullet.BelongCamp = newBullet.Caster.BelongCamp;
-                    newBullet.Target = target;
+                    newBullet.Target = oneTarget as EntityQizi;
                     newBullet.Owner = trigger.ParentTriggerList.Owner;
                     newBullet.LogicPosition = newBullet.Owner.LogicPosition;
                     if (BulletTrigger != null)

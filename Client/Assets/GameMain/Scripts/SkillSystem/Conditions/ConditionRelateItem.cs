@@ -32,7 +32,10 @@ namespace SkillSystem
                     break;
             }
 
-            
+            if (targetItemID == 0)
+            {
+                return false;
+            }
             switch (CheckType)
             {
                 case ConditionRelateItemCheckType.ContainItem:

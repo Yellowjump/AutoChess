@@ -60,6 +60,15 @@ namespace Entity.Attribute
             return _curModify.GetFinalValue();
         }
 
+        public void SetBaseNum(object baseValue)
+        {
+            if (_curModify == null)
+            {
+                Log.Error($"attribute:{CurAttributeType} no Modify");
+                return;
+            }
+            _curModify.SetBaseNum(baseValue);
+        }
         public void AddNum(object addValue)
         {
             if (_curModify == null)

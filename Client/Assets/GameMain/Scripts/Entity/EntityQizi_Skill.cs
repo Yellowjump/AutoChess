@@ -289,6 +289,16 @@ namespace Entity
                 }
             }
         }
+        public override void RemoveBuff(int buffID)
+        {
+            foreach (var oneBuff in CurBuffList)
+            {
+                if (oneBuff.BuffID == buffID)
+                {
+                    oneBuff.OnDestory();
+                }
+            }
+        }
         private void CastPassiveSkill()
         {
             foreach (var passiveSkill in PassiveSkillList)
@@ -345,7 +355,7 @@ namespace Entity
                     buff.OnDestory();
                 }
             }
-
+            ListPool<Buff>.Release(tempBuffList);
             for (var i = CurBuffList.Count - 1; i >= 0; i--)
             {
                 if (CurBuffList[i].IsValid == false)
@@ -361,7 +371,9 @@ namespace Entity
             //判断是否需要蓝量
             if (isSpSkill)
             {
-                if (power.value < 1)
+                var maxPower = (int)GetAttribute(AttributeType.MaxPower).GetFinalValue();
+                var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
+                if (curPower < maxPower)
                 {
                     return CheckCastSkillResult.NoPower;
                 }
@@ -410,16 +422,15 @@ namespace Entity
                     //之前目标不可用，重新选择目标
                     inAttackRange = GetSkillNewTarget(out target, isSpSkill,normalSkillIndex);
                 }
+                if (target == null)
+                {
+                    return CheckCastSkillResult.NoValidTarget;
+                }
+                else if (inAttackRange == false)
+                {
+                    return CheckCastSkillResult.TargetOutRange;
+                }
             }
-            if (target == null)
-            {
-                return CheckCastSkillResult.NoValidTarget;
-            }
-            else if (inAttackRange == false)
-            {
-                return CheckCastSkillResult.TargetOutRange;
-            }
-
             if (isSpSkill == false&&willCastSkill.InCD)
             {
                 return CheckCastSkillResult.NormalAtkWait;
@@ -467,12 +478,14 @@ namespace Entity
         {
             if (isSpSkill)
             {
+                GetAttribute(AttributeType.Power).SetBaseNum(0);
                 SpSkill?.Cast();
             }
             else
             {
                 if (normalSkillIndex < NormalSkillList.Count)
                 {
+                    GetAttribute(AttributeType.Power).AddNum(10);
                     NormalSkillList[normalSkillIndex].Cast();
                 }
             }

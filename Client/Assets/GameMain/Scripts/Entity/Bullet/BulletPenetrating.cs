@@ -137,6 +137,10 @@ namespace Entity.Bullet
         // 获取贝塞尔曲线上某点位置
         private Vector3 GetBezierPosition(float t)
         {
+            if (_trackingTargetEntity)
+            {
+                return Mathf.Pow(1 - t, 2) * _startPos + 2 * (1 - t) * t * _controlPoint + Mathf.Pow(t, 2) * Target.LogicPosition;
+            }
             return Mathf.Pow(1 - t, 2) * _startPos + 2 * (1 - t) * t * _controlPoint + Mathf.Pow(t, 2) * _targetPos;
         }
         // 计算贝塞尔曲线总长度

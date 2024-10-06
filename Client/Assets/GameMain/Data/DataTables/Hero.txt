@@ -2,6 +2,6 @@
 #	Id		PassiveSkillID	SpSkillID	DefaultItemID	AttributeID	AssetID	IdleAnimID	RunAnimID	
 #	int		int	int	int[]	int	int	int	int	
 #	角色ID	角色备注	技能ID	技能ID	默认初始携带道具	属性ID	外观资源ID	idle动画	run动画	
-	1	主角	10001		2002	1	3001	6011	6012	
+	1	主角	10001	20001002	2002	1	3001	6011	6012	
 	2	测试小兵			1	2	3051	6001	6002	
 	3	测试旋转斧小兵			2	3	3051	6001	6002	

@@ -167,6 +167,13 @@ namespace SkillSystem
                 BuffID.SetSkillValue(dataTable);
                 BuffList.SetSkillValue(dataTable);
             }
+            else
+            {
+                if (TemporaryBuff != null)
+                {
+                    TemporaryBuff.SetSkillValue(dataTable);
+                }
+            }
         }
 
         public override void Clear()

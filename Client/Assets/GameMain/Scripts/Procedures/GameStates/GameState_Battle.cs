@@ -48,7 +48,7 @@ namespace Procedure.GameStates
                 }
                 return;
             }
-            if (Time.time-battleTime>30)
+            if (Time.time-battleTime>60)
             {
                 ChangeState<GameState_Lose>(fsm);
             }
