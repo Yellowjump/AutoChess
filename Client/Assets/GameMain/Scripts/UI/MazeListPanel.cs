@@ -28,6 +28,12 @@ public class MazeListPanelCtrl : UIFormLogic
     [SerializeField] private int mapWidth=50;
     [SerializeField] private int mapHeight=50;
     [SerializeField] private int onePointFarRadius = 20;
+
+    [SerializeField] private Sprite spimg0;
+    [SerializeField] private Sprite spimg1;
+    [SerializeField] private Sprite spimg3;
+    [SerializeField] private Sprite spimg4;
+    [SerializeField] private Sprite spimg5;
     //public Color32[] colorBuffer;//r装当前是否可见的透明度
     [SerializeField] private Material _blurMat;//模糊的材质
     private RenderBuffer FogTargetBuffer;//放入image中的renderBuffer;
@@ -73,6 +79,30 @@ public class MazeListPanelCtrl : UIFormLogic
             MazePointItem mp = oneNewPoint.GetComponent<MazePointItem>();
             oneNewPoint.transform.position = ItemStartPos + new Vector2(onePointData.Pos.x * ItemOffSet.x, onePointData.Pos.y * ItemOffSet.y);
             mp.Pos = onePointData.Pos;
+            switch (onePointData.CurType)
+            {
+                case 0:
+                    mp.bgImg.sprite = spimg0;
+                    break;
+                case MazePointType.BossBattle:
+                    mp.bgImg.sprite = spimg1;
+                    break;
+                case MazePointType.UnKnown:
+                    mp.bgImg.sprite = spimg3;
+                    break;
+                case MazePointType.Store:
+                    mp.bgImg.sprite = spimg4;
+                    break;
+                case MazePointType.Chest:
+                    mp.bgImg.sprite = spimg5;
+                    break;
+                default:
+                    mp.bgImg.sprite = spimg5;
+                    break;
+            }
+
+
+            
             mp.Name.text = onePointData.CurType.ToString();
             mp.IsPassImg.SetActive(false);
             if (onePointData.CurPassState==MazePoint.PointPassState.Pass)

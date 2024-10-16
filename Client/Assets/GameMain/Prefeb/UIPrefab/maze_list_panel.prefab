@@ -107,6 +107,11 @@ MonoBehaviour:
   mapWidth: 88
   mapHeight: 50
   onePointFarRadius: 8
+  spimg0: {fileID: 21300000, guid: 566161dc2c40a5a49a8491655e5b32cd, type: 3}
+  spimg1: {fileID: 21300000, guid: 1d2c4e933cf64044ea21fe83d901ca34, type: 3}
+  spimg3: {fileID: 21300000, guid: d574d9a65e89cfb498a54dfb301b872f, type: 3}
+  spimg4: {fileID: 21300000, guid: d7939ebe057bbb8428fd6b5758ec4273, type: 3}
+  spimg5: {fileID: 21300000, guid: ca9f43590f7c5bf4c8f05a199798be14, type: 3}
   _blurMat: {fileID: 0}
 --- !u!1 &2372168722829595014
 GameObject:
@@ -171,6 +176,7 @@ MonoBehaviour:
   Pos: {x: 0, y: 0}
   Name: {fileID: 6227311406112907112}
   IsPassImg: {fileID: 7330275878050722730}
+  bgImg: {fileID: 302803138025808841}
   BtnClick: {fileID: 1079541498476210493}
 --- !u!1 &4279308866927904643
 GameObject:
