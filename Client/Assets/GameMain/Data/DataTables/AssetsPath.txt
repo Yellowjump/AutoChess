@@ -28,6 +28,14 @@
 	4501	旋转斧头	Assets/GameMain/Image/Icons/ItemIcon/BerserkAxe.png
 	4502	反甲	Assets/GameMain/Image/Icons/ItemIcon/DarkMountain.png
 	4503	充能护甲	Assets/GameMain/Image/Icons/ItemIcon/GreyKnight.png
+	4800	关卡小怪	Assets/GameMain/Image/Icons/MazePointIcon/0.png
+	4801	关卡精英怪	Assets/GameMain/Image/Icons/MazePointIcon/1.png
+	4802	关卡boss	Assets/GameMain/Image/Icons/MazePointIcon/1.png
+	4803	关卡未知	Assets/GameMain/Image/Icons/MazePointIcon/3.png
+	4804	关卡商店	Assets/GameMain/Image/Icons/MazePointIcon/4.png
+	4805	关卡宝箱	Assets/GameMain/Image/Icons/MazePointIcon/5.png
+	4806	关卡事件	Assets/GameMain/Image/Icons/MazePointIcon/3.png
+	4807	关卡空	Assets/GameMain/Image/Icons/MazePointIcon/3.png
 #Anim(6000			
 	6001	僵尸idle	Assets/GameMain/Prefeb/Charactor/enemy0/Z_Idle.anim
 	6002	僵尸run	Assets/GameMain/Prefeb/Charactor/enemy0/Z_Run.anim
