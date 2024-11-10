@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: e57b40da644ec6840a66f0e53d48503f
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286938
+  packageName: Lowpoly Nature Bundle
+  packageVersion: 1.0
+  assetPath: Assets/LowpolyNatureBundle/Mesh/Pot_02.fbx
+  uploadId: 673155
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -16,8 +23,6 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -48,7 +53,7 @@ ModelImporter:
     nodeNameCollisionStrategy: 1
     fileIdsGeneration: 2
     swapUVChannels: 0
-    generateSecondaryUV: 0
+    generateSecondaryUV: 1
     useFileUnits: 1
     keepQuads: 0
     weldVertices: 1
@@ -107,10 +112,3 @@ ModelImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 286938
-  packageName: Lowpoly Nature Bundle
-  packageVersion: 1.0
-  assetPath: Assets/LowpolyNatureBundle/Mesh/Pot_02.fbx
-  uploadId: 673155

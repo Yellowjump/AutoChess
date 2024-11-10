@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: 918bc1b69dc142e49a3a7b16b16d2c33
+AssetOrigin:
+  serializedVersion: 1
+  productId: 286938
+  packageName: Lowpoly Nature Bundle
+  packageVersion: 1.0
+  assetPath: Assets/LowpolyNatureBundle/Mesh/AutumnFallenTree_01.fbx
+  uploadId: 673155
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -21,8 +28,6 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -53,7 +58,7 @@ ModelImporter:
     nodeNameCollisionStrategy: 1
     fileIdsGeneration: 2
     swapUVChannels: 0
-    generateSecondaryUV: 0
+    generateSecondaryUV: 1
     useFileUnits: 1
     keepQuads: 0
     weldVertices: 1
@@ -112,10 +117,3 @@ ModelImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 286938
-  packageName: Lowpoly Nature Bundle
-  packageVersion: 1.0
-  assetPath: Assets/LowpolyNatureBundle/Mesh/AutumnFallenTree_01.fbx
-  uploadId: 673155
