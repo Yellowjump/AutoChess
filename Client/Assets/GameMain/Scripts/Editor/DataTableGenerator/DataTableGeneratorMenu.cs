@@ -55,6 +55,18 @@ namespace DataTable.Editor.DataTableTools
             DataTableGenerator.GenerateDataFile(dataTableProcessor, dataTableName);
             AssetDatabase.Refresh();
         }
+        public static void GenerateAreaDataTables()
+        {
+            string dataTableName = Application.dataPath + @"/GameMain/Data/DataTables/AreaPoint";
+            DataTableProcessor dataTableProcessor = DataTableGenerator.CreateDataTableProcessor(dataTableName);
+            if (!DataTableGenerator.CheckRawData(dataTableProcessor, dataTableName))
+            {
+                Debug.LogError(Utility.Text.Format("Check raw data failure. DataTableName='{0}'", dataTableName));
+                return;
+            }
+            DataTableGenerator.GenerateDataFile(dataTableProcessor, dataTableName);
+            AssetDatabase.Refresh();
+        }
         [MenuItem("Tools/Generate DataTable Code", false, 2)]
         private static void GenerateDataTableCode()
         {

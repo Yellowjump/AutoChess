@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-09-04 18:35:40.430
+// 生成时间：2024-11-14 01:52:14.760
 //------------------------------------------------------------
 
 using GameFramework;
@@ -131,6 +131,7 @@ namespace DataTable
             int index = 0;
             index++;
             m_Id = int.Parse(columnStrings[index++]);
+            index++;
             BulletType = int.Parse(columnStrings[index++]);
             AssetPathID = int.Parse(columnStrings[index++]);
             ParamInt1 = int.Parse(columnStrings[index++]);
