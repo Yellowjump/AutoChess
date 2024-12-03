@@ -4,11 +4,14 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Cinemachine;
 using DataTable;
 using GameFramework;
 using GameFramework.DataTable;
 using GameFramework.Event;
 using Maze;
+using Unity.Mathematics;
+using UnityEngine.Serialization;
 using UnityGameFramework.Runtime;
 
 namespace GameMain.Scripts.Editor.AreaPointEditorWindow
@@ -18,6 +21,8 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
     {
         public int Index;
         public Vector3 Pos;
+        public Vector3 CameraPosRelate;//相对pos的偏移
+        public Vector3 CameraRotation;
         public AreaPointType CurPointType;
         public List<int> LinkPoint = new List<int>();
         public GameObject obj; // Reference to the associated GameObject
@@ -27,6 +32,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
     {
         public List<AreaPointEditor> areaPoints = new List<AreaPointEditor>();
         private GameObject parentObject;
+        private CinemachineVirtualCamera _demoCamera;
         private Terrain terrain;
         private DataTableComponent dataTableComponent;
         private SerializedObject serializedObject;
@@ -54,9 +60,26 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             // 订阅场景变化事件
             SceneView.duringSceneGui += OnSceneGUI;
             InitializeParentObject();
+            InitializeDemoCamera();
             InitializeTerrain();
             InitLoadTableData();
         }
+
+        private void OnDestroy()
+        {
+            var demoCameraObj = GameObject.Find("DemoCamera");
+            if (demoCameraObj != null)
+            {
+                DestroyImmediate(demoCameraObj);
+            }
+
+            if (parentObject != null)
+            {
+                DestroyImmediate(parentObject);
+                parentObject = null;
+            }
+        }
+
         private void InitDrawColoredStyle()
         {
             // 创建一个临时 GUIStyle
@@ -96,6 +119,21 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             }
         }
 
+        private void InitializeDemoCamera()
+        {
+            var demoCameraObj = GameObject.Find("DemoCamera");
+            if (demoCameraObj != null)
+            {
+                _demoCamera = demoCameraObj.GetOrAddComponent<CinemachineVirtualCamera>();
+            }
+            else
+            {
+                demoCameraObj = new GameObject("DemoCamera");
+                demoCameraObj.hideFlags = HideFlags.DontSave;
+                _demoCamera = demoCameraObj.AddComponent<CinemachineVirtualCamera>();
+            }
+            _demoCamera.Priority = 20;
+        }
         private void InitializeTerrain()
         {
             // Find the first active Terrain in the scene
@@ -323,7 +361,18 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
                     }
                 }
             }
-
+            areaPoint.CameraPosRelate = EditorGUILayout.Vector3Field("CameraPosOffset:", areaPoint.CameraPosRelate);
+            areaPoint.CameraRotation = EditorGUILayout.Vector3Field("CameraRotate:",areaPoint.CameraRotation);
+            if (GUILayout.Button("显示相机效果"))
+            {
+                _demoCamera.transform.position = areaPoint.CameraPosRelate+areaPoint.Pos;
+                _demoCamera.transform.rotation = quaternion.Euler(areaPoint.CameraRotation);
+            }
+            if (GUILayout.Button("使用相机效果"))
+            {
+                areaPoint.CameraPosRelate = areaPoint.Pos - _demoCamera.transform.position;
+                areaPoint.CameraRotation = _demoCamera.transform.rotation.eulerAngles;
+            }
             // Display the associated GameObject (as read-only)
             EditorGUI.BeginDisabledGroup(true); // Disable editing
             areaPoint.obj = (GameObject)EditorGUILayout.ObjectField("Associated GameObject", areaPoint.obj, typeof(GameObject), true);
@@ -362,6 +411,8 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
                 Index = oneAreaPointData?.Id ?? areaPoints.Count,
                 Pos = oneAreaPointData?.Position ?? Vector3.zero,
                 CurPointType = oneAreaPointData!=null?(AreaPointType)oneAreaPointData?.AreaPointType:AreaPointType.Empty,
+                CameraPosRelate = oneAreaPointData?.CameraPosRelate??Vector3.up*20,
+                CameraRotation = oneAreaPointData?.CameraRotate ?? Vector3.zero,
             };
             if (oneAreaPointData != null)
             {
@@ -399,10 +450,10 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
         private void SaveData()
         {
             StringBuilder tableBuild = new StringBuilder();
-            tableBuild.AppendLine("#\t地图区域\t\t\t");
-            tableBuild.AppendLine("#\tId\tPosition\tAreaPointType\tLinkArea");
-            tableBuild.AppendLine("#\tint\tvector3\tint\tint[]");
-            tableBuild.AppendLine("#\tIndex\t世界坐标\t类型\t连接的区域");
+            tableBuild.AppendLine("#\t地图区域\t\t\t\t\t");
+            tableBuild.AppendLine("#\tId\tPosition\tAreaPointType\tLinkArea\tCameraPosRelate\tCameraRotate");
+            tableBuild.AppendLine("#\tint\tvector3\tint\tint[]\tvector3\tvector3");
+            tableBuild.AppendLine("#\tIndex\t世界坐标\t类型\t连接的区域\t相机坐标\t相机旋转");
             foreach (var oneAreaPoint in areaPoints)
             {
                 tableBuild.Append($"\t{oneAreaPoint.Index}\t{oneAreaPoint.Pos.x},{oneAreaPoint.Pos.y},{oneAreaPoint.Pos.z}\t{(int)oneAreaPoint.CurPointType}\t");
@@ -419,7 +470,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
                     }
                 }
 
-                tableBuild.AppendLine("");
+                tableBuild.AppendLine($"\t{oneAreaPoint.CameraPosRelate.x},{oneAreaPoint.CameraPosRelate.y},{oneAreaPoint.CameraPosRelate.z}\t{oneAreaPoint.CameraRotation.x},{oneAreaPoint.CameraRotation.y},{oneAreaPoint.CameraRotation.z}");
             }
 
             using (FileStream fileStream = new FileStream(areaPointTableFilePath, FileMode.Create, FileAccess.Write))

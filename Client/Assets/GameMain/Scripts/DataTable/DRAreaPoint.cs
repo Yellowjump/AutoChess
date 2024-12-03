@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-11-15 01:06:33.123
+// 生成时间：2024-12-03 18:18:38.717
 //------------------------------------------------------------
 
 using GameFramework;
@@ -66,6 +66,24 @@ namespace DataTable
             private set;
         }
 
+        /// <summary>
+        /// 获取相机坐标。
+        /// </summary>
+        public Vector3 CameraPosRelate
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取相机旋转。
+        /// </summary>
+        public Vector3 CameraRotate
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -80,6 +98,8 @@ namespace DataTable
             Position = DataTableExtension.ParseVector3(columnStrings[index++]);
             AreaPointType = int.Parse(columnStrings[index++]);
                 LinkArea = DataTableExtension.ParseInt32Array(columnStrings[index++]);
+            CameraPosRelate = DataTableExtension.ParseVector3(columnStrings[index++]);
+            CameraRotate = DataTableExtension.ParseVector3(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -95,6 +115,8 @@ namespace DataTable
                     Position = binaryReader.ReadVector3();
                     AreaPointType = binaryReader.Read7BitEncodedInt32();
                         LinkArea = binaryReader.ReadInt32Array();
+                    CameraPosRelate = binaryReader.ReadVector3();
+                    CameraRotate = binaryReader.ReadVector3();
                 }
             }
 

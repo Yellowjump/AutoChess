@@ -60,6 +60,8 @@ namespace Maze
         public AreaPointType AreaPointType;
         public MazePointType CurType { get; set; }
         public int CurLevelID;
+        public Vector3 CameraPosOffset;
+        public Vector3 CameraRotation;
         public List<AreaPoint> LinkPointObsolete { get; set; }
         public List<int> LinkPointList { get; set; }
         public bool CanSee = false;//能看见
@@ -384,6 +386,8 @@ namespace Maze
                 var onePoint = ReferencePool.Acquire<AreaPoint>();
                 onePoint.Index = oneAreaPointData.Id;
                 onePoint.Pos = oneAreaPointData.Position;
+                onePoint.CameraPosOffset = oneAreaPointData.CameraPosRelate;
+                onePoint.CameraRotation = oneAreaPointData.CameraRotate;
                 onePoint.LinkPointList.AddRange(oneAreaPointData.LinkArea);
                 onePoint.CurPassState = AreaPoint.PointPassState.Lock;
                 onePoint.AreaPointType = (AreaPointType)oneAreaPointData.AreaPointType;
