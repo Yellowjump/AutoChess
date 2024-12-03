@@ -154,7 +154,7 @@ public class StateMove0 : FsmState<EntityQizi>
             {
                 _moving = true;
                 startpos = owner.LogicPosition;
-                nextpos = GameEntry.HeroManager.qigepos[nextPosIndex.y][nextPosIndex.x];
+                nextpos = GameEntry.HeroManager.GetGeziPos(nextPosIndex.y,nextPosIndex.x);
                 GameEntry.HeroManager.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
                 GameEntry.HeroManager.qige[ownerIndex.y][ownerIndex.x] =-1;
                 return;
@@ -180,7 +180,7 @@ public class StateMove0 : FsmState<EntityQizi>
                 {
                     _moving = true;
                     startpos = owner.LogicPosition;
-                    nextpos = GameEntry.HeroManager.qigepos[nextPosIndex.y][nextPosIndex.x];
+                    nextpos = GameEntry.HeroManager.GetGeziPos(nextPosIndex.y,nextPosIndex.x);;
                     owner.AddAnimCommandRun();
                     owner.GObj?.transform.LookAt(nextpos);
                     GameEntry.HeroManager.qige[ownerIndex.y][ownerIndex.x] = -1;

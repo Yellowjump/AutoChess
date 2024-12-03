@@ -7,6 +7,7 @@ public class UICtrlName
     public const string JieMianUIPrefab = "Assets/GameMain/Prefeb/UIPrefab/JieMianUI.prefab";
     public const string MainTitlePanel = "Assets/GameMain/Prefeb/UIPrefab/main_title_panel.prefab";
     public const string MazePointList = "Assets/GameMain/Prefeb/UIPrefab/maze_list_panel.prefab";
+    public const string AreaPointList = "Assets/GameMain/Prefeb/UIPrefab/area_list3d/area_list_panel3d.prefab";
     public const string BattleFormationPanel = "Assets/GameMain/Prefeb/UIPrefab/battle_formation.prefab";
     public const string BattleMainPanel = "Assets/GameMain/Prefeb/UIPrefab/battle_main.prefab";
     public const string BattleLosePanel = "Assets/GameMain/Prefeb/UIPrefab/battle_lose.prefab";

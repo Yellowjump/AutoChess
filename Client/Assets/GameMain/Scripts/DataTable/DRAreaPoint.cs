@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-11-14 00:29:24.873
+// 生成时间：2024-11-15 01:06:33.123
 //------------------------------------------------------------
 
 using GameFramework;
@@ -49,6 +49,15 @@ namespace DataTable
         }
 
         /// <summary>
+        /// 获取类型。
+        /// </summary>
+        public int AreaPointType
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// 获取连接的区域。
         /// </summary>
         public int[] LinkArea
@@ -69,6 +78,7 @@ namespace DataTable
             index++;
             m_Id = int.Parse(columnStrings[index++]);
             Position = DataTableExtension.ParseVector3(columnStrings[index++]);
+            AreaPointType = int.Parse(columnStrings[index++]);
                 LinkArea = DataTableExtension.ParseInt32Array(columnStrings[index++]);
 
             GeneratePropertyArray();
@@ -83,6 +93,7 @@ namespace DataTable
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
                     Position = binaryReader.ReadVector3();
+                    AreaPointType = binaryReader.Read7BitEncodedInt32();
                         LinkArea = binaryReader.ReadInt32Array();
                 }
             }

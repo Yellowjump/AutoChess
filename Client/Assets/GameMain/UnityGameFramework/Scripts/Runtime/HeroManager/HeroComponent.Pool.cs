@@ -32,6 +32,9 @@ namespace UnityGameFramework.Runtime
         [SerializeField]
         private Transform m_InstanceDisableRoot = null;
         private Canvas m_InstanceWorldCanvas = null;
+        public Canvas WorldCanvas => m_InstanceWorldCanvas;
+        public Transform DisableRoot => m_InstanceDisableRoot;
+        public Transform InstanceRoot => m_InstanceRoot;
         private void InitPool()
         {
             OnLoadGameObjectCallback = new LoadAssetCallbacks(OnLoadGameObjCallback);
@@ -311,7 +314,7 @@ namespace UnityGameFramework.Runtime
                 GetNewObjFromPool(assetData.AssetPath,callback);
             }
         }
-        private void GetNewObjFromPool(string path, GetGObjSuccessCallback callback)
+        public void GetNewObjFromPool(string path, GetGObjSuccessCallback callback)
         {
             if (!path.EndsWith(".prefab"))
             {

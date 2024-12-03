@@ -50,8 +50,12 @@ namespace Procedure
         private void InitNewGameData()
         {
             //一局关卡游戏初始化
-            var mazeGen = new MazeGenerator();
-            SelfDataManager.Instance.CurMazeList = mazeGen.GenerateMaze();
+            var mazeGen = new MazeGeneratorFromAreaPointTable();
+            SelfDataManager.Instance.CurAreaList = mazeGen.InitMap();
+            //创建所有点得相机
+            GameEntry.HeroManager.InitAreaPointCamera();
+            /*var fakeMazeGen = new MazeGenerator();
+            SelfDataManager.Instance.CurMazeList = fakeMazeGen.GenerateMaze();*/
             var oneHero = GameEntry.HeroManager.AddNewFriendHero(1);
             SelfDataManager.Instance.SelfHeroList.Add(oneHero);
             SelfDataManager.Instance.ItemBag.Clear();

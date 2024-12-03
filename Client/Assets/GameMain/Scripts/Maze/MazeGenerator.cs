@@ -36,8 +36,16 @@ namespace Maze
         Event = 6,
         Empty = 7 // Represent empty points in the maze
     }
-
-    public class MazePoint
+    // 地图点类型，对应的是areaPoint表中地图的设定，多个起点，一个终点
+    public enum AreaPointType
+    {
+        Start,
+        End,
+        Battle,
+        Event,
+        Empty,
+    }
+    public class AreaPoint:IReference
     {
         [Serializable]
         public enum PointPassState
@@ -46,27 +54,43 @@ namespace Maze
             Unlock,//可进入
             Pass,//已通过
         }
-        public Vector2Int Pos { get; set; }
+        public Vector2Int PosObsolete { get; set; }
+        public int Index;
+        public Vector3 Pos{ get; set; }
+        public AreaPointType AreaPointType;
         public MazePointType CurType { get; set; }
         public int CurLevelID;
-        public List<MazePoint> LinkPoint { get; set; }
+        public List<AreaPoint> LinkPointObsolete { get; set; }
+        public List<int> LinkPointList { get; set; }
         public bool CanSee = false;//能看见
         public PointPassState CurPassState = PointPassState.Lock;
-        public MazePoint(Vector2Int pos)
+        public AreaPoint(Vector2Int posObsolete)
         {
-            Pos = pos;
+            PosObsolete = posObsolete;
             CurType = MazePointType.Empty;
-            LinkPoint = new List<MazePoint>();
+            LinkPointObsolete = new List<AreaPoint>();
+        }
+
+        public AreaPoint()
+        {
+            LinkPointList = ListPool<int>.Get();
+        }
+
+        public void Clear()
+        {
+            if (LinkPointList != null)
+            {
+                ListPool<int>.Release(LinkPointList);
+            }
         }
     }
-
     public class MazeGenerator
     {
         public int Width = 8;
         public int Height = 7;
-        private MazePoint[,] grid;
-        private List<MazePoint> mainPath;
-        private List<MazePoint> usedPoints = new List<MazePoint>();
+        private AreaPoint[,] grid;
+        private List<AreaPoint> mainPath;
+        private List<AreaPoint> usedPoints = new List<AreaPoint>();
         private List<Vector2Int> directions;
         private List<int> mainPathWeight = new List<int>(){10,2,10,2,20,3,1,3};
         public MazeGenerator()
@@ -84,12 +108,12 @@ namespace Maze
             };
         }
 
-        public List<MazePoint> GenerateMaze()
+        public List<AreaPoint> GenerateMaze()
         {
-            grid = new MazePoint[Width, Height];
+            grid = new AreaPoint[Width, Height];
             InitializeGrid();
 
-            mainPath = new List<MazePoint>();
+            mainPath = new List<AreaPoint>();
             GenerateMainPath(0, 0);
 
             GenerateSecondaryPath();
@@ -106,7 +130,7 @@ namespace Maze
             {
                 for (int y = 0; y < Height; y++)
                 {
-                    grid[x, y] = new MazePoint(new Vector2Int(x, y));
+                    grid[x, y] = new AreaPoint(new Vector2Int(x, y));
                 }
             }
         }
@@ -136,8 +160,8 @@ namespace Maze
                 {
                     mainPath.Add(grid[x, y]);
                     usedPoints.Add(grid[x, y]);
-                    grid[x, y].LinkPoint.Add(grid[newX, newY]);
-                    grid[newX, newY].LinkPoint.Add(grid[x, y]);
+                    grid[x, y].LinkPointObsolete.Add(grid[newX, newY]);
+                    grid[newX, newY].LinkPointObsolete.Add(grid[x, y]);
 
                     if (GenerateMainPathRecursive(newX, newY))
                     {
@@ -147,8 +171,8 @@ namespace Maze
                     // Backtrack
                     mainPath.Remove(grid[x, y]);
                     usedPoints.Remove(grid[x, y]);
-                    grid[x, y].LinkPoint.Remove(grid[newX, newY]);
-                    grid[newX, newY].LinkPoint.Remove(grid[x, y]);
+                    grid[x, y].LinkPointObsolete.Remove(grid[newX, newY]);
+                    grid[newX, newY].LinkPointObsolete.Remove(grid[x, y]);
                 }
             }
 
@@ -168,12 +192,12 @@ namespace Maze
             int startIndex = Utility.Random.GetRandom(0, mainPath.Count / 2);
             int endIndex = Utility.Random.GetRandom(mainPath.Count / 2, mainPath.Count);
 
-            MazePoint startPoint = mainPath[startIndex];
-            MazePoint endPoint = mainPath[endIndex];
+            AreaPoint startPoint = mainPath[startIndex];
+            AreaPoint endPoint = mainPath[endIndex];
 
-            int x = startPoint.Pos.x;
-            int y = startPoint.Pos.y;
-            List<MazePoint> secondaryPath = new List<MazePoint> { startPoint };
+            int x = startPoint.PosObsolete.x;
+            int y = startPoint.PosObsolete.y;
+            List<AreaPoint> secondaryPath = new List<AreaPoint> { startPoint };
 
             while (true)
             {
@@ -195,8 +219,8 @@ namespace Maze
 
                         secondaryPath.Add(grid[newX, newY]);
                         usedPoints.Add(grid[newX, newY]);
-                        grid[x, y].LinkPoint.Add(grid[newX, newY]);
-                        grid[newX, newY].LinkPoint.Add(grid[x, y]);
+                        grid[x, y].LinkPointObsolete.Add(grid[newX, newY]);
+                        grid[newX, newY].LinkPointObsolete.Add(grid[x, y]);
                         x = newX;
                         y = newY;
                         moved = true;
@@ -204,7 +228,7 @@ namespace Maze
                     }
                 }
 
-                if (!moved || (secondaryPath.Count > 1 && (x == endPoint.Pos.x && y == endPoint.Pos.y))) break; // Break if no move is possible or reach the end point
+                if (!moved || (secondaryPath.Count > 1 && (x == endPoint.PosObsolete.x && y == endPoint.PosObsolete.y))) break; // Break if no move is possible or reach the end point
             }
         }
 
@@ -227,32 +251,32 @@ namespace Maze
 
         private bool IsPointUsed(Vector2Int point)
         {
-            return usedPoints.Any(p => p.Pos.x == point.x && p.Pos.y == point.y);
+            return usedPoints.Any(p => p.PosObsolete.x == point.x && p.PosObsolete.y == point.y);
         }
 
         private bool IsLinked(Vector2Int point1, Vector2Int point2)
         {
-            MazePoint p1 = usedPoints.FirstOrDefault(p => p.Pos.x == point1.x && p.Pos.y == point1.y);
-            MazePoint p2 = usedPoints.FirstOrDefault(p => p.Pos.x == point2.x && p.Pos.y == point2.y);
+            AreaPoint p1 = usedPoints.FirstOrDefault(p => p.PosObsolete.x == point1.x && p.PosObsolete.y == point1.y);
+            AreaPoint p2 = usedPoints.FirstOrDefault(p => p.PosObsolete.x == point2.x && p.PosObsolete.y == point2.y);
 
-            return p1 != null && p2 != null && p1.LinkPoint.Contains(p2);
+            return p1 != null && p2 != null && p1.LinkPointObsolete.Contains(p2);
         }
 
         private void AssignTypesToPoints()
         {
             foreach (var point in mainPath)
             {
-                if (point.LinkPoint.Count == 0)
+                if (point.LinkPointObsolete.Count == 0)
                 {
                     Log.Error("should be Empty");
                 }
-                if (point.Pos.x == 0 && point.Pos.y == 0)
+                if (point.PosObsolete.x == 0 && point.PosObsolete.y == 0)
                 {
                     point.CurType = MazePointType.Store;
                     point.CanSee = true;
-                    point.CurPassState = MazePoint.PointPassState.Unlock;
+                    point.CurPassState = AreaPoint.PointPassState.Unlock;
                 }
-                else if (point.Pos.x == Width - 1 && point.Pos.y == Height - 1)
+                else if (point.PosObsolete.x == Width - 1 && point.PosObsolete.y == Height - 1)
                 {
                     point.CurType = MazePointType.BossBattle;
                     point.CanSee = true;
@@ -325,9 +349,9 @@ namespace Maze
             }
         }
 
-        private List<MazePoint> FlattenGrid()
+        private List<AreaPoint> FlattenGrid()
         {
-            List<MazePoint> pointList = new List<MazePoint>();
+            List<AreaPoint> pointList = new List<AreaPoint>();
             for (int x = 0; x < Width; x++)
             {
                 for (int y = 0; y < Height; y++)
@@ -340,6 +364,68 @@ namespace Maze
                 }
             }
 
+            foreach (var onePoint in pointList)
+            {
+                onePoint.CurLevelID = SelfDataManager.Instance.GetOneRandomLevelIDFormType(onePoint.CurType);
+            }
+            return pointList;
+        }
+    }
+
+    //从表中路径数据生成 细化地图
+    public class MazeGeneratorFromAreaPointTable
+    {
+        public List<AreaPoint> InitMap()
+        {
+            List<AreaPoint> pointList = ListPool<AreaPoint>.Get();
+            var areaPointTable = GameEntry.DataTable.GetDataTable<DRAreaPoint>("AreaPoint");
+            foreach (var oneAreaPointData in areaPointTable.GetAllDataRows())
+            {
+                var onePoint = ReferencePool.Acquire<AreaPoint>();
+                onePoint.Index = oneAreaPointData.Id;
+                onePoint.Pos = oneAreaPointData.Position;
+                onePoint.LinkPointList.AddRange(oneAreaPointData.LinkArea);
+                onePoint.CurPassState = AreaPoint.PointPassState.Lock;
+                onePoint.AreaPointType = (AreaPointType)oneAreaPointData.AreaPointType;
+                switch ((AreaPointType)oneAreaPointData.AreaPointType)
+                {
+                    case AreaPointType.Battle:
+                        onePoint.CurType = MazePointType.SmallBattle;
+                        break;
+                    case AreaPointType.End:
+                        onePoint.CurType = MazePointType.BossBattle;
+                        break;
+                    case AreaPointType.Event:
+                        onePoint.CurType = MazePointType.Event;
+                        break;
+                    case AreaPointType.Empty:
+                        onePoint.CurType = (MazePointType)Utility.Random.GetRandom(2, Enum.GetValues(typeof(MazePointType)).Length - 2);
+                        break;
+                }
+                pointList.Add(onePoint);
+            }
+            //选出start点
+            var startList = pointList.FindAll(item => item.AreaPointType == AreaPointType.Start);
+            if (startList.Count == 0)
+            {
+                Log.Error("No Start Point");
+                return pointList;
+            }
+
+            var finalStartRandom = Utility.Random.GetRandom(startList.Count);
+            var startPoint = startList[finalStartRandom];
+            startPoint.CurType = MazePointType.Store;
+            startPoint.CanSee = true;
+            startPoint.CurPassState = AreaPoint.PointPassState.Unlock;
+            
+            //遍历其他点，具体他们的信息
+            foreach (var onePoint in startList)
+            {
+                if (onePoint != startPoint)
+                {
+                    onePoint.CurType = (MazePointType)Utility.Random.GetRandom(2, Enum.GetValues(typeof(MazePointType)).Length - 2);
+                }
+            }
             foreach (var onePoint in pointList)
             {
                 onePoint.CurLevelID = SelfDataManager.Instance.GetOneRandomLevelIDFormType(onePoint.CurType);

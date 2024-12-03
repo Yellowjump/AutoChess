@@ -58,7 +58,7 @@ public class MazeListPanelCtrl : UIFormLogic
             return ob;
         }, (obj) => {obj.SetActive(true); obj.transform.SetParent(_showLineParent.transform); }, (obj) => {obj.transform.SetParent(_invisbleParent.transform);}, Destroy);
 
-        var mazeList = SelfDataManager.Instance.CurMazeList;
+        var mazeList = SelfDataManager.Instance.CurAreaList;
         if (mazeList == null)
         {
             return;
@@ -73,19 +73,19 @@ public class MazeListPanelCtrl : UIFormLogic
             var oneNewPoint = _pointPool.Get();
             MazePointItem mp = oneNewPoint.GetComponent<MazePointItem>();
             mp.GetBgImg(4800+(int)onePointData.CurType);
-            oneNewPoint.transform.position = ItemStartPos + new Vector2(onePointData.Pos.x * ItemOffSet.x, onePointData.Pos.y * ItemOffSet.y);
-            mp.Pos = onePointData.Pos;
+            oneNewPoint.transform.position = ItemStartPos + new Vector2(onePointData.PosObsolete.x * ItemOffSet.x, onePointData.PosObsolete.y * ItemOffSet.y);
+            mp.Pos = onePointData.PosObsolete;
             mp.Name.text = onePointData.CurType.ToString();
             mp.IsPassImg.SetActive(false);
-            if (onePointData.CurPassState==MazePoint.PointPassState.Pass)
+            if (onePointData.CurPassState==AreaPoint.PointPassState.Pass)
             {
                 mp.IsPassImg.SetActive(true);
             }
-            foreach (var linkPointData in onePointData.LinkPoint)
+            foreach (var linkPointData in onePointData.LinkPointObsolete)
             {
-                if (linkPointData.Pos.x > onePointData.Pos.x || (linkPointData.Pos.x == onePointData.Pos.x&&linkPointData.Pos.y > onePointData.Pos.y))
+                if (linkPointData.PosObsolete.x > onePointData.PosObsolete.x || (linkPointData.PosObsolete.x == onePointData.PosObsolete.x&&linkPointData.PosObsolete.y > onePointData.PosObsolete.y))
                 {
-                    Vector3 linkPosition = ItemStartPos + new Vector2(linkPointData.Pos.x * ItemOffSet.x, linkPointData.Pos.y * ItemOffSet.y);
+                    Vector3 linkPosition = ItemStartPos + new Vector2(linkPointData.PosObsolete.x * ItemOffSet.x, linkPointData.PosObsolete.y * ItemOffSet.y);
                     var oneNewLine = _linePool.Get();
                     var position = oneNewPoint.transform.position;
                     Vector3 direction = position - linkPosition;
@@ -108,7 +108,7 @@ public class MazeListPanelCtrl : UIFormLogic
 
     public void FreshFog()
     {
-        var mazeList = SelfDataManager.Instance.CurMazeList;
+        var mazeList = SelfDataManager.Instance.CurAreaList;
         // 填充白色
         for (int y = 0; y < mapHeight; y++)
         {
@@ -126,7 +126,7 @@ public class MazeListPanelCtrl : UIFormLogic
         {
             if (point.CanSee)
             {
-                var localPos = ItemStartPos + new Vector2(point.Pos.x * ItemOffSet.x, point.Pos.y * ItemOffSet.y);
+                var localPos = ItemStartPos + new Vector2(point.PosObsolete.x * ItemOffSet.x, point.PosObsolete.y * ItemOffSet.y);
                 var screenPos = localPos + screenPosDir;
                 //获取对应位置的 mask 像素点xy
                 var maskXY = new Vector2Int((int)(screenPos.x * mapWidth / screenWidth), (int)(screenPos.y * mapHeight/screenHeight));
@@ -173,7 +173,7 @@ public class MazeListPanelCtrl : UIFormLogic
                 continue;
             }
             var point=SelfDataManager.Instance.GetPoint(curItem.Pos.x, curItem.Pos.y);
-            if (point.CurPassState==MazePoint.PointPassState.Pass)
+            if (point.CurPassState==AreaPoint.PointPassState.Pass)
             {
                 curItem.IsPassImg.SetActive(true);
             }

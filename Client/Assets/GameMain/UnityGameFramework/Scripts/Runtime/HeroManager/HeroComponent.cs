@@ -27,7 +27,7 @@ namespace UnityGameFramework.Runtime
     public sealed partial class HeroComponent : GameFrameworkComponent
     {
         public int[][] qige = new int[8][]; //保存棋格上是否有棋子 -1表示没有，其余是棋子uid 坐标是y，x
-        public Vector3[][] qigepos = new Vector3[8][]; //保存棋格位置
+        public Vector3[][] qigepos = new Vector3[8][]; //保存棋格位置，相对areaPoint点
         public float qigeXOffset = 1f;
 
         public List<EntityQizi> QiziCSList = new List<EntityQizi>();//保存当前己方棋子 死亡不会移除
@@ -44,6 +44,8 @@ namespace UnityGameFramework.Runtime
         public GameObject QigePrefab;
         [SerializeField]
         private Transform m_QigeRoot = null;
+
+        private Vector3 _qigePosOffset = Vector3.zero;
         protected override void Awake()
         {
             base.Awake();
@@ -179,7 +181,7 @@ namespace UnityGameFramework.Runtime
         {
             qige[qizi.rowIndex][qizi.columnIndex] = -1;
             qige[newPos.y][newPos.x] = qizi.HeroUID;
-            qizi.LogicPosition = qigepos[newPos.y][newPos.x];
+            qizi.LogicPosition = GetGeziPos(newPos.y,newPos.x);
             qizi.columnIndex = newPos.x;
             qizi.rowIndex = newPos.y;
         }
@@ -310,7 +312,7 @@ namespace UnityGameFramework.Runtime
 
         public Vector3 GetGeziPos(int row, int column)
         {
-            return qigepos[row][column];
+            return _qigePosOffset + qigepos[row][column];
         }
 
         public bool CheckInGezi(Vector3 targetPos, out Vector2Int geziPos)
@@ -320,7 +322,7 @@ namespace UnityGameFramework.Runtime
                 var oneline = qigepos[rowIndex];
                 for (int columnIndex = 0; columnIndex < oneline.Length; columnIndex++)
                 {
-                    var qigeCenterToTargetPos = targetPos - qigepos[rowIndex][columnIndex];
+                    var qigeCenterToTargetPos = targetPos - GetGeziPos(rowIndex,columnIndex);
                     if (qigeCenterToTargetPos.magnitude > qigeXOffset / Mathf.Sqrt(3)) //在外圆外
                     {
                         continue;
@@ -496,6 +498,11 @@ namespace UnityGameFramework.Runtime
             }
         }
 
+        public void MoveQigeRoot(Vector3 newOffset)
+        {
+            m_QigeRoot.position = newOffset;
+            _qigePosOffset = newOffset;
+        }
         
     }
 }

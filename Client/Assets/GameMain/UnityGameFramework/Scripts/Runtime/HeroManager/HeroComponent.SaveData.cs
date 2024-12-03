@@ -31,7 +31,7 @@ namespace UnityGameFramework.Runtime
         {
             public Vector2Int pos;
             public List<Vector2Int> linkPos;
-            public MazePoint.PointPassState state;
+            public AreaPoint.PointPassState state;
             public int levelID;
             public bool CanSee;
         }
@@ -75,18 +75,18 @@ namespace UnityGameFramework.Runtime
             newSaveData.RandomSeed = Utility.Random.Seed;
             newSaveData.RandomCount = Utility.Random.NextCount;
             newSaveData.MazeData = new List<SaveMazePoint>();
-            foreach (var onePoint in SelfDataManager.Instance.CurMazeList)
+            foreach (var onePoint in SelfDataManager.Instance.CurAreaList)
             {
                 if (onePoint.CurType == MazePointType.Empty)
                 {
                     continue;
                 }
                 var newPointData = new SaveMazePoint();
-                newPointData.pos = onePoint.Pos;
+                newPointData.pos = onePoint.PosObsolete;
                 newPointData.linkPos = new List<Vector2Int>();
-                foreach (var linkPoint in onePoint.LinkPoint)
+                foreach (var linkPoint in onePoint.LinkPointObsolete)
                 {
-                    newPointData.linkPos.Add(linkPoint.Pos);
+                    newPointData.linkPos.Add(linkPoint.PosObsolete);
                 }
 
                 newPointData.state = onePoint.CurPassState;

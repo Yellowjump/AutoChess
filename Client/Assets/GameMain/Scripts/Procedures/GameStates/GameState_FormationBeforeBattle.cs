@@ -26,7 +26,6 @@ namespace Procedure.GameStates
         {
             base.OnEnter(fsm);
             //初始化 敌人
-            InitEnemy();
             _UIIndex = GameEntry.UI.OpenUIForm(UICtrlName.BattleFormationPanel, "middle");
             GameEntry.UI.OpenUIForm(UICtrlName.BattleMainPanel, "middle");
         }
@@ -53,33 +52,6 @@ namespace Procedure.GameStates
         {
             base.OnDestroy(fsm);
             GameEntry.Event.Unsubscribe(FormationToBattleEventArgs.EventId,OnFormationToBattle);
-        }
-
-        private void InitEnemy()
-        {
-            var curPoint = SelfDataManager.Instance.CurMazePoint;
-            if (curPoint == null)
-            {
-                Log.Error("No CurPoint");
-                return;
-            }
-
-            var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
-            var enemyConfigs = GameEntry.DataTable.GetDataTable<DREnemyConfig>("EnemyConfig");
-            if (levelConfigTable.HasDataRow(curPoint.CurLevelID))
-            {
-                var levelData = levelConfigTable[curPoint.CurLevelID];
-                if (enemyConfigs.HasDataRow(levelData.LevelInfo))
-                {
-                    var enemyInfo = enemyConfigs[levelData.LevelInfo].EnemyInfo;
-                    foreach (var oneInfo in enemyInfo.InfoList)
-                    {
-                        GameEntry.HeroManager.InitOneEnemy(oneInfo);
-                    }
-                }
-            }
-            
-            
         }
         private void OnFormationToBattle(object sender, GameEventArgs e)
         {

@@ -21,7 +21,7 @@ namespace SelfEventArg
         /// <summary>
         /// 选中点。
         /// </summary>
-        public MazePoint TargetPoint
+        public AreaPoint TargetPoint
         {
             get;
             private set;
@@ -30,7 +30,7 @@ namespace SelfEventArg
         {
             TargetPoint = null;
         }
-        public static EnterPointEventArgs Create(MazePoint point)
+        public static EnterPointEventArgs Create(AreaPoint point)
         {
             EnterPointEventArgs formationToBattleEventArgs = ReferencePool.Acquire<EnterPointEventArgs>();
             formationToBattleEventArgs.TargetPoint = point;
@@ -156,6 +156,32 @@ namespace SelfEventArg
         {
             MapFreshEventArgs passPointEventArgs = ReferencePool.Acquire<MapFreshEventArgs>();
             return passPointEventArgs;
+        }
+    }
+    /// <summary>
+    /// 地图UI刷新透明度
+    /// </summary>
+    public class MapFreshOpaqueEventArgs:GameEventArgs
+    {
+        public static readonly int EventId = typeof(MapFreshOpaqueEventArgs).GetHashCode();
+        public override int Id
+        {
+            get
+            {
+                return EventId;
+            }
+        }
+
+        public float Opacity;
+        public override void Clear()
+        {
+            
+        }
+        public static MapFreshOpaqueEventArgs Create(float opacity)
+        {
+            MapFreshOpaqueEventArgs mapFreshOpaqueEventArgs = ReferencePool.Acquire<MapFreshOpaqueEventArgs>();
+            mapFreshOpaqueEventArgs.Opacity = opacity;
+            return mapFreshOpaqueEventArgs;
         }
     }
 }

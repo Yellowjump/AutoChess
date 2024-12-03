@@ -45,8 +45,23 @@ namespace UnityGameFramework.Runtime
             QiziCSList.Add(qizi);
             qige[qizi.rowIndex][qizi.columnIndex] = qizi.HeroUID;
             qizi.LogicPosition = GetGeziPos(qizi.rowIndex, qizi.columnIndex);
-            qizi.InitGObj();
+            //qizi.InitGObj();
             return qizi;
+        }
+
+        public void FreshFriendEntityPos()
+        {
+            foreach (var oneEntity in QiziCSList)
+            {
+                oneEntity.LogicPosition = GetGeziPos(oneEntity.rowIndex, oneEntity.columnIndex);
+            }
+        }
+        public void InitFriendGobj()
+        {
+            foreach (var oneEntity in QiziCSList)
+            {
+                oneEntity.InitGObj();
+            }
         }
 
         private Vector2Int GetEmptyFriendPos()

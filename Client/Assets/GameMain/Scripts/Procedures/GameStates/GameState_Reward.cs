@@ -46,7 +46,7 @@ namespace Procedure.GameStates
         {
             _continueToMap = true;
             GameEntry.HeroManager.FreshBattle();
-            GameEntry.HeroManager.Save();
+            //GameEntry.HeroManager.Save();
         }
     }
 }

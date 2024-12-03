@@ -8,6 +8,7 @@ using DataTable;
 using GameFramework;
 using GameFramework.DataTable;
 using GameFramework.Event;
+using Maze;
 using UnityGameFramework.Runtime;
 
 namespace GameMain.Scripts.Editor.AreaPointEditorWindow
@@ -17,6 +18,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
     {
         public int Index;
         public Vector3 Pos;
+        public AreaPointType CurPointType;
         public List<int> LinkPoint = new List<int>();
         public GameObject obj; // Reference to the associated GameObject
     }
@@ -37,7 +39,9 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
         private Vector2 dragStartPos;
         private int selectAreaPointIndex;
         readonly string areaPointTableFilePath = Application.dataPath + @"/GameMain/Data/DataTables/AreaPoint.txt";
-
+        private GUIStyle startPointStyle;
+        private GUIStyle endPointStyle;
+        private GUIStyle otherPointStyle;
         [MenuItem("Window/Area Point Editor")]
         public static void ShowWindow()
         {
@@ -53,7 +57,24 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             InitializeTerrain();
             InitLoadTableData();
         }
+        private void InitDrawColoredStyle()
+        {
+            // 创建一个临时 GUIStyle
+            startPointStyle = new GUIStyle(GUI.skin.button);
 
+            // 设置背景颜色
+            Texture2D bgTexture = new Texture2D(1, 1);
+            bgTexture.SetPixel(0, 0, new Color(0.1f,0.5f,0.1f));
+            bgTexture.Apply();
+            startPointStyle.normal.background = bgTexture;
+            
+            endPointStyle = new GUIStyle(GUI.skin.button);
+            Texture2D endBgTexture = new Texture2D(1, 1);
+            endBgTexture.SetPixel(0, 0, new Color(0.5f,0.1f,0.1f));
+            endBgTexture.Apply();
+            endPointStyle.normal.background = endBgTexture;
+            otherPointStyle = new GUIStyle(GUI.skin.button);
+        }
         private void InitializeParentObject()
         {
             // Try to find an existing object named "TerrainEditorTempPa"
@@ -98,6 +119,10 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
         }
         private void OnGUI()
         {
+            if (startPointStyle == null)
+            {
+                InitDrawColoredStyle();
+            }
             GUILayout.Label("Area Point List", EditorStyles.boldLabel);
 
             EditorGUILayout.Space();
@@ -113,6 +138,13 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
                 for (int i = 0; i < areaPoints.Count; i++)
                 {
                     DrawOneAreaPoint(areaPoints[i]);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < areaPoints.Count; i++)
+                {
+                    CheckPointPosChange(areaPoints[i]);
                 }
             }
             // Display each AreaPointEditor with spacing in between
@@ -172,7 +204,17 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
                     }
                 }
 
-                if (GUI.Button(buttonRect, areaPoints[i].Index.ToString()))
+                GUIStyle buttonStyle = otherPointStyle;
+                switch (areaPoints[i].CurPointType)
+                {
+                    case AreaPointType.Start:
+                        buttonStyle = startPointStyle;
+                        break;
+                    case AreaPointType.End:
+                        buttonStyle = endPointStyle;
+                        break;
+                }
+                if (GUI.Button(buttonRect, areaPoints[i].Index.ToString(),buttonStyle))
                 {
                     // When the button is clicked, select the corresponding GameObject in the scene
                     Selection.activeGameObject = areaPoints[i].obj;
@@ -231,8 +273,9 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             EditorGUILayout.LabelField("Index:", GUILayout.Width(50));
             areaPoint.Index = EditorGUILayout.IntField(areaPoint.Index, GUILayout.Width(50));
 
-            EditorGUILayout.LabelField("Position:", GUILayout.Width(60));
-            Vector3 newPos = EditorGUILayout.Vector3Field("", areaPoint.Pos);
+            //EditorGUILayout.LabelField("Position:", GUILayout.Width(60));
+            Vector3 newPos = EditorGUILayout.Vector3Field("Position:", areaPoint.Pos);
+            areaPoint.CurPointType = (AreaPointType)EditorGUILayout.EnumPopup("指定点类型", areaPoint.CurPointType);
             var obj = areaPoint.obj;
             // Only allow changes to X and Z; Y will be updated based on terrain height
             if (newPos.x != areaPoint.Pos.x || newPos.z != areaPoint.Pos.z)
@@ -249,18 +292,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             }
             else
             {
-                if (obj.transform.position != areaPoint.Pos)
-                {
-                    areaPoint.Pos.x = obj.transform.position.x;
-                    areaPoint.Pos.z = obj.transform.position.z;
-                    if (terrain != null)
-                    {
-                        // Set the Y coordinate to the height of the terrain at this X,Z position
-                        areaPoint.Pos.y = terrain.SampleHeight(newPos) + terrain.GetPosition().y;
-                    }
-
-                    obj.transform.position = areaPoint.Pos;
-                }
+                CheckPointPosChange(areaPoint);
             }
 
             serializedObject.Update();
@@ -300,6 +332,22 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             EditorGUILayout.Space(10); // Adds space between AreaPoints for better readability
         }
 
+        private void CheckPointPosChange(AreaPointEditor areaPoint)
+        {
+            var obj = areaPoint.obj;
+            if (obj.transform.position != areaPoint.Pos)
+            {
+                areaPoint.Pos.x = obj.transform.position.x;
+                areaPoint.Pos.z = obj.transform.position.z;
+                if (terrain != null)
+                {
+                    // Set the Y coordinate to the height of the terrain at this X,Z position
+                    areaPoint.Pos.y = terrain.SampleHeight(areaPoint.Pos) + terrain.GetPosition().y;
+                }
+
+                obj.transform.position = areaPoint.Pos;
+            }
+        }
         private void AddNewAreaPoint(DRAreaPoint oneAreaPointData = null)
         {
             if (parentObject == null)
@@ -312,7 +360,8 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             AreaPointEditor newPoint = new AreaPointEditor
             {
                 Index = oneAreaPointData?.Id ?? areaPoints.Count,
-                Pos = oneAreaPointData?.Position ?? Vector3.zero
+                Pos = oneAreaPointData?.Position ?? Vector3.zero,
+                CurPointType = oneAreaPointData!=null?(AreaPointType)oneAreaPointData?.AreaPointType:AreaPointType.Empty,
             };
             if (oneAreaPointData != null)
             {
@@ -350,13 +399,13 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
         private void SaveData()
         {
             StringBuilder tableBuild = new StringBuilder();
-            tableBuild.AppendLine("#\t地图区域\t\t");
-            tableBuild.AppendLine("#\tId\tPosition\tLinkArea");
-            tableBuild.AppendLine("#\tint\tvector3\tint[]");
-            tableBuild.AppendLine("#\tIndex\t世界坐标\t连接的区域");
+            tableBuild.AppendLine("#\t地图区域\t\t\t");
+            tableBuild.AppendLine("#\tId\tPosition\tAreaPointType\tLinkArea");
+            tableBuild.AppendLine("#\tint\tvector3\tint\tint[]");
+            tableBuild.AppendLine("#\tIndex\t世界坐标\t类型\t连接的区域");
             foreach (var oneAreaPoint in areaPoints)
             {
-                tableBuild.Append($"\t{oneAreaPoint.Index}\t{oneAreaPoint.Pos.x},{oneAreaPoint.Pos.y},{oneAreaPoint.Pos.z}\t");
+                tableBuild.Append($"\t{oneAreaPoint.Index}\t{oneAreaPoint.Pos.x},{oneAreaPoint.Pos.y},{oneAreaPoint.Pos.z}\t{(int)oneAreaPoint.CurPointType}\t");
                 for (var linkIndex = 0; linkIndex < oneAreaPoint.LinkPoint.Count; linkIndex++)
                 {
                     var oneLinkP = oneAreaPoint.LinkPoint[linkIndex];

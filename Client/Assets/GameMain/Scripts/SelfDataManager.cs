@@ -24,8 +24,8 @@ public class SelfDataManager
             return _instance;
         }
     }
-    public List<MazePoint> CurMazeList;
-    public MazePoint CurMazePoint;
+    public List<AreaPoint> CurAreaList;
+    public AreaPoint CurAreaPoint;
     public int CoinNum;
     public List<EntityQizi> SelfHeroList = new List<EntityQizi>();
     public Dictionary<int, int> ItemBag = new Dictionary<int, int>();
@@ -43,11 +43,11 @@ public class SelfDataManager
         }
 
         var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
-        CurMazeList ??= new List<MazePoint>();
-        CurMazeList.Clear();
+        CurAreaList ??= new List<AreaPoint>();
+        CurAreaList.Clear();
         foreach (var onePointData in saveData.MazeData)
         {
-            var newPoint = new MazePoint(onePointData.pos);
+            var newPoint = new AreaPoint(onePointData.pos);
             newPoint.CanSee = onePointData.CanSee;
             if (levelConfigTable.HasDataRow(onePointData.levelID))
             {
@@ -61,7 +61,7 @@ public class SelfDataManager
 
             newPoint.CurPassState = onePointData.state;
             newPoint.CurLevelID = onePointData.levelID;
-            CurMazeList.Add(newPoint);
+            CurAreaList.Add(newPoint);
         }
 
         foreach (var onePointData in saveData.MazeData)
@@ -70,7 +70,7 @@ public class SelfDataManager
             foreach (var linkPos in onePointData.linkPos)
             {
                 var linkPoint = GetPoint(linkPos.x, linkPos.y);
-                curPoint.LinkPoint.Add(linkPoint);
+                curPoint.LinkPointObsolete.Add(linkPoint);
             }
         }
         ItemBag.Clear();
@@ -228,26 +228,38 @@ public class SelfDataManager
     }
     public void PassCurPoint()
     {
-        if (CurMazePoint == null)
+        if (CurAreaPoint == null)
         {
             return;
         }
-        CurMazePoint.CurPassState = MazePoint.PointPassState.Pass;
-        foreach (var linkPoint in CurMazePoint.LinkPoint)
+        CurAreaPoint.CurPassState = AreaPoint.PointPassState.Pass;
+        foreach (var linkPointIndex in CurAreaPoint.LinkPointList)
         {
-            if (linkPoint != null&&linkPoint.CurPassState == MazePoint.PointPassState.Lock)
+            var linkPoint = GetPoint(linkPointIndex);
+            if (linkPoint != null&&linkPoint.CurPassState == AreaPoint.PointPassState.Lock)
             {
-                linkPoint.CurPassState = MazePoint.PointPassState.Unlock;
+                linkPoint.CurPassState = AreaPoint.PointPassState.Unlock;
                 linkPoint.CanSee = true;
             }
         }
         GameEntry.Event.Fire(this,MapFreshEventArgs.Create());
     }
-    public MazePoint GetPoint(int x, int y)
+    public AreaPoint GetPoint(int x, int y)
     {
-        foreach (var onePoint in CurMazeList)
+        foreach (var onePoint in CurAreaList)
         {
-            if (onePoint.Pos.x == x && onePoint.Pos.y == y)
+            if (onePoint.PosObsolete.x == x && onePoint.PosObsolete.y == y)
+            {
+                return onePoint;
+            }
+        }
+        return null;
+    }
+    public AreaPoint GetPoint(int index)
+    {
+        foreach (var onePoint in CurAreaList)
+        {
+            if (onePoint.Index == index)
             {
                 return onePoint;
             }
