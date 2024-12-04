@@ -56,11 +56,19 @@ namespace UnityGameFramework.Runtime
                 oneEntity.LogicPosition = GetGeziPos(oneEntity.rowIndex, oneEntity.columnIndex);
             }
         }
-        public void InitFriendGobj()
+        public void InitFriendGObj()
         {
             foreach (var oneEntity in QiziCSList)
             {
                 oneEntity.InitGObj();
+            }
+        }
+
+        public void ReleaseFriendGObj()
+        {
+            foreach (var oneEntity in QiziCSList)
+            {
+                oneEntity.RemoveGObj();
             }
         }
 

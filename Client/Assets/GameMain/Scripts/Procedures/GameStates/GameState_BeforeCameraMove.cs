@@ -28,24 +28,37 @@ namespace Procedure.GameStates
                 return;
             }
             //如果是 battle，那就先放置 棋盘
-            //如果是 商店，放置对应的 gameObject
-            if (curPoint.CurType == MazePointType.Store)
+            var levelID = curPoint.CurLevelID;
+            var levelTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
+            if (levelTable.HasDataRow(levelID))
             {
-                GameEntry.HeroManager.GetNewObjFromPool("Assets/GameMain/Prefeb/LevelObj/outwild.prefab",OnGetLevelObjCallback);
-                return;
+                var levelData = levelTable[levelID];
+                //如果是 商店，放置对应的 gameObject
+                if (curPoint.CurType == MazePointType.Store||(curPoint.CurType == MazePointType.Event&&levelData.BattleOrLoadAsset==false))
+                {
+                
+                    GameEntry.HeroManager.GetPrefabByAssetID(levelData.ParamInt1,OnGetLevelObjCallback);
+                    return;
+                }
+                else
+                {
+                    GameEntry.HeroManager.MoveQigeRoot(SelfDataManager.Instance.CurAreaPoint.Pos);
+                    InitEnemy();
+                    GameEntry.HeroManager.FreshFriendEntityPos();
+                    GameEntry.HeroManager.InitFriendGObj();
+                    ChangeState<GameState_CameraMove>(fsm);
+                }
             }
             else
             {
-                GameEntry.HeroManager.MoveQigeRoot(SelfDataManager.Instance.CurAreaPoint.Pos);
-                InitEnemy();
-                GameEntry.HeroManager.FreshFriendEntityPos();
-                GameEntry.HeroManager.InitFriendGobj();
-                ChangeState<GameState_CameraMove>(fsm);
+                Log.Error($"LevelConfig Has No ID:{levelID}");
             }
+            
         }
 
         private void OnGetLevelObjCallback(GameObject obj, string path)
         {
+            SelfDataManager.Instance.CurAreaPoint.LevelGObj = obj;
             obj.transform.position = SelfDataManager.Instance.CurAreaPoint.Pos;
             ChangeState<GameState_CameraMove>(m_fsm);
         }

@@ -109,12 +109,17 @@ namespace Entity
             DestorySkill();
             InitSkill();
         }
+
+        public void RemoveGObj()
+        {
+            GameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
+            GObj = null;
+        }
         public void Remove()
         {
             RemoveAllSfx();
-            GameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
+            RemoveGObj();
             ReleaseAnim();
-            GObj = null;
             DestoryState();
             DestorySkill();
             RemoveAllWeapon();

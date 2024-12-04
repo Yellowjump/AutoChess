@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-11-15 01:06:33.161
+// 生成时间：2024-12-04 23:25:23.488
 //------------------------------------------------------------
 
 using GameFramework;
@@ -57,6 +57,33 @@ namespace DataTable
             private set;
         }
 
+        /// <summary>
+        /// 获取显示的UI。
+        /// </summary>
+        public int ShowUIAssetID
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取放置战斗棋盘还是asset。
+        /// </summary>
+        public bool BattleOrLoadAsset
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取int参数1。
+        /// </summary>
+        public int ParamInt1
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -71,6 +98,9 @@ namespace DataTable
             index++;
             MazePointType = int.Parse(columnStrings[index++]);
             LevelInfo = int.Parse(columnStrings[index++]);
+            ShowUIAssetID = int.Parse(columnStrings[index++]);
+            BattleOrLoadAsset = bool.Parse(columnStrings[index++]);
+            ParamInt1 = int.Parse(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -85,6 +115,9 @@ namespace DataTable
                     m_Id = binaryReader.Read7BitEncodedInt32();
                     MazePointType = binaryReader.Read7BitEncodedInt32();
                     LevelInfo = binaryReader.Read7BitEncodedInt32();
+                    ShowUIAssetID = binaryReader.Read7BitEncodedInt32();
+                    BattleOrLoadAsset = binaryReader.ReadBoolean();
+                    ParamInt1 = binaryReader.Read7BitEncodedInt32();
                 }
             }
 
@@ -92,9 +125,45 @@ namespace DataTable
             return true;
         }
 
+        private KeyValuePair<int, int>[] m_ParamInt = null;
+
+        public int ParamIntCount
+        {
+            get
+            {
+                return m_ParamInt.Length;
+            }
+        }
+
+        public int GetParamInt(int id)
+        {
+            foreach (KeyValuePair<int, int> i in m_ParamInt)
+            {
+                if (i.Key == id)
+                {
+                    return i.Value;
+                }
+            }
+
+            throw new GameFrameworkException(Utility.Text.Format("GetParamInt with invalid id '{0}'.", id.ToString()));
+        }
+
+        public int GetParamIntAt(int index)
+        {
+            if (index < 0 || index >= m_ParamInt.Length)
+            {
+                throw new GameFrameworkException(Utility.Text.Format("GetParamIntAt with invalid index '{0}'.", index.ToString()));
+            }
+
+            return m_ParamInt[index].Value;
+        }
+
         private void GeneratePropertyArray()
         {
-
+            m_ParamInt = new KeyValuePair<int, int>[]
+            {
+                new KeyValuePair<int, int>(1, ParamInt1),
+            };
         }
 
 

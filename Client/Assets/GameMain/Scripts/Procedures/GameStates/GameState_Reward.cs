@@ -40,6 +40,7 @@ namespace Procedure.GameStates
 
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)
         {
+            GameEntry.HeroManager.ReleaseFriendGObj();
             base.OnLeave(fsm, isShutdown);
         }
         public void OnGetRewardAndContinue(object sender, GameEventArgs e)

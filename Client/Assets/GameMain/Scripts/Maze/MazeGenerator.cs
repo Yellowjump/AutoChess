@@ -57,6 +57,7 @@ namespace Maze
         public Vector2Int PosObsolete { get; set; }
         public int Index;
         public Vector3 Pos{ get; set; }
+        public GameObject LevelGObj;
         public AreaPointType AreaPointType;
         public MazePointType CurType { get; set; }
         public int CurLevelID;
@@ -84,6 +85,7 @@ namespace Maze
             {
                 ListPool<int>.Release(LinkPointList);
             }
+            LevelGObj = null;
         }
     }
     public class MazeGenerator

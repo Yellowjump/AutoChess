@@ -18,6 +18,8 @@
 	3051	敌人test	Assets/GameMain/Prefeb/Charactor/enemy0/enemy0.prefab
 #Sfx(3300			
 	3301	受击特效	Assets/GameMain/Prefeb/Sfx/CFXR3 Hit Fire B (Air).prefab
+#LevelObj(3500			
+	3501	商店场景	Assets/GameMain/Prefeb/LevelObj/outwild.prefab
 #Sprite(4000			
 	4000	苹果	Assets/GameMain/Image/Icons/ItemIcon/Apple.png
 	4001	斧头	Assets/GameMain/Image/Icons/ItemIcon/FreeFolkAxe.png

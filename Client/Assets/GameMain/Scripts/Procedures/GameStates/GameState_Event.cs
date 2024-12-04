@@ -34,9 +34,9 @@ namespace Procedure.GameStates
             if (levelConfigTable.HasDataRow(curPoint.CurLevelID))
             {
                 var levelData = levelConfigTable[curPoint.CurLevelID];
-                if (assetsPathTable.HasDataRow(levelData.LevelInfo))
+                if (assetsPathTable.HasDataRow(levelData.ShowUIAssetID))
                 {
-                    var eventUIPath = assetsPathTable[levelData.LevelInfo].AssetPath;
+                    var eventUIPath = assetsPathTable[levelData.ShowUIAssetID].AssetPath;
                     _UIIndex = GameEntry.UI.OpenUIForm(eventUIPath, "middle");
                 }
             }

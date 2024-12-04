@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DataTable;
 using GameFramework;
 using GameFramework.Event;
 using GameFramework.Fsm;
@@ -19,6 +20,7 @@ namespace Procedure.GameStates
         protected override void OnEnter(IFsm<ProcedureGame> fsm)
         {
             base.OnEnter(fsm);
+            ReleaseLastEventPointGObj();
             _fsm = fsm;
             GameEntry.HeroManager.ResetToMainCamera();
             var eventArg = MapFreshOpaqueEventArgs.Create(1);
@@ -33,6 +35,22 @@ namespace Procedure.GameStates
             }
         }
 
+        private void ReleaseLastEventPointGObj()
+        {
+            //清除event对应的GameObj
+            if (SelfDataManager.Instance.CurAreaPoint!=null&&SelfDataManager.Instance.CurAreaPoint.LevelGObj != null)
+            {
+                var levelID = SelfDataManager.Instance.CurAreaPoint.CurLevelID;
+                var levelTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
+                if (levelTable.HasDataRow(levelID))
+                {
+                    var levelData = levelTable[levelID];
+                    GameEntry.HeroManager.ReleaseAssetObj(levelData.ParamInt1,SelfDataManager.Instance.CurAreaPoint.LevelGObj,null);
+                }
+                
+                SelfDataManager.Instance.CurAreaPoint.LevelGObj = null;
+            }
+        }
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
         {
             base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);

@@ -79,14 +79,14 @@ namespace Procedure
             {
                 return;
             }
-            SelfDataManager.Instance.CurAreaPoint.CurLevelID = ne.BattleLevelID;
-            var levelConfigsTable=GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
+            _gameStateFsm.ChangeStatePublic<GameState_FormationBeforeBattle>();
+            //SelfDataManager.Instance.CurAreaPoint.CurLevelID = ne.BattleLevelID;
+            /*var levelConfigsTable=GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
             if (levelConfigsTable.HasDataRow(ne.BattleLevelID))
             {
                 var levelConfigData = levelConfigsTable[ne.BattleLevelID];
                 SelfDataManager.Instance.CurAreaPoint.CurType = (MazePointType)levelConfigData.MazePointType;
-                _gameStateFsm.ChangeStatePublic<GameState_FormationBeforeBattle>();
-            }
+            }*/
         }
 
         private void OnEventComplete(object sender, GameEventArgs e)
