@@ -61,7 +61,8 @@ public class StateMove0 : FsmState<EntityQizi>
             _moveAccumulate += elapseSeconds;
             if (_moveAccumulate < MoveOneCellDuration)
             {
-                owner.LogicPosition = new Vector3(Mathf.Lerp(startpos.x, nextpos.x, _moveAccumulate/MoveOneCellDuration), 0, Mathf.Lerp(startpos.z, nextpos.z, _moveAccumulate/MoveOneCellDuration));
+                owner.LogicPosition = Vector3.Lerp(startpos, nextpos, _moveAccumulate / MoveOneCellDuration);
+                /*owner.LogicPosition = new Vector3(Mathf.Lerp(startpos.x, nextpos.x, _moveAccumulate/MoveOneCellDuration), 0, Mathf.Lerp(startpos.z, nextpos.z, _moveAccumulate/MoveOneCellDuration));*/
                 return;
             }
             else
@@ -161,6 +162,7 @@ public class StateMove0 : FsmState<EntityQizi>
             }
         }
 
+        var noNextPosMove = true;
         for (var normalSkillIndex = 0; normalSkillIndex < owner.NormalSkillList.Count; normalSkillIndex++)
         {
             result = owner.CheckCanCastSkill(out target, false,normalSkillIndex);
@@ -168,7 +170,7 @@ public class StateMove0 : FsmState<EntityQizi>
             {
                 owner.CurAttackTarget = target;
                 ChangeState<StateAttack0>(fsm);
-                break;
+                return;
             }
             else if (result == CheckCastSkillResult.TargetOutRange)
             {
@@ -176,8 +178,9 @@ public class StateMove0 : FsmState<EntityQizi>
                 Vector2Int ownerIndex = GameEntry.HeroManager.GetIndexQizi(owner);
                 Vector2Int targetIndex = GameEntry.HeroManager.GetIndexQizi(target);
                 nextPosIndex = GameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.NormalSkillList[normalSkillIndex].SkillRange);
-                if (nextPosIndex != new Vector2Int(-1, -1)&&nextPosIndex!=ownerIndex)
+                if (nextPosIndex.x != -1 && nextPosIndex.y != -1&&nextPosIndex!=ownerIndex)
                 {
+                    noNextPosMove = false;
                     _moving = true;
                     startpos = owner.LogicPosition;
                     nextpos = GameEntry.HeroManager.GetGeziPos(nextPosIndex.y,nextPosIndex.x);;
@@ -188,6 +191,11 @@ public class StateMove0 : FsmState<EntityQizi>
                 }
                 break;
             }
+        }
+
+        if (noNextPosMove)
+        {
+            ChangeState<StateIdle0>(fsm);
         }
 
         

@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Cinemachine;
 using DataTable;
@@ -33,9 +34,10 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
         public List<AreaPointEditor> areaPoints = new List<AreaPointEditor>();
         private GameObject parentObject;
         private CinemachineVirtualCamera _demoCamera;
-        private Terrain terrain;
+        private List<Terrain> terrainList;
         private DataTableComponent dataTableComponent;
         private SerializedObject serializedObject;
+        private Rect terrainTotalSize = new Rect();
         private Vector2 panelSize = new Vector2(500, 500);
         private Vector2 panelOffset = new Vector2(50, 0); // 右移50单位
 
@@ -136,13 +138,42 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
         }
         private void InitializeTerrain()
         {
-            // Find the first active Terrain in the scene
-            terrain = FindObjectOfType<Terrain>();
-
-            if (terrain == null)
+            terrainList = FindObjectsByType<Terrain>(sortMode: FindObjectsSortMode.None).ToList();
+            if (terrainList == null||terrainList.Count==0)
             {
                 Debug.LogWarning("No Terrain found in the scene. Please add a Terrain component.");
+                return;
             }
+            // 初始化最大和最小边界
+            float minX = float.MaxValue;
+            float maxX = float.MinValue;
+            float minZ = float.MaxValue;
+            float maxZ = float.MinValue;
+
+            // 遍历所有 Terrain
+            foreach (var terrain in terrainList)
+            {
+                TerrainData terrainData = terrain.terrainData;
+            
+                // 计算 Terrain 的左下角和右上角在世界空间中的坐标
+                float terrainMinX = terrain.transform.position.x;
+                float terrainMaxX = terrainMinX + terrainData.size.x;
+
+                float terrainMinZ = terrain.transform.position.z;
+                float terrainMaxZ = terrainMinZ + terrainData.size.z;
+
+                // 更新总地形的边界
+                minX = Mathf.Min(minX, terrainMinX);
+                maxX = Mathf.Max(maxX, terrainMaxX);
+                minZ = Mathf.Min(minZ, terrainMinZ);
+                maxZ = Mathf.Max(maxZ, terrainMaxZ);
+            }
+
+            terrainTotalSize.xMin = minX;
+            terrainTotalSize.xMax = maxX;
+            terrainTotalSize.yMin = minZ;
+            terrainTotalSize.yMax = maxZ;
+            // 计算最终地形的总长宽
         }
 
         private void InitLoadTableData()
@@ -169,7 +200,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             parentObject = (GameObject)EditorGUILayout.ObjectField("Parent GameObject", parentObject, typeof(GameObject), true);
 
             // Set the Terrain object
-            terrain = (Terrain)EditorGUILayout.ObjectField("Terrain", terrain, typeof(Terrain), true);
+            //terrainList = (Terrain)EditorGUILayout.ObjectField("Terrain", terrainList, typeof(Terrain), true);
             _showAllAreaPointData = GUILayout.Toggle(_showAllAreaPointData, "显示所有点");
             if (_showAllAreaPointData)
             {
@@ -191,9 +222,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             EditorGUILayout.Space();
             EditorGUILayout.Space();
 
-            // Get the terrain size and position
-            Vector3 terrainPosition = terrain.GetPosition();
-            Vector3 terrainSize = terrain.terrainData.size;
+            
 
             // 绘制背景面板
             Rect controlRect = EditorGUILayout.GetControlRect(false, panelSize.y + panelOffset.y);
@@ -203,9 +232,10 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             // Draw each AreaPointEditor as a button inside the panel
             for (int i = 0; i < areaPoints.Count; i++)
             {
+                // Get the terrain size and position
                 // Map the x, z coordinates from the terrain's world space to the panel space
-                float xPos = Mathf.InverseLerp(terrainPosition.x, terrainPosition.x + terrainSize.x, areaPoints[i].Pos.x) * panelSize.x;
-                float zPos = Mathf.InverseLerp(terrainPosition.z, terrainPosition.z + terrainSize.z, areaPoints[i].Pos.z) * panelSize.y;
+                float xPos = Mathf.InverseLerp(terrainTotalSize.xMin, terrainTotalSize.xMax, areaPoints[i].Pos.x) * panelSize.x;
+                float zPos = Mathf.InverseLerp(terrainTotalSize.yMin, terrainTotalSize.yMax, areaPoints[i].Pos.z) * panelSize.y;
                 xPos += panelRect.x;
                 zPos = panelSize.y + panelRect.y - zPos;
                 foreach (var linkIndex in areaPoints[i].LinkPoint)
@@ -214,8 +244,8 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
                     {
                         var target = areaPoints[linkIndex];
                         // Map the linked AreaPoint's position to the panel space
-                        float targetX = Mathf.InverseLerp(terrainPosition.x, terrainPosition.x + terrainSize.x, target.Pos.x) * panelSize.x;
-                        float targetZ = Mathf.InverseLerp(terrainPosition.z, terrainPosition.z + terrainSize.z, target.Pos.z) * panelSize.y;
+                        float targetX = Mathf.InverseLerp(terrainTotalSize.xMin, terrainTotalSize.xMax, target.Pos.x) * panelSize.x;
+                        float targetZ = Mathf.InverseLerp(terrainTotalSize.yMin, terrainTotalSize.yMax, target.Pos.z) * panelSize.y;
 
                         // Account for the panel's position offset
                         targetX += panelRect.x;
@@ -266,15 +296,16 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
                     Vector2 delta = e.mousePosition - dragStartPos;
                     dragStartPos = e.mousePosition;
 
-                    float newX = areaPoints[i].Pos.x + delta.x / panelSize.x * terrainSize.x;
-                    float newZ = areaPoints[i].Pos.z - delta.y / panelSize.y * terrainSize.z;
+                    float newX = areaPoints[i].Pos.x + delta.x / panelSize.x * terrainTotalSize.width;
+                    float newZ = areaPoints[i].Pos.z - delta.y / panelSize.y * terrainTotalSize.height;
 
-                    areaPoints[i].Pos.x = Mathf.Clamp(newX, terrainPosition.x, terrainPosition.x + terrainSize.x);
-                    areaPoints[i].Pos.z = Mathf.Clamp(newZ, terrainPosition.z, terrainPosition.z + terrainSize.z);
+                    areaPoints[i].Pos.x = Mathf.Clamp(newX, terrainTotalSize.xMin, terrainTotalSize.xMax);
+                    areaPoints[i].Pos.z = Mathf.Clamp(newZ, terrainTotalSize.yMin, terrainTotalSize.yMax);
 
+                    var terrain = GetMatchTerrain(areaPoints[i].Pos);
                     if (terrain != null)
                     {
-                        areaPoints[i].Pos.y = terrain.SampleHeight(areaPoints[i].Pos) + terrainPosition.y;
+                        areaPoints[i].Pos.y = terrain.SampleHeight(areaPoints[i].Pos) + terrain.GetPosition().y;
                     }
 
                     areaPoints[i].obj.transform.position = areaPoints[i].Pos;
@@ -305,6 +336,34 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             }
         }
 
+        private Terrain GetMatchTerrain(Vector3 targetPos)
+        {
+            if (terrainList == null || terrainList.Count == 0)
+            {
+                return null;
+            }
+
+            foreach (var oneTerrain in terrainList)
+            {
+                var terrainPos = oneTerrain.GetPosition();
+                var terrainSize = oneTerrain.terrainData.size;
+                // 计算 Terrain 的边界
+                float terrainMinX = terrainPos.x;
+                float terrainMaxX = terrainMinX + terrainSize.x;
+
+                float terrainMinZ = terrainPos.z;
+                float terrainMaxZ = terrainMinZ + terrainSize.z;
+
+                // 检查点是否在 Terrain 的范围内
+                bool isInside = targetPos.x >= terrainMinX && targetPos.x <= terrainMaxX &&
+                                targetPos.z >= terrainMinZ && targetPos.z <= terrainMaxZ;
+                if (isInside)
+                {
+                    return oneTerrain;
+                }
+            }
+            return null;
+        }
         private void DrawOneAreaPoint(AreaPointEditor areaPoint)
         {
             GUILayout.BeginHorizontal();
@@ -320,12 +379,11 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             {
                 areaPoint.Pos.x = newPos.x;
                 areaPoint.Pos.z = newPos.z;
+                var terrain = GetMatchTerrain(areaPoint.Pos);
                 if (terrain != null)
                 {
-                    // Set the Y coordinate to the height of the terrain at this X,Z position
                     areaPoint.Pos.y = terrain.SampleHeight(newPos) + terrain.GetPosition().y;
                 }
-
                 obj.transform.position = areaPoint.Pos;
             }
             else
@@ -388,12 +446,11 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             {
                 areaPoint.Pos.x = obj.transform.position.x;
                 areaPoint.Pos.z = obj.transform.position.z;
+                var terrain = GetMatchTerrain(areaPoint.Pos);
                 if (terrain != null)
                 {
-                    // Set the Y coordinate to the height of the terrain at this X,Z position
                     areaPoint.Pos.y = terrain.SampleHeight(areaPoint.Pos) + terrain.GetPosition().y;
                 }
-
                 obj.transform.position = areaPoint.Pos;
             }
         }
@@ -418,9 +475,9 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             {
                 newPoint.LinkPoint.AddRange(oneAreaPointData.LinkArea);
             }
+            var terrain = GetMatchTerrain(newPoint.Pos);
             if (terrain != null)
             {
-                // Set the Y coordinate to the height of the terrain at this X,Z position
                 newPoint.Pos.y = terrain.SampleHeight(newPoint.Pos) + terrain.GetPosition().y;
             }
 

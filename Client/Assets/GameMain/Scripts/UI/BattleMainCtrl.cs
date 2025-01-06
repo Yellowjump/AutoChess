@@ -116,12 +116,14 @@ public class BattleMainCtrl : UIFormLogic
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         EntityQizi target;
+        _plane.SetNormalAndPosition(Vector3.up,GameEntry.HeroManager.QigePosOffset);
         if (_plane.Raycast(ray, out var enter))
         {
             // 计算相交点
             var hitPoint = ray.GetPoint(enter);
             for (int i = 0; i < GameEntry.HeroManager.QiziCSList.Count; i++)
             {
+                hitPoint.y = GameEntry.HeroManager.QiziCSList[i].LogicPosition.y;//放置y分量影响
                 if (Vector3.Distance(GameEntry.HeroManager.QiziCSList[i].LogicPosition,hitPoint)<0.5f)
                 {
                     return GameEntry.HeroManager.QiziCSList[i];

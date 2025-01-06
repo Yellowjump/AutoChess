@@ -14,7 +14,7 @@ using UnityEngine.Rendering.Universal;
 public class AreaListPanel3DCtrl : UIFormLogic
 {
     private List<AreaPointItem> _curMazeItemList;
-    private List<DecalProjector> _curLineList;
+    private List<Image> _curLineList;
     [SerializeField] private GameObject _pointTemp;
     [SerializeField] private GameObject _lineTemp;
     [SerializeField] private Vector2 ItemStartPos = new Vector2(-500, -500);
@@ -37,7 +37,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
         _btnClose.onClick.AddListener(() => { GameEntry.UI.CloseUIForm(UIForm);});
         _curMazeItemList ??= ListPool<AreaPointItem>.Get();
         _curMazeItemList.Clear();
-        _curLineList ??= ListPool<DecalProjector>.Get();
+        _curLineList ??= ListPool<Image>.Get();
         _pointPool ??= new ObjectPool<GameObject>(() =>
         {
             GameObject ob = Instantiate(_pointTemp, GameEntry.HeroManager.WorldCanvas.transform);
@@ -55,7 +55,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
         {
             GameObject ob = Instantiate(_lineTemp, GameEntry.HeroManager.DisableRoot);
             return ob;
-        }, (obj) => {obj.SetActive(true); obj.transform.SetParent(GameEntry.HeroManager.InstanceRoot); }, (obj) => {obj.transform.SetParent(GameEntry.HeroManager.DisableRoot);}, Destroy);
+        }, (obj) => {obj.SetActive(true); obj.transform.SetParent(GameEntry.HeroManager.WorldCanvas.transform); }, (obj) => {obj.transform.SetParent(GameEntry.HeroManager.DisableRoot);}, Destroy);
 
         var mazeList = SelfDataManager.Instance.CurAreaList;
         if (mazeList == null)
@@ -92,10 +92,11 @@ public class AreaListPanel3DCtrl : UIFormLogic
                     float angle = Mathf.Atan2(direction.z,direction.x) * Mathf.Rad2Deg;
                     oneNewLine.transform.rotation = Quaternion.Euler(90, 0,angle);
                     oneNewLine.transform.position = (position + linkPosition) / 2;
-                    DecalProjector decal = oneNewLine.GetComponent<DecalProjector>();
-                    _curLineList.Add(decal);
-                    decal.size = new Vector3(direction.magnitude,20,direction.magnitude);
-                    decal.pivot = Vector3.zero;
+                    //oneNewLine.transform.localScale=new Vector3(direction.magnitude,20,direction.magnitude);
+                    Image image = oneNewLine.GetComponent<Image>();
+                    //image.rectTransform.rect.width = direction.magnitude;
+                    image.rectTransform.sizeDelta = new Vector2(direction.magnitude, 20);
+                    _curLineList.Add(image);
                     //oneNewLine.transform.SetLocalScaleX(direction.magnitude);
                 }
             }
@@ -203,14 +204,16 @@ public class AreaListPanel3DCtrl : UIFormLogic
             return;
         }
 
-        foreach (var oneDecal in _curLineList)
+        foreach (var oneImage in _curLineList)
         {
-            oneDecal.fadeFactor = ne.Opacity;
+            oneImage.color = new Color(oneImage.color.r,oneImage.color.g,oneImage.color.b,ne.Opacity);
+            oneImage.gameObject.SetActive(ne.Opacity>0);
         }
 
         foreach (var oneMazeItem in _curMazeItemList)
         {
             oneMazeItem.SetOpaque(ne.Opacity);
+            oneMazeItem.gameObject.SetActive(ne.Opacity>0);
         }
     }
 }

@@ -31,6 +31,14 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         public void InitAreaPointCamera()
         {
+            if (PerAreaCameraDic != null && PerAreaCameraDic.Count != 0)
+            {
+                foreach (var keyValue in PerAreaCameraDic)
+                {
+                    Destroy(keyValue.Value);
+                }
+                PerAreaCameraDic.Clear();
+            }
             var areaList = SelfDataManager.Instance.CurAreaList;
             foreach (var oneAreaPoint in areaList)
             {

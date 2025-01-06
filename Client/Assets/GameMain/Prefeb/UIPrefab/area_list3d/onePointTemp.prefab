@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 535751108541000358}
   - component: {fileID: 2577928955684363638}
   - component: {fileID: 8513496285322762555}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: IsPassImg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -131,7 +131,7 @@ GameObject:
   - component: {fileID: 6079927930836045453}
   - component: {fileID: 7117678855865740093}
   - component: {fileID: 30371206976885205}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: onePointTemp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -147,7 +147,7 @@ RectTransform:
   m_GameObject: {fileID: 5275206694161789755}
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 476316458607345972}
@@ -181,7 +181,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Index: 0
-  Pos: {x: 0, y: 0, z: 0}
   Name: {fileID: 1862119871868756553}
   IsPassImg: {fileID: 1085688196378710007}
   bgImg: {fileID: 2155609633950174754}
@@ -197,7 +196,7 @@ GameObject:
   - component: {fileID: 1475194929260396237}
   - component: {fileID: 3337804822839778239}
   - component: {fileID: 1862119871868756553}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -334,7 +333,7 @@ GameObject:
   - component: {fileID: 8890774994182407659}
   - component: {fileID: 2155609633950174754}
   - component: {fileID: 7065756126140751413}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: Bg
   m_TagString: Untagged
   m_Icon: {fileID: 0}

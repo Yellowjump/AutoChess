@@ -46,6 +46,7 @@ namespace UnityGameFramework.Runtime
         private Transform m_QigeRoot = null;
 
         private Vector3 _qigePosOffset = Vector3.zero;
+        public Vector3 QigePosOffset => _qigePosOffset;
         protected override void Awake()
         {
             base.Awake();

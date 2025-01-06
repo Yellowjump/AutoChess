@@ -41,6 +41,9 @@ namespace Procedure
             m_ResourceLoaded = true;
             GameEntry.Event.Subscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
             GameEntry.Event.Subscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
+            GameEntry.Event.Subscribe(LoadSceneSuccessEventArgs.EventId, OnLoadTerrainSceneSuccess);
+            m_LoadedFlag.Add("Assets/GameMain/Scenes/terrain.unity",false);
+            GameEntry.Scene.LoadScene("Assets/GameMain/Scenes/terrain.unity");
             PreloadDataTable();
             Log.Info("Init resources complete.");
         }
@@ -75,6 +78,7 @@ namespace Procedure
 
             GameEntry.Event.Unsubscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
             GameEntry.Event.Unsubscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
+            GameEntry.Event.Unsubscribe(LoadSceneSuccessEventArgs.EventId, OnLoadTerrainSceneSuccess);
         }
 
         protected override void OnDestroy(ProcedureOwner procedureOwner)
@@ -138,6 +142,19 @@ namespace Procedure
             }
 
             Log.Error("Can not load table '{0}' with error: {1}", ne.DataTableAssetName,ne.ErrorMessage);
+        }
+        private void OnLoadTerrainSceneSuccess(object sender, GameEventArgs e)
+        {
+            LoadSceneSuccessEventArgs ne = (LoadSceneSuccessEventArgs)e;
+            if (ne==null)
+            {
+                return;
+            }
+
+            if (m_LoadedFlag.ContainsKey(ne.SceneAssetName))
+            {
+                m_LoadedFlag[ne.SceneAssetName] = true;
+            }
         }
         private string ExtractFileName(string filePath)
         {

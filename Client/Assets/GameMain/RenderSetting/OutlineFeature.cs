@@ -21,6 +21,11 @@ public class OutlineFeature : ScriptableRendererFeature
         // When empty this render pass will render to the active camera render target.
         // You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
         // The render pipeline will ensure target setup and clearing happens in a performant manner.
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            base.Configure(cmd, cameraTextureDescriptor);
+        }
+
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
         }
@@ -157,7 +162,7 @@ public class OutlineFeature : ScriptableRendererFeature
 
         // Configures where the render pass should be injected.
         m_NormalPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
-        var cameraSetting = new RenderObjects.CustomCameraSettings();
+        /*var cameraSetting = new RenderObjects.CustomCameraSettings();
         var defaultLayer = LayerMask.NameToLayer("Default");
         var shaderTags = new string[]
         {
@@ -165,7 +170,7 @@ public class OutlineFeature : ScriptableRendererFeature
             "SRPDefaultUnlit",
             "DepthOnly"
         };
-        m_RenderObjectPass = new RenderObjectsPass("normal RenderObject",RenderPassEvent.AfterRenderingOpaques,shaderTags,RenderQueueType.Opaque,defaultLayer,cameraSetting);
+        m_RenderObjectPass = new RenderObjectsPass("normal RenderObject",RenderPassEvent.AfterRenderingOpaques,shaderTags,RenderQueueType.Opaque,defaultLayer,cameraSetting);*/
 
         m_DrawOutlinePass = new NormalDepthOutLineDrawPass();
         m_DrawOutlinePass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
@@ -181,9 +186,9 @@ public class OutlineFeature : ScriptableRendererFeature
     {
         //if (!ShouldRender(in renderingData)) return;
         renderer.EnqueuePass(m_NormalPass);
-        renderer.EnqueuePass(m_DrawOutlinePass);
-        renderer.EnqueuePass(m_DrawColorOutlinePass);
-        renderer.EnqueuePass(m_AddDrawOutline);
+        //renderer.EnqueuePass(m_DrawOutlinePass);
+        //renderer.EnqueuePass(m_DrawColorOutlinePass);
+        //renderer.EnqueuePass(m_AddDrawOutline);
     }
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
     {

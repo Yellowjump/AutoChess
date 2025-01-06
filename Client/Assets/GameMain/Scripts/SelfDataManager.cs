@@ -73,6 +73,7 @@ public class SelfDataManager
                 curPoint.LinkPointObsolete.Add(linkPoint);
             }
         }
+        GameEntry.HeroManager.InitAreaPointCamera();
         ItemBag.Clear();
         foreach (var oneItemData in saveData.Bag)
         {
