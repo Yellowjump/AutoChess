@@ -8,5 +8,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GameMain/Scenes/qipan.unity
     guid: b55d9d15d2e91904684aeff46cf0ebe3
+  - enabled: 1
+    path: Assets/GameMain/Scenes/terrain.unity
+    guid: 0eff3e446da34a645a090d7654ee3844
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
