@@ -116,12 +116,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c634560d0765134ea5cb1c291d0014f, type: 3}
   m_Name: OutlineFeature
   m_EditorClassIdentifier: 
-  m_Active: 0
+  m_Active: 1
   normal_mat: {fileID: 2100000, guid: 4df69c63aea2c2a45adfc9fb46f92e43, type: 2}
   outline_mat: {fileID: 2100000, guid: 7cb0ae217cc64ce40a58a504092ff601, type: 2}
   colorOutline_mat: {fileID: 2100000, guid: d491fc354d6fca8459a3b268dbda9e97, type: 2}
   addOutline_mat: {fileID: 2100000, guid: c096c0ce8df50674ea94782c8abaab3a, type: 2}
-  t: {fileID: 0}
 --- !u!114 &-171694583148916512
 MonoBehaviour:
   m_ObjectHideFlags: 0

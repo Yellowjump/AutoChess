@@ -11,6 +11,7 @@ public class OutlineFeature : ScriptableRendererFeature
     class NormalRenderPass : ScriptableRenderPass
     {
         private RTHandle normalRt;
+        private RTHandle normalDepthRt;
         private Material normal_mat;
         private RenderTexture realTexture;
         private ShaderTagId shadertag = new ShaderTagId("DepthOnly");
@@ -23,16 +24,17 @@ public class OutlineFeature : ScriptableRendererFeature
         // The render pipeline will ensure target setup and clearing happens in a performant manner.
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            base.Configure(cmd, cameraTextureDescriptor);
+            ConfigureTarget(normalRt,normalDepthRt);
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
         }
 
-        public void SetUp(RTHandle normalRt,Material normalMat)
+        public void SetUp(RTHandle normalRt,Material normalMat,RTHandle normalDepthRt)
         {
             this.normalRt = normalRt;
+            this.normalDepthRt = normalDepthRt;
             normal_mat = normalMat;
             filter = new FilteringSettings(RenderQueueRange.opaque);
         }
@@ -72,13 +74,18 @@ public class OutlineFeature : ScriptableRendererFeature
         private RTHandle m_NormalRT;
         private RTHandle m_DepthRT;
         private RTHandle m_ExpansionOutlineRt;
-        public void SetUp(RTHandle normalRt,RTHandle depthRt,RTHandle outlineRt,RTHandle expansionOutlineRt,Material outlineMat)
+
+        private RTHandle m_CameraColorTarget;
+        private RTHandle m_CameraDepthTarget;
+        public void SetUp(RTHandle normalRt,RTHandle depthRt,RTHandle outlineRt,RTHandle expansionOutlineRt,Material outlineMat,RTHandle cameraTarget,RTHandle cameraDepthTarget)
         {
             m_NormalRT = normalRt;
             m_OutlineMat = outlineMat;
             m_DepthRT = depthRt;
             m_OutlineRt = outlineRt;
             m_ExpansionOutlineRt = expansionOutlineRt;
+            m_CameraColorTarget = cameraTarget;
+            m_CameraDepthTarget = cameraDepthTarget;
         }
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -88,6 +95,7 @@ public class OutlineFeature : ScriptableRendererFeature
             cmd.SetGlobalTexture("_DepthTex", m_DepthRT);
             cmd.Blit(m_NormalRT,m_OutlineRt,m_OutlineMat,0);
             cmd.SetGlobalTexture("_OutlineTex", m_OutlineRt);
+            cmd.SetRenderTarget(m_CameraColorTarget,m_CameraDepthTarget);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -125,17 +133,27 @@ public class OutlineFeature : ScriptableRendererFeature
         private Material m_addOutlineScreenMat;
         private RTHandle m_tempRt;
         private RTHandle m_cameraTarget;
-        public void SetUp(RTHandle cameraTarget, RTHandle tempRt,Material addOutlineMat)
+        private RTHandle m_cameraDepthTarget;
+        public void SetUp(RTHandle cameraTarget, RTHandle cameraDepthTarget,RTHandle tempRt, Material addOutlineMat)
         {
             m_addOutlineScreenMat = addOutlineMat;
-            m_tempRt = tempRt;
             m_cameraTarget = cameraTarget;
+            m_cameraDepthTarget = cameraDepthTarget;
+            m_tempRt = tempRt;
         }
+
+        /*public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            ConfigureTarget(m_cameraTarget,m_cameraDepthTarget);
+        }*/
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Add Draw Outline");
-            cmd.Blit(null,m_tempRt,m_addOutlineScreenMat,0);
-            cmd.Blit(m_tempRt,m_cameraTarget);
+            cmd.Blit(m_cameraTarget,m_tempRt);
+            cmd.SetGlobalTexture("_ColorTex",m_tempRt);
+            cmd.Blit(null,m_cameraTarget,m_addOutlineScreenMat,0);
+            cmd.SetRenderTarget(m_cameraTarget,m_cameraDepthTarget);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -150,11 +168,11 @@ public class OutlineFeature : ScriptableRendererFeature
     private RTHandle m_OutlineHandle;
     private RTHandle m_ColorOutlineHandle;
     private RTHandle m_ExpansionOutlineHandle;
+    private RTHandle m_tempColorRt;
     public Material normal_mat;
     public Material outline_mat;
     public Material colorOutline_mat;
     public Material addOutline_mat;
-    public RenderTexture t;
     /// <inheritdoc/>
     public override void Create()
     {
@@ -175,9 +193,9 @@ public class OutlineFeature : ScriptableRendererFeature
         m_DrawOutlinePass = new NormalDepthOutLineDrawPass();
         m_DrawOutlinePass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
         m_AddDrawOutline = new AddDrawOutlinePass();
-        m_AddDrawOutline.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
-        m_DrawColorOutlinePass = new ColorOutLineDrawPass();
-        m_DrawColorOutlinePass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+        m_AddDrawOutline.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+        /*m_DrawColorOutlinePass = new ColorOutLineDrawPass();
+        m_DrawColorOutlinePass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;*/
     }
 
     // Here you can inject one or multiple render passes in the renderer.
@@ -186,9 +204,9 @@ public class OutlineFeature : ScriptableRendererFeature
     {
         //if (!ShouldRender(in renderingData)) return;
         renderer.EnqueuePass(m_NormalPass);
-        //renderer.EnqueuePass(m_DrawOutlinePass);
+        renderer.EnqueuePass(m_DrawOutlinePass);
         //renderer.EnqueuePass(m_DrawColorOutlinePass);
-        //renderer.EnqueuePass(m_AddDrawOutline);
+        renderer.EnqueuePass(m_AddDrawOutline);
     }
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
     {
@@ -200,26 +218,25 @@ public class OutlineFeature : ScriptableRendererFeature
         RenderingUtils.ReAllocateIfNeeded(ref m_OutlineHandle, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "OutLine Rt");
         RenderingUtils.ReAllocateIfNeeded(ref m_ColorOutlineHandle, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "Color OutLine Rt");
         RenderingUtils.ReAllocateIfNeeded(ref m_ExpansionOutlineHandle, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "ExpansionOutLine Rt");
+        RenderingUtils.ReAllocateIfNeeded(ref m_tempColorRt, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "temp Color Rt");
         descriptor.depthBufferBits = 0;
         descriptor.graphicsFormat = GraphicsFormat.R16G16B16A16_SNorm;
         //descriptor.graphicsFormat = GraphicsFormat.R8G8B8_UNorm;
         var textureName = "_NormalTex";
         RenderingUtils.ReAllocateIfNeeded(ref m_NormalHandle, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: textureName);
         //m_RenderObjectPass.ConfigureTarget(m_OldFrameHandle);
-        m_NormalPass.SetUp(m_NormalHandle,normal_mat);
+        m_NormalPass.SetUp(m_NormalHandle,normal_mat,m_DepthHandle);
         //m_NormalPass.ConfigureDepthStoreAction(RenderBufferStoreAction.DontCare);
-        m_NormalPass.ConfigureTarget(m_NormalHandle,m_DepthHandle);
         //m_NormalPass.ConfigureTarget(m_OldFrameHandle);
         /*m_RenderObjectPass.overrideMaterial = normal_mat;
         m_RenderObjectPass.overrideMaterialPassIndex = 0;*/
 
 
-        m_DrawOutlinePass.SetUp(m_NormalHandle,m_DepthHandle,m_OutlineHandle,m_ExpansionOutlineHandle,outline_mat);
-        m_DrawOutlinePass.ConfigureColorStoreAction(RenderBufferStoreAction.DontCare);
-        
-        m_DrawColorOutlinePass.SetUp(renderer.cameraColorTargetHandle,m_OutlineHandle,m_ColorOutlineHandle,colorOutline_mat);
+        m_DrawOutlinePass.SetUp(m_NormalHandle,m_DepthHandle,m_OutlineHandle,m_ExpansionOutlineHandle,outline_mat,renderer.cameraColorTargetHandle,renderer.cameraDepthTargetHandle);
+        //m_DrawOutlinePass.ConfigureColorStoreAction(RenderBufferStoreAction.DontCare);
+        //m_DrawColorOutlinePass.SetUp(renderer.cameraColorTargetHandle,m_OutlineHandle,m_ColorOutlineHandle,colorOutline_mat);
         //m_DrawOutlinePass.ConfigureTarget(m_OutlineHandle);
-        m_AddDrawOutline.SetUp(renderer.cameraColorTargetHandle,m_ColorOutlineHandle,addOutline_mat);
+        m_AddDrawOutline.SetUp(renderer.cameraColorTargetHandle,renderer.cameraDepthTargetHandle,m_tempColorRt,addOutline_mat);
         //m_OnlyDrawOutline.ConfigureTarget(m_OutlineHandle);
     }
 
@@ -230,6 +247,7 @@ public class OutlineFeature : ScriptableRendererFeature
         m_ExpansionOutlineHandle?.Release();
         m_NormalHandle?.Release();
         m_ColorOutlineHandle?.Release();
+        m_tempColorRt?.Release();
     }
 
     bool ShouldRender(in RenderingData data) {
