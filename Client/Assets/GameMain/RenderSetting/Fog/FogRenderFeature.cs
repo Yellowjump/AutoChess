@@ -9,8 +9,8 @@ public class FogRenderFeature : ScriptableRendererFeature
         ProfilingSampler m_ProfilingSampler = new ProfilingSampler("FogBlit");
         Material m_Material;
         RTHandle m_CameraColorTarget;
-
-        Color m_FogColor;
+        RTHandle m_TempColorTarget;
+        /*Color m_FogColor;
 
         //float m_FogDensity;
         float m_FogStart;
@@ -19,33 +19,28 @@ public class FogRenderFeature : ScriptableRendererFeature
         float m_NoiseRoughness;
         float m_NoisePersistance;
         Vector3 m_NoiseSpeed;
-        float m_NoiseScale;
+        float m_NoiseScale;*/
 
-        public FogPass(Material material)
-        {
-            m_Material = material;
-            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
-        }
 
-        public void SetTarget(RTHandle colorHandle, Color fogColor, float noiseCellSize, float noiseRoughness, float noisePersistance, Vector3 noiseSpeed, float noiseScale, float fogStart, float fogEnd)
+        public void SetTarget(RTHandle colorHandle,RTHandle tempRt, Material fogMat)
         {
             m_CameraColorTarget = colorHandle;
-            m_FogStart = fogStart;
+            m_TempColorTarget = tempRt;
+            m_Material = fogMat;
+            /*m_FogStart = fogStart;
             m_FogEnd = fogEnd;
             m_FogColor = fogColor;
             m_NoiseCellSize = noiseCellSize;
             m_NoiseRoughness = noiseRoughness;
             m_NoisePersistance = noisePersistance;
             m_NoiseSpeed = noiseSpeed;
-            m_NoiseScale = noiseScale;
+            m_NoiseScale = noiseScale;*/
         }
 
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             ConfigureTarget(m_CameraColorTarget);
         }
-
-
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cameraData = renderingData.cameraData;
@@ -58,7 +53,7 @@ public class FogRenderFeature : ScriptableRendererFeature
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                m_Material.SetColor("_FogColor", m_FogColor);
+                /*m_Material.SetColor("_FogColor", m_FogColor);
                 m_Material.SetFloat("_FogStart", m_FogStart);
                 m_Material.SetFloat("_FogEnd", m_FogEnd);
                 m_Material.SetFloat("_NoiseCellSize", m_NoiseCellSize);
@@ -68,7 +63,10 @@ public class FogRenderFeature : ScriptableRendererFeature
                 m_Material.SetFloat("_NoiseScale", m_NoiseScale);
 
                 m_Material.SetMatrix("_InverseView", renderingData.cameraData.camera.cameraToWorldMatrix);
-                Blitter.BlitCameraTexture(cmd, m_CameraColorTarget, m_CameraColorTarget, m_Material, 0);
+                Blitter.BlitCameraTexture(cmd, m_CameraColorTarget, m_CameraColorTarget, m_Material, 0);*/
+                cmd.Blit(m_CameraColorTarget,m_TempColorTarget);
+                m_Material.SetTexture(ColorTex,m_TempColorTarget);
+                cmd.Blit(null,m_CameraColorTarget,m_Material,0);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -78,7 +76,7 @@ public class FogRenderFeature : ScriptableRendererFeature
         }
     }
 
-    public Shader m_shader;
+    /*public Shader m_shader;
     public Color m_FogColor;
     public float m_FogStart;
     public float m_FogEnd;
@@ -86,39 +84,40 @@ public class FogRenderFeature : ScriptableRendererFeature
     public float m_NoiseRoughness;
     public float m_NoisePersistance;
     public Vector3 m_NoiseSpeed;
-    public float m_NoiseScale;
-
-    Material m_Material;
+    public float m_NoiseScale;*/
+    private RTHandle m_tempColorRt;
+    public Material m_Material;
 
     FogPass m_RenderPass = null;
+    private static readonly int ColorTex = Shader.PropertyToID("_ColorTex");
+
+    public override void Create()
+    {
+        m_RenderPass = new FogPass();
+        m_RenderPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+    }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (renderingData.cameraData.cameraType == CameraType.Game)
+        //if (renderingData.cameraData.cameraType == CameraType.Game)
             renderer.EnqueuePass(m_RenderPass);
     }
 
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
     {
-        if (renderingData.cameraData.cameraType == CameraType.Game)
+        //if (renderingData.cameraData.cameraType == CameraType.Game)
         {
+            var descriptor = renderingData.cameraData.cameraTargetDescriptor;
+            descriptor.depthBufferBits = 0;
+            RenderingUtils.ReAllocateIfNeeded(ref m_tempColorRt, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "temp Rt");
             m_RenderPass.ConfigureInput(ScriptableRenderPassInput.Color);
-
-            m_RenderPass.SetTarget(renderer.cameraColorTargetHandle, m_FogColor, m_NoiseCellSize, m_NoiseRoughness, m_NoisePersistance, m_NoiseSpeed, m_NoiseScale, m_FogStart, m_FogEnd);
+            
+            m_RenderPass.SetTarget(renderer.cameraColorTargetHandle,m_tempColorRt,m_Material);
         }
-    }
-
-
-    public override void Create()
-    {
-        if (m_shader != null)
-            m_Material = new Material(m_shader);
-
-        m_RenderPass = new FogPass(m_Material);
     }
 
     protected override void Dispose(bool disposing)
     {
-        CoreUtils.Destroy(m_Material);
+        m_tempColorRt?.Release();
     }
 }
