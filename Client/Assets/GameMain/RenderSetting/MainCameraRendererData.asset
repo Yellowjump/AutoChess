@@ -93,7 +93,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1614fc811f8f184697d9bee70ab9fe5, type: 3}
   m_Name: DecalRendererFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   m_Settings:
     technique: 0
     maxDrawDistance: 2000
@@ -487,7 +487,8 @@ MonoBehaviour:
   m_Name: FogRenderFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  m_Material: {fileID: 2100000, guid: fdf5d7df6a44f4042a9592e6f6d81ee3, type: 2}
+  m_Material: {fileID: 2100000, guid: 8e44dd826729c7946b8b39471002a1e7, type: 2}
+  ActiveInSceneView: 0
 --- !u!114 &3488263578283784199
 MonoBehaviour:
   m_ObjectHideFlags: 0
