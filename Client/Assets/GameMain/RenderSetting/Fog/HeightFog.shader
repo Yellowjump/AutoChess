@@ -73,7 +73,7 @@ Shader "Universal Render Pipeline/HeightFogEffect"
         c2.b = c2.g * _CloudColor.b;
         c2.g = c2.g * _CloudColor.g;
         c2.a = min(c2.g * 5, 1);
-        c = (c + c2) / 1;
+        c = (c + c2) / 2;
         c = min(c, 1);
         return c;
     }

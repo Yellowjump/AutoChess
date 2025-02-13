@@ -24,7 +24,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _CloudTex:
-        m_Texture: {fileID: 2800000, guid: 74188c415cb23a7419698120d00ae9cc, type: 3}
+        m_Texture: {fileID: 2800000, guid: daeb1d3e775972f49a3a6bc181832da1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -35,10 +35,10 @@ Material:
     m_Floats:
     - _FogDensity: 0.01
     - _FogHeight: 10
-    - _TilingFactor: 0.1
+    - _TilingFactor: 0.01
     m_Colors:
-    - _CloudColor: {r: 0, g: 0.34901962, b: 0.69803923, a: 1}
-    - _CloudSpeed: {r: 0.1, g: 0.1, b: -0.1, a: -0.1}
+    - _CloudColor: {r: 0.047058824, g: 0.047058824, b: 0.047058824, a: 1}
+    - _CloudSpeed: {r: 1, g: 1, b: 0.8, a: 0.5}
     - _FogColor: {r: 0.5, g: 0.6, b: 0.7, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
