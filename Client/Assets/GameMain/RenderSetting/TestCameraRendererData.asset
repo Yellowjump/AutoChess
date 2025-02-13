@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: FogRenderFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  m_Material: {fileID: 2100000, guid: fdf5d7df6a44f4042a9592e6f6d81ee3, type: 2}
+  m_Material: {fileID: 2100000, guid: 8e44dd826729c7946b8b39471002a1e7, type: 2}
+  ActiveInSceneView: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39,7 +40,8 @@ MonoBehaviour:
     probeSamplingDebugTexture: {fileID: 2800000, guid: 24ec0e140fb444a44ab96ee80844e18e, type: 3}
   m_RendererFeatures:
   - {fileID: -7838983660565080426}
-  m_RendererFeatureMap: 9656edb7e4553693
+  - {fileID: 8854120137263511532}
+  m_RendererFeatureMap: 9656edb7e4553693ec77398c5a27e07a
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 0}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -78,3 +80,17 @@ MonoBehaviour:
   m_CopyDepthMode: 1
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
+--- !u!114 &8854120137263511532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67eeb2d2bab57b749a9eca50434eef43, type: 3}
+  m_Name: RaymarchingTunnelFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  material: {fileID: 2100000, guid: ec68edbe91a6f6646ab0fe188a03e7f3, type: 2}

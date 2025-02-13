@@ -10,6 +10,7 @@ public class FogRenderFeature : ScriptableRendererFeature
         Material m_Material;
         RTHandle m_CameraColorTarget;
         RTHandle m_TempColorTarget;
+        RTHandle m_DepthTarget;
         /*Color m_FogColor;
 
         //float m_FogDensity;
@@ -22,11 +23,12 @@ public class FogRenderFeature : ScriptableRendererFeature
         float m_NoiseScale;*/
 
 
-        public void SetTarget(RTHandle colorHandle,RTHandle tempRt, Material fogMat)
+        public void SetTarget(RTHandle colorHandle,RTHandle depthRt,RTHandle tempRt, Material fogMat)
         {
             m_CameraColorTarget = colorHandle;
             m_TempColorTarget = tempRt;
             m_Material = fogMat;
+            m_DepthTarget = depthRt;
             /*m_FogStart = fogStart;
             m_FogEnd = fogEnd;
             m_FogColor = fogColor;
@@ -44,9 +46,6 @@ public class FogRenderFeature : ScriptableRendererFeature
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cameraData = renderingData.cameraData;
-            if (cameraData.camera.cameraType != CameraType.Game)
-                return;
-
             if (m_Material == null)
                 return;
 
@@ -66,6 +65,10 @@ public class FogRenderFeature : ScriptableRendererFeature
                 Blitter.BlitCameraTexture(cmd, m_CameraColorTarget, m_CameraColorTarget, m_Material, 0);*/
                 cmd.Blit(m_CameraColorTarget,m_TempColorTarget);
                 m_Material.SetTexture(ColorTex,m_TempColorTarget);
+                //m_Material.SetTexture("_MainTex", m_TempColorTarget);
+                //Debug.Log(m_Material.GetTexture("_MainTex")); // 确保不为 null
+                m_Material.SetMatrix("_InverseVPMatrix", (renderingData.cameraData.camera.projectionMatrix*renderingData.cameraData.camera.worldToCameraMatrix).inverse);
+                //m_Material.SetTexture(DepthTex,m_DepthTarget);
                 cmd.Blit(null,m_CameraColorTarget,m_Material,0);
             }
 
@@ -89,30 +92,30 @@ public class FogRenderFeature : ScriptableRendererFeature
     public Material m_Material;
 
     FogPass m_RenderPass = null;
+    public bool ActiveInSceneView = false;
     private static readonly int ColorTex = Shader.PropertyToID("_ColorTex");
-
+    private static readonly int DepthTex = Shader.PropertyToID("_DepthTex");
     public override void Create()
     {
         m_RenderPass = new FogPass();
-        m_RenderPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+        m_RenderPass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        //if (renderingData.cameraData.cameraType == CameraType.Game)
+        if (renderingData.cameraData.cameraType == CameraType.Game||ActiveInSceneView)
             renderer.EnqueuePass(m_RenderPass);
     }
 
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
     {
-        //if (renderingData.cameraData.cameraType == CameraType.Game)
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
             descriptor.depthBufferBits = 0;
             RenderingUtils.ReAllocateIfNeeded(ref m_tempColorRt, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "temp Rt");
             m_RenderPass.ConfigureInput(ScriptableRenderPassInput.Color);
             
-            m_RenderPass.SetTarget(renderer.cameraColorTargetHandle,m_tempColorRt,m_Material);
+            m_RenderPass.SetTarget(renderer.cameraColorTargetHandle,renderer.cameraDepthTargetHandle ,m_tempColorRt,m_Material);
         }
     }
 
