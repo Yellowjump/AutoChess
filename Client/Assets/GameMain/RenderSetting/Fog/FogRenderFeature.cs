@@ -98,7 +98,7 @@ public class FogRenderFeature : ScriptableRendererFeature
     public override void Create()
     {
         m_RenderPass = new FogPass();
-        m_RenderPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+        m_RenderPass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)

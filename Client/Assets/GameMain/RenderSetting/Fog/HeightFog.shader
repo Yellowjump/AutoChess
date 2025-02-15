@@ -85,21 +85,29 @@ Shader "Universal Render Pipeline/HeightFogEffect"
     {
         // 采样深度贴图
         float sceneRawDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv);
+        float3 cameraPos = _WorldSpaceCameraPos;
+        float4 fogColor = _FogColor;
+        float maxFogFactor = 0.9; // 完全被雾气遮挡
+        float minFogFactor = 0.2;
         // 如果是天空盒区域，使用设定颜色
         if (sceneRawDepth == 0.0)
         {
+            if (cameraPos.y > _FogHeight)
+            {
+                // 采样原始颜色
+                float4 baseColor = tex2D(_ColorTex, i.uv);
+                //return baseColor;
+                // 线性插值混合雾气颜色
+                return lerp(baseColor, fogColor, minFogFactor);
+            }
             return _FogColor;
         }
         // 计算世界坐标
         float3 worldPos = ComputeWorldSpacePosition(i.uv, sceneRawDepth, unity_MatrixInvVP);
-        float3 cameraPos = _WorldSpaceCameraPos;
+
 
         // 判断是否在雾气区域
-        
-        float maxFogFactor = 0.7; // 完全被雾气遮挡
-        float minFogFactor = 0.2;
         float fogFactor = minFogFactor;
-        float4 fogColor = _FogColor;
         // 摄像机高于雾气高度
         if (cameraPos.y > _FogHeight)
         {
@@ -110,15 +118,17 @@ Shader "Universal Render Pipeline/HeightFogEffect"
                 // 计算雾海交点
                 float3 fogIntersect = ComputeFogIntersection(cameraPos, rayDir, _FogHeight);
                 float4 cloudColor = BlendTwoCloud(fogIntersect.xz);
-                fogFactor = lerp(maxFogFactor,minFogFactor,saturate((worldPos.y-_FogHeight+_FogTopOffset)/_FogTopOffset));
-                fogColor = lerp(_FogColor, cloudColor, cloudColor.a * (fogFactor-minFogFactor)/(maxFogFactor - minFogFactor)); //
+                fogFactor = lerp(maxFogFactor, minFogFactor,
+                                                 saturate((worldPos.y - _FogHeight + _FogTopOffset) / _FogTopOffset));
+                fogColor = lerp(_FogColor, cloudColor,
+                    cloudColor.a * (fogFactor - minFogFactor) / (maxFogFactor - minFogFactor)); //
             }
         }
         else
         {
             // 摄像机在雾气中，计算随距离增加的雾效
             float dist = distance(cameraPos, worldPos);
-            fogFactor = saturate(dist * _FogDensity + 0.2);
+            fogFactor = clamp(saturate(dist * _FogDensity + 0.2), minFogFactor, maxFogFactor);
         }
 
         // 采样原始颜色

@@ -35,7 +35,7 @@ Material:
     m_Floats:
     - _FogDensity: 0.01
     - _FogHeight: 331.3
-    - _FogTopOffset: 50
+    - _FogTopOffset: 40
     - _TilingFactor: 0.001
     m_Colors:
     - _CloudColor: {r: 0.047058824, g: 0.047058824, b: 0.047058824, a: 1}

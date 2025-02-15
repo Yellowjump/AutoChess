@@ -26,6 +26,7 @@ public class MainTitlePanelCtrl : UIFormLogic
         base.OnOpen(userData);
         var hasData = GameEntry.HeroManager.HasSaveData();
         _btnContinue.gameObject.SetActive(hasData);
+        GameEntry.UI.CloseUIForm(UICtrlName.LoadingPanel);
     }
 
     private void OnClickContinueBtn()

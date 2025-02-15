@@ -25,6 +25,7 @@ namespace Procedure
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
+            GameEntry.UI.OpenUIForm(UICtrlName.LoadingPanel, "top");
             if (GameEntry.Base.EditorResourceMode)
             {
                 OnInitResourceComplete();
