@@ -81,29 +81,6 @@ MonoBehaviour:
   m_DenoiserRadius:
     m_OverrideState: 0
     m_Value: 1
---- !u!114 &-1797468264849154075
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1614fc811f8f184697d9bee70ab9fe5, type: 3}
-  m_Name: DecalRendererFeature
-  m_EditorClassIdentifier: 
-  m_Active: 0
-  m_Settings:
-    technique: 0
-    maxDrawDistance: 2000
-    decalLayers: 0
-    dBufferSettings:
-      surfaceData: 2
-    screenSpaceSettings:
-      normalBlend: 0
-  m_CopyDepthPS: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
-  m_DBufferClear: {fileID: 4800000, guid: f056d8bd2a1c7e44e9729144b4c70395, type: 3}
 --- !u!114 &-461157857790322822
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -269,11 +246,10 @@ MonoBehaviour:
     probeSamplingDebugTexture: {fileID: 2800000, guid: 24ec0e140fb444a44ab96ee80844e18e, type: 3}
   m_RendererFeatures:
   - {fileID: -461157857790322822}
-  - {fileID: -1797468264849154075}
   - {fileID: 2188271051361542100}
   - {fileID: -153580647838524286}
   - {fileID: 3488263578283784199}
-  m_RendererFeatureMap: 7a1707255fa399f9e5dfa0f2221c0ee7d4dfac60ed4c5e1e82dc35e9365fdefd07b8892a3ecd6830
+  m_RendererFeatureMap: 7a1707255fa399f9d4dfac60ed4c5e1e82dc35e9365fdefd07b8892a3ecd6830
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -488,7 +464,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   m_Material: {fileID: 2100000, guid: 8e44dd826729c7946b8b39471002a1e7, type: 2}
-  ActiveInSceneView: 0
+  ActiveInSceneView: 1
 --- !u!114 &3488263578283784199
 MonoBehaviour:
   m_ObjectHideFlags: 0

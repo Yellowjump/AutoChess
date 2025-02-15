@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53d3d7a31eed462197357897d703185f, type: 3}
   m_Name: FogRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   m_Material: {fileID: 2100000, guid: 8e44dd826729c7946b8b39471002a1e7, type: 2}
   ActiveInSceneView: 1
 --- !u!114 &11400000

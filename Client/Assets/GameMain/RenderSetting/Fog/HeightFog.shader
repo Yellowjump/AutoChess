@@ -4,6 +4,7 @@ Shader "Universal Render Pipeline/HeightFogEffect"
     {
         [HDR]_FogColor("Fog Color", Color) = (0.5, 0.6, 0.7, 1)
         _FogHeight("Fog Height", Float) = 10.0
+        _FogTopOffset("Fog TopOffset", Float) = 10.0
         _FogDensity("Fog Density", Float) = 0.1
         _TilingFactor("Tiling Factor", Float) = 1.0
         _CloudSpeed("Cloud Speed", Vector) = (1, 1, 1, 1)
@@ -15,6 +16,7 @@ Shader "Universal Render Pipeline/HeightFogEffect"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     float4 _FogColor;
     float _FogHeight;
+    float _FogTopOffset;
     float _FogDensity;
     sampler2D _MainTex;
     sampler2D _CloudTex;
@@ -93,7 +95,10 @@ Shader "Universal Render Pipeline/HeightFogEffect"
         float3 cameraPos = _WorldSpaceCameraPos;
 
         // 判断是否在雾气区域
-        float fogFactor = 0.2;
+        
+        float maxFogFactor = 0.7; // 完全被雾气遮挡
+        float minFogFactor = 0.2;
+        float fogFactor = minFogFactor;
         float4 fogColor = _FogColor;
         // 摄像机高于雾气高度
         if (cameraPos.y > _FogHeight)
@@ -105,8 +110,8 @@ Shader "Universal Render Pipeline/HeightFogEffect"
                 // 计算雾海交点
                 float3 fogIntersect = ComputeFogIntersection(cameraPos, rayDir, _FogHeight);
                 float4 cloudColor = BlendTwoCloud(fogIntersect.xz);
-                fogColor = lerp(_FogColor, cloudColor, cloudColor.a); //
-                fogFactor = 1.0; // 直接被雾气遮挡
+                fogFactor = lerp(maxFogFactor,minFogFactor,saturate((worldPos.y-_FogHeight+_FogTopOffset)/_FogTopOffset));
+                fogColor = lerp(_FogColor, cloudColor, cloudColor.a * (fogFactor-minFogFactor)/(maxFogFactor - minFogFactor)); //
             }
         }
         else
