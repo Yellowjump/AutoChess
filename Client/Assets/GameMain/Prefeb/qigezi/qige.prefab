@@ -60,6 +60,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: qige
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8e9b5510fe26f3643aa5f289b8655037, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
