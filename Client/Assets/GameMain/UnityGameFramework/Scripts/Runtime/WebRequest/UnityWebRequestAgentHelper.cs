@@ -101,13 +101,12 @@ namespace UnityGameFramework.Runtime
                 Log.Fatal("Web request agent helper handler is invalid.");
                 return;
             }
-
-            m_UnityWebRequest = UnityWebRequest.PostWwwForm(webRequestUri, Utility.Converter.GetString(postData));
-#if UNITY_2017_2_OR_NEWER
+            
+            m_UnityWebRequest = new UnityWebRequest(webRequestUri, "POST");
+            m_UnityWebRequest.uploadHandler = new UploadHandlerRaw(postData);
+            m_UnityWebRequest.downloadHandler = new DownloadHandlerBuffer();
             m_UnityWebRequest.SendWebRequest();
-#else
-            m_UnityWebRequest.Send();
-#endif
+
         }
 
         /// <summary>

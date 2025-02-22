@@ -1,3 +1,4 @@
+using GameMain.UnityGameFramework.Scripts.Runtime;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
@@ -188,6 +189,7 @@ namespace UnityGameFramework.Runtime
             private set;
         }
         public static HeroComponent HeroManager;
+        public static ChatAIComponent ChatAI;
         public static void InitBuiltinComponents()
         {
             Base = GetComponent<BaseComponent>();
@@ -211,6 +213,7 @@ namespace UnityGameFramework.Runtime
             UI = GetComponent<UIComponent>();
             WebRequest = GetComponent<WebRequestComponent>();
             HeroManager = GetComponent<HeroComponent>();
+            ChatAI = GetComponent<ChatAIComponent>();
         }
     }
 }

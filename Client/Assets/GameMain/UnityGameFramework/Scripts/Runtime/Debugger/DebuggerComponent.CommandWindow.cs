@@ -104,6 +104,11 @@ namespace UnityGameFramework.Runtime
                     {
                         SelfDataManager.Instance.TryAddCoin(_changeCoinNum);
                     }
+
+                    if (GUILayout.Button("测试AI"))
+                    {
+                        GameEntry.ChatAI.SendMsg("所以你是谁啊？",OnAiChatTestCallback);
+                    }
                 }
                 GUILayout.EndVertical();
             }
@@ -136,6 +141,11 @@ namespace UnityGameFramework.Runtime
                     return result;
                 }
                 return 0;
+            }
+
+            private void OnAiChatTestCallback(string str)
+            {
+                Log.Info("AI Response:"+str);
             }
         }
     }
