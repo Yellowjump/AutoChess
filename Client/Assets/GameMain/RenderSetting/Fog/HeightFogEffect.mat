@@ -34,7 +34,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _FogDensity: 0.01
-    - _FogHeight: 331.3
+    - _FogHeight: 300
     - _FogTopOffset: 40
     - _TilingFactor: 0.001
     m_Colors:

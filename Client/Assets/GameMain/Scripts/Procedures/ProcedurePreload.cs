@@ -156,6 +156,8 @@ namespace Procedure
             {
                 m_LoadedFlag[ne.SceneAssetName] = true;
             }
+
+            GameEntry.HeroManager.InitStartCamera();
         }
         private string ExtractFileName(string filePath)
         {

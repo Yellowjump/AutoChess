@@ -26,6 +26,25 @@ namespace UnityGameFramework.Runtime
     {
         public Dictionary<int, CinemachineVirtualCamera> PerAreaCameraDic = new Dictionary<int, CinemachineVirtualCamera>();
         public CinemachineBrain CameraBrain;
+        public CinemachineVirtualCamera StartCamera;
+
+        public void InitStartCamera()
+        {
+            var startCameraObj = GameObject.Find("StartCamera");
+            if (startCameraObj != null)
+            {
+                StartCamera = startCameraObj.GetComponent<CinemachineVirtualCamera>();
+            }
+        }
+
+        public void StartToMapCamera()
+        {
+            if (StartCamera != null)
+            {
+                StartCamera.Priority = 0;
+            }
+            
+        }
         /// <summary>
         /// 初始化每个点的相机
         /// </summary>

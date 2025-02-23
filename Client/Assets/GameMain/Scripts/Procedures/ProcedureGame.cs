@@ -33,6 +33,7 @@ namespace Procedure
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
+            GameEntry.HeroManager.StartToMapCamera();
             GameEntry.UI.OpenUIForm(UICtrlName.GameHudPanel, "tips");
             _gameStateFsm = Fsm<ProcedureGame>.Create("",this, new GameState_Map(),new GameState_BeforeCameraMove(),new GameState_CameraMove(), new GameState_Event() ,new GameState_FormationBeforeBattle(),new GameState_Reward(),new GameState_Lose(),new GameState_Battle(),new GameState_SpEvent());
             _gameStateFsm.Start<GameState_Map>();

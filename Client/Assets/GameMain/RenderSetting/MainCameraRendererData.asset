@@ -108,7 +108,7 @@ MonoBehaviour:
     overrideShader: {fileID: 0}
     overrideShaderPassIndex: 0
     overrideMode: 1
-    overrideDepthState: 1
+    overrideDepthState: 0
     depthCompareFunction: 8
     enableWrite: 1
     stencilSettings:
@@ -182,6 +182,9 @@ MonoBehaviour:
   outline_mat: {fileID: 2100000, guid: 7cb0ae217cc64ce40a58a504092ff601, type: 2}
   colorOutline_mat: {fileID: 2100000, guid: d491fc354d6fca8459a3b268dbda9e97, type: 2}
   addOutline_mat: {fileID: 2100000, guid: c096c0ce8df50674ea94782c8abaab3a, type: 2}
+  OutLineTargetLayer:
+    serializedVersion: 2
+    m_Bits: 7296
 --- !u!114 &-171694583148916512
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -329,14 +332,14 @@ MonoBehaviour:
     probeSamplingDebugMesh: {fileID: -3555484719484374845, guid: 57d7c4c16e2765b47a4d2069b311bffe, type: 3}
     probeSamplingDebugTexture: {fileID: 2800000, guid: 24ec0e140fb444a44ab96ee80844e18e, type: 3}
   m_RendererFeatures:
+  - {fileID: 3488263578283784199}
   - {fileID: -2270094295321221467}
   - {fileID: -5262453867784161952}
   - {fileID: 1763757797497073166}
   - {fileID: -461157857790322822}
   - {fileID: 2188271051361542100}
   - {fileID: -153580647838524286}
-  - {fileID: 3488263578283784199}
-  m_RendererFeatureMap: a5e6bc1044017fe06035d8c31602f8b60e6ea33d5f207a187a1707255fa399f9d4dfac60ed4c5e1e82dc35e9365fdefd07b8892a3ecd6830
+  m_RendererFeatureMap: 07b8892a3ecd6830a5e6bc1044017fe06035d8c31602f8b60e6ea33d5f207a187a1707255fa399f9d4dfac60ed4c5e1e82dc35e9365fdefd
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -358,7 +361,7 @@ MonoBehaviour:
   m_AssetVersion: 2
   m_OpaqueLayerMask:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 183
   m_TransparentLayerMask:
     serializedVersion: 2
     m_Bits: 55
@@ -566,7 +569,7 @@ MonoBehaviour:
     overrideMode: 1
     overrideDepthState: 1
     depthCompareFunction: 5
-    enableWrite: 1
+    enableWrite: 0
     stencilSettings:
       overrideStencilState: 0
       stencilReference: 0

@@ -31,12 +31,17 @@ public class OutlineFeature : ScriptableRendererFeature
         {
         }
 
-        public void SetUp(RTHandle normalRt,Material normalMat,RTHandle normalDepthRt)
+        public void SetUp(RTHandle normalRt,Material normalMat,RTHandle normalDepthRt,LayerMask targetLayer)
         {
             this.normalRt = normalRt;
             this.normalDepthRt = normalDepthRt;
             normal_mat = normalMat;
-            filter = new FilteringSettings(RenderQueueRange.opaque);
+            filter = new FilteringSettings
+            {
+                layerMask = targetLayer, // Layer 名称
+                renderingLayerMask = uint.MaxValue,
+                renderQueueRange = RenderQueueRange.opaque
+            };
         }
         // Here you can implement the rendering logic.
         // Use <c>ScriptableRenderContext</c> to issue drawing commands or execute command buffers
@@ -173,6 +178,7 @@ public class OutlineFeature : ScriptableRendererFeature
     public Material outline_mat;
     public Material colorOutline_mat;
     public Material addOutline_mat;
+    public LayerMask OutLineTargetLayer;
     /// <inheritdoc/>
     public override void Create()
     {
@@ -225,7 +231,7 @@ public class OutlineFeature : ScriptableRendererFeature
         var textureName = "_NormalTex";
         RenderingUtils.ReAllocateIfNeeded(ref m_NormalHandle, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: textureName);
         //m_RenderObjectPass.ConfigureTarget(m_OldFrameHandle);
-        m_NormalPass.SetUp(m_NormalHandle,normal_mat,m_DepthHandle);
+        m_NormalPass.SetUp(m_NormalHandle,normal_mat,m_DepthHandle,OutLineTargetLayer);
         //m_NormalPass.ConfigureDepthStoreAction(RenderBufferStoreAction.DontCare);
         //m_NormalPass.ConfigureTarget(m_OldFrameHandle);
         /*m_RenderObjectPass.overrideMaterial = normal_mat;

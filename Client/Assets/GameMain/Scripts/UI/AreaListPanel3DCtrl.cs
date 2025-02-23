@@ -21,7 +21,6 @@ public class AreaListPanel3DCtrl : UIFormLogic
     [SerializeField] private Vector2 ItemOffSet = new Vector2(150, 150);
     private ObjectPool<GameObject> _pointPool;
     private ObjectPool<GameObject> _linePool;
-    [SerializeField] private Button _btnClose;
     //-----------fogStart-------------------
     /*[SerializeField] private RawImage _fogImage;
     [SerializeField] private int mapWidth=50;
@@ -34,7 +33,6 @@ public class AreaListPanel3DCtrl : UIFormLogic
     public override void OnInit(object userData)
     {
         base.OnInit(userData);
-        _btnClose.onClick.AddListener(() => { GameEntry.UI.CloseUIForm(UIForm);});
         _curMazeItemList ??= ListPool<AreaPointItem>.Get();
         _curMazeItemList.Clear();
         _curLineList ??= ListPool<Image>.Get();
@@ -62,7 +60,40 @@ public class AreaListPanel3DCtrl : UIFormLogic
         {
             return;
         }
-        
+        //先生成线
+        foreach (var onePointData in mazeList)
+        {
+            if (onePointData.CurType == MazePointType.Empty)
+            {
+                continue;
+            }
+            foreach (var linkPointIndex in onePointData.LinkPointList)
+            {
+                var linkPointData = SelfDataManager.Instance.GetPoint(linkPointIndex);
+                if (linkPointData.Pos.x > onePointData.Pos.x || (Math.Abs(linkPointData.Pos.x - onePointData.Pos.x) < float.Epsilon &&linkPointData.Pos.y > onePointData.Pos.y))
+                {
+                    Vector3 linkPosition = linkPointData.Pos;
+                    var oneNewLine = _linePool.Get();
+                    var position = onePointData.Pos;
+                    Vector3 direction = position - linkPosition;
+                    oneNewLine.transform.position = (position + linkPosition) / 2;
+                    /*oneNewLine.transform.forward = Vector3.up;
+                    oneNewLine.transform.right = direction;*/
+                    /*float angle = Mathf.Atan2(direction.z,direction.x) * Mathf.Rad2Deg;
+                    oneNewLine.transform.rotation = Quaternion.Euler(90, 0,angle);*/
+                    var upward = Vector3.Cross(Vector3.up, direction);
+                    var forward = Vector3.Cross(upward, direction);
+                    oneNewLine.transform.rotation = Quaternion.LookRotation(forward,upward);
+                    //oneNewLine.transform.localScale=new Vector3(direction.magnitude,20,direction.magnitude);
+                    Image image = oneNewLine.GetComponent<Image>();
+                    //image.rectTransform.rect.width = direction.magnitude;
+                    image.rectTransform.sizeDelta = new Vector2(direction.magnitude, 20);
+                    _curLineList.Add(image);
+                    //oneNewLine.transform.SetLocalScaleX(direction.magnitude);
+                }
+            }
+        }
+        //再生成点
         foreach (var onePointData in mazeList)
         {
             if (onePointData.CurType == MazePointType.Empty)
@@ -80,7 +111,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
             {
                 mp.IsPassImg.SetActive(true);
             }
-            foreach (var linkPointIndex in onePointData.LinkPointList)
+            /*foreach (var linkPointIndex in onePointData.LinkPointList)
             {
                 var linkPointData = SelfDataManager.Instance.GetPoint(linkPointIndex);
                 if (linkPointData.Pos.x > onePointData.Pos.x || (Math.Abs(linkPointData.Pos.x - onePointData.Pos.x) < float.Epsilon &&linkPointData.Pos.y > onePointData.Pos.y))
@@ -99,7 +130,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
                     _curLineList.Add(image);
                     //oneNewLine.transform.SetLocalScaleX(direction.magnitude);
                 }
-            }
+            }*/
         }
         InitFog();
         GameEntry.Event.Subscribe(MapFreshEventArgs.EventId,OnMapFresh);

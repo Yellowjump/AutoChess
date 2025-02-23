@@ -88,7 +88,7 @@ Shader "Universal Render Pipeline/HeightFogEffect"
         float3 cameraPos = _WorldSpaceCameraPos;
         float4 fogColor = _FogColor;
         float maxFogFactor = 0.9; // 完全被雾气遮挡
-        float minFogFactor = 0.2;
+        float minFogFactor = 0.03;
         // 如果是天空盒区域，使用设定颜色
         if (sceneRawDepth == 0.0)
         {
@@ -128,7 +128,7 @@ Shader "Universal Render Pipeline/HeightFogEffect"
         {
             // 摄像机在雾气中，计算随距离增加的雾效
             float dist = distance(cameraPos, worldPos);
-            fogFactor = clamp(saturate(dist * _FogDensity + 0.2), minFogFactor, maxFogFactor);
+            fogFactor = clamp(saturate(dist * _FogDensity), minFogFactor, maxFogFactor);
         }
 
         // 采样原始颜色
