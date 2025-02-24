@@ -610,4 +610,6 @@ MonoBehaviour:
   m_Name: ClearDepthRenderFeature
   m_EditorClassIdentifier: 
   m_Active: 0
-  RenderPassEvent: 300
+  ResumeDepthMat: {fileID: 0}
+  ClearRenderPassEvent: 300
+  ResumeRenderPassEvent: 300

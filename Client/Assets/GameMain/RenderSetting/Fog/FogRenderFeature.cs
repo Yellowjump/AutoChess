@@ -67,7 +67,7 @@ public class FogRenderFeature : ScriptableRendererFeature
                 m_Material.SetTexture(ColorTex,m_TempColorTarget);
                 //m_Material.SetTexture("_MainTex", m_TempColorTarget);
                 //Debug.Log(m_Material.GetTexture("_MainTex")); // 确保不为 null
-                m_Material.SetMatrix("_InverseVPMatrix", (renderingData.cameraData.camera.projectionMatrix*renderingData.cameraData.camera.worldToCameraMatrix).inverse);
+                //m_Material.SetMatrix("_InverseVPMatrix", (renderingData.cameraData.camera.projectionMatrix*renderingData.cameraData.camera.worldToCameraMatrix).inverse);
                 //m_Material.SetTexture(DepthTex,m_DepthTarget);
                 cmd.Blit(null,m_CameraColorTarget,m_Material,0);
             }
@@ -94,7 +94,6 @@ public class FogRenderFeature : ScriptableRendererFeature
     FogPass m_RenderPass = null;
     public bool ActiveInSceneView = false;
     private static readonly int ColorTex = Shader.PropertyToID("_ColorTex");
-    private static readonly int DepthTex = Shader.PropertyToID("_DepthTex");
     public override void Create()
     {
         m_RenderPass = new FogPass();
