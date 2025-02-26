@@ -3,10 +3,11 @@ using DataTable;
 using GameFramework.Resource;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 
-public class BattleBagItem:MonoBehaviour
+public class BattleBagItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
 {
     public enum ItemType
     {
@@ -38,6 +39,8 @@ public class BattleBagItem:MonoBehaviour
     public int ItemID;
     public int itemNum = 0;
     public Action<BattleBagItem> OnClickPointCallback;
+    public Action<BattleBagItem> OnPointEnterCallback;
+    public Action<BattleBagItem> OnPointExitCallback;
     private LoadAssetCallbacks _loadIconCallback;
     public void Init()
     {
@@ -77,7 +80,7 @@ public class BattleBagItem:MonoBehaviour
     }
     public void FreshNum()
     {
-        ItemNumTmp.gameObject.SetActive(CurItemType is ItemType.Bag or ItemType.InJoinCraft);
+        ItemNumTmp.gameObject.SetActive(CurItemType is ItemType.Bag or ItemType.InJoinCraft&&itemNum>1);
         ItemNumTmp.text = itemNum.ToString();
     }
     private void OnIconLoadSuccessCallback(string assetName, object asset, float duration, object userData)
@@ -92,5 +95,15 @@ public class BattleBagItem:MonoBehaviour
     private void OnClickBtn()
     {
         OnClickPointCallback?.Invoke(this);
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        OnPointEnterCallback?.Invoke(this);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        OnPointExitCallback?.Invoke(this);
     }
 }

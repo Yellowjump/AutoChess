@@ -1,16 +1,13 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using DataTable;
 using GameFramework.Event;
-using Procedure;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 using SelfEventArg;
 using TMPro;
 using UnityEngine.Pool;
-using UnityEngine.Serialization;
 
 public class BattleBagPanelCtrl : UIFormLogic
 {
@@ -37,6 +34,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     [SerializeField] private Transform _willCraftParent;
     [SerializeField] private TextMeshProUGUI _craftItemName;
     [SerializeField] private TextMeshProUGUI _craftItemDesc;
+    [SerializeField] private TextMeshProUGUI _craftItemRarity;
     [SerializeField] private Transform _joinCraftItemParent;
     [SerializeField]
     private BattleBagItem _bagItemTemp;
@@ -61,7 +59,13 @@ public class BattleBagPanelCtrl : UIFormLogic
     private List<BattleBagItem> _curHeroEquipItemList = new();
 
     private int _curShowHeroUID = -1;
-    //------------heroEquip--------------
+    //------------itemTip--------------
+    [SerializeField] private Transform _itemTipParent;
+    [SerializeField] private TextMeshProUGUI _itemTipName;
+    [SerializeField] private TextMeshProUGUI _itemTipRarity;
+    [SerializeField] private TextMeshProUGUI _itemTipDec;
+    private const int _tipPosOffsetX = 250;
+    private const int _tipPosOffsetY = 150;
     public override void OnInit(object userData)
     {
         base.OnInit(userData);
@@ -74,11 +78,15 @@ public class BattleBagPanelCtrl : UIFormLogic
             if (ri != null)
             {
                 ri.OnClickPointCallback = OnClickItem;
+                ri.OnPointEnterCallback = OnPointItemEnter;
+                ri.OnPointExitCallback = OnPointItemExit;
                 ri.Init();
             }
             return ri;
         }, (item) => {item.gameObject.SetActive(false);}, (item) => {item.gameObject.SetActive(false);item.OnRelease();item.transform.SetParent(_releaseItemPa);},
-            (item) => { Destroy(item.gameObject); });
+            (item) => { Destroy(item.gameObject);
+                Destroy(item);
+            });
         _craftItem.Init();
         _craftItem.CurItemType = BattleBagItem.ItemType.CraftResult;
         _craftItem.OnClickPointCallback = OnClickItem;
@@ -102,6 +110,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
+        _itemTipParent.gameObject.SetActive(false);
         GameEntry.Event.Subscribe(BagPanelCheckToCraftEventArgs.EventId,OnCheckToCraft);
         GameEntry.Event.Subscribe(BagPanelCheckToEquipEventArgs.EventId,OnCheckToEquip);
         ShowBagItem();
@@ -221,9 +230,39 @@ public class BattleBagPanelCtrl : UIFormLogic
         }
     }
 
-    
+    private void OnPointItemEnter(BattleBagItem battleBagItem)
+    {
+        if (battleBagItem.CurItemType == BattleBagItem.ItemType.CraftResult)
+        {
+            return;
+        }
+        _itemTipParent.gameObject.SetActive(true);
+        var xOffset = battleBagItem.transform.position.x > 0 ? -_tipPosOffsetX : _tipPosOffsetX;
+        var yOffset = battleBagItem.transform.position.y > 0 ? -_tipPosOffsetY : _tipPosOffsetY;
+        _itemTipParent.position = battleBagItem.transform.position + new Vector3(xOffset,yOffset,0);
+        var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
+        if (!itemTable.HasDataRow(battleBagItem.ItemID))
+        {
+            Log.Error($"Item Table not Contain {battleBagItem.ItemID}");
+            return;
+        }
 
-    
+        _itemTipName.text = itemTable[battleBagItem.ItemID].Name;
+        _itemTipDec.text = itemTable[battleBagItem.ItemID].Decs;
+        _itemTipRarity.color = ConstValue.RarityColorList[itemTable[battleBagItem.ItemID].Rarity];
+        _itemTipRarity.text = ConstValue.RarityNameList[itemTable[battleBagItem.ItemID].Rarity];
+    }
+
+    private void OnPointItemExit(BattleBagItem battleBagItem)
+    {
+        if (battleBagItem.CurItemType == BattleBagItem.ItemType.CraftResult)
+        {
+            return;
+        }
+        _itemTipParent.gameObject.SetActive(false);
+    }
+
+
     private void OnClickBagItem(BattleBagItem battleBagItem)
     {
         var itemID = battleBagItem.ItemID;
@@ -309,7 +348,9 @@ public class BattleBagPanelCtrl : UIFormLogic
             {
                 _craftItem.ItemID = matchID;
                 _craftItemName.text = itemTable[matchID].Name;
-                _craftItemDesc.text = itemTable[matchID].Name;
+                _craftItemDesc.text = itemTable[matchID].Decs;
+                _craftItemRarity.color = ConstValue.RarityColorList[itemTable[matchID].Rarity];
+                _craftItemRarity.text = ConstValue.RarityNameList[itemTable[matchID].Rarity];
                 _craftItem.Fresh();
                 _willCraftParent.gameObject.SetActive(true);
                 _btnCraft.interactable = true;
@@ -350,6 +391,8 @@ public class BattleBagPanelCtrl : UIFormLogic
         {
             if (SelfDataManager.Instance.TryCraftItem(_craftItem.ItemID))
             {
+                _craftItem.ItemID = 0;
+                _willCraftParent.gameObject.SetActive(false);
                 //打开 tip 界面通知获取物品（要不要做呢）
                 
                 //刷新界面

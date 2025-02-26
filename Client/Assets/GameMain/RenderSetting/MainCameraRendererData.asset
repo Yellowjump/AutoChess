@@ -108,8 +108,8 @@ MonoBehaviour:
     overrideShader: {fileID: 0}
     overrideShaderPassIndex: 0
     overrideMode: 1
-    overrideDepthState: 0
-    depthCompareFunction: 8
+    overrideDepthState: 1
+    depthCompareFunction: 4
     enableWrite: 1
     stencilSettings:
       overrideStencilState: 0
@@ -609,7 +609,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f140b1d59ad4188851906b92198266c, type: 3}
   m_Name: ClearDepthRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 0
-  ResumeDepthMat: {fileID: 0}
+  m_Active: 1
+  ResumeDepthMat: {fileID: 2100000, guid: 89b8e4fe5be9d204b9358f8a656e50e6, type: 2}
   ClearRenderPassEvent: 300
-  ResumeRenderPassEvent: 300
+  ResumeRenderPassEvent: 350
+  b_resume: 1
