@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-12-04 23:25:23.488
+// 生成时间：2025-02-28 01:00:12.069
 //------------------------------------------------------------
 
 using GameFramework;
@@ -76,6 +76,15 @@ namespace DataTable
         }
 
         /// <summary>
+        /// 获取奖励配置ID。
+        /// </summary>
+        public int RewardID
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// 获取int参数1。
         /// </summary>
         public int ParamInt1
@@ -100,6 +109,7 @@ namespace DataTable
             LevelInfo = int.Parse(columnStrings[index++]);
             ShowUIAssetID = int.Parse(columnStrings[index++]);
             BattleOrLoadAsset = bool.Parse(columnStrings[index++]);
+            RewardID = int.Parse(columnStrings[index++]);
             ParamInt1 = int.Parse(columnStrings[index++]);
 
             GeneratePropertyArray();
@@ -117,6 +127,7 @@ namespace DataTable
                     LevelInfo = binaryReader.Read7BitEncodedInt32();
                     ShowUIAssetID = binaryReader.Read7BitEncodedInt32();
                     BattleOrLoadAsset = binaryReader.ReadBoolean();
+                    RewardID = binaryReader.Read7BitEncodedInt32();
                     ParamInt1 = binaryReader.Read7BitEncodedInt32();
                 }
             }

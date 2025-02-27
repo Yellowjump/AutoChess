@@ -31,6 +31,10 @@ public class BattleBagItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
         /// 战斗详情中的英雄装备
         /// </summary>
         BattleDetailHeroEquip,
+        /// <summary>
+        /// 奖励
+        /// </summary>
+        RewardItem,
     }
 
     public ItemType CurItemType = ItemType.Bag;
@@ -60,7 +64,7 @@ public class BattleBagItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
             Log.Error($"Item Table not Contain {ItemID}");
             return;
         }
-
+        gameObject.SetActive(false);
         ItemNameTmp.text = itemTable[ItemID].Name;
         FreshNum();
         var itemData = itemTable[ItemID];

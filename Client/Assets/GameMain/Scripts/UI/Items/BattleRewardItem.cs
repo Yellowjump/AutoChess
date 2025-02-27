@@ -8,16 +8,17 @@ using UnityGameFramework.Runtime;
 
 public class BattleRewardItem:MonoBehaviour
 {
-    public Image Icon;
+    public BattleBagItem item;
+    public TextMeshProUGUI Rarity;
+    public TextMeshProUGUI Desc;
     public TextMeshProUGUI Name;
     public Button BtnClick;
     public int ItemID;
     public Action<BattleRewardItem> OnClickPointCallback;
-    private LoadAssetCallbacks _loadIconCallback;
     public void Init()
     {
         BtnClick.onClick.AddListener(OnClickBtn);
-        _loadIconCallback = new LoadAssetCallbacks(OnIconLoadSuccessCallback);
+        item.Init();
     }
 
     public void Fresh()
@@ -29,30 +30,21 @@ public class BattleRewardItem:MonoBehaviour
             return;
         }
 
+        item.ItemID = ItemID;
+        item.Fresh();
         var itemData = itemTable[ItemID];
         Name.text = itemData.Name;
-        var assetsTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
-        if (!assetsTable.HasDataRow(itemData.IconID))
-        {
-            Log.Error($"assetsTable Table not Contain {itemData.IconID}");
-            return;
-        }
-
-        var assetData = assetsTable[itemData.IconID];
-        GameEntry.Resource.LoadAsset(assetData.AssetPath,typeof(Sprite),_loadIconCallback);
-    }
-
-    private void OnIconLoadSuccessCallback(string assetName, object asset, float duration, object userData)
-    {
-        Sprite sp = asset as Sprite;
-        if (sp != null)
-        {
-            Icon.sprite = sp;
-        }
-        gameObject.SetActive(true);
+        Desc.text = itemData.Decs;
+        Rarity.color = ConstValue.RarityColorList[itemData.Rarity];
+        Rarity.text = ConstValue.RarityNameList[itemData.Rarity];
     }
     private void OnClickBtn()
     {
         OnClickPointCallback.Invoke(this);
+    }
+
+    public void OnRelease()
+    {
+        item.OnRelease();
     }
 }

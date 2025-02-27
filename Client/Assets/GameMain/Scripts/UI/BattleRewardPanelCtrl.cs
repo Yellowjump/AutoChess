@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using DataTable;
+using GameFramework;
 using Procedure;
 using UnityEngine;
 using UnityEngine.UI;
@@ -31,7 +33,7 @@ public class BattleRewardPanelCtrl : UIFormLogic
                 ri.Init();
             }
             return ri;
-        }, (item) => {item.gameObject.SetActive(false);}, (item) => {item.gameObject.SetActive(false);}, (item) => { Destroy(item.gameObject); });
+        }, (item) => {item.gameObject.SetActive(true);}, (item) => {item.OnRelease();item.gameObject.SetActive(false);}, (item) => { Destroy(item.gameObject); });
     }
 
     public override void OnOpen(object userData)
@@ -40,9 +42,39 @@ public class BattleRewardPanelCtrl : UIFormLogic
         _btnContinue.gameObject.SetActive(false);
         _itemParent.gameObject.SetActive(true);
         List<int> rewardItemIDList = ListPool<int>.Get();
-        rewardItemIDList.Add(1);
-        rewardItemIDList.Add(2);
-        rewardItemIDList.Add(3);
+        var levelID = SelfDataManager.Instance.CurAreaPoint.CurLevelID;
+        var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
+        if (!levelConfigTable.HasDataRow(levelID))
+        {
+            Log.Error($"level Table not Contain {levelID}");
+            return;
+        }
+
+        var rewardID = levelConfigTable[levelID].RewardID;
+        var rewardConfigTable = GameEntry.DataTable.GetDataTable<DRRewardConfig>("RewardConfig");
+        if (!rewardConfigTable.HasDataRow(rewardID))
+        {
+            Log.Error($"rewardConfigTable Table not Contain {rewardID}");
+            return;
+        }
+        var itemAndWeightList = rewardConfigTable[rewardID].RewardItemAndRandomWeight;
+        if (itemAndWeightList.Count < 3)
+        {
+            Log.Error($"rewardConfigTable ID:{rewardID} Has No Num Reward");
+            return;
+        }
+        List<int> idList = ListPool<int>.Get();
+        List<int> weightList = ListPool<int>.Get();
+        foreach (var idAndWeight in itemAndWeightList)
+        {
+            idList.Add(idAndWeight.Item1);
+            weightList.Add(idAndWeight.Item2);
+        }
+        Utility.ShuffleWithWeight(idList,weightList);
+        
+        rewardItemIDList.Add(idList[0]);
+        rewardItemIDList.Add(idList[1]);
+        rewardItemIDList.Add(idList[2]);
         for (int itemIndex = 0; itemIndex < rewardItemIDList.Count; itemIndex++)
         {
             var oneItem = _rewardItemPool.Get();
@@ -50,6 +82,9 @@ public class BattleRewardPanelCtrl : UIFormLogic
             oneItem.Fresh();
             _curShowItemList.Add(oneItem);
         }
+        ListPool<int>.Release(rewardItemIDList);
+        ListPool<int>.Release(idList);
+        ListPool<int>.Release(weightList);
     }
 
     public override void OnClose(bool isShutdown, object userData)

@@ -103,6 +103,7 @@ namespace Procedure
             _dataTableFlag.Add("LevelConfig",(typeof(DRLevelConfig),false));
             _dataTableFlag.Add("Sfx",(typeof(DRSfx),false));
             _dataTableFlag.Add("AreaPoint",(typeof(DRAreaPoint),false));
+            _dataTableFlag.Add("RewardConfig",(typeof(DRRewardConfig),false));
             foreach (var tableName in _dataTableFlag)
             {
                 DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(tableName.Value.Item1, tableName.Key);

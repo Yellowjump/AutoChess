@@ -1,16 +1,16 @@
-﻿#	关卡配置表						
-#	Id		MazePointType	LevelInfo	ShowUIAssetID	BattleOrLoadAsset	ParamInt1
-#	int		int	int	int	bool	int
-#	关卡ID	关卡备注	关卡点类型	关卡信息	显示的UI	放置战斗棋盘还是asset	int参数1
-#							
-	1	商店	4	0	1102		3501
-	2	宝箱	5	0	1102		3501
-	3	未知点	3				
-#普通怪1000开始							
-	1001		0	2			
-#精英怪2000开始							
-	2001		1	2			
-#boss怪3000开始							
-	3001		2	2			
-#事件点4000开始							
-	4001		6	2	1101	1	
+﻿#	关卡配置表							
+#	Id		MazePointType	LevelInfo	ShowUIAssetID	BattleOrLoadAsset	RewardID	ParamInt1
+#	int		int	int	int	bool	int	int
+#	关卡ID	关卡备注	关卡点类型	关卡信息	显示的UI	放置战斗棋盘还是asset	奖励配置ID	int参数1
+#								
+	1	商店	4	0	1102			3501
+	2	宝箱	5	0	1102			3501
+	3	未知点	3					
+#普通怪1000开始								
+	1001		0	2			1	
+#精英怪2000开始								
+	2001		1	2			1	
+#boss怪3000开始								
+	3001		2	2			1	
+#事件点4000开始								
+	4001		6	2	1101	1	1	
