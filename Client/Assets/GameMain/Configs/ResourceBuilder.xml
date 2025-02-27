@@ -2,12 +2,12 @@
 <UnityGameFramework>
   <ResourceBuilder>
     <Settings>
-      <InternalResourceVersion>6</InternalResourceVersion>
+      <InternalResourceVersion>11</InternalResourceVersion>
       <Platforms>1</Platforms>
-      <AssetBundleCompression>1</AssetBundleCompression>
+      <AssetBundleCompression>0</AssetBundleCompression>
       <CompressionHelperTypeName>UnityGameFramework.Runtime.DefaultCompressionHelper</CompressionHelperTypeName>
       <AdditionalCompressionSelected>False</AdditionalCompressionSelected>
-      <ForceRebuildAssetBundleSelected>False</ForceRebuildAssetBundleSelected>
+      <ForceRebuildAssetBundleSelected>True</ForceRebuildAssetBundleSelected>
       <BuildEventHandlerTypeName>
       </BuildEventHandlerTypeName>
       <OutputDirectory>D:/UnityProjects/zizouqi/Client/BuildAssetBundle</OutputDirectory>

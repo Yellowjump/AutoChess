@@ -27,6 +27,10 @@ public class BattleBagItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
         /// 英雄装备
         /// </summary>
         HeroEquip,
+        /// <summary>
+        /// 战斗详情中的英雄装备
+        /// </summary>
+        BattleDetailHeroEquip,
     }
 
     public ItemType CurItemType = ItemType.Bag;
