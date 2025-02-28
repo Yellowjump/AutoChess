@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Entity
 {
@@ -6,5 +7,6 @@ namespace Entity
     {
         public Transform RightHandHandle;
         public Transform LeftHandHandle;
+        public Renderer[] EntityRendererList;
     }
 }

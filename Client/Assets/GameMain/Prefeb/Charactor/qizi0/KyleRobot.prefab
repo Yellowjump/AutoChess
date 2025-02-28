@@ -1127,6 +1127,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   RightHandHandle: {fileID: 5149469983101584865}
   LeftHandHandle: {fileID: 5267735992656523764}
+  EntityRendererList:
+  - {fileID: 3199883301546252173}
 --- !u!1 &5039461989989303084
 GameObject:
   m_ObjectHideFlags: 0

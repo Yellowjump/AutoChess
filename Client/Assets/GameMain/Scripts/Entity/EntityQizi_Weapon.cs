@@ -5,6 +5,7 @@ using GameFramework.Fsm;
 using SkillSystem;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 using UnityGameFramework.Runtime;
 
 namespace Entity
@@ -13,9 +14,14 @@ namespace Entity
     {
         private Dictionary<Skill,List<WeaponEntity>> _weaponDic = new Dictionary<Skill,List<WeaponEntity>>();
         private EntityQiziObjHandle ObjHandle;
+        MaterialPropertyBlock propBlock;
+        private const string _highLightPropertyName = "_Highlight";
         public void InitObjWeaponHandle()
         {
             ObjHandle = GObj.GetComponent<EntityQiziObjHandle>();
+            //init Render
+            propBlock = new MaterialPropertyBlock();
+            
         }
         public void AddOneWeapon(int itemID,WeaponHandleType handleType,Skill skill)
         {
@@ -81,6 +87,23 @@ namespace Entity
                 ListPool<WeaponEntity>.Release(list);
             }
             _weaponDic.Clear();
+        }
+
+        public void ShowHighlight(bool show)
+        {
+            if (ObjHandle == null || ObjHandle.EntityRendererList == null||propBlock == null)
+            {
+                return;
+            }
+
+            foreach (var oneRender in ObjHandle.EntityRendererList)
+            {
+                // 获取当前属性并修改
+                oneRender.GetPropertyBlock(propBlock);
+                propBlock.SetFloat(_highLightPropertyName, show ? 1 : 0); // 布尔通常用 0/1 表示
+                oneRender.SetPropertyBlock(propBlock);
+            }
+            
         }
     }
 }

@@ -103,7 +103,6 @@ namespace SkillSystem
         public override void ReadFromFile(BinaryReader reader)
         {
             CurDamageComputeType = (DamageComputeType)reader.ReadInt32();
-            reader.ReadInt32();
             ParamInt1.ReadFromFile(reader);
             ParamInt2.ReadFromFile(reader);
             ParamInt3.ReadFromFile(reader);

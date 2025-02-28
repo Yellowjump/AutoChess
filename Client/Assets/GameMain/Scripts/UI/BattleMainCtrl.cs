@@ -85,10 +85,13 @@ public class BattleMainCtrl : UIFormLogic
     {
         if (Input.GetMouseButtonUp(1) && tryDragTargetQizi == null)
         {
+            var oldTarget = curTargetQizi;
             curTargetQizi = GetMousePosQizi();
             if (curTargetQizi != null)
             {
+                oldTarget?.ShowHighlight(false);
                 qizishuxin.gameObject.SetActive(true);
+                curTargetQizi.ShowHighlight(true);
                 shuxinxianshi(curTargetQizi);
             }
         }
@@ -96,7 +99,6 @@ public class BattleMainCtrl : UIFormLogic
         if (Input.GetMouseButtonDown(0))
         {
             tryDragTargetQizi = null;
-            curTargetQizi = null;
             var targetQizi = GetMousePosQizi();
             if (targetQizi != null)
             {
@@ -105,8 +107,18 @@ public class BattleMainCtrl : UIFormLogic
                     tryDragTargetQizi = targetQizi;
                 }
 
+                if (curTargetQizi != null && curTargetQizi != targetQizi)
+                {
+                    curTargetQizi.ShowHighlight(false);
+                }
                 curTargetQizi = targetQizi;
                 GetOrNotGetQizi = true;
+            }
+            else
+            {
+                qizishuxin.gameObject.SetActive(false);
+                curTargetQizi?.ShowHighlight(false);
+                curTargetQizi = null;
             }
         }
 
@@ -140,6 +152,7 @@ public class BattleMainCtrl : UIFormLogic
                     }
                     if (geziPos.y == tryDragTargetQizi.rowIndex && geziPos.x == tryDragTargetQizi.columnIndex) //選中位置沒有移動
                     {
+                        tryDragTargetQizi.ShowHighlight(true);
                         qizishuxin.gameObject.SetActive(true);
                         shuxinxianshi(tryDragTargetQizi);
                         keepCurTarget = true;
@@ -157,6 +170,7 @@ public class BattleMainCtrl : UIFormLogic
                 tryDragTargetQizi = null;
                 if (keepCurTarget == false)
                 {
+                    curTargetQizi.ShowHighlight(false);
                     curTargetQizi = null;
                     qizishuxin.gameObject.SetActive(false);
                 }
@@ -165,6 +179,7 @@ public class BattleMainCtrl : UIFormLogic
             {
                 qizishuxin.gameObject.SetActive(true);
                 shuxinxianshi(curTargetQizi);
+                curTargetQizi.ShowHighlight(true);
             }
             else if (curTargetQizi == null)
             {
