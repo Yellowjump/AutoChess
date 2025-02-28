@@ -154,18 +154,6 @@ namespace SkillSystem
         [InspectorName("固定值加属性百分比")]
         FixNumAddAttrPercent,
     }
-    /// <summary>
-    /// 伤害类型
-    /// </summary>
-    public enum DamageType
-    {
-        [InspectorName("物理伤害")]
-        PhysicalDamage,
-        [InspectorName("魔法伤害")]
-        MagicDamage,
-        [InspectorName("真实伤害")]
-        TrueDamage
-    }
     public enum GenerateEnumDataTables
     {
         [InspectorName("不读表固定值")]
@@ -276,26 +264,14 @@ namespace SkillSystem
         MaxPower,
         [InspectorName("护盾")]
         HuDun,
+        [InspectorName("护盾增益")]
+        HuDunBoost,
+        [InspectorName("技能急速")]
+        CooldownReduce,
         [InspectorName("攻击力")]
         AttackDamage,
-        [InspectorName("法强")]
-        AbilityPower,
         [InspectorName("普攻速")]
         AttackSpeed,
-        [InspectorName("移速")]
-        MovementSpeed,
-        [InspectorName("护甲")]
-        Armor,
-        [InspectorName("魔抗")]
-        MagicResist,
-        [InspectorName("护甲穿透固定值")]
-        ArmorPenetrationNum,
-        [InspectorName("护甲穿透百分比")]
-        ArmorPenetrationPercent,
-        [InspectorName("法穿固定值")]
-        MagicPenetrationNum,
-        [InspectorName("法穿百分比")]
-        MagicPenetrationPercent,
     }
     public enum BulletType
     {

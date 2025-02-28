@@ -12,7 +12,6 @@ namespace Editor.SkillSystem.Commands
             {
                 EditorGUILayout.LabelField("造成伤害");
                 commandCauseDamage.CurDamageComputeType = (DamageComputeType)EditorGUILayout.EnumPopup("伤害计算类型", commandCauseDamage.CurDamageComputeType);
-                commandCauseDamage.CurDamageType = (DamageType)EditorGUILayout.EnumPopup("伤害类型", commandCauseDamage.CurDamageType);
                 if (commandCauseDamage.CurDamageComputeType == DamageComputeType.FixNumAddAttrPercent)
                 {
                     //固定伤害加属性百分比，paramInt1 是固定伤害。paramInt2 是 属性枚举，paramInt3 是 百分比
@@ -33,8 +32,7 @@ namespace Editor.SkillSystem.Commands
                 }
                 else if (commandCauseDamage.CurDamageComputeType == DamageComputeType.NormalDamage)
                 {
-                    //伤害计算
-                    commandCauseDamage.CurDamageType = DamageType.PhysicalDamage;//普攻固定是物理攻击
+                    
                 }
             }
         }

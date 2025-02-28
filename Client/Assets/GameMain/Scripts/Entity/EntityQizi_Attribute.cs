@@ -51,16 +51,11 @@ namespace Entity
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.Hp,ReferencePool.Acquire<FixedModifyAttribute>().Initialize(attributeData.Hp,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<DynamicLimitAttribute<int>>().Initialize(AttributeType.MaxHp,this))));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MaxPower,attributeData.Power,0,int.MaxValue));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.Power,ReferencePool.Acquire<FixedModifyAttribute>().Initialize(0,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<DynamicLimitAttribute<int>>().Initialize(AttributeType.MaxPower,this))));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.HuDun, ReferencePool.Acquire<FixedModifyAttribute>().Initialize(0,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(int.MaxValue))));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.HuDun,0,0));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.AttackDamage,attributeData.AttackDamage,isFixModify:false));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.AbilityPower,attributeData.AbilityPower,isFixModify:false));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeFloatAttr(AttributeType.AttackSpeed,attributeData.AttackSpeed));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.Armor,attributeData.Armor,isFixModify:false));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MagicResist,attributeData.MagicResist,isFixModify:false));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.ArmorPenetrationNum,attributeData.ArmorPenetrationNum));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.ArmorPenetrationPercent,attributeData.ArmorPenetrationPercent));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MagicPenetrationNum,attributeData.MagicPenetrationNum));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MagicPenetrationPercent,attributeData.MagicPenetrationPercent));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.AttackSpeed,attributeData.AttackSpeed,0));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.HuDunBoost,attributeData.HudunBoost,0,int.MaxValue));//todo
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.CooldownReduce,attributeData.CooldownReduce,0,int.MaxValue));
         }
 
         public void TryAddAttrValue(AttributeType attrType,int value)

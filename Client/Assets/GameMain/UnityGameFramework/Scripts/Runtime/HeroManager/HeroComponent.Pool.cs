@@ -156,7 +156,6 @@ namespace UnityGameFramework.Runtime
         {
             public int num;
             public bool Playing = false;
-            public DamageType CurDamageType;
             public EntityQizi Owner;
             public GameObject NumberObj;
             public Text damageNumText;
@@ -171,7 +170,6 @@ namespace UnityGameFramework.Runtime
                 allAnimDuration = -2;
                 num = 0;
                 TextSize = 0;
-                CurDamageType = DamageType.PhysicalDamage;
                 Owner = null;
                 GameEntry.HeroManager.ReleaseGameObject(DamageNumberPerfabPath, NumberObj);
                 NumberObj = null;
@@ -210,7 +208,6 @@ namespace UnityGameFramework.Runtime
             var newDamageNumber = ReferencePool.Acquire<DamageNumber>();
             var numPerfabPath = DamageNumberPerfabPath;
             newDamageNumber.num = (int)data.DamageValue;
-            newDamageNumber.CurDamageType = data.CurDamageType;
             newDamageNumber.Owner = data.Target;
             newDamageNumber.targetPos = data.Target.LogicPosition + Vector3.up*0.5f;
             WaitDmgNumberList.Add(newDamageNumber);
@@ -235,20 +232,7 @@ namespace UnityGameFramework.Runtime
                 oneDmg.damageNumText.text = oneDmg.num.ToString();
                 oneDmg.TextSize = oneDmg.damageNumText.fontSize;
                 oneDmg.damageNumText.fontSize += 20;
-                switch (oneDmg.CurDamageType)
-                {
-                    case DamageType.PhysicalDamage:
-                        oneDmg.damageNumText.color = new Color(190/255f,86/255f,11/255f); 
-                        break;
-                    case DamageType.MagicDamage:
-                        oneDmg.damageNumText.color = Color.blue;
-                        break;
-                    case DamageType.TrueDamage:
-                        oneDmg.damageNumText.color = Color.white;
-                        break;
-                    default:
-                        break;
-                }
+                oneDmg.damageNumText.color = new Color(190/255f,86/255f,11/255f); 
                 //设置动画参数
                 oneDmg.animDuration = 0f;
                 oneDmg.allAnimDuration = 0.8f;

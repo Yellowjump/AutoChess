@@ -316,9 +316,9 @@ public class BattleMainCtrl : UIFormLogic
         powsum.text = maxPower.ToString();
         _slderPow.value = curPower / (float)maxPower;
         AttrAttackNum.text = ((int)qz.GetAttribute(AttributeType.AttackDamage).GetFinalValue()).ToString();
-        AttrAtkSpeed.text = ((float)qz.GetAttribute(AttributeType.AttackSpeed).GetFinalValue()).ToString();
-        AttrHudunAddNum.text = ((int)qz.GetAttribute(AttributeType.Armor).GetFinalValue()).ToString();
-        AttrCDNum.text = ((int)qz.GetAttribute(AttributeType.Armor).GetFinalValue()).ToString(); //todo 屬性修改
+        AttrAtkSpeed.text = ((int)qz.GetAttribute(AttributeType.AttackSpeed).GetFinalValue()).ToString();
+        AttrHudunAddNum.text = ((int)qz.GetAttribute(AttributeType.HuDunBoost).GetFinalValue()).ToString();
+        AttrCDNum.text = ((int)qz.GetAttribute(AttributeType.CooldownReduce).GetFinalValue()).ToString();
         ShowHeroEquip();
     }
 

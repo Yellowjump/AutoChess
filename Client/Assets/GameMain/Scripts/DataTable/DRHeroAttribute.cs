@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-11-15 01:06:33.153
+// 生成时间：2025-02-28 18:33:45.285
 //------------------------------------------------------------
 
 using GameFramework;
@@ -67,72 +67,27 @@ namespace DataTable
         }
 
         /// <summary>
-        /// 获取法强。
+        /// 获取攻速增益。
         /// </summary>
-        public int AbilityPower
+        public int AttackSpeed
         {
             get;
             private set;
         }
 
         /// <summary>
-        /// 获取攻速。
+        /// 获取护盾增益。
         /// </summary>
-        public float AttackSpeed
+        public int HudunBoost
         {
             get;
             private set;
         }
 
         /// <summary>
-        /// 获取护甲。
+        /// 获取技能急速。
         /// </summary>
-        public int Armor
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// 获取魔抗。
-        /// </summary>
-        public int MagicResist
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// 获取护甲穿透固定值。
-        /// </summary>
-        public int ArmorPenetrationNum
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// 获取护甲穿透百分比。
-        /// </summary>
-        public int ArmorPenetrationPercent
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// 获取法穿固定值。
-        /// </summary>
-        public int MagicPenetrationNum
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// 获取法穿百分比。
-        /// </summary>
-        public int MagicPenetrationPercent
+        public int CooldownReduce
         {
             get;
             private set;
@@ -152,14 +107,9 @@ namespace DataTable
             Hp = int.Parse(columnStrings[index++]);
             Power = int.Parse(columnStrings[index++]);
             AttackDamage = int.Parse(columnStrings[index++]);
-            AbilityPower = int.Parse(columnStrings[index++]);
-            AttackSpeed = float.Parse(columnStrings[index++]);
-            Armor = int.Parse(columnStrings[index++]);
-            MagicResist = int.Parse(columnStrings[index++]);
-            ArmorPenetrationNum = int.Parse(columnStrings[index++]);
-            ArmorPenetrationPercent = int.Parse(columnStrings[index++]);
-            MagicPenetrationNum = int.Parse(columnStrings[index++]);
-            MagicPenetrationPercent = int.Parse(columnStrings[index++]);
+            AttackSpeed = int.Parse(columnStrings[index++]);
+            HudunBoost = int.Parse(columnStrings[index++]);
+            CooldownReduce = int.Parse(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -175,14 +125,9 @@ namespace DataTable
                     Hp = binaryReader.Read7BitEncodedInt32();
                     Power = binaryReader.Read7BitEncodedInt32();
                     AttackDamage = binaryReader.Read7BitEncodedInt32();
-                    AbilityPower = binaryReader.Read7BitEncodedInt32();
-                    AttackSpeed = binaryReader.ReadSingle();
-                    Armor = binaryReader.Read7BitEncodedInt32();
-                    MagicResist = binaryReader.Read7BitEncodedInt32();
-                    ArmorPenetrationNum = binaryReader.Read7BitEncodedInt32();
-                    ArmorPenetrationPercent = binaryReader.Read7BitEncodedInt32();
-                    MagicPenetrationNum = binaryReader.Read7BitEncodedInt32();
-                    MagicPenetrationPercent = binaryReader.Read7BitEncodedInt32();
+                    AttackSpeed = binaryReader.Read7BitEncodedInt32();
+                    HudunBoost = binaryReader.Read7BitEncodedInt32();
+                    CooldownReduce = binaryReader.Read7BitEncodedInt32();
                 }
             }
 
