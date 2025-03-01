@@ -3,6 +3,8 @@
   <ResourceCollection>
     <Resources>
       <Resource Name="All" LoadType="0" Packed="False" />
+      <Resource Name="dataTable" LoadType="0" Packed="False" />
+      <Resource Name="GameMain/Data/DataTables/AreaPoint" LoadType="4" Packed="False" />
       <Resource Name="GameMain/Scenes/qipan" LoadType="0" Packed="False" />
       <Resource Name="GameMain/Scenes/terrain" LoadType="0" Packed="False" />
       <Resource Name="Render" LoadType="0" Packed="False" />
@@ -26,7 +28,7 @@
       <Asset Guid="0ef37d727bf3b084ea936ae8a8840f79" ResourceName="All" />
       <Asset Guid="0eff3e446da34a645a090d7654ee3844" ResourceName="GameMain/Scenes/terrain" />
       <Asset Guid="0f48eac8617d0de4cbc056e1734e798b" ResourceName="All" />
-      <Asset Guid="0f516037d13d22c4eac3ca2e8a9d5ac8" ResourceName="All" />
+      <Asset Guid="0f516037d13d22c4eac3ca2e8a9d5ac8" ResourceName="GameMain/Data/DataTables/AreaPoint" />
       <Asset Guid="107873e5cc877564da60ec611494ebd8" ResourceName="Render" />
       <Asset Guid="10b4a16800edbb44184e8b52ba152f95" ResourceName="All" />
       <Asset Guid="11a67289e750efe4b87fd183ee2a4fed" ResourceName="Render" />
@@ -42,15 +44,15 @@
       <Asset Guid="1ada902f01959d94eb5f470be9ad262d" ResourceName="All" />
       <Asset Guid="1af59f129534c9a498a9af42522161cc" ResourceName="All" />
       <Asset Guid="1c3141c5998cdc44f95b67dabf99234a" ResourceName="All" />
-      <Asset Guid="1d25acc32d10c4141a6e73f7d25dd3f1" ResourceName="All" />
+      <Asset Guid="1d25acc32d10c4141a6e73f7d25dd3f1" ResourceName="dataTable" />
       <Asset Guid="1d2c4e933cf64044ea21fe83d901ca34" ResourceName="All" />
       <Asset Guid="1d43eb4790dcdf343b79d15693e6ed62" ResourceName="All" />
-      <Asset Guid="20862257a4c080645a19e2f7f9404ea2" ResourceName="All" />
+      <Asset Guid="20862257a4c080645a19e2f7f9404ea2" ResourceName="dataTable" />
       <Asset Guid="209460ccb2aaaf847a61d7e73c92f193" ResourceName="All" />
       <Asset Guid="2109077e00a4d9c409333d99672e19e0" ResourceName="All" />
       <Asset Guid="211d4f88e66f0194c9e943a226c03067" ResourceName="Render" />
       <Asset Guid="221462f4c3da8604c9dcc63641989a98" ResourceName="All" />
-      <Asset Guid="2373192046d49cd489ab32a0e3f8e1ca" ResourceName="All" />
+      <Asset Guid="2373192046d49cd489ab32a0e3f8e1ca" ResourceName="dataTable" />
       <Asset Guid="23ee7f6864c52b243bfb4f2da09bc287" ResourceName="All" />
       <Asset Guid="242440305cb20ea42880083e1ce52e2a" ResourceName="All" />
       <Asset Guid="24f6715a7f489f344aa05b9b441f9448" ResourceName="All" />
@@ -60,7 +62,7 @@
       <Asset Guid="28a478660ea9d9541b2118c5e95cbb4e" ResourceName="All" />
       <Asset Guid="28b218fb0e12c994d8f0b586f65545f2" ResourceName="All" />
       <Asset Guid="29841e7d5bbfb5b419c9ad16ca8bc4c1" ResourceName="All" />
-      <Asset Guid="2b882de582765ea4583f67b08a4276fe" ResourceName="All" />
+      <Asset Guid="2b882de582765ea4583f67b08a4276fe" ResourceName="dataTable" />
       <Asset Guid="2be7b70e984b51444aca9c12ae4723a7" ResourceName="All" />
       <Asset Guid="2c13f8f798473374dae19379c179173d" ResourceName="All" />
       <Asset Guid="2e165dae8bf70b444b95dca998bf7805" ResourceName="All" />
@@ -99,6 +101,7 @@
       <Asset Guid="4cbf06d4165475941aacbacdf3107599" ResourceName="All" />
       <Asset Guid="4cd7cfbb985ec4518bfc6c73c4ee1433" ResourceName="All" />
       <Asset Guid="4df69c63aea2c2a45adfc9fb46f92e43" ResourceName="Render" />
+      <Asset Guid="4e036aa4cd785aa4fbb8fcc90aefbcf9" ResourceName="dataTable" />
       <Asset Guid="4ef3438267568cd40b87841c3e2c22c5" ResourceName="All" />
       <Asset Guid="4fa68e0d267fb454bafd0a157c2526ce" ResourceName="All" />
       <Asset Guid="4fe558315d9265d45a42860b8e7d22c3" ResourceName="All" />
@@ -135,7 +138,7 @@
       <Asset Guid="6cd1ac9652a50da4485a86492f47c63d" ResourceName="All" />
       <Asset Guid="6cd2d08f4a4d93542aa0004bdac91566" ResourceName="All" />
       <Asset Guid="6ce3b445936f9d24093206153570069b" ResourceName="All" />
-      <Asset Guid="6d2fcb70ef83d6e44acc610660f810d0" ResourceName="All" />
+      <Asset Guid="6d2fcb70ef83d6e44acc610660f810d0" ResourceName="dataTable" />
       <Asset Guid="6dc4cf4496348884d8ee27743ae38562" ResourceName="All" />
       <Asset Guid="6eb9eeff3942135429ce2b75552e652b" ResourceName="Render" />
       <Asset Guid="6f05f871a86d87244aae567e324c4f42" ResourceName="All" />
@@ -150,7 +153,7 @@
       <Asset Guid="7ae956b4f54394e80818898d8f4d30c6" ResourceName="All" />
       <Asset Guid="7c7d0041c0cb65a468a29f773c5bb8aa" ResourceName="All" />
       <Asset Guid="7cb0ae217cc64ce40a58a504092ff601" ResourceName="Render" />
-      <Asset Guid="7d95ff5f09cd6a4428f42c28cb05105c" ResourceName="All" />
+      <Asset Guid="7d95ff5f09cd6a4428f42c28cb05105c" ResourceName="dataTable" />
       <Asset Guid="812aae90a9297f249908057eed4c0879" ResourceName="All" />
       <Asset Guid="817e371bb770e834abd39dbb74c94c86" ResourceName="All" />
       <Asset Guid="820523c41c7062142971a293db74dca3" ResourceName="All" />
@@ -167,7 +170,6 @@
       <Asset Guid="8cafeb9c36c76844d80e57a9527c76db" ResourceName="All" />
       <Asset Guid="8d0f1f34a62d87346b925007e9de3cc8" ResourceName="All" />
       <Asset Guid="8d132b50decf7aa429d6d84a9e7a1217" ResourceName="All" />
-      <Asset Guid="8d9c1ce00a8633949a2b7d81e44671ed" ResourceName="All" />
       <Asset Guid="8dd9422bef8f7114bbfb3328cfc49853" ResourceName="Render" />
       <Asset Guid="8e44dd826729c7946b8b39471002a1e7" ResourceName="Render" />
       <Asset Guid="8e9b5510fe26f3643aa5f289b8655037" ResourceName="All" />
@@ -192,14 +194,14 @@
       <Asset Guid="a0389bcc17a6335409898ddb374c1570" ResourceName="All" />
       <Asset Guid="a073c604c44135e438eeeaef77058ac5" ResourceName="All" />
       <Asset Guid="a088723541888bb4cbf21799785f0cfd" ResourceName="All" />
-      <Asset Guid="a15ecaf150f49944da358fb20b6b28d1" ResourceName="All" />
+      <Asset Guid="a15ecaf150f49944da358fb20b6b28d1" ResourceName="dataTable" />
       <Asset Guid="a3194b8bbc96ef84fab1f98f4b7dae3e" ResourceName="All" />
       <Asset Guid="a74a6e7b93c2acd4eaa24bb5b6da4017" ResourceName="All" />
       <Asset Guid="a77653da149ca8644867707b9dca9198" ResourceName="All" />
-      <Asset Guid="a90146740bb646f4ea7a749ef469a24a" ResourceName="All" />
+      <Asset Guid="a90146740bb646f4ea7a749ef469a24a" ResourceName="dataTable" />
       <Asset Guid="a9e8ec9d2ae5a9e46a3c2f168aef0d21" ResourceName="All" />
       <Asset Guid="aa345c1c32f9f2b4081281422bbf646d" ResourceName="All" />
-      <Asset Guid="aafc99c83a57e81459bf4ec25507cffa" ResourceName="All" />
+      <Asset Guid="aafc99c83a57e81459bf4ec25507cffa" ResourceName="dataTable" />
       <Asset Guid="abaa3d4f433df074389559003412235d" ResourceName="All" />
       <Asset Guid="abdad84c8815b8448b75644553b91f98" ResourceName="All" />
       <Asset Guid="adb3eb1c35fcff14f89fba7b05c9d71c" ResourceName="All" />
@@ -224,13 +226,13 @@
       <Asset Guid="c096c0ce8df50674ea94782c8abaab3a" ResourceName="Render" />
       <Asset Guid="c11211e6a46099249b76861953a4037b" ResourceName="All" />
       <Asset Guid="c1c438e87ff49804fa6945594e21498b" ResourceName="All" />
-      <Asset Guid="c2b57ea0005b5f041999fdabf3deaeff" ResourceName="All" />
+      <Asset Guid="c2b57ea0005b5f041999fdabf3deaeff" ResourceName="dataTable" />
       <Asset Guid="c3cf84b6d8462e9418e2da6c641f112b" ResourceName="All" />
       <Asset Guid="c4e6807c9972f6f4c85965be48ed2c90" ResourceName="All" />
       <Asset Guid="c5dc3a539900ab7449f7bcd10186e331" ResourceName="All" />
       <Asset Guid="c6e86d7f366dfe642b5ed3dc6793c30c" ResourceName="All" />
       <Asset Guid="c70249a8b30c8cc41a2daf20fe55cc97" ResourceName="All" />
-      <Asset Guid="c7687e23dd74421418298aa9a425e697" ResourceName="All" />
+      <Asset Guid="c7687e23dd74421418298aa9a425e697" ResourceName="dataTable" />
       <Asset Guid="c7a5fe1df69c0374cb1cbfe23b8910f1" ResourceName="All" />
       <Asset Guid="c7ff7455ac480944a943db36038afb84" ResourceName="All" />
       <Asset Guid="c8966e41636de3d4cae7be69f362e408" ResourceName="All" />
@@ -262,7 +264,7 @@
       <Asset Guid="decb53c07686cc94b860f8e04d438d22" ResourceName="All" />
       <Asset Guid="decbab60a25cb7f4bb331bb58a041d80" ResourceName="Render" />
       <Asset Guid="ded90e33612eeef40bcb088e3c8d7e9a" ResourceName="All" />
-      <Asset Guid="e1e5eaca3d06239448865116704150b5" ResourceName="All" />
+      <Asset Guid="e1e5eaca3d06239448865116704150b5" ResourceName="dataTable" />
       <Asset Guid="e20d7cdc56c64244695fc226c92ea5f7" ResourceName="All" />
       <Asset Guid="e318f31bebce62d48a648da3f8ba56c9" ResourceName="All" />
       <Asset Guid="e39c4b98a4756b043a23fb5b81e7b25a" ResourceName="All" />

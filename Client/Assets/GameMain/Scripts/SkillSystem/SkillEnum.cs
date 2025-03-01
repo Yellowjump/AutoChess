@@ -175,7 +175,7 @@ namespace SkillSystem
         /// </summary>
         NoAnimSkill = 2,
         /// <summary>
-        /// 特殊技能
+        /// 特殊技能 禁用
         /// </summary>
         SpSkill = 3,
         /// <summary>

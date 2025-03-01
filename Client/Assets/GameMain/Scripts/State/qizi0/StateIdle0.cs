@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using SkillSystem;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
 public class StateIdle0 : FsmState<EntityQizi>
@@ -23,7 +24,7 @@ public class StateIdle0 : FsmState<EntityQizi>
         var owner = fsm.Owner;
         owner.AddAnimCommandIdle();
         // 检测是否能释放SpSkill
-        CheckChangeState(fsm);
+        //CheckChangeState(fsm);
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
@@ -62,43 +63,42 @@ public class StateIdle0 : FsmState<EntityQizi>
             return;
         }
         //技能
-        var result = owner.CheckCanCastSkill(out var target, true);
-        if (result == CheckCastSkillResult.CanCast)
-        {
-            owner.CurAttackTarget = target;
-            ChangeState<StateAttack0>(fsm);
-            return;
-        }
-        else if (result == CheckCastSkillResult.TargetOutRange)
-        {
-            owner.CurAttackTarget = target;
-            ChangeState<StateMove0>(fsm);
-            return;
-        }
-
-        for (var normalSkillIndex = 0; normalSkillIndex < owner.NormalSkillList.Count; normalSkillIndex++)
+        var result = CheckCastSkillResult.Error;
+        EntityQizi target = null;
+        List<int> checkNormalSkillList = owner.GetNormalSkillCheckSort();
+        for (var index = 0; index < checkNormalSkillList.Count; index++)
         {
             //普攻
-            result = owner.CheckCanCastSkill(out target, false,normalSkillIndex);
+            result = owner.CheckCanCastSkill(out target,checkNormalSkillList[index]);
             if (result == CheckCastSkillResult.CanCast)
             {
                 owner.CurAttackTarget = target;
+                owner.CastNormalSkill(checkNormalSkillList[index]);
+                if (target != null)
+                {
+                    owner.GObj?.transform.LookAt(target.GObj.transform);
+                }
                 ChangeState<StateAttack0>(fsm);
                 break;
             }
             else if (result == CheckCastSkillResult.TargetOutRange)
             {
-                owner.CurAttackTarget = target;
-                ChangeState<StateMove0>(fsm);
-                break;
+                Vector2Int ownerIndex = GameEntry.HeroManager.GetIndexQizi(owner);
+                Vector2Int targetIndex = GameEntry.HeroManager.GetIndexQizi(target);
+                var nextPosIndex = GameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.NormalSkillList[checkNormalSkillList[index]].SkillRange);
+                if (nextPosIndex != new Vector2Int(-1, -1))//有路线可走
+                {
+                    owner.CurAttackTarget = target;
+                    ChangeState<StateMove0>(fsm);
+                    break;
+                }
             }
             else if (result == CheckCastSkillResult.NormalAtkWait)
             {
                 owner.CurAttackTarget = target;//普攻等待，但是目标要锁定
             }
         }
-
-        
+        ListPool<int>.Release(checkNormalSkillList);
     }
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {

@@ -16,9 +16,10 @@ namespace DataTable
         private readonly static string GeneratePath = "Assets/GameMain/Scripts/DataTable/Enum";
 
         private readonly static string[] GenerateDataTables = {
+            "Language"
         };
 
-        /*[MenuItem("Tools/Generate DataTable Enum", false, 3)]
+        [MenuItem("Tools/Generate DataTable Enum", false, 3)]
         private static void GenerateDataTableEnum()
         {
             foreach (string dataTableName in GenerateDataTables)
@@ -34,7 +35,7 @@ namespace DataTable
             }
 
             AssetDatabase.Refresh();
-        }*/
+        }
 
         public static void GenerateEnumFile(DataTableProcessor dataTableProcessor, string dataTableName)
         {
@@ -55,7 +56,6 @@ namespace DataTable
             codeContent.Replace("__DATA_TABLE_CREATE_TIME__", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
             codeContent.Replace("__DATA_TABLE_NAME_SPACE__", "DataTable");
             codeContent.Replace("__DATA_TABLE_ENUM_NAME__", "Enum" + dataTableName);
-            //codeContent.Replace("__DATA_TABLE_COMMENT__", dataTableProcessor.GetValue(0, 1) + "。");
             codeContent.Replace("__DATA_TABLE_ENUM_ITEM__", GenerateEnumItems(dataTableProcessor));
         }
 
@@ -74,6 +74,10 @@ namespace DataTable
 
             for (int i = startRow; i < dataTableProcessor.RawRowCount; i++)
             {
+                if (dataTableProcessor.IsCommentRow(i))
+                {
+                    continue;
+                }
                 int index = i - startRow;
 
                 if (firstProperty)

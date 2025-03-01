@@ -1,0 +1,20 @@
+﻿#	文本表				
+#	Id		EnumName	Chinese	English
+#	int		string	string	string
+#	文本ID	备注	文本枚举名	中文	英文
+#10000+itemID是道具名					
+	10001	斧头	ItemName_Axe	斧头	Axe
+	10002	子弹	ItemName_Bullet	子弹	Bullet
+	10003	匕首	ItemName_Dagger	匕首	Dagger
+	10004	护甲板	ItemName_ArmorPlate	护甲板	Armor Plate
+	10005	动能引擎	ItemName_KineticEngine	动能引擎	Kinetic Engine
+	10006	计算单元	ItemName_ComputingUnit	计算单元	Computing Unit
+	10007	万能胶	ItemName_UniversalAdhesive	万能胶	Universal Adhesive
+#					
+	11001	旋转斧头	ItemName_WhirlingAxe	旋转斧头	Whirling Axe
+	11002	反甲	ItemName_ThornArmor	反甲	Reflective Armor
+	11003	充能护甲	ItemName_ChargedArmor	充能护甲	Charged Armor
+#					
+	12001	两把斧头	ItemName_TwoAxes	两把斧头	Two Axes
+	12002	三把斧头	ItemName_ThreeAxes	三把斧头	Three Axes
+#20000+itemID是道具描述					

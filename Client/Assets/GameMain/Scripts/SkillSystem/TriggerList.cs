@@ -77,7 +77,7 @@ namespace SkillSystem
                 //将触发类型是 当收到/造成伤害 这种监听类型时 放入caster 的 监听 dic里
                 foreach (var oneTrigger in CurTriggerList)
                 {
-                    if (oneTrigger.CurTriggerType != TriggerType.OnActive)
+                    if (oneTrigger.CurTriggerType != TriggerType.OnActive&&oneTrigger.CurTriggerType != TriggerType.OnDestory)
                     {
                         qizi.AddTriggerListen(oneTrigger);
                         //添加到角色的 监听列表中
@@ -105,7 +105,7 @@ namespace SkillSystem
                 //将触发类型是 当收到/造成伤害 这种监听类型时 放入caster 的 监听 dic里
                 foreach (var oneTrigger in CurTriggerList)
                 {
-                    if (oneTrigger.CurTriggerType != TriggerType.OnActive || oneTrigger.CurTriggerType != TriggerType.OnDestory)
+                    if (oneTrigger.CurTriggerType != TriggerType.OnActive && oneTrigger.CurTriggerType != TriggerType.OnDestory)
                     {
                         qizi.RemoveTriggerListen(oneTrigger);
                         //角色的 监听列表中 移除

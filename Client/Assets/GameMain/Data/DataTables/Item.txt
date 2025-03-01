@@ -1,18 +1,18 @@
-﻿#	道具表										
-#	Id	Name	Decs	Rarity	IconID	AssetIDList	AssetObjLength	CraftList	AttrAdd	SkillID	StoreCoin
-#	int	string	string	int	int	int[]	int[]	list<(int,int)>	list<(int,int)>	int	int
-#	道具ID	道具名	道具描述	稀有度	图片ID	3d模型	3d模型长度参数	合成材料	属性加成	对应技能ID	商店售价
-	1	斧头		1	4001	2004	593,857			1	51
-	2	子弹		1	4002					2	52
-	3	匕首		1	4003						53
-	4	护甲板		1	4004						54
-	5	动能引擎		1	4005						55
-	6	计算单元		1	4000						56
-	7	万能胶		1	4000						50
-#需要合成的											
-	1001	旋转斧头		1	4501			1,1;5,1		3	120
-	1002	反甲		1	4502			4,2	9,40	4	122
-	1003	充能护甲		1	4503			4,1;5,1	9,30	5	123
-#万能胶合成的											
-	2001	两把斧头		2	4001	1,1	1450,1714	1,2;7,1		1	200
-	2002	三把斧头		2	4001	1,1,1	2307,2571	1,3;7,2		1001	300
+﻿#	道具表											
+#	Id		Name	Decs	Rarity	IconID	AssetIDList	AssetObjLength	CraftList	AttrAdd	SkillID	StoreCoin
+#	int		string	string	int	int	int[]	int[]	list<(int,int)>	list<(int,int)>	int	int
+#	道具ID	备注	道具名	道具描述	稀有度	图片ID	3d模型	3d模型长度参数	合成材料	属性加成	对应技能ID	商店售价
+	1	斧头	ItemName_Axe		1	4001	2004	593,857			1	51
+	2	子弹	ItemName_Bullet		1	4002					2	52
+	3	匕首	ItemName_Dagger		1	4003						53
+	4	护甲板	ItemName_ArmorPlate		1	4004						54
+	5	动能引擎	ItemName_KineticEngine		1	4005						55
+	6	计算单元	ItemName_ComputingUnit		1	4000						56
+	7	万能胶	ItemName_UniversalAdhesive		1	4000						50
+#需要合成的												
+	1001	旋转斧头	ItemName_WhirlingAxe		1	4501			1,1;5,1		3	120
+	1002	反甲	ItemName_ThornArmor		1	4502			4,2	9,40	4	122
+	1003	充能护甲	ItemName_ChargedArmor		1	4503			4,1;5,1	9,30	5	123
+#万能胶合成的												
+	2001	两把斧头	ItemName_TwoAxes		2	4001	1,1	1450,1714	1,2;7,1		1	200
+	2002	三把斧头	ItemName_ThreeAxes		2	4001	1,1,1	2307,2571	1,3;7,2		1001	300

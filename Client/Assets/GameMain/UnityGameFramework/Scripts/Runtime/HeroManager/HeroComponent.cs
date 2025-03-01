@@ -77,6 +77,10 @@ namespace UnityGameFramework.Runtime
             }
         }
 
+        public void ShowQige(bool show)
+        {
+            m_QigeRoot.gameObject.SetActive(show);
+        }
         private void Start()
         {
             var offsetX = -3.5f;

@@ -11,6 +11,8 @@ namespace Entity
     public partial class EntityQizi
     {
         public List<Skill> NormalSkillList = new List<Skill>();
+        public int NextCastNormalSkillIndex = 0;
+        public int CurCastNormalSkillIndex = 0;
         public List<Skill> NoAnimAtkSkillList = new List<Skill>();
         public Skill SpSkill;
         public List<Skill> PassiveSkillList = new List<Skill>();
@@ -148,6 +150,7 @@ namespace Entity
                 oneSkill.ShakeBeforeMs = skillTableData.BeforeShakeEndMs;
                 oneSkill.CurSkillCastTargetType = (SkillCastTargetType)skillTableData.TargetType;
                 oneSkill.DefaultSkillCDMs = skillTableData.CDMs;
+                oneSkill.CastPower = skillTableData.CastPower;
                 var temp = skillTemplates[skillTableData.TemplateID].SkillTemplate;
                 temp.Clone(oneSkill);
                 oneSkill.Owner = this;
@@ -365,38 +368,23 @@ namespace Entity
                 }
             }
         }
-        public CheckCastSkillResult CheckCanCastSkill(out EntityQizi target,bool isSpSkill = false,int normalSkillIndex = 0)
+        public CheckCastSkillResult CheckCanCastSkill(out EntityQizi target,int normalSkillIndex = 0)
         {
             target = null;
-            //判断是否需要蓝量
-            if (isSpSkill)
-            {
-                var maxPower = (int)GetAttribute(AttributeType.MaxPower).GetFinalValue();
-                var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
-                if (curPower < maxPower)
-                {
-                    return CheckCastSkillResult.NoPower;
-                }
-            }
-
             Skill willCastSkill = null;
-            //判断目标
-            if (isSpSkill)
+            if (normalSkillIndex < NormalSkillList.Count)
             {
-                willCastSkill = SpSkill;
-            }
-            else
-            {
-                if (normalSkillIndex < NormalSkillList.Count)
-                {
-                    willCastSkill = NormalSkillList[normalSkillIndex];
-                }
+                willCastSkill = NormalSkillList[normalSkillIndex];
             }
             if (willCastSkill == null)
             {
                 return CheckCastSkillResult.Error;
             }
-
+            var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
+            if (curPower < willCastSkill.CastPower)
+            {
+                return CheckCastSkillResult.NoPower;
+            }
             var inAttackRange = false;
             if (willCastSkill.CurSkillCastTargetType != SkillCastTargetType.NoNeedTarget)
             {
@@ -420,7 +408,7 @@ namespace Entity
                 if (canUseOldTarget == false)
                 {
                     //之前目标不可用，重新选择目标
-                    inAttackRange = GetSkillNewTarget(out target, isSpSkill,normalSkillIndex);
+                    inAttackRange = GetSkillNewTarget(out target,normalSkillIndex);
                 }
                 if (target == null)
                 {
@@ -431,7 +419,7 @@ namespace Entity
                     return CheckCastSkillResult.TargetOutRange;
                 }
             }
-            if (isSpSkill == false&&willCastSkill.InCD)
+            if (willCastSkill.InCD)
             {
                 return CheckCastSkillResult.NormalAtkWait;
             }
@@ -443,21 +431,14 @@ namespace Entity
         /// <param name="target">技能目标</param>
         /// <param name="isSpSkill"></param>
         /// <returns>是否在攻击范围内</returns>
-        public bool GetSkillNewTarget(out EntityQizi target, bool isSpSkill = false,int normalSkillIndex =0)
+        public bool GetSkillNewTarget(out EntityQizi target,int normalSkillIndex =0)
         {
             target = null;
             Skill willCastSkill = null;
             //判断目标
-            if (isSpSkill)
+            if (normalSkillIndex < NormalSkillList.Count)
             {
-                willCastSkill = SpSkill;
-            }
-            else
-            {
-                if (normalSkillIndex < NormalSkillList.Count)
-                {
-                    willCastSkill = NormalSkillList[normalSkillIndex];
-                }
+                willCastSkill = NormalSkillList[normalSkillIndex];
             }
             if (willCastSkill == null)
             {
@@ -474,20 +455,18 @@ namespace Entity
             return false;
         }
 
-        public void CastSkill(bool isSpSkill,int normalSkillIndex = 0)
+        public void CastNormalSkill(int normalSkillIndex = 0)
         {
-            if (isSpSkill)
+            if (normalSkillIndex < NormalSkillList.Count)
             {
-                GetAttribute(AttributeType.Power).SetBaseNum(0);
-                SpSkill?.Cast();
-            }
-            else
-            {
-                if (normalSkillIndex < NormalSkillList.Count)
+                CurCastNormalSkillIndex = normalSkillIndex;
+                NextCastNormalSkillIndex = normalSkillIndex + 1;
+                if (NextCastNormalSkillIndex == NormalSkillList.Count)
                 {
-                    GetAttribute(AttributeType.Power).AddNum(10);
-                    NormalSkillList[normalSkillIndex].Cast();
+                    NextCastNormalSkillIndex = 0;
                 }
+                GetAttribute(AttributeType.Power).AddNum(-NormalSkillList[normalSkillIndex].CastPower);
+                NormalSkillList[normalSkillIndex].Cast();
             }
         }
 
@@ -576,6 +555,21 @@ namespace Entity
             }
         }
 
+        public List<int> GetNormalSkillCheckSort()
+        {
+            List<int> checkNormalSkillList = ListPool<int>.Get();
+            var nextCastIndex = NextCastNormalSkillIndex;
+            for (var index = 0; index < NormalSkillList.Count; index++)
+            {
+                var curIndex = nextCastIndex + index;
+                if (curIndex >= NormalSkillList.Count)
+                {
+                    curIndex -= NormalSkillList.Count;
+                }
+                checkNormalSkillList.Add(curIndex);
+            }
+            return checkNormalSkillList;
+        }
         private List<Buff> GetAllShieldList()
         {
             List<Buff> shieldList = ListPool<Buff>.Get();

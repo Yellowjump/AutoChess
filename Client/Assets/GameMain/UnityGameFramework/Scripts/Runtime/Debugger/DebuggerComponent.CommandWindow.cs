@@ -69,7 +69,7 @@ namespace UnityGameFramework.Runtime
                         _curInputSelectIndex = _curSelectIndex;
                         itemIDStr = _itemIDList[_curSliderSelectIndex].ToString();
                     }
-                    GUILayout.Label($"{_itemTablel[_itemIDList[_curSliderSelectIndex]].Name},ID:{_itemIDList[_curSliderSelectIndex]}");
+                    GUILayout.Label($"{GameEntry.Localization.GetString(_itemTablel[_itemIDList[_curSliderSelectIndex]].Name)},ID:{_itemIDList[_curSliderSelectIndex]}");
                     // 获取输入的文本
                     string newText = GUILayout.TextField(itemNum.ToString(), GUILayout.Width(200));
                     // 只保留整数字符（包括负号）

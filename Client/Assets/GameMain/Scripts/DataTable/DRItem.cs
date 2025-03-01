@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-11-15 01:06:33.156
+// 生成时间：2025-03-02 05:37:38.059
 //------------------------------------------------------------
 
 using GameFramework;
@@ -140,6 +140,7 @@ namespace DataTable
             int index = 0;
             index++;
             m_Id = int.Parse(columnStrings[index++]);
+            index++;
             Name = columnStrings[index++];
             Decs = columnStrings[index++];
             Rarity = int.Parse(columnStrings[index++]);

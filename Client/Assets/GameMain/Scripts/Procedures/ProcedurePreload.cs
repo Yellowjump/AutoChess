@@ -7,6 +7,7 @@ using GameFramework.Event;
 using UnityGameFramework.Runtime;
 using GameFramework.Procedure;
 using GameFramework.DataTable;
+using GameFramework.Localization;
 using UnityEngine;
 
 using ProcedureOwner = GameFramework.Fsm.IFsm<GameFramework.Procedure.IProcedureManager>;
@@ -25,7 +26,8 @@ namespace Procedure
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
-            GameEntry.UI.OpenUIForm(UICtrlName.LoadingPanel, "top");
+            InitLanguageSettings();
+            InitCurrentVariant();
             if (GameEntry.Base.EditorResourceMode)
             {
                 OnInitResourceComplete();
@@ -36,13 +38,58 @@ namespace Procedure
             }
             
         }
+        private void InitLanguageSettings()
+        {
+            if (GameEntry.Base.EditorResourceMode && GameEntry.Base.EditorLanguage != Language.Unspecified)
+            {
+                // 编辑器资源模式直接使用 Inspector 上设置的语言
+                GameEntry.Setting.SetInt(ConstValue.SettingKeyLanguage, (int)GameEntry.Base.EditorLanguage);
+                GameEntry.Setting.Save();
+                return;
+            }
 
+            Language language = (Language)GameEntry.Setting.GetInt(ConstValue.SettingKeyLanguage, (int)Language.ChineseSimplified);
+
+            if (language != Language.English && language != Language.ChineseSimplified)
+            {
+                language = Language.ChineseSimplified;
+                GameEntry.Setting.SetString(ConstValue.SettingKeyLanguage, language.ToString());
+                GameEntry.Setting.Save();
+            }
+            GameEntry.Localization.Language = language;
+            Log.Info("Init language settings complete, current language is '{0}'.", language.ToString());
+        }
+        private void InitCurrentVariant()
+        {
+            if (GameEntry.Base.EditorResourceMode)
+            {
+                // 编辑器资源模式不使用 AssetBundle，也就没有变体了
+                return;
+            }
+
+            string currentVariant = "zh_cn";
+            switch (GameEntry.Localization.Language)
+            {
+                case Language.English:
+                    currentVariant = "en_us";
+                    break;
+
+                case Language.ChineseSimplified:
+                    currentVariant = "zh_cn";
+                    break;
+            }
+            GameEntry.Resource.SetCurrentVariant(currentVariant);
+            Log.Info("Init current variant complete.current variant :{0}.", currentVariant);
+        }
         private void OnInitResourceComplete()
         {
+            GameEntry.UI.OpenUIForm(UICtrlName.LoadingPanel, "top");
             m_ResourceLoaded = true;
             GameEntry.Event.Subscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
             GameEntry.Event.Subscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
             GameEntry.Event.Subscribe(LoadSceneSuccessEventArgs.EventId, OnLoadTerrainSceneSuccess);
+            GameEntry.Event.Subscribe(LoadDictionarySuccessEventArgs.EventId, OnLoadLocalDataTableSuccess);
+            GameEntry.Event.Subscribe(LoadDictionaryFailureEventArgs.EventId, OnLoadLocalTableFailure);
             m_LoadedFlag.Add("Assets/GameMain/Scenes/terrain.unity",false);
             GameEntry.Scene.LoadScene("Assets/GameMain/Scenes/terrain.unity");
             PreloadDataTable();
@@ -80,6 +127,8 @@ namespace Procedure
             GameEntry.Event.Unsubscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
             GameEntry.Event.Unsubscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
             GameEntry.Event.Unsubscribe(LoadSceneSuccessEventArgs.EventId, OnLoadTerrainSceneSuccess);
+            GameEntry.Event.Unsubscribe(LoadDictionarySuccessEventArgs.EventId, OnLoadLocalDataTableSuccess);
+            GameEntry.Event.Unsubscribe(LoadDictionaryFailureEventArgs.EventId, OnLoadLocalTableFailure);
         }
 
         protected override void OnDestroy(ProcedureOwner procedureOwner)
@@ -109,6 +158,8 @@ namespace Procedure
                 DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(tableName.Value.Item1, tableName.Key);
                 dataTable.ReadData($"Assets/GameMain/Data/DataTables/{tableName.Key}.bytes",0, null);
             }
+            _dataTableFlag.Add("Language",(typeof(DRLanguage),false));//交给localizationComponent
+            GameEntry.Localization.ReadData("Assets/GameMain/Data/DataTables/Language.bytes",0);
         }
         
 
@@ -144,6 +195,35 @@ namespace Procedure
             }
 
             Log.Error("Can not load table '{0}' with error: {1}", ne.DataTableAssetName,ne.ErrorMessage);
+        }
+        private void OnLoadLocalDataTableSuccess(object sender, GameEventArgs e)
+        {
+            LoadDictionarySuccessEventArgs ne = (LoadDictionarySuccessEventArgs)e;
+            if (ne == null)
+            {
+                return;
+            }
+
+            var tableName = ExtractFileName(ne.DictionaryAssetName);
+            if (_dataTableFlag.ContainsKey(tableName))
+            {
+                _dataTableFlag[tableName] = new ValueTuple<Type, bool>(_dataTableFlag[tableName].Item1,true);
+                Log.Info("Load Localization config '{0}' OK.", ne.DictionaryAssetName);
+            }
+            else
+            {
+                Log.Error("load Localization error table '{0}' ", ne.DictionaryAssetName);
+            }
+        }
+        private void OnLoadLocalTableFailure(object sender, GameEventArgs e)
+        {
+            LoadDictionaryFailureEventArgs ne = (LoadDictionaryFailureEventArgs)e;
+            if (ne==null)
+            {
+                return;
+            }
+
+            Log.Error("Can not load table '{0}' with error: {1}", ne.DictionaryAssetName,ne.ErrorMessage);
         }
         private void OnLoadTerrainSceneSuccess(object sender, GameEventArgs e)
         {

@@ -76,7 +76,9 @@ namespace Entity
             if (_animancer != null && !string.IsNullOrEmpty(_waitPlayAni)&&CurAnimationList.ContainsKey(_waitPlayAni))
             {
                 var anim = CurAnimationList[_waitPlayAni];
-                _animancer.Play(anim,0.25f);
+                _waitPlayAni = string.Empty;
+                var state = _animancer.Play(anim,0.25f);
+                state.Time = 0f;
             }
             /*if (animator!=null&&!string.IsNullOrEmpty(_waitPlayAni))
             {

@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 using SelfEventArg;
+using SkillSystem;
 using TMPro;
 using UnityEngine.Pool;
 
@@ -63,7 +64,11 @@ public class BattleBagPanelCtrl : UIFormLogic
     [SerializeField] private Transform _itemTipParent;
     [SerializeField] private TextMeshProUGUI _itemTipName;
     [SerializeField] private TextMeshProUGUI _itemTipRarity;
+    [SerializeField] private TextMeshProUGUI _itemTipCast;
+    [SerializeField] private TextMeshProUGUI _itemTipType;
+    [SerializeField] private TextMeshProUGUI _itemTipCDNum;
     [SerializeField] private TextMeshProUGUI _itemTipDec;
+    [SerializeField] private TextMeshProUGUI _itemTipAtkDistance;
     private const int _tipPosOffsetX = 250;
     private const int _tipPosOffsetY = 150;
     public override void OnInit(object userData)
@@ -247,10 +252,38 @@ public class BattleBagPanelCtrl : UIFormLogic
             return;
         }
 
-        _itemTipName.text = itemTable[battleBagItem.ItemID].Name;
+        _itemTipName.text = GameEntry.Localization.GetString(itemTable[battleBagItem.ItemID].Name);
         _itemTipDec.text = itemTable[battleBagItem.ItemID].Decs;
         _itemTipRarity.color = ConstValue.RarityColorList[itemTable[battleBagItem.ItemID].Rarity];
         _itemTipRarity.text = ConstValue.RarityNameList[itemTable[battleBagItem.ItemID].Rarity];
+        var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
+        if (skillTable.HasDataRow(itemTable[battleBagItem.ItemID].SkillID))
+        {
+            var skillData = skillTable[itemTable[battleBagItem.ItemID].SkillID];
+            if (skillData.SkillType == (int)SkillType.NormalSkill)
+            {
+                _itemTipAtkDistance.text = skillData.SkillRange.ToString();
+            }
+            _itemTipAtkDistance.gameObject.SetActive(skillData.SkillType == (int)SkillType.NormalSkill);
+            _itemTipCast.gameObject.SetActive(skillData.SkillType != (int)SkillType.PassiveSkill);
+            string castOrGet = string.Empty;
+            if (skillData.CastPower == 0)
+            {
+                castOrGet = "无消耗";
+            }
+            else if (skillData.CastPower > 0)
+            {
+                castOrGet = $"消耗{skillData.CastPower}法力值";
+            }
+            else
+            {
+                castOrGet = $"获得{-skillData.CastPower}法力值";
+            }
+            _itemTipCast.text = castOrGet;
+            
+        }
+        
+        
     }
 
     private void OnPointItemExit(BattleBagItem battleBagItem)
@@ -347,7 +380,7 @@ public class BattleBagPanelCtrl : UIFormLogic
             if (matchID != _craftItem.ItemID)
             {
                 _craftItem.ItemID = matchID;
-                _craftItemName.text = itemTable[matchID].Name;
+                _craftItemName.text = GameEntry.Localization.GetString(itemTable[matchID].Name);
                 _craftItemDesc.text = itemTable[matchID].Decs;
                 _craftItemRarity.color = ConstValue.RarityColorList[itemTable[matchID].Rarity];
                 _craftItemRarity.text = ConstValue.RarityNameList[itemTable[matchID].Rarity];

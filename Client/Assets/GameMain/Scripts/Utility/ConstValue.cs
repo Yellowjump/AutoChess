@@ -18,4 +18,5 @@ public class ConstValue
         "史诗",
         "传说",
     };
+    public const string SettingKeyLanguage = "Setting.Language";
 }

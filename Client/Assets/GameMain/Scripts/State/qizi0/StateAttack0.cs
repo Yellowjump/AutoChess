@@ -1,3 +1,4 @@
+using System;
 using GameFramework.Fsm;
 using Entity;
 using Procedure;
@@ -5,13 +6,15 @@ using System.Collections;
 using System.Collections.Generic;
 using SkillSystem;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
 public class StateAttack0 : FsmState<EntityQizi>
 {
-    private bool curSpSkill = false;
     private int curNormalIndex = 0;
     private float durationAccumulate = 0f;
+    private bool m_HasEnterShakeBefore = false;
+    private bool m_HasAnimEndCheckToIdle = false;
     protected override void OnInit(IFsm<EntityQizi> fsm)
     {
         base.OnInit(fsm);
@@ -19,7 +22,12 @@ public class StateAttack0 : FsmState<EntityQizi>
     protected override void OnEnter(IFsm<EntityQizi> fsm)
     {
         base.OnEnter(fsm);
-        CheckCastSkill(fsm);
+        if (fsm == null || fsm.Owner == null)
+        {
+            return;
+        }
+        var owner = fsm.Owner;
+        curNormalIndex = owner.CurCastNormalSkillIndex;
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
@@ -49,63 +57,42 @@ public class StateAttack0 : FsmState<EntityQizi>
         var owner = fsm.Owner;
         durationAccumulate += elapseSeconds;
         //update 技能时间
-        var curSkill = curSpSkill ? owner.SpSkill : owner.NormalSkillList[curNormalIndex];
-        if (durationAccumulate * 1000 >= curSkill.ShakeBeforeMs && durationAccumulate * 1000 < curSkill.ShakeBeforeMs + elapseSeconds * 1000)
+        var curSkill = owner.NormalSkillList[curNormalIndex];
+        var cdr =  (int)owner.GetAttribute(AttributeType.CooldownReduce).GetFinalValue();
+        var reducePercent = cdr / (cdr + 100f);
+        var curCDMs = Mathf.CeilToInt(curSkill.DefaultSkillCDMs * (1 - reducePercent));
+        var curAnimEndMs = curSkill.DefaultAnimationDurationMs;
+        var curShakeBeforeMs = curSkill.ShakeBeforeMs;
+        if (curCDMs < curAnimEndMs)//实际CD小于动画时间了，需要动画加速
         {
+            curShakeBeforeMs = Mathf.CeilToInt(curShakeBeforeMs * curCDMs / curAnimEndMs);
+            curAnimEndMs = curCDMs;
+        }
+        if (m_HasEnterShakeBefore==false&& durationAccumulate * 1000 >= curShakeBeforeMs)
+        {
+            m_HasEnterShakeBefore = true;
             curSkill.OnSkillBeforeShakeEnd();
         }
-
-        if (durationAccumulate * 1000 >= curSkill.DefaultAnimationDurationMs && durationAccumulate * 1000 < curSkill.DefaultAnimationDurationMs + elapseSeconds * 1000)
+        if (m_HasAnimEndCheckToIdle==false&& durationAccumulate * 1000 >= curAnimEndMs)
+        {
+            m_HasAnimEndCheckToIdle = true;
+            owner.AddAnimCommandIdle();
+        }
+        
+        if (durationAccumulate * 1000 >= curCDMs)
         {
             curSkill.OnDestory();
             //技能结束回到idle状态
             ChangeState<StateIdle0>(fsm);
         }
     }
-
-    private void CheckCastSkill(IFsm<EntityQizi> fsm)
-    {
-        if (fsm == null || fsm.Owner == null)
-        {
-            return;
-        }
-
-        var owner = fsm.Owner;
-        var result = owner.CheckCanCastSkill(out var target, true);
-        if (result == CheckCastSkillResult.CanCast)
-        {
-            owner.CastSkill(true);
-            if (target != null)
-            {
-                owner.GObj?.transform.LookAt(target.GObj.transform);
-            }
-            curSpSkill = true;
-            return;
-        }
-
-        for (var normalSkillIndex = 0; normalSkillIndex < owner.NormalSkillList.Count; normalSkillIndex++)
-        {
-            result = owner.CheckCanCastSkill(out target, false,normalSkillIndex);
-            if (result == CheckCastSkillResult.CanCast)
-            {
-                owner.CastSkill(false,normalSkillIndex);
-                if (target != null)
-                {
-                    owner.GObj?.transform.LookAt(target.GObj.transform);
-                }
-                curSpSkill = false;
-                curNormalIndex = normalSkillIndex;
-                return;
-            }
-        }
-        ChangeState<StateIdle0>(fsm);
-    }
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {
         base.OnLeave(fsm, isShutdown);
         durationAccumulate = 0;
-        curSpSkill = false;
         curNormalIndex = 0;
+        m_HasEnterShakeBefore = false;
+        m_HasAnimEndCheckToIdle = false;
     }
     protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {
