@@ -5,10 +5,19 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 namespace UnityGameFramework.Runtime
 {
+    [Serializable]
+    public class TxtAndLanguageKey
+    {
+        public TextMeshProUGUI Tmp;
+        public string LanguageKey;
+    }
     /// <summary>
     /// 界面逻辑基类。
     /// </summary>
@@ -19,7 +28,7 @@ namespace UnityGameFramework.Runtime
         private UIForm m_UIForm = null;
         private Transform m_CachedTransform = null;
         private int m_OriginalLayer = 0;
-
+        public List<TxtAndLanguageKey> AutoLanguageTmp;
         /// <summary>
         /// 获取界面。
         /// </summary>
@@ -123,8 +132,23 @@ namespace UnityGameFramework.Runtime
         /// <param name="userData">用户自定义数据。</param>
         public virtual void OnOpen(object userData)
         {
+            if (AutoLanguageTmp != null && AutoLanguageTmp.Count > 0)
+            {
+                foreach (var oneTxtAndLanguage in AutoLanguageTmp)
+                {
+                    if (oneTxtAndLanguage.Tmp != null && !string.IsNullOrEmpty(oneTxtAndLanguage.LanguageKey))
+                    {
+                        oneTxtAndLanguage.Tmp.text = GameEntry.Localization.GetString(oneTxtAndLanguage.LanguageKey.TrimEnd());
+                    }
+                }
+            }
             m_Available = true;
             Visible = true;
+        }
+
+        public void Close()
+        {
+            GameEntry.UI.CloseUIForm(this);
         }
 
         /// <summary>

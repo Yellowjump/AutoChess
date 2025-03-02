@@ -611,7 +611,10 @@ namespace UnityGameFramework.Runtime
         {
             m_UIManager.CloseUIForm(uiForm);
         }
-
+        public void CloseUIForm(UIFormLogic uiForm)
+        {
+            CloseUIForm(uiForm.UIForm);
+        }
         public void CloseUIForm(string uiFormName)
         {
             var willCloseUIForm = GameEntry.UI.GetUIForm(uiFormName);

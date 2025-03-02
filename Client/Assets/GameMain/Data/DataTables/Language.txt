@@ -2,6 +2,20 @@
 #	Id		EnumName	Chinese	English
 #	int		string	string	string
 #	文本ID	备注	文本枚举名	中文	英文
+	1	中文	Language_Chinese	中文	Chinese
+	2	英语	Language_English	英语	English
+	11	修改语言提示	ChangeLanguageTip	修改语言将重启游戏	Changing the language will restart the game
+	12	确认界面确认	Confirm_Confirn	确认	Confirm
+	13	确认界面取消	Confirm_Cancel	取消	Cancel
+	14	初始界面开始游戏	Title_StartGame	开始游戏	Start Game
+	15	初始界面设置	Title_Setting	设置	Setting
+	16	初始界面继续游戏	Title_ContinueGame	继续游戏	Continue Game
+	17	设置界面音效	Setting_Audio	音效	Audio
+	18	设置界面总音量	Setting_MasterVolume	总音量	Master Volume
+	19	设置界面特效音量	Setting_SfxVolume	特效音量	SFX Volume
+	20	设置界面UI音量	Setting_UIVolume	UI音量	UI Volume
+	21	设置界面BGM音量	Setting_BGMVolume	BGM音量	BGM Volume
+	22	设置界面语言	Setting_Language	语言	Language
 #10000+itemID是道具名					
 	10001	斧头	ItemName_Axe	斧头	Axe
 	10002	子弹	ItemName_Bullet	子弹	Bullet

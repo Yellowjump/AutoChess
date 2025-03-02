@@ -15,4 +15,5 @@ public class UICtrlName
     public const string GameHudPanel = "Assets/GameMain/Prefeb/UIPrefab/game_hud.prefab";
     public const string GameBagPanel = "Assets/GameMain/Prefeb/UIPrefab/battle_bag.prefab";
     public const string LoadingPanel = "Assets/GameMain/Prefeb/UIPrefab/game_load.prefab";
+    public const string ConfirmPanel = "Assets/GameMain/Prefeb/UIPrefab/confirm_panel.prefab";
 }
