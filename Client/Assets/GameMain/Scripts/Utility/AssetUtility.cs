@@ -12,6 +12,15 @@ namespace DataTable
 {
     public static class AssetUtility
     {
+        public static string GetAssetPathByID(int id)
+        {
+             var assetsPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
+             if (assetsPathTable.HasDataRow(id))
+             {
+                  return (assetsPathTable[id].AssetPath);
+             }
+             return string.Empty;
+        }
         /*public static string GetConfigAsset(string assetName, bool fromBytes = false)
         {
             return Utility.Text.Format("Assets/GameMain/Configs/{0}.{1}", assetName, fromBytes ? "bytes" : "txt");

@@ -26,7 +26,7 @@ namespace UnityGameFramework.Runtime
     public sealed partial class SoundComponent : GameFrameworkComponent
     {
         private const int DefaultPriority = 0;
-
+        public float MasterVolume = 1;
         private ISoundManager m_SoundManager = null;
         private EventComponent m_EventComponent = null;
         private AudioListener m_AudioListener = null;

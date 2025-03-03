@@ -18,6 +18,7 @@ namespace GameFramework.Sound
         private bool m_Loop;
         private int m_Priority;
         private float m_VolumeInSoundGroup;
+        private float m_VolumeMaster;
         private float m_FadeInSeconds;
         private float m_Pitch;
         private float m_PanStereo;
@@ -118,7 +119,20 @@ namespace GameFramework.Sound
                 m_VolumeInSoundGroup = value;
             }
         }
-
+        /// <summary>
+        /// 获取或设置在声音组内音量大小。
+        /// </summary>
+        public float VolumeMaster
+        {
+            get
+            {
+                return m_VolumeMaster;
+            }
+            set
+            {
+                m_VolumeMaster = value;
+            }
+        }
         /// <summary>
         /// 获取或设置声音淡入时间，以秒为单位。
         /// </summary>

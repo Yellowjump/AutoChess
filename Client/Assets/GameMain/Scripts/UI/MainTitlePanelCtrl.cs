@@ -53,10 +53,10 @@ public class MainTitlePanelCtrl : UIFormLogic
         mLanguageDropDown.value = dropDownValue;
         mLanguageDropDown.onValueChanged.AddListener(OnLanguageDropdownValueChanged);
         ListPool<string>.Release(stringList);
-        /*mVolumeMasterSlider.value = GameEntry.Sound.GetVolume("Music");
-        mVolumeSfxSlider.value = GameEntry.Sound.GetVolume("SFX");
-        mVolumeUISlider.value = GameEntry.Sound.GetVolume("SFX/UI");
-        mVolumeBgmSlider.value = GameEntry.Sound.GetVolume("SFX/UI");*/
+        mVolumeMasterSlider.value = GameEntry.Sound.GetMasterVolume();
+        mVolumeSfxSlider.value = GameEntry.Sound.GetVolume("Sfx");
+        mVolumeUISlider.value = GameEntry.Sound.GetVolume("UI");
+        mVolumeBgmSlider.value = GameEntry.Sound.GetVolume("BGM");
         mVolumeMasterSlider.onValueChanged.AddListener(OnMasterVolumeSliderChange);
         mVolumeBgmSlider.onValueChanged.AddListener(OnBgmVolumeSliderChange);
         mVolumeSfxSlider.onValueChanged.AddListener(OnSFXVolumeSliderChange);
@@ -75,16 +75,19 @@ public class MainTitlePanelCtrl : UIFormLogic
     private void OnClickContinueBtn()
     {
         Log.Info("OnClickContinueBtn OnClick");
+        GameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
         var titleProcedure = GameEntry.Procedure.GetProcedure<ProcedureTitle>() as ProcedureTitle;
         titleProcedure?.MoveToContinueGame();
     }
     private void OnClickStartBtn()
     {
+        GameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
          var titleProcedure = GameEntry.Procedure.GetProcedure<ProcedureTitle>() as ProcedureTitle;
          titleProcedure?.MoveToGame();
     }
     private void OnClickSettingBtn()
     {
+        GameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
         mTransSetting.gameObject.SetActive(!mTransSetting.gameObject.activeSelf);
     }
 
@@ -139,19 +142,19 @@ public class MainTitlePanelCtrl : UIFormLogic
     }
     private void OnMasterVolumeSliderChange(float value)
     {
-        //GameEntry.Sound.SetVolume("Music", value);
+        GameEntry.Sound.SetMasterVolume(value);
     }
     private void OnBgmVolumeSliderChange(float value)
     {
-        //GameEntry.Sound.SetVolume("Music", value);
+        GameEntry.Sound.SetVolume("BGM", value);
     }
     private void OnSFXVolumeSliderChange(float value)
     {
-        //GameEntry.Sound.SetVolume("SFX", value);
+        GameEntry.Sound.SetVolume("Sfx", value);
     }
 
     private void OnMusicVolumeSliderChange(float value)
     {
-        //GameEntry.Sound.SetVolume("SFX/UI", value);
+        GameEntry.Sound.SetVolume("UI", value);
     }
 }

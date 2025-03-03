@@ -62,7 +62,11 @@ namespace GameFramework.Sound
         {
             get;
         }
-
+        /// <summary>
+        /// 设置 总音量
+        /// </summary>
+        /// <param name="masterVolume"></param>
+        void SetMasterVolume(float masterVolume);
         /// <summary>
         /// 停止所有已加载的声音。
         /// </summary>

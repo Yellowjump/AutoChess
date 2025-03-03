@@ -4,9 +4,6 @@ using GameFramework;
 using GameFramework.Procedure;
 using Entity;
 using Maze;
-
-using UnityEngine;
-using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 using ProcedureOwner = GameFramework.Fsm.IFsm<GameFramework.Procedure.IProcedureManager>;
 namespace Procedure
@@ -20,6 +17,7 @@ namespace Procedure
             base.OnEnter(procedureOwner);
             //打开titleUI
             GameEntry.UI.OpenUIForm(UICtrlName.MainTitlePanel, "middle");
+            GameEntry.Sound.PlayMusic((int)EnumSound.GameStartBGM);
         }
         protected override void OnUpdate(ProcedureOwner procedureOwner, float elapseSeconds, float realElapseSeconds)
         {

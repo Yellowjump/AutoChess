@@ -16,7 +16,8 @@ namespace DataTable
         private readonly static string GeneratePath = "Assets/GameMain/Scripts/DataTable/Enum";
 
         private readonly static string[] GenerateDataTables = {
-            "Language"
+            "Language",
+            "Sound"
         };
 
         [MenuItem("Tools/Generate DataTable Enum", false, 3)]

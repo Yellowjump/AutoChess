@@ -319,5 +319,16 @@ namespace UnityGameFramework.Runtime
         {
             m_SettingManager.SetObject(settingName, obj);
         }
+
+        public float GetSoundGroupVolume(string groupName,float defaultVolume = 1)
+        {
+            string key = Utility.Text.Format(ConstValue.SettingKeySoundGroupVolume, groupName);
+            return GetFloat(key,defaultVolume);
+        }
+        public void SetSoundGroupVolume(string groupName,float volume)
+        {
+            string key = Utility.Text.Format(ConstValue.SettingKeySoundGroupVolume, groupName);
+            SetFloat(key,volume);
+        }
     }
 }

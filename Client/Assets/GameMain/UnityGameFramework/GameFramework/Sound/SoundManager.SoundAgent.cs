@@ -24,6 +24,7 @@ namespace GameFramework.Sound
             private DateTime m_SetSoundAssetTime;
             private bool m_MuteInSoundGroup;
             private float m_VolumeInSoundGroup;
+            public float VolumeMaster;
 
             /// <summary>
             /// 初始化声音代理的新实例。
@@ -53,6 +54,7 @@ namespace GameFramework.Sound
                 m_SoundAgentHelper = soundAgentHelper;
                 m_SoundAgentHelper.ResetSoundAgent += OnResetSoundAgent;
                 m_SerialId = 0;
+                VolumeMaster = 1;
                 m_SoundAsset = null;
                 Reset();
             }
@@ -203,7 +205,7 @@ namespace GameFramework.Sound
                     RefreshVolume();
                 }
             }
-
+            
             /// <summary>
             /// 获取或设置声音音调。
             /// </summary>
@@ -391,6 +393,7 @@ namespace GameFramework.Sound
                 SpatialBlend = Constant.DefaultSpatialBlend;
                 MaxDistance = Constant.DefaultMaxDistance;
                 DopplerLevel = Constant.DefaultDopplerLevel;
+                VolumeMaster = 1;
                 m_SoundAgentHelper.Reset();
             }
 
@@ -409,7 +412,7 @@ namespace GameFramework.Sound
 
             internal void RefreshVolume()
             {
-                m_SoundAgentHelper.Volume = m_SoundGroup.Volume * m_VolumeInSoundGroup;
+                m_SoundAgentHelper.Volume = m_SoundGroup.Volume * VolumeMaster * m_VolumeInSoundGroup;
             }
 
             private void OnResetSoundAgent(object sender, ResetSoundAgentEventArgs e)

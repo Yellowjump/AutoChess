@@ -12,5 +12,6 @@ namespace UnityGameFramework.Runtime
     /// </summary>
     public class DefaultSoundGroupHelper : SoundGroupHelperBase
     {
+
     }
 }

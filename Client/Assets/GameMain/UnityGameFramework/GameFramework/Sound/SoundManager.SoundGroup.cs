@@ -194,6 +194,7 @@ namespace GameFramework.Sound
                 candidateAgent.MuteInSoundGroup = playSoundParams.MuteInSoundGroup;
                 candidateAgent.Loop = playSoundParams.Loop;
                 candidateAgent.Priority = playSoundParams.Priority;
+                candidateAgent.VolumeMaster = playSoundParams.VolumeMaster;
                 candidateAgent.VolumeInSoundGroup = playSoundParams.VolumeInSoundGroup;
                 candidateAgent.Pitch = playSoundParams.Pitch;
                 candidateAgent.PanStereo = playSoundParams.PanStereo;
@@ -268,6 +269,15 @@ namespace GameFramework.Sound
                 }
 
                 return false;
+            }
+
+            public void SetMasterVolume(float masterVolume)
+            {
+                foreach (SoundAgent soundAgent in m_SoundAgents)
+                {
+                    soundAgent.VolumeMaster = masterVolume;
+                    soundAgent.RefreshVolume();
+                }
             }
 
             /// <summary>

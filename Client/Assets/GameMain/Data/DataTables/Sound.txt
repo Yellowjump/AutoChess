@@ -1,0 +1,8 @@
+﻿#	声音资源配置表							
+#	Id	Name	EnumName	AssetId	SoundGroupId	Priority	Loop	Volume
+#	int	string	string	int	string	int	bool	float
+#	声音ID	策划备注	枚举名	assetpathID	声音组名称	优先级	是否循环	0~1
+#100之下是BGM								
+	1	初始界面BGM	GameStartBGM	10001	BGM		1	1
+#1000开始是UI音效								
+	1001	按钮音效	BtnSfx	10002	UI		0	1

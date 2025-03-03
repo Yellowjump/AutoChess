@@ -950,6 +950,70 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_AudioMixer
+      value: 
+      objectReference: {fileID: 24100000, guid: 4d3c29abdc961d146ac46d546a4dd96c, type: 2}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[0].m_Name
+      value: BGM
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[1].m_Name
+      value: UI
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[2].m_Name
+      value: Sfx
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[3].m_Name
+      value: Sfx
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[0].m_AgentHelperCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[1].m_AgentHelperCount
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[2].m_AgentHelperCount
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[3].m_AgentHelperCount
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[0].m_AvoidBeingReplacedBySamePriority
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[1].m_AvoidBeingReplacedBySamePriority
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[2].m_AvoidBeingReplacedBySamePriority
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11413340, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_SoundGroups.Array.data[3].m_AvoidBeingReplacedBySamePriority
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11461470, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_LocalizationHelperTypeName
+      value: UnityGameFramework.Runtime.TableLocalizationHelper
+      objectReference: {fileID: 0}
+    - target: {fileID: 11499388, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_EditorLanguage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 11499388, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_EditorResourceMode
       value: 1

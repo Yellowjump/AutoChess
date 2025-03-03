@@ -28,6 +28,7 @@ namespace Procedure
             base.OnEnter(procedureOwner);
             InitLanguageSettings();
             InitCurrentVariant();
+            InitSoundVolume();
             if (GameEntry.Base.EditorResourceMode)
             {
                 OnInitResourceComplete();
@@ -80,6 +81,14 @@ namespace Procedure
             }
             GameEntry.Resource.SetCurrentVariant(currentVariant);
             Log.Info("Init current variant complete.current variant :{0}.", currentVariant);
+        }
+
+        private void InitSoundVolume()
+        {
+            GameEntry.Sound.SetMasterVolume(GameEntry.Setting.GetSoundGroupVolume("Master"));
+            GameEntry.Sound.SetVolume("BGM", GameEntry.Setting.GetSoundGroupVolume("BGM"));
+            GameEntry.Sound.SetVolume("UI", GameEntry.Setting.GetSoundGroupVolume("UI"));
+            GameEntry.Sound.SetVolume("Sfx", GameEntry.Setting.GetSoundGroupVolume("Sfx"));
         }
         private void OnInitResourceComplete()
         {
@@ -153,6 +162,7 @@ namespace Procedure
             _dataTableFlag.Add("Sfx",(typeof(DRSfx),false));
             _dataTableFlag.Add("AreaPoint",(typeof(DRAreaPoint),false));
             _dataTableFlag.Add("RewardConfig",(typeof(DRRewardConfig),false));
+            _dataTableFlag.Add("Sound",(typeof(DRSound),false));
             foreach (var tableName in _dataTableFlag)
             {
                 DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(tableName.Value.Item1, tableName.Key);
