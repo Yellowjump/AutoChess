@@ -7,9 +7,9 @@ TerrainLayer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Cliff_Mossy_E
-  m_DiffuseTexture: {fileID: 2800000, guid: 13ec2ae26109ecb4f91cd9bec9ffa408, type: 3}
-  m_NormalMapTexture: {fileID: 2800000, guid: 6a40a13a0056f6649bcce95734364b25, type: 3}
-  m_MaskMapTexture: {fileID: 2800000, guid: 277e3d1ae6cb56146a8f11b748631101, type: 3}
+  m_DiffuseTexture: {fileID: 2800000, guid: 4e0b7e7773092614185ac38d1012c9e0, type: 3}
+  m_NormalMapTexture: {fileID: 2800000, guid: e77ef15d716154d4ab00fad30337220b, type: 3}
+  m_MaskMapTexture: {fileID: 2800000, guid: 655dfcd335112a94ca853877c332f523, type: 3}
   m_TileSize: {x: 25, y: 25}
   m_TileOffset: {x: 0, y: 0}
   m_Specular: {r: 0, g: 0, b: 0, a: 0}
@@ -20,3 +20,4 @@ TerrainLayer:
   m_DiffuseRemapMax: {x: 0.735849, y: 0.6872552, z: 0.62246346, w: 1}
   m_MaskMapRemapMin: {x: 0, y: 0, z: -0, w: 0}
   m_MaskMapRemapMax: {x: 1, y: 1, z: 1, w: 0.6150762}
+  m_SmoothnessSource: 1

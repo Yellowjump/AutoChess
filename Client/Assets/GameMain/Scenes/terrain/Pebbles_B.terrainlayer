@@ -7,9 +7,9 @@ TerrainLayer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Pebbles_B
-  m_DiffuseTexture: {fileID: 2800000, guid: 96a97b0ab56f58b458314ccf0f97c004, type: 3}
-  m_NormalMapTexture: {fileID: 2800000, guid: abaa3d4f433df074389559003412235d, type: 3}
-  m_MaskMapTexture: {fileID: 2800000, guid: 5c4a8c65594fb714388c177bbed315bc, type: 3}
+  m_DiffuseTexture: {fileID: 2800000, guid: ca1db5f480c5f074faa90391e07f917a, type: 3}
+  m_NormalMapTexture: {fileID: 2800000, guid: 06280453cf436f0478d0e60b04aa0984, type: 3}
+  m_MaskMapTexture: {fileID: 2800000, guid: 97a0f9a798a7d544faadfcf9050ee5fe, type: 3}
   m_TileSize: {x: 20, y: 20}
   m_TileOffset: {x: 0, y: 0}
   m_Specular: {r: 0, g: 0, b: 0, a: 0}
@@ -20,3 +20,4 @@ TerrainLayer:
   m_DiffuseRemapMax: {x: 1, y: 1, z: 1, w: 1}
   m_MaskMapRemapMin: {x: 0, y: 0, z: 0, w: 0}
   m_MaskMapRemapMax: {x: 1, y: 1, z: 1, w: 0.3}
+  m_SmoothnessSource: 1
