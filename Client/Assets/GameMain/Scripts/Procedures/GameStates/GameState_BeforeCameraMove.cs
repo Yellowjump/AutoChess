@@ -60,6 +60,11 @@ namespace Procedure.GameStates
         {
             SelfDataManager.Instance.CurAreaPoint.LevelGObj = obj;
             obj.transform.position = SelfDataManager.Instance.CurAreaPoint.Pos;
+            var setHeight = obj.GetComponent<AutoSetHeightWithTerrain>();
+            if (setHeight != null)
+            {
+                setHeight.SetTransformHeightWithTerrain();
+            }
             ChangeState<GameState_CameraMove>(m_fsm);
         }
 

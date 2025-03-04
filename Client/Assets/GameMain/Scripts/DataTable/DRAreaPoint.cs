@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-12-03 18:18:38.717
+// 生成时间：2025-03-04 15:58:17.596
 //------------------------------------------------------------
 
 using GameFramework;
@@ -78,7 +78,7 @@ namespace DataTable
         /// <summary>
         /// 获取相机旋转。
         /// </summary>
-        public Vector3 CameraRotate
+        public Vector4 CameraRotate
         {
             get;
             private set;
@@ -99,7 +99,7 @@ namespace DataTable
             AreaPointType = int.Parse(columnStrings[index++]);
                 LinkArea = DataTableExtension.ParseInt32Array(columnStrings[index++]);
             CameraPosRelate = DataTableExtension.ParseVector3(columnStrings[index++]);
-            CameraRotate = DataTableExtension.ParseVector3(columnStrings[index++]);
+            CameraRotate = DataTableExtension.ParseVector4(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -116,7 +116,7 @@ namespace DataTable
                     AreaPointType = binaryReader.Read7BitEncodedInt32();
                         LinkArea = binaryReader.ReadInt32Array();
                     CameraPosRelate = binaryReader.ReadVector3();
-                    CameraRotate = binaryReader.ReadVector3();
+                    CameraRotate = binaryReader.ReadVector4();
                 }
             }
 

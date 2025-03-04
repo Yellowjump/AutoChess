@@ -23,7 +23,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
         public int Index;
         public Vector3 Pos;
         public Vector3 CameraPosRelate;//相对pos的偏移
-        public Vector3 CameraRotation;
+        public Quaternion CameraRotation;
         public AreaPointType CurPointType;
         public List<int> LinkPoint = new List<int>();
         public GameObject obj; // Reference to the associated GameObject
@@ -420,16 +420,16 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
                 }
             }
             areaPoint.CameraPosRelate = EditorGUILayout.Vector3Field("CameraPosOffset:", areaPoint.CameraPosRelate);
-            areaPoint.CameraRotation = EditorGUILayout.Vector3Field("CameraRotate:",areaPoint.CameraRotation);
+            EditorGUILayout.LabelField("CameraRotate:"+areaPoint.CameraRotation.ToString());
             if (GUILayout.Button("显示相机效果"))
             {
                 _demoCamera.transform.position = areaPoint.CameraPosRelate+areaPoint.Pos;
-                _demoCamera.transform.rotation = quaternion.Euler(areaPoint.CameraRotation);
+                _demoCamera.transform.rotation = areaPoint.CameraRotation;
             }
             if (GUILayout.Button("使用相机效果"))
             {
-                areaPoint.CameraPosRelate = areaPoint.Pos - _demoCamera.transform.position;
-                areaPoint.CameraRotation = _demoCamera.transform.rotation.eulerAngles;
+                areaPoint.CameraPosRelate = _demoCamera.transform.position - areaPoint.Pos;
+                areaPoint.CameraRotation = _demoCamera.transform.rotation;
             }
             // Display the associated GameObject (as read-only)
             EditorGUI.BeginDisabledGroup(true); // Disable editing
@@ -469,7 +469,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
                 Pos = oneAreaPointData?.Position ?? Vector3.zero,
                 CurPointType = oneAreaPointData!=null?(AreaPointType)oneAreaPointData?.AreaPointType:AreaPointType.Empty,
                 CameraPosRelate = oneAreaPointData?.CameraPosRelate??Vector3.up*20,
-                CameraRotation = oneAreaPointData?.CameraRotate ?? Vector3.zero,
+                CameraRotation = oneAreaPointData?.CameraRotate != null ? GetNewQuaternionByVector4(oneAreaPointData.CameraRotate):Quaternion.identity,
             };
             if (oneAreaPointData != null)
             {
@@ -509,7 +509,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             StringBuilder tableBuild = new StringBuilder();
             tableBuild.AppendLine("#\t地图区域\t\t\t\t\t");
             tableBuild.AppendLine("#\tId\tPosition\tAreaPointType\tLinkArea\tCameraPosRelate\tCameraRotate");
-            tableBuild.AppendLine("#\tint\tvector3\tint\tint[]\tvector3\tvector3");
+            tableBuild.AppendLine("#\tint\tvector3\tint\tint[]\tvector3\tvector4");
             tableBuild.AppendLine("#\tIndex\t世界坐标\t类型\t连接的区域\t相机坐标\t相机旋转");
             foreach (var oneAreaPoint in areaPoints)
             {
@@ -527,7 +527,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
                     }
                 }
 
-                tableBuild.AppendLine($"\t{oneAreaPoint.CameraPosRelate.x},{oneAreaPoint.CameraPosRelate.y},{oneAreaPoint.CameraPosRelate.z}\t{oneAreaPoint.CameraRotation.x},{oneAreaPoint.CameraRotation.y},{oneAreaPoint.CameraRotation.z}");
+                tableBuild.AppendLine($"\t{oneAreaPoint.CameraPosRelate.x},{oneAreaPoint.CameraPosRelate.y},{oneAreaPoint.CameraPosRelate.z}\t{oneAreaPoint.CameraRotation.x},{oneAreaPoint.CameraRotation.y},{oneAreaPoint.CameraRotation.z},{oneAreaPoint.CameraRotation.w}");
             }
 
             using (FileStream fileStream = new FileStream(areaPointTableFilePath, FileMode.Create, FileAccess.Write))
@@ -539,6 +539,10 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             }
 
             DataTable.Editor.DataTableTools.DataTableGeneratorMenu.GenerateAreaDataTables();
+        }
+        private Quaternion GetNewQuaternionByVector4(Vector4 v)
+        {
+            return new Quaternion(v.x,v.y,v.z,v.w);
         }
     }
 }

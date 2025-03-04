@@ -247,7 +247,7 @@ namespace Procedure
             {
                 m_LoadedFlag[ne.SceneAssetName] = true;
             }
-
+            GameEntry.HeroManager.InitTerrainList();
             GameEntry.HeroManager.InitStartCamera();
         }
         private string ExtractFileName(string filePath)
