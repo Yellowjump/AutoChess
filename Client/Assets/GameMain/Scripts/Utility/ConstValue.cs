@@ -34,4 +34,6 @@ public class ConstValue
         public const int ItemAsset = 70;
         public const int EntityAsset = 60;
     }
+
+    public const int StoreItemNum = 12;
 }

@@ -62,7 +62,7 @@ namespace Maze
         public MazePointType CurType { get; set; }
         public int CurLevelID;
         public Vector3 CameraPosOffset;
-        public Vector3 CameraRotation;
+        public Quaternion CameraRotation;
         public List<AreaPoint> LinkPointObsolete { get; set; }
         public List<int> LinkPointList { get; set; }
         public bool CanSee = false;//能看见
@@ -389,7 +389,7 @@ namespace Maze
                 onePoint.Index = oneAreaPointData.Id;
                 onePoint.Pos = oneAreaPointData.Position;
                 onePoint.CameraPosOffset = oneAreaPointData.CameraPosRelate;
-                onePoint.CameraRotation = oneAreaPointData.CameraRotate;
+                onePoint.CameraRotation = new Quaternion(oneAreaPointData.CameraRotate.x,oneAreaPointData.CameraRotate.y,oneAreaPointData.CameraRotate.z,oneAreaPointData.CameraRotate.w);
                 onePoint.LinkPointList.AddRange(oneAreaPointData.LinkArea);
                 onePoint.CurPassState = AreaPoint.PointPassState.Lock;
                 onePoint.AreaPointType = (AreaPointType)oneAreaPointData.AreaPointType;

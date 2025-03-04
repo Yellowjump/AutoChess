@@ -28,6 +28,7 @@ public class StoreItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
 
     public void Fresh()
     {
+        BtnClick.interactable = true;
         var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
         if (!itemTable.HasDataRow(ItemID))
         {
@@ -36,6 +37,7 @@ public class StoreItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
         }
 
         ItemStoreCast.text = itemTable[ItemID].StoreCoin.ToString();
+        //Rarity.color = ConstValue.RarityColorList[itemTable[ItemID].Rarity];
         var itemData = itemTable[ItemID];
         var assetsTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
         if (!assetsTable.HasDataRow(itemData.IconID))
@@ -69,6 +71,10 @@ public class StoreItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
         OnClickPointCallback?.Invoke(this);
     }
 
+    public void SetBtnInteractFalse()
+    {
+        BtnClick.interactable = false;
+    }
     public void OnPointerEnter(PointerEventData eventData)
     {
         OnPointEnterCallback?.Invoke(this);

@@ -111,6 +111,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
             {
                 mp.IsPassImg.SetActive(true);
             }
+            mp.BtnClick.interactable = onePointData.CurPassState == AreaPoint.PointPassState.Unlock;
             /*foreach (var linkPointIndex in onePointData.LinkPointList)
             {
                 var linkPointData = SelfDataManager.Instance.GetPoint(linkPointIndex);
@@ -215,6 +216,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
             {
                 curItem.IsPassImg.SetActive(true);
             }
+            curItem.BtnClick.interactable = point.CurPassState == AreaPoint.PointPassState.Unlock;
         }
     }
     public void OnMapFresh(object sender,GameEventArgs e)

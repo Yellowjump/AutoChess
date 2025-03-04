@@ -68,7 +68,7 @@ namespace UnityGameFramework.Runtime
                 vc.m_Lens.FarClipPlane = 2000;
                 vc.m_Lens.NearClipPlane = 0.3f;
                 vc.transform.position = oneAreaPoint.Pos + oneAreaPoint.CameraPosOffset;
-                vc.transform.rotation = Quaternion.Euler(oneAreaPoint.CameraRotation);
+                vc.transform.rotation = oneAreaPoint.CameraRotation;
                 vc.Priority = 0;
                 PerAreaCameraDic.Add(oneAreaPoint.Index,vc);
             }

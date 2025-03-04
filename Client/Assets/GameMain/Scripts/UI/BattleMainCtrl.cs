@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Entity;
+using GameMain.Scripts.UI.Items;
 using Procedure;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,6 +11,7 @@ using SelfEventArg;
 using SkillSystem;
 using TMPro;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 
 public class BattleMainCtrl : UIFormLogic
 {
@@ -35,7 +37,7 @@ public class BattleMainCtrl : UIFormLogic
     public TextMeshProUGUI AttrCDNum;
     private ObjectPool<BattleBagItem> _itemPool;
     private List<BattleBagItem> _curHeroEquipItemList = new();
-
+    [FormerlySerializedAs("itemTip")] [SerializeField] private ItemTip _itemTip;
     #endregion
 
     //拖拽棋子相关
@@ -79,6 +81,7 @@ public class BattleMainCtrl : UIFormLogic
     {
         base.OnOpen(userData);
         qizishuxin.gameObject.SetActive(false);
+        _itemTip.gameObject.SetActive(false);
     }
 
     public override void OnUpdate(float elapseSeconds, float realElapseSeconds)
@@ -388,15 +391,18 @@ public class BattleMainCtrl : UIFormLogic
         {
             _itemPool?.Release(item);
         }
-
         _curHeroEquipItemList.Clear();
     }
 
     private void OnPointItemEnter(BattleBagItem battleBagItem)
     {
+        _itemTip.ItemID = battleBagItem.ItemID;
+        _itemTip.gameObject.SetActive(true);
+        _itemTip.FreshTip();
     }
 
     private void OnPointItemExit(BattleBagItem battleBagItem)
     {
+        _itemTip.gameObject.SetActive(false);
     }
 }

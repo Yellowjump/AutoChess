@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DataTable;
+using GameFramework;
 using GameMain.Scripts.UI.Items;
 using SelfEventArg;
 using UnityEngine;
@@ -48,8 +49,13 @@ public class EventStoreCtrl : UIFormLogic
         _itemTip.gameObject.SetActive(false);
         // 把item表里的全放进来 暂时，后续 可以从 关卡奖励积累 的 获取
         var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
-        foreach (var oneItemData in  itemTable.GetAllDataRows())
+        //从所有Item中随机选择12个
+        List<DRItem> itemList = ListPool<DRItem>.Get();
+        itemList.AddRange(itemTable.GetAllDataRows());
+        Utility.Shuffle(itemList);
+        for (int i = 0; i < ConstValue.StoreItemNum; i++)
         {
+            var oneItemData = itemList[i];
             var oneItem = _itemPool.Get();
             _curStoreItemList.Add(oneItem);
             oneItem.transform.SetParent(_storeItemParent);
@@ -83,6 +89,8 @@ public class EventStoreCtrl : UIFormLogic
                 // Coin 不足
                 return;
             }
+
+            storeItem.SetBtnInteractFalse();
             SelfDataManager.Instance.TryAddCoin(-itemData.StoreCoin);
             SelfDataManager.Instance.AddOneItem(storeItem.ItemID,1);
         }
