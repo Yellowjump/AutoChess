@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DataTable;
 using GameFramework.Event;
+using GameMain.Scripts.UI.Items;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
@@ -61,14 +62,7 @@ public class BattleBagPanelCtrl : UIFormLogic
 
     private int _curShowHeroUID = -1;
     //------------itemTip--------------
-    [SerializeField] private Transform _itemTipParent;
-    [SerializeField] private TextMeshProUGUI _itemTipName;
-    [SerializeField] private TextMeshProUGUI _itemTipRarity;
-    [SerializeField] private TextMeshProUGUI _itemTipCast;
-    [SerializeField] private TextMeshProUGUI _itemTipType;
-    [SerializeField] private TextMeshProUGUI _itemTipCDNum;
-    [SerializeField] private TextMeshProUGUI _itemTipDec;
-    [SerializeField] private TextMeshProUGUI _itemTipAtkDistance;
+    [SerializeField] private ItemTip _itemTipParent;
     private const int _tipPosOffsetX = 250;
     private const int _tipPosOffsetY = 150;
     public override void OnInit(object userData)
@@ -241,49 +235,12 @@ public class BattleBagPanelCtrl : UIFormLogic
         {
             return;
         }
+        _itemTipParent.ItemID = battleBagItem.ItemID;
         _itemTipParent.gameObject.SetActive(true);
         var xOffset = battleBagItem.transform.position.x > 0 ? -_tipPosOffsetX : _tipPosOffsetX;
         var yOffset = battleBagItem.transform.position.y > 0 ? -_tipPosOffsetY : _tipPosOffsetY;
-        _itemTipParent.position = battleBagItem.transform.position + new Vector3(xOffset,yOffset,0);
-        var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
-        if (!itemTable.HasDataRow(battleBagItem.ItemID))
-        {
-            Log.Error($"Item Table not Contain {battleBagItem.ItemID}");
-            return;
-        }
-
-        _itemTipName.text = GameEntry.Localization.GetString(itemTable[battleBagItem.ItemID].Name);
-        _itemTipDec.text = itemTable[battleBagItem.ItemID].Decs;
-        _itemTipRarity.color = ConstValue.RarityColorList[itemTable[battleBagItem.ItemID].Rarity];
-        _itemTipRarity.text = ConstValue.RarityNameList[itemTable[battleBagItem.ItemID].Rarity];
-        var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
-        if (skillTable.HasDataRow(itemTable[battleBagItem.ItemID].SkillID))
-        {
-            var skillData = skillTable[itemTable[battleBagItem.ItemID].SkillID];
-            if (skillData.SkillType == (int)SkillType.NormalSkill)
-            {
-                _itemTipAtkDistance.text = skillData.SkillRange.ToString();
-            }
-            _itemTipAtkDistance.gameObject.SetActive(skillData.SkillType == (int)SkillType.NormalSkill);
-            _itemTipCast.gameObject.SetActive(skillData.SkillType != (int)SkillType.PassiveSkill);
-            string castOrGet = string.Empty;
-            if (skillData.CastPower == 0)
-            {
-                castOrGet = "无消耗";
-            }
-            else if (skillData.CastPower > 0)
-            {
-                castOrGet = $"消耗{skillData.CastPower}法力值";
-            }
-            else
-            {
-                castOrGet = $"获得{-skillData.CastPower}法力值";
-            }
-            _itemTipCast.text = castOrGet;
-            
-        }
-        
-        
+        _itemTipParent.gameObject.transform.position = battleBagItem.transform.position + new Vector3(xOffset,yOffset,0);
+        _itemTipParent.FreshTip();
     }
 
     private void OnPointItemExit(BattleBagItem battleBagItem)

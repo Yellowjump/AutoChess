@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DataTable;
+using GameMain.Scripts.UI.Items;
 using SelfEventArg;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -17,6 +18,10 @@ public class EventStoreCtrl : UIFormLogic
     private Transform _releaseItemPa;
     private ObjectPool<StoreItem> _itemPool;
     private List<StoreItem> _curStoreItemList = new();
+    [SerializeField]
+    private ItemTip _itemTip;
+    private const int _tipPosOffsetX = 250;
+    private const int _tipPosOffsetY = 150;
     public override void OnInit(object userData)
     {
         base.OnInit(userData);
@@ -28,6 +33,8 @@ public class EventStoreCtrl : UIFormLogic
                 if (ri != null)
                 {
                     ri.OnClickPointCallback = OnClickItem;
+                    ri.OnPointEnterCallback = OnPointItemEnter;
+                    ri.OnPointExitCallback = OnPointItemExit;
                     ri.Init();
                 }
                 return ri;
@@ -38,6 +45,7 @@ public class EventStoreCtrl : UIFormLogic
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
+        _itemTip.gameObject.SetActive(false);
         // 把item表里的全放进来 暂时，后续 可以从 关卡奖励积累 的 获取
         var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
         foreach (var oneItemData in  itemTable.GetAllDataRows())
@@ -78,5 +86,19 @@ public class EventStoreCtrl : UIFormLogic
             SelfDataManager.Instance.TryAddCoin(-itemData.StoreCoin);
             SelfDataManager.Instance.AddOneItem(storeItem.ItemID,1);
         }
+    }
+    private void OnPointItemEnter(StoreItem battleBagItem)
+    {
+        _itemTip.ItemID = battleBagItem.ItemID;
+        _itemTip.gameObject.SetActive(true);
+        var xOffset = battleBagItem.transform.position.x > 0 ? -_tipPosOffsetX : _tipPosOffsetX;
+        var yOffset = battleBagItem.transform.position.y > 0 ? -_tipPosOffsetY : _tipPosOffsetY;
+        _itemTip.gameObject.transform.position = battleBagItem.transform.position + new Vector3(xOffset,yOffset,0);
+        _itemTip.FreshTip();
+    }
+
+    private void OnPointItemExit(StoreItem battleBagItem)
+    {
+        _itemTip.gameObject.SetActive(false);
     }
 }

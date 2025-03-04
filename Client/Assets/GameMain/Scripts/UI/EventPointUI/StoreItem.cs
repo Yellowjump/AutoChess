@@ -3,11 +3,12 @@ using DataTable;
 using GameFramework.Resource;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 
-public class StoreItem:MonoBehaviour
+public class StoreItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
 {
     public Image Icon;
     public Image Rarity;
@@ -16,6 +17,8 @@ public class StoreItem:MonoBehaviour
 
     public int ItemID;
     public Action<StoreItem> OnClickPointCallback;
+    public Action<StoreItem> OnPointEnterCallback;
+    public Action<StoreItem> OnPointExitCallback;
     private LoadAssetCallbacks _loadIconCallback;
     public void Init()
     {
@@ -32,7 +35,7 @@ public class StoreItem:MonoBehaviour
             return;
         }
 
-        ItemStoreCast.text = "<sprite=7>" + itemTable[ItemID].StoreCoin.ToString();
+        ItemStoreCast.text = itemTable[ItemID].StoreCoin.ToString();
         var itemData = itemTable[ItemID];
         var assetsTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
         if (!assetsTable.HasDataRow(itemData.IconID))
@@ -64,5 +67,15 @@ public class StoreItem:MonoBehaviour
     private void OnClickBtn()
     {
         OnClickPointCallback?.Invoke(this);
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        OnPointEnterCallback?.Invoke(this);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        OnPointExitCallback?.Invoke(this);
     }
 }
