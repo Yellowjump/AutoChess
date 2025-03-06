@@ -64,14 +64,6 @@ namespace SkillSystem
                 return;
             }
             IsValid = false;
-            if (CheckBuffTag(BuffTag.Shield)&&paramInt>0)
-            {
-                if (Owner is EntityQizi curqizi)
-                {
-                    var hudun = curqizi.GetAttribute(AttributeType.HuDun);
-                    hudun.AddNum(-paramInt);
-                }
-            }
             base.OnDestory();
             if (IsAura)
             {

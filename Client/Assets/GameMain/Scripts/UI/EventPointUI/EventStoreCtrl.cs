@@ -53,7 +53,7 @@ public class EventStoreCtrl : UIFormLogic
         List<DRItem> itemList = ListPool<DRItem>.Get();
         itemList.AddRange(itemTable.GetAllDataRows());
         Utility.Shuffle(itemList);
-        for (int i = 0; i < ConstValue.StoreItemNum; i++)
+        for (int i = 0; i < Mathf.Min(itemList.Count,ConstValue.StoreItemNum); i++)
         {
             var oneItemData = itemList[i];
             var oneItem = _itemPool.Get();

@@ -46,6 +46,7 @@
 	6011	主角idle	Assets/GameMain/Prefeb/Charactor/qizi0/WAIT00.anim
 	6012	主角run	Assets/GameMain/Prefeb/Charactor/qizi0/RUN00_F.anim
 	6101	挥砍	Assets/GameMain/Prefeb/Charactor/HorizontalSwing.anim
+	6102	二郎神开	Assets/GameMain/Prefeb/Charactor/shield_power.anim
 #Sound(10000			
 	10001	开始界面背景音乐	Assets/GameMain/Audio/Ambient_StartTitle.wav
 	10002	UI按钮音效	Assets/GameMain/Audio/SWORD_05.wav

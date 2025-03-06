@@ -1,12 +1,13 @@
-﻿#	buff表												
-#	Id		TemplateID	Duration	MaxLayerNum	FreshDuration	IntParam1	IntParam2	IntParam3	IntParam4	IntParam5	StringParam1	StringParam2
-#	int		int	int	int	bool	int	int	int	int	int	string	string
-#	buffID	buff备注	模板ID	持续时间ms	最大叠加层数	刷新其他同Idbuff时间	int参数1	int参数2	int参数3	int参数4	int参数5	str参数1	str参数2
-#													
-	1	测试燃烧buff	100	2000	3		1000	5					
-	2	测试反伤buff	101	0			5	10					
-	3	测试护盾buff	102	5000			200						
-	10301	万胶王被动buff	103				7	3	1	4			
-	10401	每次攻击后给自己加buff	104									30101	
-#			模板300开始是属性修改										
-	30101		301	5000	10	1	7	20					
+﻿#	buff表													
+#	Id		TemplateID	Duration	MaxLayerNum	FreshDuration	SfxID	IntParam1	IntParam2	IntParam3	IntParam4	IntParam5	StringParam1	StringParam2
+#	int		int	int	int	bool	int	int	int	int	int	int	string	string
+#	buffID	buff备注	模板ID	持续时间ms	最大叠加层数	刷新其他同Idbuff时间	特效ID	int参数1	int参数2	int参数3	int参数4	int参数5	str参数1	str参数2
+#														
+	1	测试燃烧buff	100	2000	3			1000	5					
+	2	测试反伤buff	101	0				5	10					
+	3	测试护盾buff	102	5000				200						
+	10301	万胶王被动buff	103					7	3	1	4			
+	10401	每次攻击后给自己加buff	104										30101	
+#			模板300开始是属性修改											
+	30101	增加技能急速	301	5000	10	1		7	20					
+	10501	生命值护盾	105		1			0	20					

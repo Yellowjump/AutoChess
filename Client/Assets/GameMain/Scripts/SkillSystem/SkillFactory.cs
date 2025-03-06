@@ -39,6 +39,8 @@ namespace SkillSystem
                 case CommandType.CreateHuDun:
                     var commandHuDun = ReferencePool.Acquire<CommandHuDun>();
                     commandHuDun.ParamInt1 = CreateTableParamInt();
+                    commandHuDun.ParamInt2 = CreateTableParamInt();
+                    commandHuDun.ParamInt3 = CreateTableParamInt();
                     return commandHuDun;
                 case CommandType.CreateSfx:
                     var commandCreateSfx = ReferencePool.Acquire<CommandCreateSfx>();

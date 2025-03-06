@@ -56,6 +56,7 @@ namespace Procedure
             SelfDataManager.Instance.CurMazeList = fakeMazeGen.GenerateMaze();*/
             var oneHero = GameEntry.HeroManager.AddNewFriendHero(1);
             SelfDataManager.Instance.SelfHeroList.Add(oneHero);
+            SelfDataManager.Instance.SelfHeroList.Add(GameEntry.HeroManager.AddNewFriendHero(4));
             SelfDataManager.Instance.ItemBag.Clear();
         }
 

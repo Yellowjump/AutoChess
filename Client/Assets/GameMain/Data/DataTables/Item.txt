@@ -4,10 +4,7 @@
 #	道具ID	备注	道具名	道具描述	稀有度	图片ID	3d模型	3d模型长度参数	合成材料	属性加成	对应技能ID	商店售价
 	1	斧头	ItemName_Axe		1	4001	2004	593,857			1	51
 	2	子弹	ItemName_Bullet		1	4002					2	52
-	3	匕首	ItemName_Dagger		1	4003						53
-	4	护甲板	ItemName_ArmorPlate		1	4004						54
-	5	动能引擎	ItemName_KineticEngine		1	4005						55
-	6	计算单元	ItemName_ComputingUnit		1	4000						56
+	3	生命比例护盾			1	4003					6	53
 	7	万能胶	ItemName_UniversalAdhesive		1	4000						50
 	8	战斗狂热			1	4001					10002	20
 #需要合成的												

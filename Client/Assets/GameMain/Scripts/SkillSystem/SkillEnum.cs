@@ -349,5 +349,7 @@ namespace SkillSystem
     {
         [InspectorName("固定值")]
         ConstNum,
+        [InspectorName("固定值加属性百分比")]
+        FixNumAddAttrPercent,
     }
 }

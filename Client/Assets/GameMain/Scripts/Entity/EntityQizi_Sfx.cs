@@ -70,6 +70,10 @@ namespace Entity
                 return;
             }
             var oneSfx = _sfxList.Find(entity => entity.SfxID == sfxID);
+            if (oneSfx == null)
+            {
+                return;
+            }
             oneSfx.ExistNum--;
             if (oneSfx.ExistNum <= 0)
             {
