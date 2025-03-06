@@ -85,6 +85,7 @@ namespace SkillSystem
                                         newBuff.DurationMs = buffData.Duration;
                                         newBuff.RemainMs = buffData.Duration;
                                         newBuff.MaxLayerNum = buffData.MaxLayerNum;
+                                        newBuff.FreshOtherBuffDuration = buffData.FreshDuration;
                                         newBuff.SetSkillValue(buffData);
                                         newBuff.Owner = target;
                                         target.AddBuff(newBuff);

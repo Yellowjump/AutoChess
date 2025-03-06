@@ -293,6 +293,10 @@ namespace UnityGameFramework.Runtime
         /// <returns>要获取的字典内容字符串。</returns>
         public string GetString(string key)
         {
+            if (string.IsNullOrEmpty(key))
+            {
+                return string.Empty;
+            }
             return m_LocalizationManager.GetString(key);
         }
 

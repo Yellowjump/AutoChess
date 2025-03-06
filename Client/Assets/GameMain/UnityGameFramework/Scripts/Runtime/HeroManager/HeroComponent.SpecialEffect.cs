@@ -24,7 +24,7 @@ namespace UnityGameFramework.Runtime
     {
         public EntityBase Owner;
         public GameObject GObj;
-        public float RemainDurationMs;
+        public float TimePassedMs;
         public int DurationMs;
         public Vector3 PosOffset= Vector3.zero;
         public Vector3 SizeOffset = Vector3.one;

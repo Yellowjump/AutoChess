@@ -58,6 +58,11 @@ namespace SkillSystem
                     return commandRemoveBuff;
                 case CommandType.RemoveBullet:
                     return ReferencePool.Acquire<CommandRemoveBullet>();
+                case CommandType.ChangeAttribute:
+                    var commandChangeAttribute = ReferencePool.Acquire<CommandChangeAttribute>();
+                    commandChangeAttribute.TargetAttrType = CreateTableParamInt();
+                    commandChangeAttribute.ParamInt1 = CreateTableParamInt();
+                    return commandChangeAttribute;
                 default:
                     return ReferencePool.Acquire<CommandBase>();
             }
@@ -85,6 +90,11 @@ namespace SkillSystem
                     conditionRelateItem.ParamInt1 = CreateTableParamInt();
                     conditionRelateItem.ParamInt2 = CreateTableParamInt();
                     return conditionRelateItem;
+                case ConditionType.RelateSkill:
+                    var conditionRelateSkill = ReferencePool.Acquire<ConditionRelateSkill>();
+                    conditionRelateSkill.ParamInt1 = CreateTableParamInt();
+                    conditionRelateSkill.ParamInt2 = CreateTableParamInt();
+                    return conditionRelateSkill;
                 default:
                     return ReferencePool.Acquire<ConditionBase>();
             }

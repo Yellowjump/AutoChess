@@ -38,7 +38,7 @@ namespace Entity
                     oneNewSfx.InitGObj();
                     _sfxList.Add(oneNewSfx);
                 }
-                oneNewSfx.RemainDurationMs = 0;//刷新特效存在时间
+                oneNewSfx.TimePassedMs = 0;//刷新特效存在时间
                 oneNewSfx.ExistNum++;
             }
         }
@@ -54,8 +54,8 @@ namespace Entity
                     {
                         continue;
                     }
-                    oneSfx.RemainDurationMs += elapseSeconds * 1000;
-                    if (oneSfx.RemainDurationMs >= oneSfx.DurationMs)
+                    oneSfx.TimePassedMs += elapseSeconds * 1000;
+                    if (oneSfx.TimePassedMs >= oneSfx.DurationMs)
                     {
                         ReferencePool.Release(oneSfx);
                         _sfxList.Remove(oneSfx);

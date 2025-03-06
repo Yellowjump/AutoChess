@@ -67,7 +67,9 @@ namespace SkillSystem
         [InspectorName("定时触发")]
         Timed,
         [InspectorName("道具相关")]
-        RelateItem
+        RelateItem,
+        [InspectorName("技能相关")]
+        RelateSkill
     }
     public enum LogicOperator
     {
@@ -142,6 +144,8 @@ namespace SkillSystem
         RemoveBuff,
         [InspectorName("销毁bullet")]
         RemoveBullet,
+        [InspectorName("修改属性")]
+        ChangeAttribute,
     }
 
     /// <summary>
@@ -255,23 +259,21 @@ namespace SkillSystem
     public enum AttributeType
     {
         [InspectorName("当前血量")]
-        Hp,
+        Hp = 1,
         [InspectorName("最大血量")]
-        MaxHp,
+        MaxHp = 2,
         [InspectorName("当前蓝量")]
-        Power,
+        Power = 3,
         [InspectorName("最大蓝量")]
-        MaxPower,
+        MaxPower = 4,
         [InspectorName("护盾")]
-        HuDun,
+        HuDun = 5,
         [InspectorName("护盾增益")]
-        HuDunBoost,
+        HuDunBoost = 6,
         [InspectorName("技能急速")]
-        CooldownReduce,
+        CooldownReduce = 7,
         [InspectorName("攻击力")]
-        AttackDamage,
-        [InspectorName("普攻速")]
-        AttackSpeed,
+        AttackDamage = 8,
     }
     public enum BulletType
     {
@@ -329,5 +331,23 @@ namespace SkillSystem
         Target,
         [InspectorName("参数中角色")]
         Arg,
+    }
+    public enum ConditionRelateSkillFrom
+    {
+        [InspectorName("来源技能")]
+        Source,
+        [InspectorName("来自参数中的技能")]
+        ArgSkill,
+    }
+    public enum ConditionRelateSkillCheckType
+    {
+        [InspectorName("技能类型")]
+        SkillType,
+    }
+
+    public enum AttributeChangeType
+    {
+        [InspectorName("固定值")]
+        ConstNum,
     }
 }

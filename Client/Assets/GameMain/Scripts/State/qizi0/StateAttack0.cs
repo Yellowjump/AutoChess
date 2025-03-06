@@ -65,7 +65,7 @@ public class StateAttack0 : FsmState<EntityQizi>
         var curShakeBeforeMs = curSkill.ShakeBeforeMs;
         if (curCDMs < curAnimEndMs)//实际CD小于动画时间了，需要动画加速
         {
-            curShakeBeforeMs = Mathf.CeilToInt(curShakeBeforeMs * curCDMs / curAnimEndMs);
+            curShakeBeforeMs = Mathf.CeilToInt(curShakeBeforeMs * curCDMs / (float)curAnimEndMs);
             curAnimEndMs = curCDMs;
         }
         if (m_HasEnterShakeBefore==false&& durationAccumulate * 1000 >= curShakeBeforeMs)

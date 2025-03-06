@@ -1,6 +1,8 @@
 using System.IO;
+using DataTable;
 using Entity;
 using GameFramework;
+using UnityEngine;
 using UnityEngine.Serialization;
 using UnityGameFramework.Runtime;
 
@@ -20,6 +22,23 @@ namespace SkillSystem
                     if (target == null || target.IsValid == false)
                     {
                         continue;
+                    }
+
+                    if (AnimAssetID.CurMatchTable == GenerateEnumDataTables.Skill && AnimAssetID.CurMatchPropertyIndex == (int)DRSkillField.SkillAnim)
+                    {
+                        var curSkill = trigger.ParentTriggerList.ParentSkill;
+                        if (curSkill != null)
+                        {
+                            var cdr =  (int)target.GetAttribute(AttributeType.CooldownReduce).GetFinalValue();
+                            var reducePercent = cdr / (cdr + 100f);
+                            var curCDMs = Mathf.CeilToInt(curSkill.DefaultSkillCDMs * (1 - reducePercent));
+                            var curAnimEndMs = curSkill.DefaultAnimationDurationMs;
+                            if (curCDMs < curAnimEndMs)//实际CD小于动画时间了，需要动画加速
+                            {
+                                target.AddAnimCommand(AnimAssetID.Value,curAnimEndMs/(float)curCDMs);
+                                return;
+                            }
+                        }
                     }
                     target.AddAnimCommand(AnimAssetID.Value);
                 }

@@ -93,20 +93,18 @@ namespace Entity
             GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
             IsValid = true;
             ChangeToIdleState();
+            DestorySkill();
             DestoryAttribute();
             RemoveAllWeapon();
             InitAttribute();
-            DestorySkill();
             InitSkill();
-            ReleaseAnim();
-            InitAnimationClip();
         }
 
         public void OnChangeEquipItem()
         {
+            DestorySkill();
             DestoryAttribute();
             InitAttribute();
-            DestorySkill();
             InitSkill();
         }
 

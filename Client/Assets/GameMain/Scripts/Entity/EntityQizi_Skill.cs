@@ -236,7 +236,7 @@ namespace Entity
                 else
                 {
                     var buffCount = 0;
-                    var minRemainingTime = 0f;
+                    var minRemainingTime = float.MaxValue;
                     Buff buffToRemove = null;
                     foreach (var b in CurBuffList)
                     {
@@ -248,6 +248,10 @@ namespace Entity
                             {
                                 minRemainingTime = b.RemainMs;
                                 buffToRemove = b;
+                            }
+                            if (buff.FreshOtherBuffDuration)
+                            {
+                                b.RemainMs = b.DurationMs;//时间刷新重置
                             }
                         }
                     }
@@ -325,10 +329,10 @@ namespace Entity
                 }
             }
             UpdateBuffTime(elapseSeconds, realElapseSeconds);
-            foreach (var oneNormalSkill in NormalSkillList)
+            /*foreach (var oneNormalSkill in NormalSkillList)
             {
                 oneNormalSkill.LogicUpdate(elapseSeconds,realElapseSeconds);
-            }
+            }*/
 
             foreach (var noAnimSkill in NoAnimAtkSkillList)
             {
@@ -419,10 +423,10 @@ namespace Entity
                     return CheckCastSkillResult.TargetOutRange;
                 }
             }
-            if (willCastSkill.InCD)
+            /*if (willCastSkill.InCD)
             {
                 return CheckCastSkillResult.NormalAtkWait;
-            }
+            }*/
             return CheckCastSkillResult.CanCast;
         }
         /// <summary>

@@ -119,7 +119,7 @@ namespace UnityGameFramework.Runtime
                 }
             }
             ListPool<EntityQizi>.Release(waitCheckList);
-            if (Utility.TruncateFloat(minDistanceSquare,4) <skillRange*skillRange)
+            if (Utility.TruncateFloat(minDistanceSquare,3) <skillRange*skillRange)
             {
                 return true;
             }

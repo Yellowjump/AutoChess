@@ -12,6 +12,7 @@ namespace SkillSystem
         public int TempleteID;
         public BuffTag OwnBuffTag;
         public int MaxLayerNum;
+        public bool FreshOtherBuffDuration;
         public bool IsAura => MaxLayerNum < 0;
         public int DurationMs;//总持续时间，无限是0
         public float RemainMs;//剩余时间
@@ -21,7 +22,7 @@ namespace SkillSystem
         {
             if (copy is Buff copyBuff)
             {
-                copyBuff.BuffID = BuffID;
+                copyBuff.TempleteID = TempleteID;
                 copyBuff.OwnBuffTag = OwnBuffTag;
             }
             base.Clone(copy);
@@ -87,6 +88,7 @@ namespace SkillSystem
             TempleteID = 0;
             OwnBuffTag = BuffTag.None;;
             MaxLayerNum = 0;
+            FreshOtherBuffDuration = false;
             DurationMs = 0;
             RemainMs = 0;
             IsValid = true;

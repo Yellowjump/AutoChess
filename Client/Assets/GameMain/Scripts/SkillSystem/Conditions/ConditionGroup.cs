@@ -51,6 +51,7 @@ namespace SkillSystem
                 ConditionType oneConditionType = (ConditionType)reader.ReadInt32();
                 var oneCondition = SkillFactory.CreateCondition(oneConditionType);
                 oneCondition.ReadFromFile(reader);
+                ConditionList.Add(oneCondition);
             }
         }
 

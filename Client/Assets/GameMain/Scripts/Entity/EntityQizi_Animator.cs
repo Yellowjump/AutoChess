@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Animancer;
 using DataTable;
+using GameFramework;
 using GameFramework.Fsm;
 using GameFramework.Resource;
 using UnityEngine;
@@ -8,9 +9,19 @@ using UnityGameFramework.Runtime;
 
 namespace Entity
 {
+    public class WaitPlayAnimData:IReference
+    {
+        public string AnimAssetPath;
+        public float Speed;
+        public void Clear()
+        {
+            AnimAssetPath = string.Empty;
+            Speed = 1;
+        }
+    }
     public partial class EntityQizi
     {
-        private string _waitPlayAni = string.Empty;
+        private WaitPlayAnimData _waitPlayAni = null;
         private AnimancerComponent _animancer;
         private HashSet<string> _waitLoadAnimList = new HashSet<string>();
         private Dictionary<string,AnimationClip> CurAnimationList = new Dictionary<string,AnimationClip>();
@@ -73,12 +84,14 @@ namespace Entity
         }
         private void UpdateAnimCommand()
         {
-            if (_animancer != null && !string.IsNullOrEmpty(_waitPlayAni)&&CurAnimationList.ContainsKey(_waitPlayAni))
+            if (_animancer != null && _waitPlayAni!=null&&CurAnimationList.ContainsKey(_waitPlayAni.AnimAssetPath))
             {
-                var anim = CurAnimationList[_waitPlayAni];
-                _waitPlayAni = string.Empty;
+                var anim = CurAnimationList[_waitPlayAni.AnimAssetPath];
                 var state = _animancer.Play(anim,0.25f);
+                state.Speed = _waitPlayAni.Speed;
                 state.Time = 0f;
+                ReferencePool.Release(_waitPlayAni);
+                _waitPlayAni = null;
             }
             /*if (animator!=null&&!string.IsNullOrEmpty(_waitPlayAni))
             {
@@ -87,15 +100,16 @@ namespace Entity
             }*/
         }
 
-        public void AddAnimCommand(int aniAssetID)
+        public void AddAnimCommand(int aniAssetID,float speed=1)
         {
             var assetsPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
             if (assetsPathTable.HasDataRow(aniAssetID))
             {
-                _waitPlayAni =assetsPathTable[aniAssetID].AssetPath;
+                _waitPlayAni = ReferencePool.Acquire<WaitPlayAnimData>();
+                _waitPlayAni.AnimAssetPath =assetsPathTable[aniAssetID].AssetPath;
+                _waitPlayAni.Speed = speed;
             }
         }
-
         public void AddAnimCommandIdle()
         {
             var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
@@ -116,6 +130,11 @@ namespace Entity
         }
         private void ReleaseAnim()
         {
+            if (_waitPlayAni != null)
+            {
+                ReferencePool.Release(_waitPlayAni);
+                _waitPlayAni = null;
+            }
             _waitLoadAnimList.Clear();
             foreach (var keyValue in CurAnimationList)
             {

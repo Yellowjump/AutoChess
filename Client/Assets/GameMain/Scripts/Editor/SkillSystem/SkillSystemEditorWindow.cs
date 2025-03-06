@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using DataTable;
 using DataTable.Editor.DataTableTools;
 using Editor.SkillSystem;
 using GameFramework.DataTable;
+using GameMain.Scripts.Editor;
 using SkillSystem;
 using UnityEngine;
 using UnityEditor;
@@ -168,7 +170,7 @@ public class SkillSystemEditorWindow : EditorWindow
             {
                 //保存重写进txt，并且生成byte
                 SaveBuffTemplateToTxt();
-                DataTableGeneratorMenu.GenerateSkillTemplateDataTables();
+                DataTableGeneratorMenu.GenerateBuffTemplateDataTables();
             }
         }
     }
@@ -292,27 +294,14 @@ public class SkillSystemEditorWindow : EditorWindow
     /// </summary>
     private void ReadAllSkillFile()
     {
-        DirectoryInfo directoryInfo = new DirectoryInfo(skillTemplatePath);
-        FileInfo[] fis = directoryInfo.GetFiles("*.bytes", SearchOption.AllDirectories);
-        SkillIDList.Clear();
-        for (int i = 0; i < fis.Length; i++)
+        DataTableEditor<DRSkillTemplate> dataTable = new DataTableEditor<DRSkillTemplate>("SkillTemplate");
+        dataTable.ParseByteFile($"Assets/GameMain/Data/DataTables/SkillTemplate.bytes");
+        foreach (var oneAreaData in dataTable.GetAllDataRows())
         {
-            var SkillID = int.Parse(Path.GetFileNameWithoutExtension(fis[i].Name));
+            
             var newEmptySkill = SkillFactory.CreateNewSkill();
-            string filePath = skillTemplatePath + $"/{SkillID}.bytes"; // 文件路径，根据实际情况修改
-            // 假设你需要使用的缓冲区大小是1024字节
-            const int bufferSize = 1024;
-
-            using (var fileStream = new FileStream(filePath, FileMode.Open))
-            {
-                using (var bufferedStream = new BufferedStream(fileStream, bufferSize))
-                {
-                    using (var reader = new BinaryReader(bufferedStream))
-                    {
-                        newEmptySkill.ReadFromFile(reader);
-                    }
-                }
-            }
+            var temp = oneAreaData.SkillTemplate;
+            temp.Clone(newEmptySkill);
             SkillIDList.Add(newEmptySkill);
             SkillMap.Add(newEmptySkill,false);
         }
@@ -430,11 +419,11 @@ public class SkillSystemEditorWindow : EditorWindow
                     if (skillEditor.OldTempleteID != skillTemplate.TempleteID)
                     {
                         //删除旧byte文件
-                        DelSkillFile(skillEditor.OldTempleteID.ToString());
+                        //DelSkillFile(skillEditor.OldTempleteID.ToString());
                     }
                 }
             }
-            SaveSkillFile(skillTemplate);
+            //SaveSkillFile(skillTemplate);
             SkillMap[skillTemplate] = false;
             return true;
         }
@@ -504,19 +493,13 @@ public class SkillSystemEditorWindow : EditorWindow
     /// </summary>
     private void ReadAllBuffFile()
     {
-        DirectoryInfo directoryInfo = new DirectoryInfo(buffTemplatePath);
-        FileInfo[] fis = directoryInfo.GetFiles("*.bytes", SearchOption.AllDirectories);
-        BuffIDList.Clear();
-        for (int i = 0; i < fis.Length; i++)
+        DataTableEditor<DRBuffTemplate> dataTable = new DataTableEditor<DRBuffTemplate>("BuffTemplate");
+        dataTable.ParseByteFile($"Assets/GameMain/Data/DataTables/BuffTemplate.bytes");
+        foreach (var oneAreaData in dataTable.GetAllDataRows())
         {
-            var buffID = int.Parse(Path.GetFileNameWithoutExtension(fis[i].Name));
-            
             var newEmptyBuff = SkillFactory.CreateNewBuff();
-            string filePath = buffTemplatePath + $"/{buffID}.bytes"; // 文件路径，根据实际情况修改
-            using (var writer = new BinaryReader(File.Open(filePath, FileMode.Open)))
-            {
-                newEmptyBuff.ReadFromFile(writer);
-            }
+            var buffTemp = oneAreaData.BuffTemplate;
+            buffTemp.Clone(newEmptyBuff);
             BuffIDList.Add(newEmptyBuff);
             BuffMap.Add(newEmptyBuff,false);
         }
@@ -616,9 +599,9 @@ public class SkillSystemEditorWindow : EditorWindow
                     if (buffEditor.OldTempleteID != buff.TempleteID)
                     {
                         //删除旧byte文件
-                        DelBuffFile(buffEditor.OldTempleteID.ToString());
+                        //DelBuffFile(buffEditor.OldTempleteID.ToString());
                     }
-                    SaveBuffFile(buff);
+                    //SaveBuffFile(buff);
                     BuffMap[buff] = false;
                     return true;
                 }
