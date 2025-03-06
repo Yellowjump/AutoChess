@@ -28,6 +28,8 @@ namespace Entity
         public Animator animator;//动画管理器
 
         public List<int> EquipItemList = new List<int>();
+        public override Vector3 LogicHitPosition => LogicPosition + Vector3.up * ConstValue.EntityQiziHeight;
+
         public override void Init(int i)
         {
             IsValid = true;

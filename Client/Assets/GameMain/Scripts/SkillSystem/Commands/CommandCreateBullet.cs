@@ -14,6 +14,7 @@ namespace SkillSystem
         public override CommandType CurCommandType => CommandType.CreateBullet;
         public TableParamInt CurBulletID;
         public TableParamInt ParamInt1;
+        public TableParamVector3 PosOffset;
         public TriggerList BulletTrigger;
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
@@ -30,7 +31,9 @@ namespace SkillSystem
                     newBullet.BelongCamp = newBullet.Caster.BelongCamp;
                     newBullet.Target = oneTarget as EntityQizi;
                     newBullet.Owner = trigger.ParentTriggerList.Owner;
-                    newBullet.LogicPosition = newBullet.Owner.LogicPosition;
+                    var forward = oneTarget.LogicPosition - newBullet.Owner.LogicPosition;
+                    var rotateQ = Quaternion.LookRotation(forward, Vector3.up);
+                    newBullet.LogicPosition = newBullet.Owner.LogicPosition + rotateQ * PosOffset.Value;
                     if (BulletTrigger != null)
                     {
                         var newTriggerList = SkillFactory.CreateNewEmptyTriggerList();
@@ -55,6 +58,7 @@ namespace SkillSystem
                 CurBulletID.Clone(copyCreateBullet.CurBulletID);
                 ParamInt1.Clone(copyCreateBullet.ParamInt1);
                 BulletTrigger.Clone(copyCreateBullet.BulletTrigger);
+                PosOffset.Clone(copyCreateBullet.PosOffset);
             }
         }
 
@@ -62,6 +66,7 @@ namespace SkillSystem
         {
             CurBulletID.ReadFromFile(reader);
             ParamInt1.ReadFromFile(reader);
+            PosOffset.ReadFromFile(reader);
             BulletTrigger.ReadFromFile(reader);
         }
 
@@ -69,6 +74,7 @@ namespace SkillSystem
         {
             CurBulletID.WriteToFile(writer);
             ParamInt1.WriteToFile(writer);
+            PosOffset.WriteToFile(writer);
             BulletTrigger.WriteToFile(writer);
         }
 
@@ -76,6 +82,8 @@ namespace SkillSystem
         {
             CurBulletID.SetSkillValue(dataTable);
             BulletTrigger.SetSkillValue(dataTable);
+            PosOffset.SetSkillValue(dataTable);
+            ParamInt1.SetSkillValue(dataTable);
         }
 
         public override void Clear()
@@ -83,9 +91,11 @@ namespace SkillSystem
             ReferencePool.Release(ParamInt1);
             ReferencePool.Release(CurBulletID);
             ReferencePool.Release(BulletTrigger);
+            ReferencePool.Release(PosOffset);
             BulletTrigger = null;
             ParamInt1 = null;
             CurBulletID = null;
+            PosOffset = null;
         }
     }
 }

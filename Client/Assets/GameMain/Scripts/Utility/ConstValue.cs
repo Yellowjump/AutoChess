@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class ConstValue
 {
+    public const float EntityQiziHeight = 1;
     public static List<Color> RarityColorList = new List<Color>()
     {
         Color.white,

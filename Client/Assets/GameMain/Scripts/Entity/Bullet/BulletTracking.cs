@@ -23,7 +23,7 @@ namespace Entity.Bullet
                 return;
             }
 
-            var dir = Target.LogicPosition - LogicPosition;
+            var dir = Target.LogicHitPosition - LogicPosition;
             if (dir.magnitude < MoveSpeed * elapseSeconds)
             {
                 OnHitTarget(Target);//命中目标
@@ -32,7 +32,7 @@ namespace Entity.Bullet
             LogicPosition += dir.normalized * (MoveSpeed * elapseSeconds);
             if (GObj != null)
             {
-                GObj.transform.LookAt(Target.LogicPosition);
+                GObj.transform.LookAt(Target.LogicHitPosition);
             }
         }
     }

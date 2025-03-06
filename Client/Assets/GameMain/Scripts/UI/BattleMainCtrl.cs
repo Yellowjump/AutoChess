@@ -90,7 +90,7 @@ public class BattleMainCtrl : UIFormLogic
         {
             var oldTarget = curTargetQizi;
             curTargetQizi = GetMousePosQizi();
-            if (curTargetQizi != null)
+            if (curTargetQizi != null&&curTargetQizi.IsValid)
             {
                 oldTarget?.ShowHighlight(false);
                 qizishuxin.gameObject.SetActive(true);
@@ -103,7 +103,7 @@ public class BattleMainCtrl : UIFormLogic
         {
             tryDragTargetQizi = null;
             var targetQizi = GetMousePosQizi();
-            if (targetQizi != null)
+            if (targetQizi != null&&targetQizi.IsValid)
             {
                 if (targetQizi.BelongCamp == CampType.Friend && GameEntry.HeroManager.dangqianliucheng == 0)
                 {
@@ -243,7 +243,7 @@ public class BattleMainCtrl : UIFormLogic
 
             }
         }*/
-        if (curTargetQizi != null && curTargetQizi.IsValid&&qizishuxin.gameObject.activeSelf)
+        if (curTargetQizi != null && qizishuxin.gameObject.activeSelf)
         {
             shuxinxianshi(curTargetQizi);
         }
@@ -311,6 +311,13 @@ public class BattleMainCtrl : UIFormLogic
     private void shuxinxianshi(EntityQizi qz)
     {
         heroName.text = qz.HeroUID.ToString();
+        if (qz.IsValid == false)
+        {
+            xuetiaonow.text = "0";
+            _slderXuetiao.value = 0;
+            _slderHudun.value = 0;
+            return;
+        }
         var maxHp = (int)qz.GetAttribute(AttributeType.MaxHp).GetFinalValue();
         var curHp = (int)qz.GetAttribute(AttributeType.Hp).GetFinalValue();
         var curHuDun = (int)qz.GetAttribute(AttributeType.HuDun).GetFinalValue();

@@ -36,7 +36,7 @@ namespace Entity.Bullet
             }
             // 初始化位置和控制点
             _startPos = LogicPosition;
-            _targetPos = Target.LogicPosition;
+            _targetPos = Target.LogicHitPosition;
             GenerateRandomControlPoint();
 
             // 采样贝塞尔曲线并计算总距离
@@ -139,7 +139,7 @@ namespace Entity.Bullet
         {
             if (_trackingTargetEntity)
             {
-                return Mathf.Pow(1 - t, 2) * _startPos + 2 * (1 - t) * t * _controlPoint + Mathf.Pow(t, 2) * Target.LogicPosition;
+                return Mathf.Pow(1 - t, 2) * _startPos + 2 * (1 - t) * t * _controlPoint + Mathf.Pow(t, 2) * Target.LogicHitPosition;
             }
             return Mathf.Pow(1 - t, 2) * _startPos + 2 * (1 - t) * t * _controlPoint + Mathf.Pow(t, 2) * _targetPos;
         }

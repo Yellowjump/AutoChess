@@ -5,6 +5,8 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using UnityEngine;
+
 /// <summary>
 /// 对 string 的扩展方法。
 /// </summary>
@@ -62,5 +64,19 @@ public static class StringExtension
         }
 
         return null;
+    }
+
+    public static Vector3 ParseVector3(this string parseStr)
+    {
+         var strArray = parseStr.Split(",");
+         if (strArray == null || strArray.Length != 3)
+         {
+             return Vector3.zero;
+         }
+
+         var valueX = float.Parse(strArray[0]);
+         var valueY = float.Parse(strArray[1]);
+         var valueZ = float.Parse(strArray[2]);
+         return new Vector3(valueX, valueY, valueZ);
     }
 }

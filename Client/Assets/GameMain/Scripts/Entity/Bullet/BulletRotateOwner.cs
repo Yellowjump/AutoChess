@@ -36,7 +36,7 @@ namespace Entity.Bullet
         }
         public override void InitGObj()
         {
-            CenterLogicPosition = Target.LogicPosition;
+            CenterLogicPosition = Target.LogicHitPosition;
             base.InitGObj();
             _curAngle = StartAngle;
         }
@@ -53,7 +53,7 @@ namespace Entity.Bullet
                 return;
             }
             base.LogicUpdate(elapseSeconds,realElapseSeconds);
-            CenterLogicPosition = Target.LogicPosition;
+            CenterLogicPosition = Target.LogicHitPosition;
             var changeAngle = _rotateAngleSpeed * elapseSeconds;
             var beforeAngle = _curAngle;
             _curAngle += changeAngle;

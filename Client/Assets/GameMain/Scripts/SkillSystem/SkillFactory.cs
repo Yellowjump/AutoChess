@@ -34,6 +34,7 @@ namespace SkillSystem
                     commandCauseBullet.ParamInt1 = CreateTableParamInt();
                     commandCauseBullet.CurBulletID = CreateTableParamInt();
                     commandCauseBullet.BulletTrigger = CreateNewEmptyTriggerList();
+                    commandCauseBullet.PosOffset = CreateTableParamVector3();
                     return commandCauseBullet;
                 case CommandType.CreateHuDun:
                     var commandHuDun = ReferencePool.Acquire<CommandHuDun>();
@@ -141,6 +142,10 @@ namespace SkillSystem
         public static TableParamString CreateTableParamString()
         {
             return ReferencePool.Acquire<TableParamString>();
+        }
+        public static TableParamVector3 CreateTableParamVector3()
+        {
+            return ReferencePool.Acquire<TableParamVector3>();
         }
         public static TriggerList CreateNewEmptyTriggerList(Skill skill = null)
         {
