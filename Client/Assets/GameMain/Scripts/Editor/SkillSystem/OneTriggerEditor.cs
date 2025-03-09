@@ -35,11 +35,23 @@ namespace Editor.SkillSystem
                 GUILayout.Space(10); // 添加一点空隙
                 GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1)); // 绘制横线
                 GUILayout.Space(10); // 添加一点空隙
+                EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button("添加Command"))
                 {
                     oneTrigger.CurCommandList.Add(SkillFactory.CreateCommand(CommandType.CauseDamage));
                 }
-
+                if (GUILayout.Button("添加复制的Command"))
+                {
+                    var obj = SkillSystemDrawerCenter.PasteObject();
+                    if (obj is CommandBase copyCommand)
+                    {
+                        
+                        var newCommand = SkillFactory.CreateCommand(copyCommand.CurCommandType);
+                        copyCommand.Clone(newCommand);
+                        oneTrigger.CurCommandList.Add(newCommand);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
                 if (oneTrigger.CurCommandList != null && oneTrigger.CurCommandList.Count != 0)
                 {
                     EditorGUILayout.BeginVertical();
@@ -55,9 +67,8 @@ namespace Editor.SkillSystem
                         }
                         if (GUILayout.Button("C", GUILayout.Width(20)))//clone
                         {
-                            var cloneCmd = SkillFactory.CreateCommand(oneCommand.CurCommandType);
-                            oneCommand.Clone(cloneCmd);
-                            oneTrigger.CurCommandList.Add(cloneCmd);
+                            SkillSystemDrawerCenter.CopyOneObject(oneCommand);
+                            EditorUtility.DisplayDialog("提示", "已复制到粘贴板", "确认");
                         }
                         EditorGUILayout.EndVertical();
                         EditorGUILayout.BeginVertical(EditorStyles.helpBox);

@@ -41,9 +41,9 @@ namespace SkillSystem
                     var posOffset = PosOffset.Value;
                     if (PosOffsetMax.Value != Vector3.zero)//使用随机位置
                     {
-                        var randomX = Utility.Random.GetRandomDouble(PosOffsetMax.Value.x, PosOffset.Value.x);
-                        var randomY = Utility.Random.GetRandomDouble(PosOffsetMax.Value.y, PosOffset.Value.y);
-                        var randomZ = Utility.Random.GetRandomDouble(PosOffsetMax.Value.z, PosOffset.Value.z);
+                        var randomX = Utility.Random.GetRandomDouble(PosOffset.Value.x,PosOffsetMax.Value.x);
+                        var randomY = Utility.Random.GetRandomDouble(PosOffset.Value.y, PosOffsetMax.Value.y);
+                        var randomZ = Utility.Random.GetRandomDouble(PosOffset.Value.z, PosOffsetMax.Value.z);
                         posOffset = new Vector3((float)randomX, (float)randomY, (float)randomZ);
                     }
                     var tempTargetPos = Vector3.zero;

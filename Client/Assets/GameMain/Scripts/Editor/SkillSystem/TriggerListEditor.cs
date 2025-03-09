@@ -18,11 +18,22 @@ namespace Editor.SkillSystem
         {
             if (triggerList != null)
             {
+                EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button("添加触发器"))
                 {
                     triggerList.CurTriggerList.Add(SkillFactory.CreateNewDefaultTrigger());
                 }
-
+                if (GUILayout.Button("添加复制的触发器"))
+                {
+                    var obj = SkillSystemDrawerCenter.PasteObject();
+                    if (obj is OneTrigger copyTrigger)
+                    {
+                        var cloneOneTrigger = SkillFactory.CreateNewDefaultTrigger();
+                        copyTrigger.Clone(cloneOneTrigger);
+                        triggerList.CurTriggerList.Add(cloneOneTrigger);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
                 EditorGUILayout.BeginHorizontal(); // 开始水平布局
                 var tempBtnStr = ShowDetail ? "^" : "v";
                 if (GUILayout.Button(tempBtnStr, GUILayout.Width(20)))//clone
@@ -44,13 +55,11 @@ namespace Editor.SkillSystem
                             triggerList.CurTriggerList.Remove(oneTrigger);
                         }
 
-                        if (GUILayout.Button("C", GUILayout.Width(20))) //clone
+                        if (GUILayout.Button("C", GUILayout.Width(20))) //copy
                         {
-                            var cloneOneTrigger = SkillFactory.CreateNewDefaultTrigger();
-                            oneTrigger.Clone(cloneOneTrigger);
-                            triggerList.CurTriggerList.Add(cloneOneTrigger);
+                            SkillSystemDrawerCenter.CopyOneObject(oneTrigger);
+                            EditorUtility.DisplayDialog("提示", "已复制到粘贴板", "确认");
                         }
-
                         EditorGUILayout.EndVertical();
                         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                         // 绘制边界线

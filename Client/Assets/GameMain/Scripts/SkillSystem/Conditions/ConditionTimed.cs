@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using GameFramework;
+using UnityEngine.Serialization;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
@@ -9,19 +10,19 @@ namespace SkillSystem
     {
         public override ConditionType CurConditionType => ConditionType.Timed;
         public TableParamInt TimeIntervalMs;
-        public bool PassOnly = false;//只触发一次
+        public TableParamInt PassNumber;//能触发次数
         private float _timeAccumulatorMs;
-        private bool HavePass = false;
+        private int HavePass = 0;
         public override bool OnCheck(OneTrigger trigger,object arg = null)
         {
             if (_timeAccumulatorMs > TimeIntervalMs.Value)
             {
-                if (PassOnly && HavePass)
+                if (PassNumber.Value!=0 && PassNumber.Value<=HavePass)
                 {
                     return false;
                 }
                 _timeAccumulatorMs -= TimeIntervalMs.Value;
-                HavePass = true;
+                HavePass ++;
                 return true;
             }
 
@@ -32,14 +33,14 @@ namespace SkillSystem
         public override void WriteToFile(BinaryWriter writer)
         {
             base.WriteToFile(writer);
-            writer.Write(PassOnly);
+            PassNumber.WriteToFile(writer);
             TimeIntervalMs.WriteToFile(writer);
         }
 
         public override void ReadFromFile(BinaryReader reader)
         {
             base.ReadFromFile(reader);
-            PassOnly = reader.ReadBoolean();
+            PassNumber.ReadFromFile(reader);
             TimeIntervalMs.ReadFromFile(reader);
         }
 
@@ -49,12 +50,13 @@ namespace SkillSystem
             if (copy is ConditionTimed copyConditionTimed)
             {
                 TimeIntervalMs.Clone(copyConditionTimed.TimeIntervalMs);
-                copyConditionTimed.PassOnly = PassOnly;
+                PassNumber.Clone(copyConditionTimed.PassNumber);
             }
         }
         public override void SetSkillValue(DataRowBase dataTable)
         {
             TimeIntervalMs.SetSkillValue(dataTable);
+            PassNumber.SetSkillValue(dataTable);
         }
 
         public override void Clear()
@@ -64,8 +66,12 @@ namespace SkillSystem
                 ReferencePool.Release(TimeIntervalMs);
                 TimeIntervalMs = null;
             }
-            PassOnly = false;
-            HavePass = false;
+            if (PassNumber != null)
+            {
+                ReferencePool.Release(PassNumber);
+                PassNumber = null;
+            }
+            HavePass = 0;
             _timeAccumulatorMs = 0;
         }
     }

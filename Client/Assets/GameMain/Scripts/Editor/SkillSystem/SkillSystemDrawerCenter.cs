@@ -22,6 +22,9 @@ namespace Editor.SkillSystem
         private static Dictionary<Type, MethodInfo> _drawFieldMethods = new Dictionary<Type, MethodInfo>();
         private static Dictionary<Type, Type> _drawTypeMap = new Dictionary<Type, Type>();
         private static Dictionary<object,object> _drawInstanceMap = new Dictionary<object,object>();
+        //---------粘贴板---------start-//
+        private static object copyObject;
+        //---------粘贴板---------end-//
         public static void RefreshDrawerMethod()
         {
             _drawFieldMethods.Clear();
@@ -139,6 +142,16 @@ namespace Editor.SkillSystem
                 return null;
             }
             return oneTriggerEditor;
+        }
+
+        public static void CopyOneObject(object obj)
+        {
+            copyObject = obj;
+        }
+
+        public static object PasteObject()
+        {
+            return copyObject;
         }
     }
 }

@@ -21,11 +21,23 @@ namespace Editor.SkillSystem.Commands
                     EditorGUILayout.LabelField("目标子itemID：");
                 }
                 SkillSystemDrawerCenter.DrawOneInstance(commandRepeatExecuteCmd.ParamInt1);
+                EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button("添加Command"))
                 {
                     commandRepeatExecuteCmd.CurCommandList.Add(SkillFactory.CreateCommand(CommandType.CauseDamage));
                 }
-
+                if (GUILayout.Button("添加复制的Command"))
+                {
+                    var obj = SkillSystemDrawerCenter.PasteObject();
+                    if (obj is CommandBase copyCommand)
+                    {
+                        
+                        var newCommand = SkillFactory.CreateCommand(copyCommand.CurCommandType);
+                        copyCommand.Clone(newCommand);
+                        commandRepeatExecuteCmd.CurCommandList.Add(newCommand);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
                 if (commandRepeatExecuteCmd.CurCommandList != null && commandRepeatExecuteCmd.CurCommandList.Count != 0)
                 {
                     EditorGUILayout.BeginVertical();
@@ -41,9 +53,8 @@ namespace Editor.SkillSystem.Commands
                         }
                         if (GUILayout.Button("C", GUILayout.Width(20)))//clone
                         {
-                            var cloneCmd = SkillFactory.CreateCommand(oneCommand.CurCommandType);
-                            oneCommand.Clone(cloneCmd);
-                            commandRepeatExecuteCmd.CurCommandList.Add(cloneCmd);
+                            SkillSystemDrawerCenter.CopyOneObject(oneCommand);
+                            EditorUtility.DisplayDialog("提示", "已复制到粘贴板", "确认");
                         }
                         EditorGUILayout.EndVertical();
                         EditorGUILayout.BeginVertical(EditorStyles.helpBox);

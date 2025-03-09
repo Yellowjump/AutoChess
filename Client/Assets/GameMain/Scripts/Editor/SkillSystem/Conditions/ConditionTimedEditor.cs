@@ -10,7 +10,8 @@ namespace Editor.SkillSystem.Conditions
         public void OnGUIDraw(ConditionTimed conditionTimed)
         {
             if (conditionTimed == null) return;
-            conditionTimed.PassOnly = EditorGUILayout.Toggle("是否只触发一次", conditionTimed.PassOnly);
+            EditorGUILayout.LabelField("触发次数(0为不限制)");
+            SkillSystemDrawerCenter.DrawOneInstance(conditionTimed.PassNumber);
             SkillSystemDrawerCenter.DrawOneInstance(conditionTimed.TimeIntervalMs);
             ConditionBaseEditor.ConditionBaseDraw(conditionTimed);
         }

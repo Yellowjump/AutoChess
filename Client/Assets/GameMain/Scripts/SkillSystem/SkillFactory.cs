@@ -95,6 +95,7 @@ namespace SkillSystem
                 case ConditionType.Timed:
                     var conditionTimed = ReferencePool.Acquire<ConditionTimed>();
                     conditionTimed.TimeIntervalMs = CreateTableParamInt();
+                    conditionTimed.PassNumber = CreateTableParamInt();
                     return conditionTimed;
                 case ConditionType.RelateItem:
                     var conditionRelateItem = ReferencePool.Acquire<ConditionRelateItem>();
