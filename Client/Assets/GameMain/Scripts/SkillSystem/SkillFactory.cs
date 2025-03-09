@@ -66,6 +66,14 @@ namespace SkillSystem
                     commandChangeAttribute.TargetAttrType = CreateTableParamInt();
                     commandChangeAttribute.ParamInt1 = CreateTableParamInt();
                     return commandChangeAttribute;
+                case CommandType.CreatePosPoint:
+                    var commandCreatePosPoint = ReferencePool.Acquire<CommandCreatePosPoint>();
+                    commandCreatePosPoint.DurationMS = CreateTableParamInt();
+                    commandCreatePosPoint.PosPointTrigger = CreateNewEmptyTriggerList();
+                    commandCreatePosPoint.PosOffset = CreateTableParamVector3();
+                    commandCreatePosPoint.PosOffsetMax = CreateTableParamVector3();
+                    commandCreatePosPoint.LookAtTarget = CreateTableParamInt();
+                    return commandCreatePosPoint;
                 default:
                     return ReferencePool.Acquire<CommandBase>();
             }
@@ -132,6 +140,10 @@ namespace SkillSystem
                     var targetPickerBullet = ReferencePool.Acquire<TargetPickerBullet>();
                     targetPickerBullet.BulletID = CreateTableParamInt();
                     return targetPickerBullet;
+                case TargetPickerType.Nearest:
+                    var targetPickerNearest = ReferencePool.Acquire<TargetPickerNearest>();
+                    targetPickerNearest.WeaponLength = CreateTableParamInt();
+                    return targetPickerNearest;
                 default:
                     return ReferencePool.Acquire<TargetPickerBase>();
             }

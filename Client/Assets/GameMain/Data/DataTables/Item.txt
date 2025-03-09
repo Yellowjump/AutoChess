@@ -7,6 +7,7 @@
 	3	生命比例护盾			1	4003					6	53
 	7	万能胶	ItemName_UniversalAdhesive		1	4000						50
 	8	战斗狂热			1	4001					10002	20
+	9	飞剑			1	4001					7	27
 #需要合成的												
 	1001	旋转斧头	ItemName_WhirlingAxe		1	4501			1,1;5,1		3	120
 	1002	反甲	ItemName_ThornArmor		1	4502			4,2	9,40	4	122

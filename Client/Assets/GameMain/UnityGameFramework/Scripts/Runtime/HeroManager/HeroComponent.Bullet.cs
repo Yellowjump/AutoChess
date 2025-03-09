@@ -8,6 +8,7 @@
 using GameFramework;
 using System.Collections.Generic;
 using DataTable;
+using Entity;
 using Entity.Bullet;
 using SkillSystem;
 using UnityEngine.Pool;
@@ -17,7 +18,7 @@ namespace UnityGameFramework.Runtime
     public sealed partial class HeroComponent
     {
         public List<BulletBase> BulletList = new List<BulletBase>();
-
+        public List<EntityPosPoint> PosPointList = new List<EntityPosPoint>();
         public BulletBase CreateBullet(int bulletID)
         {
             var bullet = GameEntry.DataTable.GetDataTable<DRBullet>("Bullet");
@@ -80,6 +81,43 @@ namespace UnityGameFramework.Runtime
             for (int i = BulletList.Count - 1; i >= 0; i--)
             {
                 DestoryBullet(BulletList[i]);
+            }
+        }
+
+        public EntityPosPoint CreatePosPoint()
+        {
+            var newPos = ReferencePool.Acquire<EntityPosPoint>();
+            PosPointList.Add(newPos);
+            return newPos;
+        }
+        public void OnLogicUpdatePosUpdate(float elapseSeconds, float realElapseSeconds)
+        {
+            List<EntityPosPoint> tempPosEntity = ListPool<EntityPosPoint>.Get();
+            tempPosEntity.AddRange(PosPointList);
+            foreach (var onePosPoint in tempPosEntity)
+            {
+                onePosPoint.LogicUpdate(elapseSeconds, realElapseSeconds);
+                if (onePosPoint.IsValid == false)
+                {
+                    DestoryPosPoint(onePosPoint);
+                }
+            }
+            ListPool<EntityPosPoint>.Release(tempPosEntity);
+        }
+        public void DestoryPosPoint(EntityPosPoint posPoint)
+        {
+            if (posPoint == null)
+            {
+                return;
+            }
+            PosPointList?.Remove(posPoint);
+            ReferencePool.Release(posPoint);
+        }
+        private void ClearPosPoint()
+        {
+            for (int i = PosPointList.Count - 1; i >= 0; i--)
+            {
+                DestoryPosPoint(PosPointList[i]);
             }
         }
     }

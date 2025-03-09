@@ -44,6 +44,17 @@ namespace Entity
         {
             
         }
+
+        public virtual void AddSfx(int sfxID)
+        {
+            
+        }
+
+        public virtual void RemoveSfx(int sfxID)
+        {
+            
+        }
+
         public float GetDistanceSquare(EntityBase target)
         {
             float distanceSquare = (LogicPosition.x - target.LogicPosition.x) * (LogicPosition.x - target.LogicPosition.x) + (LogicPosition.z - target.LogicPosition.z) * (LogicPosition.z - target.LogicPosition.z);

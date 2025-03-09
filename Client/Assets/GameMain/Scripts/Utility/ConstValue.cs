@@ -37,4 +37,6 @@ public class ConstValue
     }
 
     public const int StoreItemNum = 12;
+    public const string WeaponHandleObjName = "PosPoint";
+    public const string PosPointObjName = "PosPoint";
 }

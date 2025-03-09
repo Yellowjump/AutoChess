@@ -15,7 +15,7 @@ namespace SkillSystem
         public ConditionBase CurCondition;
         public TargetPickerBase CurTargetPicker;
         public List<CommandBase> CurCommandList;
-        [FormerlySerializedAs("CurTarget")] public List<EntityBase> CurTargetList;
+        public List<EntityBase> CurTargetList;
         public void OnActive()
         {
             if (CurTriggerType == TriggerType.OnActive)

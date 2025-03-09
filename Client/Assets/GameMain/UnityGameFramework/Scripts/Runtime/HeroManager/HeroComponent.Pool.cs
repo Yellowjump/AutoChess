@@ -39,7 +39,7 @@ namespace UnityGameFramework.Runtime
         {
             OnLoadGameObjectCallback = new LoadAssetCallbacks(OnLoadGameObjCallback);
             PoolEntity = new ObjectPool<EntityQizi>(() => new EntityQizi(), null, null, null, true, 10, 1000);
-            EmptyPool = new ObjectPool<GameObject>(() => new GameObject(), null, (g) =>
+            EmptyPool = new ObjectPool<GameObject>(() => new GameObject(), (g)=>g.transform.SetParent(m_InstanceRoot), (g) =>
             {
                 g.transform.SetParent(m_InstanceDisableRoot);
                 g.transform.rotation = Quaternion.identity;
@@ -57,9 +57,15 @@ namespace UnityGameFramework.Runtime
             PoolEntity?.Release(qizi);
         }
 
-        public GameObject GetNewEmptyObj()
+        public GameObject GetNewEmptyObj(string objName = "")
         {
-            return EmptyPool?.Get();
+            var obj = EmptyPool?.Get();
+            if (obj != null)
+            {
+                obj.name = objName;
+                return obj;
+            }
+            return null;
         }
 
         public void ReleaseEmptyObj(GameObject obj)

@@ -7,6 +7,7 @@ namespace Editor.SkillSystem
     public class SkillEditor
     {
         public int OldTempleteID = -1;
+        private TriggerListEditor _triggerListEditorInstance;
         public void OnGUIDraw(Skill skill)
         {
             if (OldTempleteID == -1)
@@ -14,7 +15,11 @@ namespace Editor.SkillSystem
                 OldTempleteID = skill.TempleteID;
             }
             skill.TempleteID = EditorGUILayout.IntField("当前技能模板ID:", skill.TempleteID);
-            TriggerListEditor.DrawTriggerList(skill);
+            skill.EditorDesc = EditorGUILayout.TextField("描述:", skill.EditorDesc);
+            _triggerListEditorInstance ??= new TriggerListEditor();
+            _triggerListEditorInstance.OnGUIDraw(skill);
+            //SkillSystemDrawerCenter.DrawOneInstance((TriggerList)skill);
+            //TriggerListEditor.DrawTriggerList(skill);
         }
         
     }

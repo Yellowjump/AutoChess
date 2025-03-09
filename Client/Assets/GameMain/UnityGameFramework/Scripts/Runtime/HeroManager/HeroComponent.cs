@@ -390,6 +390,7 @@ namespace UnityGameFramework.Runtime
 
             ListPool<EntityQizi>.Release(tempEntityList);
             OnLogicUpdateBullet(elapseSeconds, realElapseSeconds);
+            OnLogicUpdatePosUpdate(elapseSeconds, realElapseSeconds);
             UpdateDamageNumber(elapseSeconds,realElapseSeconds);
             UpdateHpBar();
         }
@@ -480,6 +481,7 @@ namespace UnityGameFramework.Runtime
             }
 
             ClearBullet();
+            ClearPosPoint();
             DirenList.Clear();
             dangqianliucheng = 0;
             foreach (var oneEntity in QiziCSList)

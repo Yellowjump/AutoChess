@@ -18,6 +18,8 @@
 	3051	敌人test	Assets/GameMain/Prefeb/Charactor/enemy0/enemy0.prefab
 #Sfx(3300			
 	3301	受击特效	Assets/GameMain/Prefeb/Sfx/CFXR3 Hit Fire B (Air).prefab
+	3302	护盾特效	Assets/GameMain/Prefeb/Sfx/ForceField/ForceField.prefab
+	3303	飞剑生成光圈	Assets/GameMain/Prefeb/Sfx/PortalBlue/Portalblue.prefab
 #LevelObj(3500			
 	3501	商店场景	Assets/GameMain/Prefeb/LevelObj/outwild.prefab
 #Sprite(4000			
@@ -49,5 +51,5 @@
 	6102	二郎神开	Assets/GameMain/Prefeb/Charactor/shield_power.anim
 #Sound(10000			
 	10001	开始界面背景音乐	Assets/GameMain/Audio/Ambient_StartTitle.wav
-	10002	UI按钮音效	Assets/GameMain/Audio/SWORD_05.wav
+	10002	UI按钮音效	Assets/GameMain/Audio/SFX_UI_Button_Keyboard_Enter_Thick_2.wav
 #			

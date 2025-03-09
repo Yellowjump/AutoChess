@@ -41,6 +41,7 @@ namespace SkillSystem
                         newTriggerList.ParentSkill = trigger.ParentTriggerList.ParentSkill;
                         newTriggerList.Owner = newBullet;
                         newBullet.OwnerTriggerList = newTriggerList;
+                        newTriggerList.OnTrigger(TriggerType.OnActive);
                     }
                     List<TableParamInt> paramIntArray = ListPool<TableParamInt>.Get();
                     paramIntArray.Add(ParamInt1);

@@ -7,6 +7,7 @@ namespace SkillSystem
 {
     public class Skill:TriggerList
     {
+        public string EditorDesc = string.Empty;
         public int SkillID;
         public int TempleteID;
         public int FromItemID;//来源道具ID
@@ -34,18 +35,21 @@ namespace SkillSystem
             if (copy is Skill copySkill)
             {
                 copySkill.TempleteID = TempleteID;
+                copySkill.EditorDesc = EditorDesc;
             }
             base.Clone(copy);
         }
         public void ReadFromFile(BinaryReader reader)
         {
             TempleteID = reader.ReadInt32();
+            EditorDesc = reader.ReadString();
             base.ReadFromFile(reader);
         }
 
         public void WriteToFile(BinaryWriter writer)
         {
             writer.Write(TempleteID);
+            writer.Write(EditorDesc);
             base.WriteToFile(writer);
         }
         public void SetSkillValue(DataRowBase dataTable)

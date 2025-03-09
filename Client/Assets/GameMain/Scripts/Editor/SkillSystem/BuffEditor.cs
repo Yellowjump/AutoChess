@@ -8,6 +8,7 @@ namespace Editor.SkillSystem
     public class BuffEditor
     {
         public int OldTempleteID = -1;
+        private TriggerListEditor _triggerListEditorInstance;
         public void OnGUIDraw(Buff buff)
         {
             if (OldTempleteID == -1)
@@ -15,8 +16,10 @@ namespace Editor.SkillSystem
                 OldTempleteID = buff.TempleteID;
             }
             buff.TempleteID = EditorGUILayout.IntField("当前buff模板ID:", buff.TempleteID);
+            buff.EditorDesc = EditorGUILayout.TextField("描述:", buff.EditorDesc);
             buff.OwnBuffTag = (BuffTag)EditorGUILayout.EnumFlagsField("buff Tag",  buff.OwnBuffTag);
-            TriggerListEditor.DrawTriggerList(buff);
+            _triggerListEditorInstance ??= new TriggerListEditor();
+            _triggerListEditorInstance.OnGUIDraw(buff);
         }
         
     }

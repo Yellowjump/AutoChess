@@ -11,7 +11,7 @@ namespace Entity
     public partial class EntityQizi
     {
         private List<SfxEntity> _sfxList = new List<SfxEntity>();
-        public void AddSfx(int sfxID)
+        public override void AddSfx(int sfxID)
         {
             var sfxTable = GameEntry.DataTable.GetDataTable<DRSfx>("Sfx");
             if (sfxTable.HasDataRow(sfxID))
@@ -35,6 +35,7 @@ namespace Entity
                         oneNewSfx.PosOffset +=new Vector3((float)Utility.Random.GetRandomNoLogic(-sfxData.PosRandom.x, sfxData.PosRandom.x),(float)Utility.Random.GetRandomNoLogic(-sfxData.PosRandom.y, sfxData.PosRandom.y),(float)Utility.Random.GetRandomNoLogic(-sfxData.PosRandom.z, sfxData.PosRandom.z))  ;
                     }
                     oneNewSfx.SizeOffset = sfxData.SizeOffset;
+                    oneNewSfx.FollowOwner = sfxData.FollowOwner;
                     oneNewSfx.InitGObj();
                     _sfxList.Add(oneNewSfx);
                 }
@@ -63,7 +64,7 @@ namespace Entity
                 }
             }
         }
-        public void RemoveSfx(int sfxID)
+        public override void RemoveSfx(int sfxID)
         {
             if (_sfxList == null || _sfxList.Count == 0)
             {

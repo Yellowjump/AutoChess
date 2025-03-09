@@ -89,9 +89,7 @@ namespace SkillSystem
         SkillCasterCurTarget,
         [InspectorName("技能释放者")]
         SkillCaster,
-        /// <summary>
-        /// 最近的目标（能选中的）
-        /// </summary>
+        [InspectorName("最近的目标（能选中的）")]
         Nearest,
         [InspectorName("触发参数传递进来的目标")]
         Arg,
@@ -146,6 +144,8 @@ namespace SkillSystem
         RemoveBullet,
         [InspectorName("修改属性")]
         ChangeAttribute,
+        [InspectorName("创建位置标记")]
+        CreatePosPoint,
     }
 
     /// <summary>
@@ -351,5 +351,15 @@ namespace SkillSystem
         ConstNum,
         [InspectorName("固定值加属性百分比")]
         FixNumAddAttrPercent,
+    }
+
+    public enum PosPointPositionType
+    {
+        [InspectorName("根据持有者偏移")]
+        OwnerOffset,
+        [InspectorName("根据目标偏移")]
+        TargetOffset,
+        [InspectorName("覆盖范围最多的地方")]
+        CrowdedPos,
     }
 }

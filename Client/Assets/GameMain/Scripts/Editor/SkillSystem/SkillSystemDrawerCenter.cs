@@ -125,5 +125,20 @@ namespace Editor.SkillSystem
             }
             return skillEditor;
         }
+
+        public static OneTriggerEditor GetOneTriggerEditor(OneTrigger oneTrigger)
+        {
+            if (oneTrigger==null|| _drawInstanceMap == null || _drawInstanceMap.Count == 0)
+            {
+                return null;
+            }
+
+            _drawInstanceMap.TryGetValue(oneTrigger, out var instance);
+            if (instance is not OneTriggerEditor oneTriggerEditor)
+            {
+                return null;
+            }
+            return oneTriggerEditor;
+        }
     }
 }

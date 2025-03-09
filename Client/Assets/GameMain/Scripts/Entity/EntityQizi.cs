@@ -10,23 +10,15 @@ namespace Entity
 {
     public partial class EntityQizi : EntityBase
     {
-        public int level;
-        public int money;
         public int HeroID;//hero表中ID
         public int HeroUID;//qizi唯一id
         public int rowIndex;
         public int columnIndex;//在棋盘上的位置下标,左下角是0，0,如果在备战棋格，rowIndex = -1，columnIndex是第几个
         public Vector2Int SavePos;//进入战斗时的位置
-        public float gongjiDistence;//攻击距离
-
-        public float AtkSpeed=1;//每秒攻击次数
         public HeroComponent.HpBar HpBar;
         public Slider xuetiao;
         public Slider power;
         public Slider hudun;
-        public Image levelImage;
-        public Animator animator;//动画管理器
-
         public List<int> EquipItemList = new List<int>();
         public override Vector3 LogicHitPosition => LogicPosition + Vector3.up * ConstValue.EntityQiziHeight;
 
@@ -35,9 +27,6 @@ namespace Entity
             IsValid = true;
             HeroID = i;
             HeroUID = GameEntry.HeroManager.QiziCurUniqueIndex++;
-            level = 1;
-            money = 1;
-            gongjiDistence = 1.2f;//初始化攻击距离
             InitAddDefaultItemToList();
             InitAttribute();
             InitSkill();
@@ -60,8 +49,6 @@ namespace Entity
             GObj.transform.position = LogicPosition;
             GObj.transform.localScale = Vector3.one;
             GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
-            
-            animator = this.GObj.GetComponent<Animator>();
             InitAnimation();
             InitObjWeaponHandle();
             UpdateShowSlider();//加载完obj就刷新一次

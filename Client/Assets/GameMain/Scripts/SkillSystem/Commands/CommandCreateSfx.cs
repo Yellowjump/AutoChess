@@ -17,19 +17,18 @@ namespace SkillSystem
             {
                 foreach (var oneTarget in trigger.CurTargetList)
                 {
-                    EntityQizi target = oneTarget as EntityQizi;
-                    if (target == null || target.IsValid == false)
+                    if (oneTarget == null || oneTarget.IsValid == false)
                     {
                         continue;
                     }
 
                     if (CreateOrRemove)
                     {
-                        target.AddSfx(SfxID.Value);
+                        oneTarget.AddSfx(SfxID.Value);
                     }
                     else
                     {
-                        target.RemoveSfx(SfxID.Value);
+                        oneTarget.RemoveSfx(SfxID.Value);
                     }
                 }
             }

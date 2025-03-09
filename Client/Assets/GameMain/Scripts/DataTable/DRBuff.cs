@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2025-03-06 08:30:50.258
+// 生成时间：2025-03-09 05:53:29.702
 //------------------------------------------------------------
 
 using GameFramework;
@@ -26,6 +26,7 @@ namespace DataTable
 	    Duration,
 	    MaxLayerNum,
 	    FreshDuration,
+	    SfxID,
 	    IntParam1,
 	    IntParam2,
 	    IntParam3,
@@ -84,6 +85,15 @@ namespace DataTable
         /// 获取刷新其他同Idbuff时间。
         /// </summary>
         public bool FreshDuration
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取特效ID。
+        /// </summary>
+        public int SfxID
         {
             get;
             private set;
@@ -168,6 +178,7 @@ namespace DataTable
             Duration = int.Parse(columnStrings[index++]);
             MaxLayerNum = int.Parse(columnStrings[index++]);
             FreshDuration = bool.Parse(columnStrings[index++]);
+            SfxID = int.Parse(columnStrings[index++]);
             IntParam1 = int.Parse(columnStrings[index++]);
             IntParam2 = int.Parse(columnStrings[index++]);
             IntParam3 = int.Parse(columnStrings[index++]);
@@ -191,6 +202,7 @@ namespace DataTable
                     Duration = binaryReader.Read7BitEncodedInt32();
                     MaxLayerNum = binaryReader.Read7BitEncodedInt32();
                     FreshDuration = binaryReader.ReadBoolean();
+                    SfxID = binaryReader.Read7BitEncodedInt32();
                     IntParam1 = binaryReader.Read7BitEncodedInt32();
                     IntParam2 = binaryReader.Read7BitEncodedInt32();
                     IntParam3 = binaryReader.Read7BitEncodedInt32();
@@ -298,6 +310,7 @@ namespace DataTable
 		///         <see cref="DRBuffField.Duration"/> 对应的是 int,
 		///         <see cref="DRBuffField.MaxLayerNum"/> 对应的是 int,
 		///         <see cref="DRBuffField.FreshDuration"/> 对应的是 bool,
+		///         <see cref="DRBuffField.SfxID"/> 对应的是 int,
 		///         <see cref="DRBuffField.IntParam1"/> 对应的是 int,
 		///         <see cref="DRBuffField.IntParam2"/> 对应的是 int,
 		///         <see cref="DRBuffField.IntParam3"/> 对应的是 int,
@@ -332,6 +345,7 @@ namespace DataTable
 		    { DRBuffField.Duration, obj => (obj.Duration, typeof(int)) },
 		    { DRBuffField.MaxLayerNum, obj => (obj.MaxLayerNum, typeof(int)) },
 		    { DRBuffField.FreshDuration, obj => (obj.FreshDuration, typeof(bool)) },
+		    { DRBuffField.SfxID, obj => (obj.SfxID, typeof(int)) },
 		    { DRBuffField.IntParam1, obj => (obj.IntParam1, typeof(int)) },
 		    { DRBuffField.IntParam2, obj => (obj.IntParam2, typeof(int)) },
 		    { DRBuffField.IntParam3, obj => (obj.IntParam3, typeof(int)) },

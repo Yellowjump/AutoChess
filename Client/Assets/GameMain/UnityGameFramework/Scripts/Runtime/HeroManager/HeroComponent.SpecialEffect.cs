@@ -24,6 +24,7 @@ namespace UnityGameFramework.Runtime
     {
         public EntityBase Owner;
         public GameObject GObj;
+        public bool FollowOwner;
         public float TimePassedMs;
         public int DurationMs;
         public Vector3 PosOffset= Vector3.zero;
@@ -38,17 +39,46 @@ namespace UnityGameFramework.Runtime
             SizeOffset = Vector3.one;
             SfxID = 0;
             ExistNum = 0;
+            FollowOwner = false;
         }
         public void InitGObj()
         {
             GameEntry.HeroManager.GetSfxByID(SfxID,OnGetHeroGObjCallback);
         }
-        protected virtual void OnGetHeroGObjCallback(GameObject obj,string path)
+        protected void OnGetHeroGObjCallback(GameObject obj,string path)
         {
             GObj = obj;
             GObj.transform.localScale = SizeOffset;
-            GObj.transform.SetParent(Owner.GObj.transform);
-            GObj.transform.localPosition = PosOffset;
+            if (FollowOwner && Owner.GObj != null)
+            {
+                GObj.transform.SetParent(Owner.GObj.transform);
+                GObj.transform.localPosition = PosOffset;
+            }
+            else
+            {
+                GObj.transform.position = Owner.LogicPosition + PosOffset;
+            }
+
+            if (Owner.GObj != null)
+            {
+                Vector3 forward = Owner.GObj.transform.forward;
+                Vector3 right = Owner.GObj.transform.right;
+                Vector3 up = Vector3.up;
+                // 如果 forward 过于垂直，改用 targetA.right 计算水平 forward
+                if (Mathf.Abs(Vector3.Dot(forward, up)) > 0.99f) // 判断 forward 是否接近垂直
+                {
+                    forward = Vector3.Cross(right, up); // 用 right 方向计算水平 forward
+                }
+                else
+                {
+                    forward.y = 0; // 正常情况下，直接去掉 Y 分量
+                    forward.Normalize();
+                }
+                if (forward != Vector3.zero) // 避免零向量错误
+                {
+                    GObj.transform.rotation = Quaternion.LookRotation(forward, up);
+                }
+            }
         }
     }
 
@@ -137,7 +167,7 @@ namespace UnityGameFramework.Runtime
             if (_weaponObjList.Count == WaitLoadWeaponAssetIDList.Count)
             {
                 //所有需要的asset以获取
-                GObj = GameEntry.HeroManager.GetNewEmptyObj();
+                GObj = GameEntry.HeroManager.GetNewEmptyObj(ConstValue.WeaponHandleObjName);
                 // weaponObjList 按照WaitLoadWeaponAssetIDList里的顺序排序
                 List<string> weaponSort = ListPool<string>.Get();
                 var assetPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");

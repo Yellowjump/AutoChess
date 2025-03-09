@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2025-03-03 03:39:51.936
+// 生成时间：2025-03-09 05:53:29.722
 //------------------------------------------------------------
 
 using GameFramework;
@@ -52,6 +52,15 @@ namespace DataTable
         /// 获取持续时间。
         /// </summary>
         public int DurationMs
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取是否跟随持有者。
+        /// </summary>
+        public bool FollowOwner
         {
             get;
             private set;
@@ -107,6 +116,7 @@ namespace DataTable
             index++;
             AssetPathID = int.Parse(columnStrings[index++]);
             DurationMs = int.Parse(columnStrings[index++]);
+            FollowOwner = bool.Parse(columnStrings[index++]);
             IsOnlyOne = bool.Parse(columnStrings[index++]);
             PosOffset = DataTableExtension.ParseVector3(columnStrings[index++]);
             PosRandom = DataTableExtension.ParseVector3(columnStrings[index++]);
@@ -125,6 +135,7 @@ namespace DataTable
                     m_Id = binaryReader.Read7BitEncodedInt32();
                     AssetPathID = binaryReader.Read7BitEncodedInt32();
                     DurationMs = binaryReader.Read7BitEncodedInt32();
+                    FollowOwner = binaryReader.ReadBoolean();
                     IsOnlyOne = binaryReader.ReadBoolean();
                     PosOffset = binaryReader.ReadVector3();
                     PosRandom = binaryReader.ReadVector3();

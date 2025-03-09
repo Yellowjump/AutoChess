@@ -29,6 +29,7 @@ namespace Entity.Bullet
         {
             GObj = obj;
             GObj.transform.position = LogicPosition;
+            GObj.transform.LookAt(Target.LogicHitPosition);
         }
         public virtual void LogicUpdate(float elapseSeconds, float realElapseSeconds)
         {

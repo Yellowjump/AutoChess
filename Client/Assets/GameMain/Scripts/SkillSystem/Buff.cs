@@ -8,6 +8,7 @@ namespace SkillSystem
 
     public class Buff:TriggerList
     {
+        public string EditorDesc = string.Empty;
         public int BuffID;
         public int TempleteID;
         public BuffTag OwnBuffTag;
@@ -23,6 +24,7 @@ namespace SkillSystem
             if (copy is Buff copyBuff)
             {
                 copyBuff.TempleteID = TempleteID;
+                copyBuff.EditorDesc = EditorDesc;
                 copyBuff.OwnBuffTag = OwnBuffTag;
             }
             base.Clone(copy);
@@ -30,6 +32,7 @@ namespace SkillSystem
         public void ReadFromFile(BinaryReader reader)
         {
             TempleteID = reader.ReadInt32();
+            EditorDesc = reader.ReadString();
             OwnBuffTag = GetCombinedTags(reader.ReadInt32());
             base.ReadFromFile(reader);
         }
@@ -37,6 +40,7 @@ namespace SkillSystem
         public void WriteToFile(BinaryWriter writer)
         {
             writer.Write(TempleteID);
+            writer.Write(EditorDesc);
             writer.Write((int)OwnBuffTag);
             base.WriteToFile(writer);
         }

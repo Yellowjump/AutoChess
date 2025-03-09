@@ -91,7 +91,7 @@ namespace UnityGameFramework.Runtime
         {
             return ownerCamp == CampType.Friend ? DirenList:QiziCSList;
         }
-        public bool GetNearestTarget(EntityQizi source, CampType targetCamp, out EntityQizi target,int skillRange)
+        public bool GetNearestTarget(EntityBase source, CampType targetCamp, out EntityQizi target,int skillRange)
         {
             target = null;
             List<EntityQizi> waitCheckList = ListPool<EntityQizi>.Get();
