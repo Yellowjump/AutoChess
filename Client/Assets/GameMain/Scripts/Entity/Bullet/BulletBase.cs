@@ -30,6 +30,11 @@ namespace Entity.Bullet
             GObj = obj;
             GObj.transform.position = LogicPosition;
             GObj.transform.LookAt(Target.LogicHitPosition);
+            var trail = GObj.GetComponentInChildren<TrailRenderer>();
+            if (trail != null)
+            {
+                trail.Clear();
+            }
         }
         public virtual void LogicUpdate(float elapseSeconds, float realElapseSeconds)
         {

@@ -108,6 +108,10 @@ public static class UnityExtension
         return new Vector3(vector2.x, y, vector2.y);
     }
 
+    public static float Vector3DistanceNoY(this Vector3 pos1, Vector3 pos2)
+    {
+        return Mathf.Sqrt((pos1.x - pos2.x) * (pos1.x - pos2.x) + (pos1.z - pos2.z) * (pos1.z - pos2.z));
+    }
     #region Transform
 
     /// <summary>

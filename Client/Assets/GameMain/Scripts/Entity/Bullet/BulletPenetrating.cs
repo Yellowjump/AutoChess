@@ -61,7 +61,14 @@ namespace Entity.Bullet
             // 更新子弹方向
             if (GObj != null)
             {
-                GObj.transform.LookAt(currentPosition);
+                // 获取切线方向
+                Vector3 tangent = GetBezierTangent(t);
+
+                // 计算新的朝向（Z 轴对齐切线方向）
+                if (tangent != Vector3.zero)
+                {
+                    GObj.transform.rotation = Quaternion.LookRotation(tangent, Vector3.up);
+                }
             }
 
             // 判断命中敌人
@@ -98,7 +105,7 @@ namespace Entity.Bullet
                 return false;
             }
             float hitRadius = 0.5f; // 子弹的命中范围
-            if (Vector3.Distance(LogicPosition, enemy.LogicPosition) <= hitRadius)
+            if (LogicPosition.Vector3DistanceNoY(enemy.LogicHitPosition) <= hitRadius)
             {
                 _hasHitQiziUid.Add(enemy.HeroUID);
                 return true;
@@ -142,6 +149,19 @@ namespace Entity.Bullet
                 return Mathf.Pow(1 - t, 2) * _startPos + 2 * (1 - t) * t * _controlPoint + Mathf.Pow(t, 2) * Target.LogicHitPosition;
             }
             return Mathf.Pow(1 - t, 2) * _startPos + 2 * (1 - t) * t * _controlPoint + Mathf.Pow(t, 2) * _targetPos;
+        }
+        // 获取贝塞尔曲线上某点的朝向
+        private Vector3 GetBezierTangent(float t)
+        {
+            Vector3 P0 = _startPos;
+            Vector3 P1 = _controlPoint;
+            Vector3 P2 = _trackingTargetEntity ? Target.LogicHitPosition : _targetPos;
+
+            // 计算一阶导数（切线向量）
+            Vector3 tangent = 2 * (1 - t) * (P1 - P0) + 2 * t * (P2 - P1);
+
+            // 归一化后返回方向
+            return tangent.normalized;
         }
         // 计算贝塞尔曲线总长度
         private float CalculateTotalCurveLength(List<Vector3> points)
