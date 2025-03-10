@@ -75,6 +75,7 @@ namespace UnityGameFramework.Runtime
             {
                 m_InstanceWorldCanvas = GameObject.Find("WorldCanvas").GetComponent<Canvas>();
             }
+            InitAnimationLoadCallback();
         }
 
         public void ShowQige(bool show)
@@ -483,6 +484,7 @@ namespace UnityGameFramework.Runtime
             ClearBullet();
             ClearPosPoint();
             DirenList.Clear();
+            UnloadUnusedAnimation();
             dangqianliucheng = 0;
             foreach (var oneEntity in QiziCSList)
             {

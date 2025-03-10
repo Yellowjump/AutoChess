@@ -73,6 +73,7 @@ namespace UnityGameFramework.Runtime
             playSoundParams.Loop = drSound.Loop;
             playSoundParams.VolumeInSoundGroup = drSound.Volume;
             playSoundParams.VolumeMaster = soundComponent.MasterVolume;
+            playSoundParams.Pitch = (float)Utility.Random.GetRandomNoLogic(0.95d, 1.05d);
             //playSoundParams.SpatialBlend = drSound.SpatialBlend;
             return soundComponent.PlaySound(AssetUtility.GetAssetPathByID(drSound.AssetId), drSound.SoundGroupId, ConstValue.AssetPriority.SoundAsset, playSoundParams, worldPos, userData);
         }

@@ -146,6 +146,8 @@ namespace SkillSystem
         ChangeAttribute,
         [InspectorName("创建位置标记")]
         CreatePosPoint,
+        [InspectorName("播放音效")]
+        PlayAudio,
     }
 
     /// <summary>

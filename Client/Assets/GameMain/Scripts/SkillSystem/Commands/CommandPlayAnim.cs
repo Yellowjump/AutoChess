@@ -58,6 +58,7 @@ namespace SkillSystem
         public override void SetSkillValue(DataRowBase dataTable)
         {
             AnimAssetID.SetSkillValue(dataTable);
+            GameEntry.HeroManager.LoadAnimationClip(AnimAssetID.Value);
         }
 
         public override void Clone(CommandBase copy)
@@ -70,6 +71,7 @@ namespace SkillSystem
 
         public override void Clear()
         {
+            GameEntry.HeroManager.ReleaseAnimNeed(AnimAssetID.Value);
             ReferencePool.Release(AnimAssetID);
             AnimAssetID = null;
         }

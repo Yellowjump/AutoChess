@@ -74,6 +74,10 @@ namespace SkillSystem
                     commandCreatePosPoint.PosOffsetMax = CreateTableParamVector3();
                     commandCreatePosPoint.LookAtTarget = CreateTableParamInt();
                     return commandCreatePosPoint;
+                case CommandType.PlayAudio:
+                    var commandPlayAudio = ReferencePool.Acquire<CommandPlayAudio>();
+                    commandPlayAudio.AudioID = CreateTableParamInt();
+                    return commandPlayAudio;
                 default:
                     return ReferencePool.Acquire<CommandBase>();
             }

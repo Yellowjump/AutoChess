@@ -18,6 +18,7 @@ namespace SkillSystem
         public List<OneTrigger> CurTriggerList;
         public Skill ParentSkill;
         public EntityBase Owner;
+        public int paramInt;
         public virtual void WriteToFile(BinaryWriter writer)
         {
             writer.Write(CurTriggerList.Count);

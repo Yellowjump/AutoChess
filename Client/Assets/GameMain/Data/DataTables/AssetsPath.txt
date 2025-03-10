@@ -53,4 +53,6 @@
 #Sound(10000			
 	10001	开始界面背景音乐	Assets/GameMain/Audio/Ambient_StartTitle.wav
 	10002	UI按钮音效	Assets/GameMain/Audio/SFX_UI_Button_Keyboard_Enter_Thick_2.wav
-#			
+	12001	飞剑生成音效	Assets/GameMain/Audio/SFX_UI_Click_Designed_Plastic_Metallic_Negative_Close_1.wav
+	12002	飞剑飞行音效	Assets/GameMain/Audio/electronic_01.wav
+	12003	飞剑命中音效	Assets/GameMain/Audio/cutting_with_a_katana.wav

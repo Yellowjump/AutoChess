@@ -5,4 +5,8 @@
 #100之下是BGM								
 	1	初始界面BGM	GameStartBGM	10001	BGM		1	1
 #1000开始是UI音效								
-	1001	按钮音效	BtnSfx	10002	UI		0	1
+	1001	按钮音效	BtnSfx	10002	UI	10	0	1
+#2000开始是技能音效								
+	2001	飞剑出生点音效	GenFlySword	12001	Sfx	10	0	1
+	2002	飞剑飞行	FlySwordFly	12002	Sfx	10	0	1
+	2003	飞剑命中	FlySwordHit	12003	Sfx	10	0	1

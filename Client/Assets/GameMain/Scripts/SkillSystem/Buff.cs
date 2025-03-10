@@ -18,7 +18,6 @@ namespace SkillSystem
         public int DurationMs;//总持续时间，无限是0
         public float RemainMs;//剩余时间
         public bool IsValid = true;
-        public int paramInt;
         public override void Clone(TriggerList copy)
         {
             if (copy is Buff copyBuff)

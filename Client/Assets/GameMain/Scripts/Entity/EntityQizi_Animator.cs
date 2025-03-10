@@ -1,9 +1,6 @@
-using System.Collections.Generic;
 using Animancer;
 using DataTable;
 using GameFramework;
-using GameFramework.Fsm;
-using GameFramework.Resource;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
@@ -23,8 +20,6 @@ namespace Entity
     {
         private WaitPlayAnimData _waitPlayAni = null;
         private AnimancerComponent _animancer;
-        private HashSet<string> _waitLoadAnimList = new HashSet<string>();
-        private Dictionary<string,AnimationClip> CurAnimationList = new Dictionary<string,AnimationClip>();
         private void InitAnimation()
         {
             _animancer = GObj.GetComponent<AnimancerComponent>();
@@ -37,67 +32,28 @@ namespace Entity
 
         private void InitAnimationClip()
         {
-            var tableSkill = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
-            var assetsPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
-            foreach (var oneAnimSkill in NormalSkillList)
-            {
-                if (tableSkill.HasDataRow(oneAnimSkill.SkillID))
-                {
-                    var skillData = tableSkill[oneAnimSkill.SkillID];
-                    if (assetsPathTable.HasDataRow(skillData.SkillAnim))
-                    {
-                        _waitLoadAnimList.Add(assetsPathTable[skillData.SkillAnim].AssetPath);
-                    }
-                }
-            }
             var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
             if (tableHero.HasDataRow(HeroID))
             {
                 var heroData = tableHero[HeroID];
-                if (assetsPathTable.HasDataRow(heroData.IdleAnimID))
-                {
-                    _waitLoadAnimList.Add(assetsPathTable[heroData.IdleAnimID].AssetPath);
-                }
-                if (assetsPathTable.HasDataRow(heroData.RunAnimID))
-                {
-                    _waitLoadAnimList.Add(assetsPathTable[heroData.RunAnimID].AssetPath);
-                }
-            }
-            foreach (var animPath in _waitLoadAnimList)
-            {
-                GameEntry.Resource.LoadAsset(animPath,new LoadAssetCallbacks(OnLoadAnimClipObjCallback));
-            }
-        }
-
-        private void OnLoadAnimClipObjCallback(string path, object asset, float duration, object userData)
-        {
-            if (!_waitLoadAnimList.Contains(path))
-            {
-                GameEntry.Resource.UnloadAsset(asset);
-                return;
-            }
-            _waitLoadAnimList.Remove(path);
-            if (asset is AnimationClip clip)
-            {
-                CurAnimationList.Add(path,clip);
+                GameEntry.HeroManager.LoadAnimationClip(heroData.IdleAnimID);
+                GameEntry.HeroManager.LoadAnimationClip(heroData.RunAnimID);
             }
         }
         private void UpdateAnimCommand()
         {
-            if (_animancer != null && _waitPlayAni!=null&&CurAnimationList.ContainsKey(_waitPlayAni.AnimAssetPath))
+            if (_animancer != null && _waitPlayAni!=null)
             {
-                var anim = CurAnimationList[_waitPlayAni.AnimAssetPath];
-                var state = _animancer.Play(anim,0.25f);
-                state.Speed = _waitPlayAni.Speed;
-                state.Time = 0f;
+                var anim = GameEntry.HeroManager.GetAnimClipByPath(_waitPlayAni.AnimAssetPath);
+                if (anim != null)
+                {
+                    var state = _animancer.Play(anim,0.25f);
+                    state.Speed = _waitPlayAni.Speed;
+                    state.Time = 0f;
+                }
                 ReferencePool.Release(_waitPlayAni);
                 _waitPlayAni = null;
             }
-            /*if (animator!=null&&!string.IsNullOrEmpty(_waitPlayAni))
-            {
-                animator.CrossFade(_waitPlayAni,0.2f);
-                _waitPlayAni = string.Empty;
-            }*/
         }
 
         public void AddAnimCommand(int aniAssetID,float speed=1)
@@ -128,20 +84,16 @@ namespace Entity
                 AddAnimCommand(heroData.RunAnimID);
             }
         }
+
         private void ReleaseAnim()
         {
-            if (_waitPlayAni != null)
+            var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
+            if (tableHero.HasDataRow(HeroID))
             {
-                ReferencePool.Release(_waitPlayAni);
-                _waitPlayAni = null;
+                var heroData = tableHero[HeroID];
+                GameEntry.HeroManager.ReleaseAnimNeed(heroData.IdleAnimID);
+                GameEntry.HeroManager.ReleaseAnimNeed(heroData.RunAnimID);
             }
-            _waitLoadAnimList.Clear();
-            foreach (var keyValue in CurAnimationList)
-            {
-                GameEntry.Resource.UnloadAsset(keyValue.Value);
-            }
-            CurAnimationList.Clear();
-            _animancer.Stop();
         }
     }
 }
