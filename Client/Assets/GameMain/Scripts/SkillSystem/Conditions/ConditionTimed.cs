@@ -15,18 +15,17 @@ namespace SkillSystem
         private int HavePass = 0;
         public override bool OnCheck(OneTrigger trigger,object arg = null)
         {
-            if (_timeAccumulatorMs > TimeIntervalMs.Value)
+            if (PassNumber.Value!=0 && PassNumber.Value<=HavePass)
             {
-                if (PassNumber.Value!=0 && PassNumber.Value<=HavePass)
-                {
-                    return false;
-                }
+                return false;
+            }
+            _timeAccumulatorMs += GameEntry.LogicDeltaTime*1000;
+            if (_timeAccumulatorMs >= TimeIntervalMs.Value)
+            {
                 _timeAccumulatorMs -= TimeIntervalMs.Value;
                 HavePass ++;
                 return true;
             }
-
-            _timeAccumulatorMs += GameEntry.LogicDeltaTime*1000;
             return false;
         }
 

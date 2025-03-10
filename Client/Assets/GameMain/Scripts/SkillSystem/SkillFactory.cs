@@ -149,6 +149,10 @@ namespace SkillSystem
                     var targetPickerNearest = ReferencePool.Acquire<TargetPickerNearest>();
                     targetPickerNearest.WeaponLength = CreateTableParamInt();
                     return targetPickerNearest;
+                case TargetPickerType.OwnerDistance:
+                    var targetPickerOwnerDistance = ReferencePool.Acquire<TargetPickerOwnerDistance>();
+                    targetPickerOwnerDistance.WeaponLength = CreateTableParamInt();
+                    return targetPickerOwnerDistance;
                 default:
                     return ReferencePool.Acquire<TargetPickerBase>();
             }

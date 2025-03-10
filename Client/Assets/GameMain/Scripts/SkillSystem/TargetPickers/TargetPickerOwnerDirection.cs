@@ -46,7 +46,7 @@ namespace SkillSystem
                         }
                     }
                     lineMidDir = lineMidDir.normalized * weaponLength / 1000f;
-                    var direnList = GameEntry.HeroManager.DirenList;
+                    var direnList = GameEntry.HeroManager.GetEnemyList(owner.BelongCamp);
                     foreach (var oneEntity in direnList)
                     {
                         if (!oneEntity.IsValid)
@@ -57,7 +57,7 @@ namespace SkillSystem
                         var targetDir2V = (oneEntity.LogicPosition - entityOwner.LogicPosition).ToVector2();
                         if (targetDir2V.magnitude < 0.5f)
                         {
-                            targetList.Add(oneEntity);//owner在 target的范围里
+                            targetList.Add(oneEntity);//owner 和 target重叠
                             continue;
                         }
                         //判断圆心是否在扇形内

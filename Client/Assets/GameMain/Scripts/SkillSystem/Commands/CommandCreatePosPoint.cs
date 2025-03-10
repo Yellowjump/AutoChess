@@ -55,6 +55,9 @@ namespace SkillSystem
                         case PosPointPositionType.TargetOffset:
                             tempTargetPos = GetPosEntityOffset(oneTarget, posOffset,trigger.ParentTriggerList.Owner);
                             break;
+                        case PosPointPositionType.CrowdedPos:
+                            tempTargetPos = GetCrowdedPos(oneTarget.BelongCamp, posOffset.x / 1000);
+                            break;
                     }
                     newPosPoint.LogicPosition = tempTargetPos;
                     if (LookAtTarget.Value == 1)
@@ -86,6 +89,46 @@ namespace SkillSystem
             return theBase.LogicPosition + offset;
         }
 
+        private Vector3 GetCrowdedPos(CampType targetBelongType, float radius)
+        {
+            List<EntityQizi> targetCampList = ListPool<EntityQizi>.Get();
+            GameEntry.HeroManager.GetEntityQiziList(targetBelongType,CampType.Friend,ref targetCampList);
+            List<Vector3> targetPosList = ListPool<Vector3>.Get();
+            foreach (var oneEntity in targetCampList)
+            {
+                if (oneEntity.IsValid)
+                {
+                    targetPosList.Add(oneEntity.LogicPosition);
+                }
+            }
+            ListPool<EntityQizi>.Release(targetCampList);
+            if (targetPosList.Count >= 3)
+            {
+                var targetPos = GameEntry.HeroManager.GetCrowdedPos(targetPosList, radius);
+                ListPool<Vector3>.Release(targetPosList);
+                return targetPos;
+            }
+            if (targetPosList.Count == 1)
+            {
+                var targetPos = targetPosList[0];
+                ListPool<Vector3>.Release(targetPosList);
+                return targetPos;
+            }
+
+            if (targetPosList.Count == 2)
+            {
+                var targetA = targetPosList[0];
+                var targetB = targetPosList[1];
+                if (targetA.Vector3DistanceNoY(targetB) < radius)
+                {
+                    return (targetA + targetB) / 2;
+                }
+                ListPool<Vector3>.Release(targetPosList);
+                return targetA;
+            }
+            ListPool<Vector3>.Release(targetPosList);
+            return GameEntry.HeroManager.QigePosOffset;
+        }
         public override void Clone(CommandBase copy)
         {
             if (copy is CommandCreatePosPoint commandCreatePosPoint)

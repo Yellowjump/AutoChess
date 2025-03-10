@@ -49,6 +49,8 @@ namespace SkillSystem
                             TemporaryBuff.Clone(newBuff);
                             newBuff.Owner = target;
                             newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
+                            newBuff.DurationMs = TemporaryBuff.DurationMs;
+                            newBuff.RemainMs = newBuff.DurationMs;
                             target.AddBuff(newBuff);
                         }
                     }

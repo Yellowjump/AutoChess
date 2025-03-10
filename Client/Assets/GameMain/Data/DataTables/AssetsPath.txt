@@ -18,9 +18,10 @@
 	3001	角色test	Assets/GameMain/Prefeb/Charactor/qizi0/KyleRobot.prefab
 	3051	敌人test	Assets/GameMain/Prefeb/Charactor/enemy0/enemy0.prefab
 #Sfx(3300			
-	3301	受击特效	Assets/GameMain/Prefeb/Sfx/CFXR3 Hit Fire B (Air).prefab
+	3301	受击特效	Assets/GameMain/Prefeb/Sfx/hitSfx/CFXR3 Hit Fire B (Air).prefab
 	3302	护盾特效	Assets/GameMain/Prefeb/Sfx/ForceField/ForceField.prefab
 	3303	飞剑生成光圈	Assets/GameMain/Prefeb/Sfx/PortalBlue/Portalblue.prefab
+	3304	蓝色爆炸	Assets/GameMain/Prefeb/Sfx/Boom/BoomBlue.prefab
 #LevelObj(3500			
 	3501	商店场景	Assets/GameMain/Prefeb/LevelObj/outwild.prefab
 #Sprite(4000			
@@ -44,15 +45,19 @@
 #Anim(6000			
 	6001	僵尸idle	Assets/GameMain/Prefeb/Charactor/enemy0/Z_Idle.anim
 	6002	僵尸run	Assets/GameMain/Prefeb/Charactor/enemy0/Z_Run.anim
-	6003	僵尸攻击	Assets/GameMain/Prefeb/Charactor/enemy0/Z_Attack.anim
+	6003	僵尸攻击	Assets/GameMain/Animation/Skill/Z_Attack.anim
 	6004	僵尸倒地	Assets/GameMain/Prefeb/Charactor/enemy0/Z_FallingBack.anim
 	6011	主角idle	Assets/GameMain/Prefeb/Charactor/qizi0/WAIT00.anim
 	6012	主角run	Assets/GameMain/Prefeb/Charactor/qizi0/RUN00_F.anim
-	6101	挥砍	Assets/GameMain/Prefeb/Charactor/HorizontalSwing.anim
-	6102	二郎神开	Assets/GameMain/Prefeb/Charactor/shield_power.anim
+	6101	挥砍	Assets/GameMain/Animation/Skill/HorizontalSwing.anim
+	6102	二郎神开	Assets/GameMain/Animation/Skill/shield_power.anim
+	6103	施法开始	Assets/GameMain/Animation/Skill/SpellCast_Start.anim
+	6104	施法loop	Assets/GameMain/Animation/Skill/CastingLoop.anim
+	6105	施法结束	Assets/GameMain/Animation/Skill/SpellCast_End.anim
 #Sound(10000			
 	10001	开始界面背景音乐	Assets/GameMain/Audio/Ambient_StartTitle.wav
 	10002	UI按钮音效	Assets/GameMain/Audio/SFX_UI_Button_Keyboard_Enter_Thick_2.wav
 	12001	飞剑生成音效	Assets/GameMain/Audio/SFX_UI_Click_Designed_Plastic_Metallic_Negative_Close_1.wav
 	12002	飞剑飞行音效	Assets/GameMain/Audio/electronic_01.wav
 	12003	飞剑命中音效	Assets/GameMain/Audio/cutting_with_a_katana.wav
+	12004	爆炸音效	Assets/GameMain/Audio/short_bomb.mp3

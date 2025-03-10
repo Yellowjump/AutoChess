@@ -18,6 +18,7 @@ namespace Editor.SkillSystem
             buff.TempleteID = EditorGUILayout.IntField("当前buff模板ID:", buff.TempleteID);
             buff.EditorDesc = EditorGUILayout.TextField("描述:", buff.EditorDesc);
             buff.OwnBuffTag = (BuffTag)EditorGUILayout.EnumFlagsField("buff Tag",  buff.OwnBuffTag);
+            buff.DurationMs = EditorGUILayout.IntField("持续时间Ms：", buff.DurationMs);
             _triggerListEditorInstance ??= new TriggerListEditor();
             _triggerListEditorInstance.OnGUIDraw(buff);
         }

@@ -103,6 +103,8 @@ namespace SkillSystem
         RandomFromList,
         [InspectorName("选取子弹")]
         Bullet,
+        [InspectorName("持有者距离")]
+        OwnerDistance,
     }
 
     public enum DamageDataTargetType
