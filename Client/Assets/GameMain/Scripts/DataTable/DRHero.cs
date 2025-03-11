@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2024-11-15 01:06:33.151
+// 生成时间：2025-03-11 10:24:20.062
 //------------------------------------------------------------
 
 using GameFramework;
@@ -102,6 +102,24 @@ namespace DataTable
             private set;
         }
 
+        /// <summary>
+        /// 获取胜利动画。
+        /// </summary>
+        public int WinAnimID
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取失败动画。
+        /// </summary>
+        public int LoseAnimID
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -121,7 +139,8 @@ namespace DataTable
             AssetID = int.Parse(columnStrings[index++]);
             IdleAnimID = int.Parse(columnStrings[index++]);
             RunAnimID = int.Parse(columnStrings[index++]);
-            index++;
+            WinAnimID = int.Parse(columnStrings[index++]);
+            LoseAnimID = int.Parse(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -141,6 +160,8 @@ namespace DataTable
                     AssetID = binaryReader.Read7BitEncodedInt32();
                     IdleAnimID = binaryReader.Read7BitEncodedInt32();
                     RunAnimID = binaryReader.Read7BitEncodedInt32();
+                    WinAnimID = binaryReader.Read7BitEncodedInt32();
+                    LoseAnimID = binaryReader.Read7BitEncodedInt32();
                 }
             }
 

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using GameFramework;
 using GameFramework.Fsm;
+using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
 namespace Entity
@@ -10,7 +12,13 @@ namespace Entity
         private readonly List<FsmBase> m_TempFsms;
         private void InitState()
         {
-            List<FsmState<EntityQizi>> stateList = new List<FsmState<EntityQizi>>() { new StateIdle0(), new StateMove0(), new StateAttack0(), new StateUnderControl0() };
+            List<FsmState<EntityQizi>> stateList = ListPool<FsmState<EntityQizi>>.Get();
+            stateList.Add(ReferencePool.Acquire<StateIdle0>());
+            stateList.Add(ReferencePool.Acquire<StateMove0>());
+            stateList.Add(ReferencePool.Acquire<StateAttack0>());
+            stateList.Add(ReferencePool.Acquire<StateUnderControl0>());
+            stateList.Add(ReferencePool.Acquire<StateBattleWin>());
+            stateList.Add(ReferencePool.Acquire<StateBattleLose>());
             fsm = Fsm<EntityQizi>.Create((HeroUID).ToString(),this, stateList);
             fsm.Start<StateIdle0>();
         }
@@ -23,6 +31,14 @@ namespace Entity
         private void ChangeToIdleState()
         {
             fsm?.ChangeStatePublic<StateIdle0>();
+        }
+        private void ChangeToWinState()
+        {
+            fsm?.ChangeStatePublic<StateBattleWin>();
+        }
+        private void ChangeToLoseState()
+        {
+            fsm?.ChangeStatePublic<StateBattleLose>();
         }
         private void DestoryState()
         {

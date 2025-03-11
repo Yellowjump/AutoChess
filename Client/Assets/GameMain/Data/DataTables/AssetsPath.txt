@@ -49,6 +49,8 @@
 	6004	僵尸倒地	Assets/GameMain/Prefeb/Charactor/enemy0/Z_FallingBack.anim
 	6011	主角idle	Assets/GameMain/Prefeb/Charactor/qizi0/WAIT00.anim
 	6012	主角run	Assets/GameMain/Prefeb/Charactor/qizi0/RUN00_F.anim
+	6013	胜利	Assets/GameMain/Animation/Victory.anim
+	6014	失败	Assets/GameMain/Animation/Defeat.anim
 	6101	挥砍	Assets/GameMain/Animation/Skill/HorizontalSwing.anim
 	6102	二郎神开	Assets/GameMain/Animation/Skill/shield_power.anim
 	6103	施法开始	Assets/GameMain/Animation/Skill/SpellCast_Start.anim

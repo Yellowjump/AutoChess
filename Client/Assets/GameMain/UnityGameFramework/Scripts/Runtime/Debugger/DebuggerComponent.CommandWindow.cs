@@ -102,7 +102,7 @@ namespace UnityGameFramework.Runtime
                     _changeCoinNum = RemoveNonIntegerCharactersAndConvertToInt(newCoinText);
                     if (GUILayout.Button("修改金币"))
                     {
-                        SelfDataManager.Instance.TryAddCoin(_changeCoinNum);
+                        GameEntry.HeroManager.TryAddCoin(_changeCoinNum);
                     }
 
                     if (GUILayout.Button("测试AI"))

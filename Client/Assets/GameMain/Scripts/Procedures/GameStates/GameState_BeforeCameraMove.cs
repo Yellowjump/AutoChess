@@ -21,7 +21,7 @@ namespace Procedure.GameStates
         {
             base.OnEnter(fsm);
             m_fsm = fsm;
-            var curPoint = SelfDataManager.Instance.CurAreaPoint;
+            var curPoint = GameEntry.HeroManager.CurAreaPoint;
             if (curPoint == null)
             {
                 Log.Error("No CurPoint");
@@ -42,7 +42,7 @@ namespace Procedure.GameStates
                 }
                 else
                 {
-                    GameEntry.HeroManager.MoveQigeRoot(SelfDataManager.Instance.CurAreaPoint.Pos);
+                    GameEntry.HeroManager.MoveQigeRoot(GameEntry.HeroManager.CurAreaPoint.Pos);
                     InitEnemy();
                     GameEntry.HeroManager.FreshFriendEntityPos();
                     GameEntry.HeroManager.InitFriendGObj();
@@ -58,8 +58,8 @@ namespace Procedure.GameStates
 
         private void OnGetLevelObjCallback(GameObject obj, string path)
         {
-            SelfDataManager.Instance.CurAreaPoint.LevelGObj = obj;
-            obj.transform.position = SelfDataManager.Instance.CurAreaPoint.Pos;
+            GameEntry.HeroManager.CurAreaPoint.LevelGObj = obj;
+            obj.transform.position = GameEntry.HeroManager.CurAreaPoint.Pos;
             var setHeight = obj.GetComponent<AutoSetHeightWithTerrain>();
             if (setHeight != null)
             {
@@ -84,7 +84,7 @@ namespace Procedure.GameStates
         }
         private void InitEnemy()
         {
-            var curPoint = SelfDataManager.Instance.CurAreaPoint;
+            var curPoint = GameEntry.HeroManager.CurAreaPoint;
             if (curPoint == null)
             {
                 Log.Error("No CurPoint");

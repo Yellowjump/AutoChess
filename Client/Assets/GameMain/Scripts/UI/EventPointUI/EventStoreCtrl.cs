@@ -84,15 +84,15 @@ public class EventStoreCtrl : UIFormLogic
         if (itemTable.HasDataRow(storeItem.ItemID))
         {
             var itemData = itemTable[storeItem.ItemID];
-            if (SelfDataManager.Instance.CoinNum < itemData.StoreCoin)
+            if (GameEntry.HeroManager.CoinNum < itemData.StoreCoin)
             {
                 // Coin 不足
                 return;
             }
 
             storeItem.SetBtnInteractFalse();
-            SelfDataManager.Instance.TryAddCoin(-itemData.StoreCoin);
-            SelfDataManager.Instance.AddOneItem(storeItem.ItemID,1);
+            GameEntry.HeroManager.TryAddCoin(-itemData.StoreCoin);
+            GameEntry.HeroManager.AddOneItem(storeItem.ItemID,1);
         }
     }
     private void OnPointItemEnter(StoreItem battleBagItem)

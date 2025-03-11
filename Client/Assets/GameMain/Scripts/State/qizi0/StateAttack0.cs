@@ -4,12 +4,13 @@ using Entity;
 using Procedure;
 using System.Collections;
 using System.Collections.Generic;
+using GameFramework;
 using SkillSystem;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
-public class StateAttack0 : FsmState<EntityQizi>
+public class StateAttack0 : FsmState<EntityQizi>,IReference
 {
     private int curNormalIndex = 0;
     private float durationAccumulate = 0f;
@@ -97,5 +98,11 @@ public class StateAttack0 : FsmState<EntityQizi>
     protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {
         base.OnDestroy(fsm);
+        ReferencePool.Release(this);
+    }
+
+    public void Clear()
+    {
+        
     }
 }

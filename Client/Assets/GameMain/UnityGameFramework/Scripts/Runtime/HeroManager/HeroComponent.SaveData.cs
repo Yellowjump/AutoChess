@@ -75,7 +75,7 @@ namespace UnityGameFramework.Runtime
             newSaveData.RandomSeed = Utility.Random.Seed;
             newSaveData.RandomCount = Utility.Random.NextCount;
             newSaveData.MazeData = new List<SaveMazePoint>();
-            foreach (var onePoint in SelfDataManager.Instance.CurAreaList)
+            foreach (var onePoint in CurAreaList)
             {
                 if (onePoint.CurType == MazePointType.Empty)
                 {
@@ -95,7 +95,7 @@ namespace UnityGameFramework.Runtime
                 newSaveData.MazeData.Add(newPointData);
             }
             newSaveData.Bag = new();
-            foreach (var keyValue in SelfDataManager.Instance.ItemBag)
+            foreach (var keyValue in ItemBag)
             {
                 oneItem oneItem = new oneItem()
                 {
@@ -106,7 +106,7 @@ namespace UnityGameFramework.Runtime
             }
             
             newSaveData.HeroList = new List<SaveHeroData>();
-            foreach (var oneHero in SelfDataManager.Instance.SelfHeroList)
+            foreach (var oneHero in SelfHeroList)
             {
                 var newHero = new SaveHeroData();
                 newHero.heroID = oneHero.HeroID;
@@ -118,7 +118,7 @@ namespace UnityGameFramework.Runtime
                 }
                 newSaveData.HeroList.Add(newHero);
             }
-            newSaveData.CoinNum = SelfDataManager.Instance.CoinNum;
+            newSaveData.CoinNum = CoinNum;
             string json = Utility.Json.ToJson(newSaveData);
             File.WriteAllText(SaveDataFilePath, json);
         }

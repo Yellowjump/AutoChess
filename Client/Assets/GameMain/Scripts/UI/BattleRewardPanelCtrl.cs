@@ -42,7 +42,7 @@ public class BattleRewardPanelCtrl : UIFormLogic
         _btnContinue.gameObject.SetActive(false);
         _itemParent.gameObject.SetActive(true);
         List<int> rewardItemIDList = ListPool<int>.Get();
-        var levelID = SelfDataManager.Instance.CurAreaPoint.CurLevelID;
+        var levelID = GameEntry.HeroManager.CurAreaPoint.CurLevelID;
         var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
         if (!levelConfigTable.HasDataRow(levelID))
         {
@@ -99,7 +99,7 @@ public class BattleRewardPanelCtrl : UIFormLogic
 
     private void OnClickRewardItem(BattleRewardItem battleRewardItem)
     {
-        SelfDataManager.Instance.AddOneItem(battleRewardItem.ItemID, 1);
+        GameEntry.HeroManager.AddOneItem(battleRewardItem.ItemID, 1);
         //关闭奖励选项
         _itemParent.gameObject.SetActive(false);
         _btnContinue.gameObject.SetActive(true);

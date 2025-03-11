@@ -141,7 +141,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     
     private void ShowBagItem()
     {
-        var bagDic = SelfDataManager.Instance.ItemBag;
+        var bagDic = GameEntry.HeroManager.ItemBag;
         
         foreach (var keyValue in bagDic.OrderBy((ky)=>ky.Key))
         {
@@ -379,7 +379,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     {
         if (_craftItem != null && _craftItem.ItemID != 0)
         {
-            if (SelfDataManager.Instance.TryCraftItem(_craftItem.ItemID))
+            if (GameEntry.HeroManager.TryCraftItem(_craftItem.ItemID))
             {
                 _craftItem.ItemID = 0;
                 _willCraftParent.gameObject.SetActive(false);
@@ -442,7 +442,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     {
         var itemID = battleBagItem.ItemID;
         var itemBagNum = battleBagItem.itemNum;
-        var success = SelfDataManager.Instance.TryEquipItem(_curShowHeroUID, itemID);
+        var success = GameEntry.HeroManager.TryEquipItem(_curShowHeroUID, itemID);
         if (!success)
         {
             return;
@@ -471,7 +471,7 @@ public class BattleBagPanelCtrl : UIFormLogic
         
         var itemID = battleBagItem.ItemID;
         var equipIndex = _curHeroEquipItemList.IndexOf(battleBagItem);
-        var success = SelfDataManager.Instance.TryRemoveEquip(_curShowHeroUID, itemID,equipIndex);
+        var success = GameEntry.HeroManager.TryRemoveEquip(_curShowHeroUID, itemID,equipIndex);
         if (!success)
         {
             return;

@@ -58,7 +58,7 @@ namespace UnityGameFramework.Runtime
                 }
                 PerAreaCameraDic.Clear();
             }
-            var areaList = SelfDataManager.Instance.CurAreaList;
+            var areaList = GameEntry.HeroManager.CurAreaList;
             foreach (var oneAreaPoint in areaList)
             {
                 var oneVirtualCameraObj = new GameObject($"AreaPointCamera_{oneAreaPoint.Index}");

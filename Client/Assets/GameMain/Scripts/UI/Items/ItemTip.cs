@@ -36,7 +36,7 @@ namespace GameMain.Scripts.UI.Items
                 var skillData = skillTable[itemTable[ItemID].SkillID];
                 if (skillData.SkillType == (int)SkillType.NormalSkill)
                 {
-                    _itemTipAtkDistance.text = skillData.SkillRange.ToString();
+                    _itemTipAtkDistance.text = Mathf.FloorToInt(skillData.SkillRange/1000f).ToString();
                 }
                 _itemTipAtkDistance.gameObject.SetActive(skillData.SkillType == (int)SkillType.NormalSkill);
                 _itemTipCast.gameObject.SetActive(skillData.SkillType != (int)SkillType.PassiveSkill);

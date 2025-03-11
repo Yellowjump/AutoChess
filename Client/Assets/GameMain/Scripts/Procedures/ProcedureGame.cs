@@ -63,6 +63,8 @@ namespace Procedure
         {
             base.OnDestroy(procedureOwner);
             GameEntry.Event.Unsubscribe(ReturnToTitleEventArgs.EventId,ReturnToTitle);
+            //清除所有数据
+            
         }
 
         public void ReturnToTitle(object sender, GameEventArgs e)
@@ -81,12 +83,12 @@ namespace Procedure
                 return;
             }
             _gameStateFsm.ChangeStatePublic<GameState_FormationBeforeBattle>();
-            //SelfDataManager.Instance.CurAreaPoint.CurLevelID = ne.BattleLevelID;
+            //GameEntry.HeroManager.CurAreaPoint.CurLevelID = ne.BattleLevelID;
             /*var levelConfigsTable=GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
             if (levelConfigsTable.HasDataRow(ne.BattleLevelID))
             {
                 var levelConfigData = levelConfigsTable[ne.BattleLevelID];
-                SelfDataManager.Instance.CurAreaPoint.CurType = (MazePointType)levelConfigData.MazePointType;
+                GameEntry.HeroManager.CurAreaPoint.CurType = (MazePointType)levelConfigData.MazePointType;
             }*/
         }
 
@@ -97,7 +99,7 @@ namespace Procedure
             {
                 return;
             }
-            SelfDataManager.Instance.PassCurPoint();
+            GameEntry.HeroManager.PassCurPoint();
             _gameStateFsm.ChangeStatePublic<GameState_Map>();
         }
     }

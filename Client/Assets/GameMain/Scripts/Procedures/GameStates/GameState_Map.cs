@@ -38,17 +38,17 @@ namespace Procedure.GameStates
         private void ReleaseLastEventPointGObj()
         {
             //清除event对应的GameObj
-            if (SelfDataManager.Instance.CurAreaPoint!=null&&SelfDataManager.Instance.CurAreaPoint.LevelGObj != null)
+            if (GameEntry.HeroManager.CurAreaPoint!=null&&GameEntry.HeroManager.CurAreaPoint.LevelGObj != null)
             {
-                var levelID = SelfDataManager.Instance.CurAreaPoint.CurLevelID;
+                var levelID = GameEntry.HeroManager.CurAreaPoint.CurLevelID;
                 var levelTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
                 if (levelTable.HasDataRow(levelID))
                 {
                     var levelData = levelTable[levelID];
-                    GameEntry.HeroManager.ReleaseAssetObj(levelData.ParamInt1,SelfDataManager.Instance.CurAreaPoint.LevelGObj,null);
+                    GameEntry.HeroManager.ReleaseAssetObj(levelData.ParamInt1,GameEntry.HeroManager.CurAreaPoint.LevelGObj,null);
                 }
                 
-                SelfDataManager.Instance.CurAreaPoint.LevelGObj = null;
+                GameEntry.HeroManager.CurAreaPoint.LevelGObj = null;
             }
         }
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
@@ -73,7 +73,7 @@ namespace Procedure.GameStates
             AreaPoint point = ne.TargetPoint;
             if (point != null && point.CurPassState == AreaPoint.PointPassState.Unlock)
             {
-                SelfDataManager.Instance.CurAreaPoint = point;
+                GameEntry.HeroManager.CurAreaPoint = point;
                 if (point.CurType is MazePointType.UnKnown)
                 {
                     List<int> typeList = ListPool<int>.Get();
@@ -85,7 +85,7 @@ namespace Procedure.GameStates
                     var typeIndex = Utility.Random.GetRandom(typeList.Count);
                     //随机修改当前点为 其他类型
                     point.CurType = (MazePointType)typeList[typeIndex];
-                    point.CurLevelID = SelfDataManager.Instance.GetOneRandomLevelIDFormType(point.CurType);
+                    point.CurLevelID = GameEntry.HeroManager.GetOneRandomLevelIDFormType(point.CurType);
                 }
                 ChangeState<GameState_BeforeCameraMove>(_fsm);
             }

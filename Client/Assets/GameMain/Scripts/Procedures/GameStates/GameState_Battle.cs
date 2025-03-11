@@ -48,7 +48,7 @@ namespace Procedure.GameStates
                 }
                 return;
             }
-            if (Time.time-battleTime>60)
+            if (Time.time-battleTime>ConstValue.BattleMaxDuration)
             {
                 ChangeState<GameState_Lose>(fsm);
             }

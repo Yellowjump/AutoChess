@@ -108,6 +108,7 @@ public class BattleMainCtrl : UIFormLogic
                 if (targetQizi.BelongCamp == CampType.Friend && GameEntry.HeroManager.dangqianliucheng == 0)
                 {
                     tryDragTargetQizi = targetQizi;
+                    GameEntry.HeroManager.ShowQige(true);
                 }
 
                 if (curTargetQizi != null && curTargetQizi != targetQizi)
@@ -171,6 +172,7 @@ public class BattleMainCtrl : UIFormLogic
 
                 tryDragTargetQizi.HpBar.UpdataMoveHpBar();
                 tryDragTargetQizi = null;
+                GameEntry.HeroManager.ShowQige(false);
                 if (keepCurTarget == false)
                 {
                     curTargetQizi.ShowHighlight(false);

@@ -135,7 +135,11 @@ namespace Entity
 
         public void OnWinBattle()
         {
-            ChangeToIdleState();
+            ChangeToWinState();
+        }
+        public void OnLoseBattle()
+        {
+            ChangeToLoseState();
         }
         public void OnDead()
         {

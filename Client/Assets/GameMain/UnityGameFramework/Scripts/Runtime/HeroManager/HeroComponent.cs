@@ -97,6 +97,8 @@ namespace UnityGameFramework.Runtime
                     qigepos[i][indexX] = pos;
                 }
             }
+            var eventComp = GameEntry.GetComponent<EventComponent>();
+            eventComp.Subscribe(CMDGetItemEventArgs.EventId,OnCMDGetItem);
         }
 
         void InitQige()
@@ -192,7 +194,7 @@ namespace UnityGameFramework.Runtime
             qizi.rowIndex = newPos.y;
         }
 
-        public Vector2Int Findpath(Vector2Int start, Vector2Int end, float gongjidistance)
+        public Vector2Int Findpath(Vector2Int start, Vector2Int end, int atkRangeMM)
         {
             /*if (gongjidistance == 1&&IsSurround(end))//攻击距离为1，先判断是否目标被围了一圈
             {
@@ -212,7 +214,7 @@ namespace UnityGameFramework.Runtime
                 Vector2Int current = sortList[0];
                 sortList.Remove(current);
                 var dis = Utility.TruncateFloat(getDistance(current, end), 4);
-                if (dis <= gongjidistance * gongjidistance) //一格斜着因为浮点精度计算出来距离大于1
+                if (dis <= (atkRangeMM * atkRangeMM)/1000000f) //一格斜着因为浮点精度计算出来距离大于1
                 {
                     lastpos = current;
                     find = true;
@@ -445,6 +447,18 @@ namespace UnityGameFramework.Runtime
         public void OnBattleWin()
         {
             foreach (var oneEntity in QiziCSList)
+            {
+                oneEntity.OnWinBattle();
+            }
+        }
+        public void OnBattleLose()
+        {
+            foreach (var oneEntity in QiziCSList)
+            {
+                oneEntity.OnLoseBattle();
+            }
+
+            foreach (var oneEntity in DirenList)
             {
                 oneEntity.OnWinBattle();
             }

@@ -2,12 +2,13 @@ using GameFramework.Fsm;
 using Entity;
 using System.Collections;
 using System.Collections.Generic;
+using GameFramework;
 using SkillSystem;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
-public class StateIdle0 : FsmState<EntityQizi>
+public class StateIdle0 : FsmState<EntityQizi>,IReference
 {
     protected override void OnInit(IFsm<EntityQizi> fsm)
     {
@@ -23,30 +24,11 @@ public class StateIdle0 : FsmState<EntityQizi>
 
         var owner = fsm.Owner;
         owner.AddAnimCommandIdle();
-        // 检测是否能释放SpSkill
-        //CheckChangeState(fsm);
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
         base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
         CheckChangeState(fsm);
-        /*if (Time.time - timebegin > 0.5f&&qizi.y != -4.5 && GameEntry.HeroManager.dangqianliucheng == 1)//0.5s每次
-        {
-            timebegin = Time.time+0.5f;
-            Findtarget();
-            if (targetqizi!=null)
-            {
-                if (qizi.gongjiDistence* qizi.gongjiDistence<mindistance)
-                {
-                    //距离不够，开始寻路
-                    ChangeState<StateMove0>(fsm);
-                }
-                else //距离够，切换到攻击状态
-                {
-                    ChangeState<StateAttack0>(fsm);
-                }
-            }
-        }*/
     }
 
     private void CheckChangeState(IFsm<EntityQizi> fsm)
@@ -108,5 +90,11 @@ public class StateIdle0 : FsmState<EntityQizi>
     protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {
         base.OnDestroy(fsm);
+        ReferencePool.Release(this);
+    }
+
+    public void Clear()
+    {
+        
     }
 }

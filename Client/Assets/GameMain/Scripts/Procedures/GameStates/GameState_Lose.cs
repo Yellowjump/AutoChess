@@ -13,6 +13,7 @@ namespace Procedure.GameStates
         {
             base.OnEnter(fsm);
             GameEntry.UI.OpenUIForm(UICtrlName.BattleLosePanel, "middle");
+            GameEntry.HeroManager.OnBattleLose();
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)

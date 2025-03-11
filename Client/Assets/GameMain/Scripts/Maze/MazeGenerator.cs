@@ -370,7 +370,7 @@ namespace Maze
 
             foreach (var onePoint in pointList)
             {
-                onePoint.CurLevelID = SelfDataManager.Instance.GetOneRandomLevelIDFormType(onePoint.CurType);
+                onePoint.CurLevelID = GameEntry.HeroManager.GetOneRandomLevelIDFormType(onePoint.CurType);
             }
             return pointList;
         }
@@ -434,7 +434,7 @@ namespace Maze
             }
             foreach (var onePoint in pointList)
             {
-                onePoint.CurLevelID = SelfDataManager.Instance.GetOneRandomLevelIDFormType(onePoint.CurType);
+                onePoint.CurLevelID = GameEntry.HeroManager.GetOneRandomLevelIDFormType(onePoint.CurType);
             }
             return pointList;
         }

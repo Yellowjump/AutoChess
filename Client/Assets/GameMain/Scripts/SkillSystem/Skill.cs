@@ -12,7 +12,7 @@ namespace SkillSystem
         public int TempleteID;
         public int FromItemID;//来源道具ID
         public SkillType CurSkillType;
-        public int SkillRange;//攻击距离
+        public int SkillRange;//攻击距离mm
         public EntityQizi Caster;
         public int DefaultAnimationDurationMs;//默认技能动画时长
         public int DefaultSkillCDMs;//默认技能CD也是默认技能时长

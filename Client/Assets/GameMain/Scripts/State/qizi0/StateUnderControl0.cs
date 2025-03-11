@@ -2,9 +2,10 @@ using GameFramework.Fsm;
 using System.Collections;
 using System.Collections.Generic;
 using Entity;
+using GameFramework;
 using UnityEngine;
 
-public class StateUnderControl0 : FsmState<EntityQizi>
+public class StateUnderControl0 : FsmState<EntityQizi>,IReference
 {
     protected override void OnInit(IFsm<EntityQizi> fsm)
     {
@@ -25,5 +26,11 @@ public class StateUnderControl0 : FsmState<EntityQizi>
     protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {
         base.OnDestroy(fsm);
+        ReferencePool.Release(this);
+    }
+
+    public void Clear()
+    {
+        
     }
 }

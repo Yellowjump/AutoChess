@@ -55,7 +55,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
             return ob;
         }, (obj) => {obj.SetActive(true); obj.transform.SetParent(GameEntry.HeroManager.WorldCanvas.transform); }, (obj) => {obj.transform.SetParent(GameEntry.HeroManager.DisableRoot);}, Destroy);
 
-        var mazeList = SelfDataManager.Instance.CurAreaList;
+        var mazeList = GameEntry.HeroManager.CurAreaList;
         if (mazeList == null)
         {
             return;
@@ -69,7 +69,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
             }
             foreach (var linkPointIndex in onePointData.LinkPointList)
             {
-                var linkPointData = SelfDataManager.Instance.GetPoint(linkPointIndex);
+                var linkPointData = GameEntry.HeroManager.GetPoint(linkPointIndex);
                 if (linkPointData.Pos.x > onePointData.Pos.x || (Math.Abs(linkPointData.Pos.x - onePointData.Pos.x) < float.Epsilon &&linkPointData.Pos.y > onePointData.Pos.y))
                 {
                     Vector3 linkPosition = linkPointData.Pos;
@@ -114,7 +114,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
             mp.BtnClick.interactable = onePointData.CurPassState == AreaPoint.PointPassState.Unlock;
             /*foreach (var linkPointIndex in onePointData.LinkPointList)
             {
-                var linkPointData = SelfDataManager.Instance.GetPoint(linkPointIndex);
+                var linkPointData = GameEntry.HeroManager.GetPoint(linkPointIndex);
                 if (linkPointData.Pos.x > onePointData.Pos.x || (Math.Abs(linkPointData.Pos.x - onePointData.Pos.x) < float.Epsilon &&linkPointData.Pos.y > onePointData.Pos.y))
                 {
                     Vector3 linkPosition = linkPointData.Pos;
@@ -147,7 +147,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
 
     public void FreshFog()
     {
-        /*var mazeList = SelfDataManager.Instance.CurMazeList;
+        /*var mazeList = GameEntry.HeroManager.CurMazeList;
         // 填充白色
         for (int y = 0; y < mapHeight; y++)
         {
@@ -196,7 +196,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
     private void OnClickPoint(AreaPointItem item)
     {
         Log.Info(item.Index);
-        var point=SelfDataManager.Instance.GetPoint(item.Index);
+        var point=GameEntry.HeroManager.GetPoint(item.Index);
         GameEntry.Event.Fire(this,EnterPointEventArgs.Create(point));
         //point.CanSee = true;
         //FreshFog();
@@ -211,7 +211,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
             {
                 continue;
             }
-            var point=SelfDataManager.Instance.GetPoint(curItem.Index);
+            var point=GameEntry.HeroManager.GetPoint(curItem.Index);
             if (point.CurPassState==AreaPoint.PointPassState.Pass)
             {
                 curItem.IsPassImg.SetActive(true);

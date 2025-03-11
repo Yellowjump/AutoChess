@@ -38,6 +38,8 @@ namespace Entity
                 var heroData = tableHero[HeroID];
                 GameEntry.HeroManager.LoadAnimationClip(heroData.IdleAnimID);
                 GameEntry.HeroManager.LoadAnimationClip(heroData.RunAnimID);
+                GameEntry.HeroManager.LoadAnimationClip(heroData.WinAnimID);
+                GameEntry.HeroManager.LoadAnimationClip(heroData.LoseAnimID);
             }
         }
         private void UpdateAnimCommand()
@@ -49,7 +51,10 @@ namespace Entity
                 {
                     var state = _animancer.Play(anim,0.25f);
                     state.Speed = _waitPlayAni.Speed;
-                    state.Time = 0f;
+                    if (!anim.isLooping)
+                    {
+                        state.Time = 0f;
+                    }
                 }
                 ReferencePool.Release(_waitPlayAni);
                 _waitPlayAni = null;
@@ -84,7 +89,24 @@ namespace Entity
                 AddAnimCommand(heroData.RunAnimID);
             }
         }
-
+        public void AddAnimCommandWin()
+        {
+            var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
+            if (tableHero.HasDataRow(HeroID))
+            {
+                var heroData = tableHero[HeroID];
+                AddAnimCommand(heroData.WinAnimID);
+            }
+        }
+        public void AddAnimCommandLose()
+        {
+            var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
+            if (tableHero.HasDataRow(HeroID))
+            {
+                var heroData = tableHero[HeroID];
+                AddAnimCommand(heroData.LoseAnimID);
+            }
+        }
         private void ReleaseAnim()
         {
             var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");

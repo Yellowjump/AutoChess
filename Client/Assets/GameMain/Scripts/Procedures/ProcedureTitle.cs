@@ -17,6 +17,7 @@ namespace Procedure
             base.OnEnter(procedureOwner);
             //打开titleUI
             GameEntry.UI.OpenUIForm(UICtrlName.MainTitlePanel, "middle");
+            GameEntry.HeroManager.InitStartCamera();
             GameEntry.Sound.PlayMusic((int)EnumSound.GameStartBGM);
         }
         protected override void OnUpdate(ProcedureOwner procedureOwner, float elapseSeconds, float realElapseSeconds)
@@ -49,15 +50,15 @@ namespace Procedure
         {
             //一局关卡游戏初始化
             var mazeGen = new MazeGeneratorFromAreaPointTable();
-            SelfDataManager.Instance.CurAreaList = mazeGen.InitMap();
+            GameEntry.HeroManager.CurAreaList = mazeGen.InitMap();
             //创建所有点得相机
             GameEntry.HeroManager.InitAreaPointCamera();
             /*var fakeMazeGen = new MazeGenerator();
-            SelfDataManager.Instance.CurMazeList = fakeMazeGen.GenerateMaze();*/
+            GameEntry.HeroManager.CurMazeList = fakeMazeGen.GenerateMaze();*/
             var oneHero = GameEntry.HeroManager.AddNewFriendHero(1);
-            SelfDataManager.Instance.SelfHeroList.Add(oneHero);
-            SelfDataManager.Instance.SelfHeroList.Add(GameEntry.HeroManager.AddNewFriendHero(4));
-            SelfDataManager.Instance.ItemBag.Clear();
+            GameEntry.HeroManager.SelfHeroList.Add(oneHero);
+            GameEntry.HeroManager.SelfHeroList.Add(GameEntry.HeroManager.AddNewFriendHero(4));
+            GameEntry.HeroManager.ItemBag.Clear();
         }
 
         private void InitContinueGameData()
@@ -70,7 +71,7 @@ namespace Procedure
                 return;
             }
 
-            SelfDataManager.Instance.InitDataFormData(gameData);
+            GameEntry.HeroManager.InitDataFormData(gameData);
         }
         public void MoveToGame()
         {

@@ -1,12 +1,13 @@
 using GameFramework.Fsm;
 using Entity;
 using System.Collections.Generic;
+using GameFramework;
 using SkillSystem;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
-public class StateMove0 : FsmState<EntityQizi>
+public class StateMove0 : FsmState<EntityQizi>,IReference
 {
     int zhenying = 0;//0表明是自己这边的棋子，1表明是敌方阵营的
     EntityQizi qizitarget;//目标棋子
@@ -132,5 +133,11 @@ public class StateMove0 : FsmState<EntityQizi>
     protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {
         base.OnDestroy(fsm);
+        ReferencePool.Release(this);
+    }
+
+    public void Clear()
+    {
+        
     }
 }

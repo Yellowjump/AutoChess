@@ -58,7 +58,7 @@ public class MazeListPanelCtrl : UIFormLogic
             return ob;
         }, (obj) => {obj.SetActive(true); obj.transform.SetParent(_showLineParent.transform); }, (obj) => {obj.transform.SetParent(_invisbleParent.transform);}, Destroy);
 
-        var mazeList = SelfDataManager.Instance.CurAreaList;
+        var mazeList = GameEntry.HeroManager.CurAreaList;
         if (mazeList == null)
         {
             return;
@@ -108,7 +108,7 @@ public class MazeListPanelCtrl : UIFormLogic
 
     public void FreshFog()
     {
-        var mazeList = SelfDataManager.Instance.CurAreaList;
+        var mazeList = GameEntry.HeroManager.CurAreaList;
         // 填充白色
         for (int y = 0; y < mapHeight; y++)
         {
@@ -157,7 +157,7 @@ public class MazeListPanelCtrl : UIFormLogic
     private void OnClickPoint(MazePointItem item)
     {
         Log.Info(item.Pos);
-        var point=SelfDataManager.Instance.GetPoint(item.Pos.x, item.Pos.y);
+        var point=GameEntry.HeroManager.GetPoint(item.Pos.x, item.Pos.y);
         GameEntry.Event.Fire(this,EnterPointEventArgs.Create(point));
         //point.CanSee = true;
         //FreshFog();
@@ -172,7 +172,7 @@ public class MazeListPanelCtrl : UIFormLogic
             {
                 continue;
             }
-            var point=SelfDataManager.Instance.GetPoint(curItem.Pos.x, curItem.Pos.y);
+            var point=GameEntry.HeroManager.GetPoint(curItem.Pos.x, curItem.Pos.y);
             if (point.CurPassState==AreaPoint.PointPassState.Pass)
             {
                 curItem.IsPassImg.SetActive(true);
