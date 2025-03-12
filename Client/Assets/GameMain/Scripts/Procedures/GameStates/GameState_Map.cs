@@ -20,6 +20,7 @@ namespace Procedure.GameStates
         protected override void OnEnter(IFsm<ProcedureGame> fsm)
         {
             base.OnEnter(fsm);
+            GameEntry.HeroManager.Save();
             ReleaseLastEventPointGObj();
             _fsm = fsm;
             GameEntry.HeroManager.ResetToMainCamera();

@@ -55,9 +55,9 @@ namespace Procedure
             GameEntry.HeroManager.InitAreaPointCamera();
             /*var fakeMazeGen = new MazeGenerator();
             GameEntry.HeroManager.CurMazeList = fakeMazeGen.GenerateMaze();*/
-            var oneHero = GameEntry.HeroManager.AddNewFriendHero(1);
-            GameEntry.HeroManager.SelfHeroList.Add(oneHero);
-            GameEntry.HeroManager.SelfHeroList.Add(GameEntry.HeroManager.AddNewFriendHero(4));
+            GameEntry.HeroManager.AddNewFriendHero(1);
+            
+            GameEntry.HeroManager.AddNewFriendHero(4);
             GameEntry.HeroManager.ItemBagList.Clear();
         }
 

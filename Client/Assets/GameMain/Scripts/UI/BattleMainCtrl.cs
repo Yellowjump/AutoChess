@@ -87,6 +87,15 @@ public class BattleMainCtrl : UIFormLogic
         _itemTip.gameObject.SetActive(false);
     }
 
+    public override void OnClose(bool isShutdown, object userData)
+    {
+        base.OnClose(isShutdown, userData);
+        shuxin_qizi = null;
+        GetOrNotGetQizi = false;
+        curTargetQizi = null;
+        qiziother = null;
+    }
+
     public override void OnUpdate(float elapseSeconds, float realElapseSeconds)
     {
         if (Input.GetMouseButtonUp(1) && tryDragTargetQizi == null)

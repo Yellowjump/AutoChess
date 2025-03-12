@@ -82,6 +82,7 @@ namespace UnityGameFramework.Runtime
             {
                 DestoryBullet(BulletList[i]);
             }
+            BulletList.Clear();
         }
 
         public EntityPosPoint CreatePosPoint()
@@ -119,6 +120,7 @@ namespace UnityGameFramework.Runtime
             {
                 DestoryPosPoint(PosPointList[i]);
             }
+            PosPointList.Clear();
         }
     }
 }

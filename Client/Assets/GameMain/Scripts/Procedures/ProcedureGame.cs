@@ -78,6 +78,7 @@ namespace Procedure
         }
         private void ReturnToTitle()
         {
+            GameEntry.UI.CloseUIForm(UICtrlName.BattleMainPanel);
             GameEntry.HeroManager.GameOver();
             ReferencePool.Release(_gameStateFsm);
             _gameStateFsm = null;
@@ -115,6 +116,7 @@ namespace Procedure
             }
             else
             {
+                GameEntry.HeroManager.DeleteGameRecord();
                 ReturnToTitle();
             }
         }

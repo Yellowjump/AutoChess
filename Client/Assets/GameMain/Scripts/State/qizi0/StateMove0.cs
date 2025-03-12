@@ -9,11 +9,6 @@ using UnityGameFramework.Runtime;
 
 public class StateMove0 : FsmState<EntityQizi>,IReference
 {
-    int zhenying = 0;//0表明是自己这边的棋子，1表明是敌方阵营的
-    EntityQizi qizitarget;//目标棋子
-    float timebegin;//记录进入状态的时间
-    float timetemp;//记录进入update的时间
-    bool findpath = false;
     Vector2Int nextPosIndex;
     Vector3 startpos;
     Vector3 nextpos;
@@ -30,12 +25,6 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
 
         var owner = fsm.Owner;
         startpos = owner.LogicPosition;
-        //Log.Info("hfk:" + qizi.level);
-        //找到距离该棋子最近的棋子
-        qizitarget = null;
-        findpath = false;
-        timebegin = Time.time;
-        timetemp = Time.time;
         nextPosIndex = new Vector2Int(-1, -1);
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)

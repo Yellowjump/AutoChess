@@ -7,6 +7,7 @@ using GameFramework.Event;
 using Maze;
 using SelfEventArg;
 using SkillSystem;
+using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.Serialization;
 
@@ -27,23 +28,31 @@ namespace UnityGameFramework.Runtime
         public List<AreaPoint> CurAreaList;
         public AreaPoint CurAreaPoint;
         public int CoinNum;
-        public List<EntityQizi> SelfHeroList = new List<EntityQizi>();
         public List<OneItemData> ItemBagList = new List<OneItemData>();
         public int ItemUniqueIndex = 0;
-        public void InitDataFormData(HeroComponent.SaveData saveData)
+        public void InitDataFormData(SaveData saveData)
         {
+            Utility.Random.SetSeed(saveData.RandomSeed);
+            for (int randonIndex = 0; randonIndex < saveData.RandomCount; randonIndex++)
+            {
+                Utility.Random.GetRandom();
+            }
             if (saveData == null)
             {
                 return;
             }
 
             var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
+            var areaPointTable = GameEntry.DataTable.GetDataTable<DRAreaPoint>("AreaPoint");
             CurAreaList ??= new List<AreaPoint>();
             CurAreaList.Clear();
             foreach (var onePointData in saveData.MazeData)
             {
-                var newPoint = new AreaPoint(onePointData.pos);
+                var newPoint = ReferencePool.Acquire<AreaPoint>();
+                newPoint.Index = onePointData.areaID;
+                newPoint.CurPassState = onePointData.state;
                 newPoint.CanSee = onePointData.CanSee;
+                newPoint.CurLevelID = onePointData.levelID;
                 if (levelConfigTable.HasDataRow(onePointData.levelID))
                 {
                     var levelData = levelConfigTable[onePointData.levelID];
@@ -53,22 +62,22 @@ namespace UnityGameFramework.Runtime
                 {
                     Log.Error($"No LevelConfig ID:{onePointData.levelID}");
                 }
-
-                newPoint.CurPassState = onePointData.state;
-                newPoint.CurLevelID = onePointData.levelID;
+                if (areaPointTable.HasDataRow(onePointData.areaID))
+                {
+                    var areaData = areaPointTable[onePointData.areaID];
+                    newPoint.Pos = areaData.Position;
+                    newPoint.CameraPosOffset = areaData.CameraPosRelate;
+                    newPoint.CameraRotation = new Quaternion(areaData.CameraRotate.x, areaData.CameraRotate.y, areaData.CameraRotate.z, areaData.CameraRotate.w);
+                    newPoint.AreaPointType = (AreaPointType)areaData.AreaPointType;
+                    newPoint.LinkPointList.AddRange(areaData.LinkArea);
+                }
+                else
+                {
+                    Log.Error($"No AreaPoint ID:{onePointData.areaID}");
+                }
+                
                 CurAreaList.Add(newPoint);
             }
-
-            foreach (var onePointData in saveData.MazeData)
-            {
-                var curPoint = GetPoint(onePointData.pos.x, onePointData.pos.y);
-                foreach (var linkPos in onePointData.linkPos)
-                {
-                    var linkPoint = GetPoint(linkPos.x, linkPos.y);
-                    curPoint.LinkPointObsolete.Add(linkPoint);
-                }
-            }
-
             GameEntry.HeroManager.InitAreaPointCamera();
             ItemBagList.Clear();
             ItemUniqueIndex = 0;
@@ -79,14 +88,8 @@ namespace UnityGameFramework.Runtime
 
             foreach (var oneHeroData in saveData.HeroList)
             {
-                var newFriendHero = GameEntry.HeroManager.AddNewFriendHero(oneHeroData.heroID, oneHeroData.pos.y, oneHeroData.pos.x);
-                foreach (var itemID in oneHeroData.equipItem)
-                {
-                    newFriendHero.EquipItemList.Add(AddEquipItemToEquip(itemID));
-                }
-                SelfHeroList.Add(newFriendHero);
+                GameEntry.HeroManager.AddNewFriendHero(oneHeroData.heroID, oneHeroData.pos.y, oneHeroData.pos.x,oneHeroData.equipItem);
             }
-
             CoinNum = saveData.CoinNum;
         }
 
@@ -234,7 +237,7 @@ namespace UnityGameFramework.Runtime
                 return false;
             }
             EntityQizi targetHero = null;
-            foreach (var oneHero in SelfHeroList)
+            foreach (var oneHero in QiziCSList)
             {
                 if (oneHero.HeroUID == heroUID)
                 {
@@ -304,7 +307,7 @@ namespace UnityGameFramework.Runtime
         public bool TryRemoveEquip(int heroUID, int equipItemUID)
         {
             EntityQizi targetHero = null;
-            foreach (var oneHero in SelfHeroList)
+            foreach (var oneHero in QiziCSList)
             {
                 if (oneHero.HeroUID == heroUID)
                 {
@@ -363,20 +366,6 @@ namespace UnityGameFramework.Runtime
 
             return true;
         }
-
-        public AreaPoint GetPoint(int x, int y)
-        {
-            foreach (var onePoint in CurAreaList)
-            {
-                if (onePoint.PosObsolete.x == x && onePoint.PosObsolete.y == y)
-                {
-                    return onePoint;
-                }
-            }
-
-            return null;
-        }
-
         public AreaPoint GetPoint(int index)
         {
             foreach (var onePoint in CurAreaList)

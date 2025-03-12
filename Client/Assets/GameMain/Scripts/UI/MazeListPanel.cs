@@ -66,7 +66,7 @@ public class MazeListPanelCtrl : UIFormLogic
         
         foreach (var onePointData in mazeList)
         {
-            if (onePointData.CurType == MazePointType.Empty)
+            /*if (onePointData.CurType == MazePointType.Empty)
             {
                 continue;
             }
@@ -93,7 +93,7 @@ public class MazeListPanelCtrl : UIFormLogic
                     oneNewLine.transform.rotation = Quaternion.Euler(0, 0, angle);
                     oneNewLine.transform.position = (position + linkPosition) / 2;
                 }
-            }
+            }*/
         }
         InitFog();
         GameEntry.Event.Subscribe(MapFreshEventArgs.EventId,OnMapFresh);
@@ -124,7 +124,7 @@ public class MazeListPanelCtrl : UIFormLogic
         //对所有可见的point都改为black
         foreach (var point in mazeList)
         {
-            if (point.CanSee)
+            /*if (point.CanSee)
             {
                 var localPos = ItemStartPos + new Vector2(point.PosObsolete.x * ItemOffSet.x, point.PosObsolete.y * ItemOffSet.y);
                 var screenPos = localPos + screenPosDir;
@@ -144,7 +144,7 @@ public class MazeListPanelCtrl : UIFormLogic
                         }
                     }
                 }
-            }
+            }*/
         }
         // 应用更改
         _maskTexture.Apply();
@@ -156,9 +156,9 @@ public class MazeListPanelCtrl : UIFormLogic
     }
     private void OnClickPoint(MazePointItem item)
     {
-        Log.Info(item.Pos);
+        /*Log.Info(item.Pos);
         var point=GameEntry.HeroManager.GetPoint(item.Pos.x, item.Pos.y);
-        GameEntry.Event.Fire(this,EnterPointEventArgs.Create(point));
+        GameEntry.Event.Fire(this,EnterPointEventArgs.Create(point));*/
         //point.CanSee = true;
         //FreshFog();
     }
@@ -172,11 +172,11 @@ public class MazeListPanelCtrl : UIFormLogic
             {
                 continue;
             }
-            var point=GameEntry.HeroManager.GetPoint(curItem.Pos.x, curItem.Pos.y);
+            /*var point=GameEntry.HeroManager.GetPoint(curItem.Pos.x, curItem.Pos.y);
             if (point.CurPassState==AreaPoint.PointPassState.Pass)
             {
                 curItem.IsPassImg.SetActive(true);
-            }
+            }*/
         }
     }
     public void OnMapFresh(object sender,GameEventArgs e)

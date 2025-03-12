@@ -20,6 +20,7 @@ namespace Entity
             stateList.Add(ReferencePool.Acquire<StateBattleWin>());
             stateList.Add(ReferencePool.Acquire<StateBattleLose>());
             fsm = Fsm<EntityQizi>.Create((HeroUID).ToString(),this, stateList);
+            ListPool<FsmState<EntityQizi>>.Release(stateList);
             fsm.Start<StateIdle0>();
         }
 

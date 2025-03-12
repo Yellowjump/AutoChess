@@ -114,7 +114,7 @@ public class MainTitlePanelCtrl : UIFormLogic
         newConfirmData.ShowSingleConfirmBtn = false;
         newConfirmData.ConfirmCallback = OnConfirmChangeLanguageClick;
         newConfirmData.CancelCallback = OnCancelChangeLanguageClick;
-        GameEntry.UI.OpenUIForm(UICtrlName.ConfirmPanel, "middle",newConfirmData);
+        GameEntry.UI.OpenUIForm(UICtrlName.ConfirmPanel, "tips", newConfirmData);
     }
     private void OnConfirmChangeLanguageClick()
     {

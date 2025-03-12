@@ -476,7 +476,6 @@ namespace Entity
             {
                 return false;
             }
-            bool inAttackRange = false;
             switch (willCastSkill.CurSkillCastTargetType)
             {
                 case SkillCastTargetType.NearestEnemy:
@@ -616,6 +615,7 @@ namespace Entity
         }
         private void DestorySkill()
         {
+            CurAttackTarget = null;
             if (NormalSkillList != null)
             {
                 foreach (var oneSkill in NormalSkillList)

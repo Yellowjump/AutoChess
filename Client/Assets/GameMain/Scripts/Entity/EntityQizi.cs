@@ -36,12 +36,19 @@ namespace Entity
 
         public override Vector3 LogicHitPosition => LogicPosition + Vector3.up * ConstValue.EntityQiziHeight;
 
-        public override void Init(int i)
+        public void Init(int i,List<int> equipItem = null)
         {
             IsValid = true;
             HeroID = i;
             HeroUID = GameEntry.HeroManager.QiziCurUniqueIndex++;
-            InitAddDefaultItemToList();
+            if (equipItem == null)
+            {
+                InitAddDefaultItemToList();
+            }
+            else
+            {
+                AddInitItemFromList(equipItem);
+            }
             InitAttribute();
             InitSkill();
             InitAnimationClip();
@@ -86,6 +93,19 @@ namespace Entity
                 }
             }
         }
+
+        private void AddInitItemFromList(List<int> itemList)
+        {
+            if (itemList == null||itemList.Count==0)
+            {
+                return;
+            }
+
+            foreach (var itemID in itemList)
+            {
+                EquipItemList.Add(GameEntry.HeroManager.AddEquipItemToEquip(itemID));
+            }
+        }
         /// <summary>
         /// 战斗结束后回到初始状态
         /// </summary>
@@ -118,6 +138,11 @@ namespace Entity
         }
         public void Remove()
         {
+            if (HpBar != null)
+            {
+                ReferencePool.Release(HpBar);
+                HpBar = null;
+            }
             RemoveAllSfx();
             RemoveGObj();
             ReleaseAnim();
@@ -158,6 +183,7 @@ namespace Entity
         public void OnDead()
         {
             ReferencePool.Release(HpBar);
+            HpBar = null;
             IsValid = false;
             GameEntry.HeroManager.OnEntityDead(this);
             GObj?.SetActive(false);

@@ -132,7 +132,8 @@ namespace UnityGameFramework.Runtime
                 oneHpBar.HpBarObj.transform.SetParent(canvas.transform);
                 //设置pos
                 oneHpBar.HpBarObj.transform.localScale = new Vector3(0.005f, 0.01f, 1);
-                oneHpBar.HpBarObj.transform.forward = Camera.main.transform.forward;
+                oneHpBar.HpBarObj.transform.rotation = GameEntry.HeroManager.CurAreaPoint.CameraRotation;
+                //oneHpBar.HpBarObj.transform.forward = Camera.main.transform.forward;
                 oneHpBar.HpBarObj.transform.position = oneHpBar.Owner.LogicPosition+Vector3.up*2;
                 //绑定棋子血条
                 oneHpBar.Owner.xuetiao=obj.transform.Find("xuetiao").GetComponent<Slider>();
@@ -191,7 +192,7 @@ namespace UnityGameFramework.Runtime
                     damageNumText.fontSize --;
                 }
 
-                if (animDuration!=null&&animDuration<allAnimDuration)
+                if (animDuration<allAnimDuration)
                 {
                     NumberObj.transform.position=Vector3.Lerp(targetPos,targetPos+new Vector3(addPosX/2, 0,1),animDuration/allAnimDuration);
                     animDuration += elapseSeconds;
@@ -243,7 +244,7 @@ namespace UnityGameFramework.Runtime
                 oneDmg.animDuration = 0f;
                 oneDmg.allAnimDuration = 0.8f;
                 oneDmg.Playing = true;
-                oneDmg.addPosX = (float)Utility.Random.GetRandomDouble(-1.2, 1.2);
+                oneDmg.addPosX = (float)Utility.Random.GetRandomNoLogic(-1.2, 1.2);
                 //设置动画回调
                 WaitDmgNumberList.Remove(oneDmg);
                 PlayingDmgNumberList.Add(oneDmg);
@@ -262,6 +263,15 @@ namespace UnityGameFramework.Runtime
                 oneDamage.UpdateMove(elapseSeconds,realElapseSeconds);
             }
             ListPool<DamageNumber>.Release(runList);
+        }
+
+        public void ClearAllDamageNum()
+        {
+            foreach (var oneDamageNum in PlayingDmgNumberList)
+            {
+                ReferencePool.Release(oneDamageNum);
+            }
+            PlayingDmgNumberList.Clear();
         }
         public void GetBulletObjByID(int id,GetGObjSuccessCallback callback)
         {

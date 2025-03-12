@@ -32,11 +32,11 @@ namespace UnityGameFramework.Runtime
             qizi.InitGObj();
         }
 
-        public EntityQizi AddNewFriendHero(int heroID, int row = -1, int column = -1)
+        public EntityQizi AddNewFriendHero(int heroID, int row = -1, int column = -1, List<int> itemList = null)
         {
             EntityQizi qizi = GameEntry.HeroManager.GetNewEntityQizi();
             qizi.BelongCamp = CampType.Friend;
-            qizi.Init(heroID);
+            qizi.Init(heroID,itemList);
             var emptyPos = new Vector2Int(column, row);
             if (row == -1)
             {
@@ -48,6 +48,7 @@ namespace UnityGameFramework.Runtime
             QiziCSList.Add(qizi);
             qige[qizi.rowIndex][qizi.columnIndex] = qizi.HeroUID;
             qizi.LogicPosition = GetGeziPos(qizi.rowIndex, qizi.columnIndex);
+            qizi.SavePos = emptyPos;
             //qizi.InitGObj();
             return qizi;
         }

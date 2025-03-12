@@ -27,10 +27,6 @@ namespace Entity
         }
 
         public virtual Vector3 LogicHitPosition => _logicPosition;
-        public virtual void Init(int index)
-        {
-            Log.Info("hfk:base");
-        }
 
         public virtual void InitGObj()
         {

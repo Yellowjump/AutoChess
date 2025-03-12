@@ -53,24 +53,19 @@ namespace SkillSystem
             }
             base.Clone(copy);
         }
-        public void ReadFromFile(BinaryReader reader)
+        public override void ReadFromFile(BinaryReader reader)
         {
             TempleteID = reader.ReadInt32();
             EditorDesc = reader.ReadString();
             base.ReadFromFile(reader);
         }
 
-        public void WriteToFile(BinaryWriter writer)
+        public override void WriteToFile(BinaryWriter writer)
         {
             writer.Write(TempleteID);
             writer.Write(EditorDesc);
             base.WriteToFile(writer);
         }
-        public void SetSkillValue(DataRowBase dataTable)
-        {
-            base.SetSkillValue(dataTable);
-        }
-
         public void OnSkillBeforeShakeEnd()
         {
             OnTrigger(TriggerType.SkillBeforeShakeEnd);

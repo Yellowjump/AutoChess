@@ -482,6 +482,10 @@ namespace UnityGameFramework.Runtime
             }
 
             DirenList.Clear();
+            ClearBullet();
+            ClearPosPoint();
+            ClearAllDamageNum();
+            UnloadUnusedAnimation();
             dangqianliucheng = 0;
             CheckToStartCamera();
         }
@@ -501,6 +505,7 @@ namespace UnityGameFramework.Runtime
             ClearPosPoint();
             DirenList.Clear();
             UnloadUnusedAnimation();
+            ClearAllDamageNum();
             dangqianliucheng = 0;
             foreach (var oneEntity in QiziCSList)
             {

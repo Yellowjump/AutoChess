@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using DataTable;
+using GameFramework;
 using GameFramework.Event;
 using Procedure;
 using Procedure.GameStates;
@@ -17,11 +19,14 @@ public class GameHudCtrl : UIFormLogic
     private Button _btnBag;
     [SerializeField]
     private Button _btnHeroEquip;
+    [SerializeField]
+    private Button _btnReturnToTitle;
     public override void OnInit(object userData)
     {
         base.OnInit(userData);
         _btnBag.onClick.AddListener(OnClickBagBtn);
         _btnHeroEquip.onClick.AddListener(OnClickEquipBtn);
+        _btnReturnToTitle.onClick.AddListener(OnClickReturnTitle);
         GameEntry.Event.Subscribe(FreshCoinNumArg.EventId,OnFreshCoinNum);
     }
 
@@ -64,5 +69,21 @@ public class GameHudCtrl : UIFormLogic
             return;
         }
         CoinText.text = GameEntry.HeroManager.CoinNum.ToString();
+    }
+
+    private void OnClickReturnTitle()
+    {
+        ConfirmPanelData newConfirmData = ReferencePool.Acquire<ConfirmPanelData>();
+        newConfirmData.Content = GameEntry.Localization.GetString(EnumLanguage.ChangeLanguageTip);
+        newConfirmData.ShowSingleConfirmBtn = false;
+        newConfirmData.ConfirmCallback = ReturnToTitle;
+        newConfirmData.CancelCallback = null;
+        GameEntry.UI.OpenUIForm(UICtrlName.ConfirmPanel, "tips",newConfirmData);
+        
+    }
+
+    private void ReturnToTitle()
+    {
+        GameEntry.Event.Fire(this,ReturnToTitleEventArgs.Create());
     }
 }

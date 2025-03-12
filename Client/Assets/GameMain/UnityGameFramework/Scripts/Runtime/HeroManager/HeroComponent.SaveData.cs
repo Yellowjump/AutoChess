@@ -27,13 +27,20 @@ namespace UnityGameFramework.Runtime
         /// 存储的地图数据
         /// </summary>
         [Serializable]
-        public class SaveMazePoint
+        public class SaveMazePoint:IReference
         {
-            public Vector2Int pos;
-            public List<Vector2Int> linkPos;
+            public int areaID;
             public AreaPoint.PointPassState state;
             public int levelID;
             public bool CanSee;
+            public void Clear()
+            {
+                areaID = 0;
+
+                state = AreaPoint.PointPassState.Lock;
+                levelID = 0;
+                CanSee = false;
+            }
         }
         [Serializable]
         public class ItemSaveData:IReference
@@ -47,13 +54,17 @@ namespace UnityGameFramework.Runtime
             }
         }
         [Serializable]
-        public class SaveHeroData
+        public class SaveHeroData:IReference
         {
             public int heroID;
             public List<int> equipItem;
             public Vector2Int pos;
+            public void Clear()
+            {
+                
+            }
         }
-        public class SaveData
+        public class SaveData:IReference
         {
             public string Version;
             public int RandomSeed;
@@ -63,6 +74,40 @@ namespace UnityGameFramework.Runtime
             public List<SaveMazePoint> MazeData;
             public List<ItemSaveData> Bag;
             public List<SaveHeroData> HeroList;
+            public void Clear()
+            {
+                Version = string.Empty;
+                RandomSeed = 0;
+                RandomCount = 0;
+                CoinNum = 0;
+                if (MazeData != null)
+                {
+                    foreach (var onePoint in MazeData)
+                    {
+                        ReferencePool.Release(onePoint);
+                    }
+                    ListPool<SaveMazePoint>.Release(MazeData);
+                    MazeData = null;
+                }
+                if (Bag != null)
+                {
+                    foreach (var oneItem in Bag)
+                    {
+                        ReferencePool.Release(oneItem);
+                    }
+                    ListPool<ItemSaveData>.Release(Bag);
+                    Bag = null;
+                }
+                if (HeroList != null)
+                {
+                    foreach (var oneHero in HeroList)
+                    {
+                        ReferencePool.Release(oneHero);
+                    }
+                    ListPool<SaveHeroData>.Release(HeroList);
+                    HeroList = null;
+                }
+            }
         }
         /// <summary>
         /// 存档
@@ -75,25 +120,15 @@ namespace UnityGameFramework.Runtime
                 Directory.CreateDirectory(SaveDataFolderPath);
             }
             //创建存档对象
-            SaveData newSaveData = new SaveData();
+            SaveData newSaveData = ReferencePool.Acquire<SaveData>();
             newSaveData.Version = Application.version;
             newSaveData.RandomSeed = Utility.Random.Seed;
             newSaveData.RandomCount = Utility.Random.NextCount;
-            newSaveData.MazeData = new List<SaveMazePoint>();
+            newSaveData.MazeData = ListPool<SaveMazePoint>.Get();
             foreach (var onePoint in CurAreaList)
             {
-                if (onePoint.CurType == MazePointType.Empty)
-                {
-                    continue;
-                }
-                var newPointData = new SaveMazePoint();
-                newPointData.pos = onePoint.PosObsolete;
-                newPointData.linkPos = new List<Vector2Int>();
-                foreach (var linkPoint in onePoint.LinkPointObsolete)
-                {
-                    newPointData.linkPos.Add(linkPoint.PosObsolete);
-                }
-
+                var newPointData = ReferencePool.Acquire<SaveMazePoint>();
+                newPointData.areaID = onePoint.Index;
                 newPointData.state = onePoint.CurPassState;
                 newPointData.CanSee = onePoint.CanSee;
                 newPointData.levelID = onePoint.CurLevelID;
@@ -101,12 +136,12 @@ namespace UnityGameFramework.Runtime
             }
             newSaveData.Bag = ListPool<ItemSaveData>.Get();
             
-            foreach (var keyValue in ItemBagList)
+            foreach (var oneItemData in ItemBagList)
             {
                 ItemSaveData itemSaveData = null;
                 foreach (var oneBagItem in newSaveData.Bag)
                 {
-                    if (oneBagItem.itemID == keyValue.ItemID)
+                    if (oneBagItem.itemID == oneItemData.ItemID)
                     {
                         itemSaveData = oneBagItem;
                         break;
@@ -116,7 +151,7 @@ namespace UnityGameFramework.Runtime
                 if (itemSaveData == null)
                 {
                     itemSaveData = ReferencePool.Acquire<ItemSaveData>();
-                    itemSaveData.itemID = keyValue.ItemID;
+                    itemSaveData.itemID = oneItemData.ItemID;
                     itemSaveData.count = 1;
                     newSaveData.Bag.Add(itemSaveData);
                 }
@@ -126,13 +161,13 @@ namespace UnityGameFramework.Runtime
                 }
             }
             
-            newSaveData.HeroList = new List<SaveHeroData>();
-            foreach (var oneHero in SelfHeroList)
+            newSaveData.HeroList = ListPool<SaveHeroData>.Get();
+            foreach (var oneHero in QiziCSList)
             {
-                var newHero = new SaveHeroData();
+                var newHero = ReferencePool.Acquire<SaveHeroData>();
                 newHero.heroID = oneHero.HeroID;
                 newHero.pos = oneHero.SavePos;
-                newHero.equipItem = new List<int>();
+                newHero.equipItem = ListPool<int>.Get();
                 foreach (var item in oneHero.EquipItemList)
                 {
                     newHero.equipItem.Add(item.ItemID);
@@ -141,7 +176,10 @@ namespace UnityGameFramework.Runtime
             }
             newSaveData.CoinNum = CoinNum;
             string json = Utility.Json.ToJson(newSaveData);
-            File.WriteAllText(SaveDataFilePath, json);
+            ReferencePool.Release(newSaveData);
+            GameEntry.Setting.SetString(ConstValue.SettingKeyGameRecord,json);
+            GameEntry.Setting.Save();
+            //File.WriteAllText(SaveDataFilePath, json);
         }
         /// <summary>
         /// 是否存在存档
@@ -149,24 +187,35 @@ namespace UnityGameFramework.Runtime
         /// <returns></returns>
         public bool HasSaveData()
         {
-            if (!File.Exists(SaveDataFilePath))
+            /*if (!File.Exists(SaveDataFilePath))
             {
                 Debug.LogWarning("Save file not found.");
                 return false;
-            }
-            return true;
+            }*/
+            return GameEntry.Setting.HasSetting(ConstValue.SettingKeyGameRecord);
         }
         // 读取数据的方法
         public SaveData Load()
         {
-            if (!File.Exists(SaveDataFilePath))
+            /*if (!File.Exists(SaveDataFilePath))
             {
                 Debug.LogWarning("Save file not found.");
                 return null;
             }
-            string json = File.ReadAllText(SaveDataFilePath);
+            string json = File.ReadAllText(SaveDataFilePath);*/
+            var json = GameEntry.Setting.GetString(ConstValue.SettingKeyGameRecord);
+            if (string.IsNullOrEmpty(json))
+            {
+                return null;
+            }
             SaveData data = Utility.Json.ToObject<SaveData>(json);
             return data;
+        }
+
+        public void DeleteGameRecord()
+        {
+            GameEntry.Setting.RemoveSetting(ConstValue.SettingKeyGameRecord);
+            GameEntry.Setting.Save();
         }
     }
 }
