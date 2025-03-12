@@ -141,18 +141,22 @@ public class BattleBagPanelCtrl : UIFormLogic
     
     private void ShowBagItem()
     {
-        var bagDic = GameEntry.HeroManager.ItemBag;
-        
-        foreach (var keyValue in bagDic.OrderBy((ky)=>ky.Key))
+        var bagList = GameEntry.HeroManager.ItemBagList;
+        var tempList = ListPool<OneItemData>.Get();
+        tempList.AddRange(bagList);
+        tempList.Sort((a,b)=>a.ItemID.CompareTo(b.ItemID));
+        foreach (var keyValue in tempList)
         {
             var oneItem = _itemPool.Get();
             oneItem.transform.SetParent(_bagItemParent);
-            oneItem.ItemID =keyValue.Key;
-            oneItem.itemNum = keyValue.Value;
+            oneItem.ItemID =keyValue.ItemID;
+            oneItem.ItemUniqueID = keyValue.UniqueID;
+            oneItem.itemNum = 1;
             oneItem.CurItemType = BattleBagItem.ItemType.Bag;
             oneItem.Fresh();
             _curShowBagItemList.Add(oneItem);
         }
+        ListPool<OneItemData>.Release(tempList);
     }
     
     public override void OnClose(bool isShutdown, object userData)
@@ -177,7 +181,6 @@ public class BattleBagPanelCtrl : UIFormLogic
     }
     private void ClearAllJoinCraftItem()
     {
-        
         foreach (var item in _joinCraftItemList)
         {
             _itemPool?.Release(item);
@@ -227,6 +230,7 @@ public class BattleBagPanelCtrl : UIFormLogic
                 OnClickHeroEquipItem(battleBagItem);
             }
         }
+        _itemTipParent.gameObject.SetActive(false);
     }
 
     private void OnPointItemEnter(BattleBagItem battleBagItem)
@@ -257,64 +261,33 @@ public class BattleBagPanelCtrl : UIFormLogic
     {
         var itemID = battleBagItem.ItemID;
         var itemBagNum = battleBagItem.itemNum;
-        var joinItem = _joinCraftItemList.FindLast((item) => item.ItemID == itemID);
-        if (joinItem == null)
-        {
-            joinItem = _itemPool.Get();
-            joinItem.CurItemType = BattleBagItem.ItemType.InJoinCraft;
-            joinItem.transform.SetParent(_joinCraftItemParent);
-            joinItem.ItemID =itemID;
-            joinItem.itemNum = 1;
-            joinItem.Fresh();
-            _joinCraftItemList.Add(joinItem);
-        }
-        else
-        {
-            joinItem.itemNum++;
-            joinItem.FreshNum();
-        }
+        var joinItem = _itemPool.Get();
+        joinItem.CurItemType = BattleBagItem.ItemType.InJoinCraft;
+        joinItem.transform.SetParent(_joinCraftItemParent);
+        joinItem.ItemID =itemID;
+        joinItem.ItemUniqueID = battleBagItem.ItemUniqueID;
+        joinItem.itemNum = 1;
+        joinItem.Fresh();
+        _joinCraftItemList.Add(joinItem);
 
-        if (itemBagNum <= 1)
-        {
-            _curShowBagItemList.Remove(battleBagItem);
-            _itemPool.Release(battleBagItem);
-        }
-        else
-        {
-            battleBagItem.itemNum--;
-            battleBagItem.FreshNum();
-        }
+        _curShowBagItemList.Remove(battleBagItem);
+        _itemPool.Release(battleBagItem);
     }
     private void OnClickJoinCraftItem(BattleBagItem craftItem)
     {
         var itemID = craftItem.ItemID;
         
-        if(craftItem.itemNum<=1)
-        {
-            _joinCraftItemList.Remove(craftItem);
-            _itemPool.Release(craftItem);
-        }
-        else
-        {
-            craftItem.itemNum--;
-            craftItem.FreshNum();
-        }
-        var bagItem = _curShowBagItemList.FindLast((item) => item.ItemID == itemID);
-        if (bagItem == null)
-        {
-            bagItem = _itemPool.Get();
-            bagItem.CurItemType = BattleBagItem.ItemType.Bag;
-            bagItem.transform.SetParent(_bagItemParent);
-            bagItem.ItemID =itemID;
-            bagItem.itemNum = 1;
-            bagItem.Fresh();
-            _curShowBagItemList.Add(bagItem);
-        }
-        else
-        {
-            bagItem.itemNum++;
-            bagItem.FreshNum();
-        }
+        var bagItem = _itemPool.Get();
+        bagItem.CurItemType = BattleBagItem.ItemType.Bag;
+        bagItem.transform.SetParent(_bagItemParent);
+        bagItem.ItemID =itemID;
+        bagItem.ItemUniqueID = craftItem.ItemUniqueID;
+        bagItem.itemNum = 1;
+        bagItem.Fresh();
+        _curShowBagItemList.Add(bagItem);
+        
+        _joinCraftItemList.Remove(craftItem);
+        _itemPool.Release(craftItem);
     }
 
     private void OnJoinCraftItemChanged()
@@ -357,14 +330,13 @@ public class BattleBagPanelCtrl : UIFormLogic
 
     private bool MeetCraftList(List<(int, int)> needItem)
     {
-        if (_joinCraftItemList == null || needItem == null || needItem.Count==0|| _joinCraftItemList.Count != needItem.Count)
+        if (_joinCraftItemList == null || needItem == null || needItem.Count==0)
         {
             return false;
         }
-
         foreach (var idAndNum in needItem)
         {
-            if (_joinCraftItemList.Exists((item) => item.ItemID == idAndNum.Item1 && item.itemNum == idAndNum.Item2) == false)
+            if (_joinCraftItemList.Count((item) => item.ItemID == idAndNum.Item1) !=  needItem.Count)
             {
                 return false;
             }
@@ -441,59 +413,30 @@ public class BattleBagPanelCtrl : UIFormLogic
     private void OnClickBagItemWhenHeroEquip(BattleBagItem battleBagItem)
     {
         var itemID = battleBagItem.ItemID;
+        var itemUniqueID = battleBagItem.ItemUniqueID;
         var itemBagNum = battleBagItem.itemNum;
-        var success = GameEntry.HeroManager.TryEquipItem(_curShowHeroUID, itemID);
+        var oneItemData = GameEntry.HeroManager.GetBagItemDataByUID(itemUniqueID);
+        var success = GameEntry.HeroManager.TryEquipItem(_curShowHeroUID,oneItemData);
         if (!success)
         {
             return;
         }
-        var newEquipItem = _itemPool.Get();
-        newEquipItem.CurItemType = BattleBagItem.ItemType.HeroEquip;
-        newEquipItem.transform.SetParent(_heroEquipItemParent);
-        newEquipItem.ItemID =itemID;
-        newEquipItem.itemNum = 1;
-        newEquipItem.Fresh();
-        _curHeroEquipItemList.Add(newEquipItem);
-
-        if (itemBagNum <= 1)
-        {
-            _curShowBagItemList.Remove(battleBagItem);
-            _itemPool.Release(battleBagItem);
-        }
-        else
-        {
-            battleBagItem.itemNum--;
-            battleBagItem.FreshNum();
-        }
+        //刷新装备界面
+        FreshEquipItem();
+        _curShowBagItemList.Remove(battleBagItem);
+        _itemPool.Release(battleBagItem);
     }
     private void OnClickHeroEquipItem(BattleBagItem battleBagItem)
     {
-        
-        var itemID = battleBagItem.ItemID;
-        var equipIndex = _curHeroEquipItemList.IndexOf(battleBagItem);
-        var success = GameEntry.HeroManager.TryRemoveEquip(_curShowHeroUID, itemID,equipIndex);
+        var success = GameEntry.HeroManager.TryRemoveEquip(_curShowHeroUID,battleBagItem.ItemUniqueID);
         if (!success)
         {
             return;
         }
         _curHeroEquipItemList.Remove(battleBagItem);
         _itemPool.Release(battleBagItem);
-        var bagItem = _curShowBagItemList.FindLast((item) => item.ItemID == itemID);
-        if (bagItem == null)
-        {
-            bagItem = _itemPool.Get();
-            bagItem.CurItemType = BattleBagItem.ItemType.Bag;
-            bagItem.transform.SetParent(_bagItemParent);
-            bagItem.ItemID =itemID;
-            bagItem.itemNum = 1;
-            bagItem.Fresh();
-            _curShowBagItemList.Add(bagItem);
-        }
-        else
-        {
-            bagItem.itemNum++;
-            bagItem.FreshNum();
-        }
+        //刷新bag界面
+        FreshBagItem();
     }
     private void OnClickHeroToggleItem(BattleBagHeroToggleItem battleBagHeroToggleItem)
     {
@@ -503,22 +446,26 @@ public class BattleBagPanelCtrl : UIFormLogic
             return;
         }
         _curShowHeroUID = heroUID;
+        FreshEquipItem();
+    }
+
+    private void FreshEquipItem()
+    {
         ClearCurHeroEquipItem();
-        var entity = GameEntry.HeroManager.GetEntityByUID(heroUID);
+        var entity = GameEntry.HeroManager.GetEntityByUID(_curShowHeroUID);
         if (entity != null)
         {
-            foreach (var itemID in entity.EquipItemList)
+            foreach (var oneItemData in entity.EquipItemList)
             {
                 var oneItem = _itemPool.Get();
                 oneItem.transform.SetParent(_heroEquipItemParent);
-                oneItem.ItemID =itemID;
+                oneItem.ItemID =oneItemData.ItemID;
+                oneItem.ItemUniqueID = oneItemData.UniqueID;
                 oneItem.itemNum = 1;
                 oneItem.CurItemType = BattleBagItem.ItemType.HeroEquip;
                 oneItem.Fresh();
                 _curHeroEquipItemList.Add(oneItem);
             }
-
-            
         }
     }
     public void OnCheckToEquip(object sender,GameEventArgs e)

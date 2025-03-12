@@ -21,7 +21,6 @@ namespace Procedure.GameStates
         {
             base.OnEnter(fsm);
             _continueToMap = false;
-            GameEntry.HeroManager.PassCurPoint();
             GameEntry.UI.OpenUIForm(UICtrlName.BattleRewardPanel, "middle");
             GameEntry.HeroManager.OnBattleWin();
         }

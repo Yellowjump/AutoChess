@@ -99,7 +99,7 @@ public class BattleRewardPanelCtrl : UIFormLogic
 
     private void OnClickRewardItem(BattleRewardItem battleRewardItem)
     {
-        GameEntry.HeroManager.AddOneItem(battleRewardItem.ItemID, 1);
+        GameEntry.HeroManager.AddOneItemToBag(battleRewardItem.ItemID, 1);
         //关闭奖励选项
         _itemParent.gameObject.SetActive(false);
         _btnContinue.gameObject.SetActive(true);
@@ -108,5 +108,6 @@ public class BattleRewardPanelCtrl : UIFormLogic
     {
         GameEntry.Event.Fire(this,PassPointEventArgs.Create());
         GameEntry.UI.CloseUIForm(UIForm);
+        GameEntry.Event.Fire(this,EventCompleteToMapEventArg.Create());
     }
 }

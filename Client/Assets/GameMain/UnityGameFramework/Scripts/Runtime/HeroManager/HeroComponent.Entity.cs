@@ -322,8 +322,19 @@ namespace UnityGameFramework.Runtime
             }
 
             // 按角度排序事件点
-            events.Sort((a, b) => a.Angle.CompareTo(b.Angle));
-
+            //events.Sort((a, b) => a.Angle.CompareTo(b.Angle));
+            events.Sort((a, b) =>
+            {
+                int cmp = a.Angle.CompareTo(b.Angle);
+                if (cmp == 0)
+                {
+                    // 当角度相同时，先处理开始事件
+                    if (a.IsStart == b.IsStart)
+                        return 0;
+                    return a.IsStart ? 1 : -1;
+                }
+                return cmp;
+            });
             int maxCount = 1; // 至少包含基准点
             int currentCount = 0;
             double bestAngle = 0;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DataTable;
 using Entity;
 using GameMain.Scripts.UI.Items;
 using Procedure;
@@ -37,7 +38,9 @@ public class BattleMainCtrl : UIFormLogic
     public TextMeshProUGUI AttrCDNum;
     private ObjectPool<BattleBagItem> _itemPool;
     private List<BattleBagItem> _curHeroEquipItemList = new();
-    [FormerlySerializedAs("itemTip")] [SerializeField] private ItemTip _itemTip;
+
+    [FormerlySerializedAs("itemTip")] [SerializeField]
+    private ItemTip _itemTip;
     #endregion
 
     //拖拽棋子相关
@@ -90,7 +93,7 @@ public class BattleMainCtrl : UIFormLogic
         {
             var oldTarget = curTargetQizi;
             curTargetQizi = GetMousePosQizi();
-            if (curTargetQizi != null&&curTargetQizi.IsValid)
+            if (curTargetQizi != null && curTargetQizi.IsValid)
             {
                 oldTarget?.ShowHighlight(false);
                 qizishuxin.gameObject.SetActive(true);
@@ -103,7 +106,7 @@ public class BattleMainCtrl : UIFormLogic
         {
             tryDragTargetQizi = null;
             var targetQizi = GetMousePosQizi();
-            if (targetQizi != null&&targetQizi.IsValid)
+            if (targetQizi != null && targetQizi.IsValid)
             {
                 if (targetQizi.BelongCamp == CampType.Friend && GameEntry.HeroManager.dangqianliucheng == 0)
                 {
@@ -115,6 +118,7 @@ public class BattleMainCtrl : UIFormLogic
                 {
                     curTargetQizi.ShowHighlight(false);
                 }
+
                 curTargetQizi = targetQizi;
                 GetOrNotGetQizi = true;
             }
@@ -154,6 +158,7 @@ public class BattleMainCtrl : UIFormLogic
                     {
                         GameEntry.HeroManager.UpdateEntityPos(curPosQizi, new Vector2Int(tryDragTargetQizi.columnIndex, tryDragTargetQizi.rowIndex));
                     }
+
                     if (geziPos.y == tryDragTargetQizi.rowIndex && geziPos.x == tryDragTargetQizi.columnIndex) //選中位置沒有移動
                     {
                         tryDragTargetQizi.ShowHighlight(true);
@@ -249,6 +254,7 @@ public class BattleMainCtrl : UIFormLogic
         {
             shuxinxianshi(curTargetQizi);
         }
+
         base.OnUpdate(elapseSeconds, realElapseSeconds);
     }
 
@@ -320,6 +326,7 @@ public class BattleMainCtrl : UIFormLogic
             _slderHudun.value = 0;
             return;
         }
+
         var maxHp = (int)qz.GetAttribute(AttributeType.MaxHp).GetFinalValue();
         var curHp = (int)qz.GetAttribute(AttributeType.Hp).GetFinalValue();
         var curHuDun = (int)qz.GetAttribute(AttributeType.HuDun).GetFinalValue();
@@ -356,11 +363,12 @@ public class BattleMainCtrl : UIFormLogic
             ClearCurHeroEquipItem();
             if (curTargetQizi != null)
             {
-                foreach (var itemID in curTargetQizi.EquipItemList)
+                foreach (var itemData in curTargetQizi.EquipItemList)
                 {
                     var oneItem = _itemPool.Get();
                     oneItem.transform.SetParent(_equipItemParent);
-                    oneItem.ItemID = itemID;
+                    oneItem.ItemID = itemData.ItemID;
+                    oneItem.ItemUniqueID = itemData.UniqueID;
                     oneItem.itemNum = 1;
                     oneItem.CurItemType = BattleBagItem.ItemType.BattleDetailHeroEquip;
                     oneItem.Fresh();
@@ -371,9 +379,12 @@ public class BattleMainCtrl : UIFormLogic
         else
         {
             //刷新cd
+            foreach (var oneBagItem in _curHeroEquipItemList)
+            {
+                oneBagItem.FreshCd(curTargetQizi);
+            }
         }
     }
-
     private bool HaveEquipChange()
     {
         if (_curHeroEquipItemList != null && curTargetQizi != null && curTargetQizi.EquipItemList != null)
@@ -384,22 +395,26 @@ public class BattleMainCtrl : UIFormLogic
                 {
                     var item = _curHeroEquipItemList[equipIndex];
                     var heroEquip = curTargetQizi.EquipItemList[equipIndex];
-                    if (item.ItemID != heroEquip)
+                    if (item.ItemID != heroEquip.ItemID)
                     {
                         return true;
                     }
                 }
+
                 return false;
             }
         }
+
         return true;
     }
+
     private void ClearCurHeroEquipItem()
     {
         foreach (var item in _curHeroEquipItemList)
         {
             _itemPool?.Release(item);
         }
+
         _curHeroEquipItemList.Clear();
     }
 

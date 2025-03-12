@@ -482,6 +482,7 @@ namespace UnityGameFramework.Runtime
 
             DirenList.Clear();
             dangqianliucheng = 0;
+            CheckToStartCamera();
         }
 
         /// <summary>

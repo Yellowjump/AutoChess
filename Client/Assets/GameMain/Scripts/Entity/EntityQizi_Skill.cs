@@ -51,15 +51,15 @@ namespace Entity
                 return;
             }
             var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
-            foreach (var oneItemID in EquipItemList)
+            foreach (var oneItem in EquipItemList)
             {
-                if (!itemTable.HasDataRow(oneItemID))
+                if (!itemTable.HasDataRow(oneItem.ItemID))
                 {
-                    Log.Error($"Error ItemID{oneItemID}");
+                    Log.Error($"Error ItemID{oneItem}");
                     continue;
                 }
 
-                var itemData = itemTable[oneItemID];
+                var itemData = itemTable[oneItem.ItemID];
                 if (itemData.SkillID != 0)
                 {
                     var skillID = itemData.SkillID;
@@ -68,7 +68,8 @@ namespace Entity
                     {
                         continue;
                     }
-                    oneNewSkill.FromItemID = oneItemID;
+                    oneNewSkill.FromItemID = oneItem.ItemID;
+                    oneNewSkill.FromItemUID = oneItem.UniqueID;
                     if (oneNewSkill.CurSkillType == SkillType.NormalSkill)
                     {
                         NormalSkillList.Add(oneNewSkill);
@@ -91,7 +92,6 @@ namespace Entity
                     }
                 }
             }
-            NormalSkillList.Sort((a,b)=>b.SkillRange.CompareTo(a.SkillRange));//按照攻击距离排序
         }
         /// <summary>
         /// 初始化被动技能
@@ -147,7 +147,7 @@ namespace Entity
                 oneSkill.SkillRange = skillTableData.SkillRange;
                 oneSkill.Caster = this;
                 oneSkill.DefaultAnimationDurationMs = skillTableData.AniDuration;
-                oneSkill.ShakeBeforeMs = skillTableData.BeforeShakeEndMs;
+                oneSkill.DefaultShakeBeforeMs = skillTableData.BeforeShakeEndMs;
                 oneSkill.CurSkillCastTargetType = (SkillCastTargetType)skillTableData.TargetType;
                 oneSkill.DefaultSkillCDMs = skillTableData.CDMs;
                 oneSkill.CastPower = skillTableData.CastPower;
@@ -157,6 +157,33 @@ namespace Entity
                 oneSkill.SetSkillValue(skillTableData);
                 return oneSkill;
             }
+            return null;
+        }
+
+        public Skill GetSkillByItemUniqID(int itemUid)
+        {
+            foreach (var passiveSkill in PassiveSkillList)
+            {
+                if (passiveSkill.FromItemUID == itemUid)
+                {
+                    return passiveSkill;
+                }
+            }
+            foreach (var noAnimSkill in NoAnimAtkSkillList)
+            {
+                if (noAnimSkill.FromItemUID == itemUid)
+                {
+                    return noAnimSkill;
+                }
+            }
+            foreach (var normalSkill in NormalSkillList)
+            {
+                if (normalSkill.FromItemUID == itemUid)
+                {
+                    return normalSkill;
+                }
+            }
+
             return null;
         }
         public void AddTriggerListen(OneTrigger oneTrigger)
@@ -329,16 +356,17 @@ namespace Entity
                 }
             }
             UpdateBuffTime(elapseSeconds, realElapseSeconds);
-            /*foreach (var oneNormalSkill in NormalSkillList)
+            foreach (var oneNormalSkill in NormalSkillList)
             {
-                oneNormalSkill.LogicUpdate(elapseSeconds,realElapseSeconds);
-            }*/
+                oneNormalSkill.LogicUpdateCD(elapseSeconds,realElapseSeconds);
+            }
 
             foreach (var noAnimSkill in NoAnimAtkSkillList)
             {
-                noAnimSkill.LogicUpdate(elapseSeconds,realElapseSeconds);
+                noAnimSkill.LogicUpdateCD(elapseSeconds,realElapseSeconds);
                 if (!noAnimSkill.InCD)
-                {
+                { 
+                    noAnimSkill.OnDestory();
                     noAnimSkill.Cast();
                 }
             }

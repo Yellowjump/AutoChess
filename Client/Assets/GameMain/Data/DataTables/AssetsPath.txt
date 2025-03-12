@@ -17,6 +17,7 @@
 #Entity(3000			
 	3001	角色test	Assets/GameMain/Prefeb/Charactor/qizi0/KyleRobot.prefab
 	3051	敌人test	Assets/GameMain/Prefeb/Charactor/enemy0/enemy0.prefab
+	3052	村民	Assets/GameMain/Prefeb/Charactor/LowpolyCharacterVillager/HumanMale.prefab
 #Sfx(3300			
 	3301	受击特效	Assets/GameMain/Prefeb/Sfx/hitSfx/CFXR3 Hit Fire B (Air).prefab
 	3302	护盾特效	Assets/GameMain/Prefeb/Sfx/ForceField/ForceField.prefab

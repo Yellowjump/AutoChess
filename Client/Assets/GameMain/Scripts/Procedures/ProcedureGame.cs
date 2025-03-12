@@ -25,7 +25,7 @@ namespace Procedure
         {
             base.OnInit(procedureOwner);
             var eventComp = GameEntry.GetComponent<EventComponent>();
-            eventComp?.Subscribe(ReturnToTitleEventArgs.EventId,ReturnToTitle);
+            eventComp?.Subscribe(ReturnToTitleEventArgs.EventId,OnEventReturnToTitle);
             eventComp?.Subscribe(EventChangeToBattleEventArg.EventId,OnEventChangeToBattle);
             eventComp?.Subscribe(EventCompleteToMapEventArg.EventId,OnEventComplete);
         }
@@ -62,12 +62,21 @@ namespace Procedure
         protected override void OnDestroy(ProcedureOwner procedureOwner)
         {
             base.OnDestroy(procedureOwner);
-            GameEntry.Event.Unsubscribe(ReturnToTitleEventArgs.EventId,ReturnToTitle);
+            GameEntry.Event.Unsubscribe(ReturnToTitleEventArgs.EventId,OnEventReturnToTitle);
             //清除所有数据
             
         }
 
-        public void ReturnToTitle(object sender, GameEventArgs e)
+        private void OnEventReturnToTitle(object sender, GameEventArgs e)
+        {
+            ReturnToTitleEventArgs ne = (ReturnToTitleEventArgs)e;
+            if (ne == null)
+            {
+                return;
+            }
+            ReturnToTitle();
+        }
+        private void ReturnToTitle()
         {
             GameEntry.HeroManager.GameOver();
             ReferencePool.Release(_gameStateFsm);
@@ -99,8 +108,15 @@ namespace Procedure
             {
                 return;
             }
-            GameEntry.HeroManager.PassCurPoint();
-            _gameStateFsm.ChangeStatePublic<GameState_Map>();
+
+            if (GameEntry.HeroManager.PassCurPoint())
+            {
+                _gameStateFsm.ChangeStatePublic<GameState_Map>();
+            }
+            else
+            {
+                ReturnToTitle();
+            }
         }
     }
 }

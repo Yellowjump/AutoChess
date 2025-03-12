@@ -138,6 +138,12 @@ public class AreaListPanel3DCtrl : UIFormLogic
         GameEntry.Event.Subscribe(MapFreshOpaqueEventArgs.EventId,OnMapOpaqueFresh);
     }
 
+    public override void OnOpen(object userData)
+    {
+        base.OnOpen(userData);
+        FreshMazePointItem();
+    }
+
     private void InitFog()
     {
         // 创建一张maskSize x maskSize的纹理

@@ -58,7 +58,7 @@ namespace Procedure
             var oneHero = GameEntry.HeroManager.AddNewFriendHero(1);
             GameEntry.HeroManager.SelfHeroList.Add(oneHero);
             GameEntry.HeroManager.SelfHeroList.Add(GameEntry.HeroManager.AddNewFriendHero(4));
-            GameEntry.HeroManager.ItemBag.Clear();
+            GameEntry.HeroManager.ItemBagList.Clear();
         }
 
         private void InitContinueGameData()

@@ -12,8 +12,8 @@ namespace Entity
         public GameObject GObj;
         public CampType BelongCamp;
         public bool IsValid = true;
-        private Vector3 _logicPosition;
-        public Vector3 LogicPosition
+        protected Vector3 _logicPosition;
+        public virtual Vector3 LogicPosition
         {
             get =>_logicPosition;
             set

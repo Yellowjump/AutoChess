@@ -272,6 +272,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8251d54aaef14a14bfad02c3e6528426, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AutoLanguageTmp: []
   CoinText: {fileID: 5847820373489840028}
   _btnBag: {fileID: 6912950765849859878}
   _btnHeroEquip: {fileID: 7454818540564915569}
@@ -505,7 +506,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4444784095368761594
 RectTransform:
   m_ObjectHideFlags: 0

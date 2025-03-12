@@ -24,20 +24,15 @@ namespace SkillSystem
                         continue;
                     }
 
-                    if (AnimAssetID.CurMatchTable == GenerateEnumDataTables.Skill && AnimAssetID.CurMatchPropertyIndex == (int)DRSkillField.SkillAnim)
+                    var curSkill = trigger.ParentTriggerList.ParentSkill;
+                    if (curSkill != null)
                     {
-                        var curSkill = trigger.ParentTriggerList.ParentSkill;
-                        if (curSkill != null)
+                        var curCDMs = curSkill.CurCastCDMs ;
+                        var curAnimEndMs = curSkill.DefaultAnimationDurationMs;
+                        if (curCDMs < curAnimEndMs)//实际CD小于动画时间了，需要动画加速
                         {
-                            var cdr =  (int)target.GetAttribute(AttributeType.CooldownReduce).GetFinalValue();
-                            var reducePercent = cdr / (cdr + 100f);
-                            var curCDMs = Mathf.CeilToInt(curSkill.DefaultSkillCDMs * (1 - reducePercent));
-                            var curAnimEndMs = curSkill.DefaultAnimationDurationMs;
-                            if (curCDMs < curAnimEndMs)//实际CD小于动画时间了，需要动画加速
-                            {
-                                target.AddAnimCommand(AnimAssetID.Value,curAnimEndMs/(float)curCDMs);
-                                return;
-                            }
+                            target.AddAnimCommand(AnimAssetID.Value,curAnimEndMs/(float)curCDMs);
+                            return;
                         }
                     }
                     target.AddAnimCommand(AnimAssetID.Value);

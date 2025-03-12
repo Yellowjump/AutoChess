@@ -23,6 +23,7 @@ namespace Procedure.GameStates
             ReleaseLastEventPointGObj();
             _fsm = fsm;
             GameEntry.HeroManager.ResetToMainCamera();
+            GameEntry.HeroManager.ShowQige(false);
             var eventArg = MapFreshOpaqueEventArgs.Create(1);
             GameEntry.Event.Fire(this,eventArg);
             GameEntry.Event.Subscribe(EnterPointEventArgs.EventId,EnterPoint);
@@ -54,7 +55,7 @@ namespace Procedure.GameStates
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
         {
             base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
-            GameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
+            //GameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
         }
 
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)

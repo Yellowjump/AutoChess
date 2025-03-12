@@ -1,6 +1,8 @@
 ﻿using System;
 using DataTable;
+using Entity;
 using GameFramework.Resource;
+using SkillSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -43,8 +45,9 @@ public class BattleBagItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
     public Button BtnClick;
     public TextMeshProUGUI ItemNumTmp;
     public TextMeshProUGUI ItemNameTmp;
-
+    public Image CDFillImage;
     public int ItemID;
+    public int ItemUniqueID;
     public int itemNum = 0;
     public Action<BattleBagItem> OnClickPointCallback;
     public Action<BattleBagItem> OnPointEnterCallback;
@@ -81,15 +84,63 @@ public class BattleBagItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
 
     public void OnRelease()
     {
-        if (Icon.sprite != null)
-        {
-            GameEntry.Resource.UnloadAsset(Icon.sprite);
-        }
+        
     }
     public void FreshNum()
     {
         ItemNumTmp.gameObject.SetActive(CurItemType is ItemType.Bag or ItemType.InJoinCraft&&itemNum>1);
         ItemNumTmp.text = itemNum.ToString();
+    }
+
+    public void FreshCd(EntityQizi entity)
+    {
+        if (CDFillImage != null)
+        {
+            CDFillImage.gameObject.SetActive(CurItemType == ItemType.BattleDetailHeroEquip);
+            var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
+            if (!itemTable.HasDataRow(ItemID))
+            {
+                Log.Error($"Item Table not Contain {ItemID}");
+                return;
+            }
+
+            var itemData = itemTable[ItemID];
+            if (itemData.SkillID == 0)
+            {
+                CDFillImage.fillAmount = 0;
+                return;
+            }
+            var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
+            if (!skillTable.HasDataRow(itemData.SkillID))
+            {
+                Log.Error($"Skill Table not Contain {itemData.SkillID}");
+                return;
+            }
+
+            var skillData = skillTable[itemData.SkillID];
+            if (skillData.SkillType == (int)SkillType.PassiveSkill)
+            {
+                CDFillImage.fillAmount = 0;
+                return;
+            }
+            if (entity != null)
+            {
+                var skill = entity.GetSkillByItemUniqID(ItemUniqueID);
+                if (skill == null||skill.CurSkillType == SkillType.PassiveSkill)
+                {
+                    CDFillImage.fillAmount = 0;
+                    return;
+                }
+                var leftCd = skill.LeftSkillCD;
+                var cdMs = skill.CurCastCDMs;
+                if (cdMs <= 0)
+                {
+                    CDFillImage.fillAmount = 0;
+                    return;
+                }
+                CDFillImage.fillAmount = leftCd*1000/cdMs;
+            }
+        }
     }
     private void OnIconLoadSuccessCallback(string assetName, object asset, float duration, object userData)
     {

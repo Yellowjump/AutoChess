@@ -59,16 +59,9 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         durationAccumulate += elapseSeconds;
         //update 技能时间
         var curSkill = owner.NormalSkillList[curNormalIndex];
-        var cdr =  (int)owner.GetAttribute(AttributeType.CooldownReduce).GetFinalValue();
-        var reducePercent = cdr / (cdr + 100f);
-        var curCDMs = Mathf.CeilToInt(curSkill.DefaultSkillCDMs * (1 - reducePercent));
-        var curAnimEndMs = curSkill.DefaultAnimationDurationMs;
-        var curShakeBeforeMs = curSkill.ShakeBeforeMs;
-        if (curCDMs < curAnimEndMs)//实际CD小于动画时间了，需要动画加速
-        {
-            curShakeBeforeMs = Mathf.CeilToInt(curShakeBeforeMs * curCDMs / (float)curAnimEndMs);
-            curAnimEndMs = curCDMs;
-        }
+        var curCDMs = curSkill.CurCastCDMs;
+        var curAnimEndMs = curSkill.CurAnimationDurationMs;
+        var curShakeBeforeMs = curSkill.CurShakeBeforeMs;
         if (m_HasEnterShakeBefore==false&& durationAccumulate * 1000 >= curShakeBeforeMs)
         {
             m_HasEnterShakeBefore = true;

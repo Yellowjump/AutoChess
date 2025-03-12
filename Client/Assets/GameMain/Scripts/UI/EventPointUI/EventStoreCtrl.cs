@@ -92,7 +92,7 @@ public class EventStoreCtrl : UIFormLogic
 
             storeItem.SetBtnInteractFalse();
             GameEntry.HeroManager.TryAddCoin(-itemData.StoreCoin);
-            GameEntry.HeroManager.AddOneItem(storeItem.ItemID,1);
+            GameEntry.HeroManager.AddOneItemToBag(storeItem.ItemID,1);
         }
     }
     private void OnPointItemEnter(StoreItem battleBagItem)

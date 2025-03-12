@@ -19,7 +19,21 @@ namespace Entity
         public Slider xuetiao;
         public Slider power;
         public Slider hudun;
-        public List<int> EquipItemList = new List<int>();
+        public List<OneItemData> EquipItemList = new List<OneItemData>();
+
+        public override Vector3 LogicPosition
+        {
+            get=>base.LogicPosition;
+            set
+            {
+                _logicPosition = value;
+                if (GObj != null)
+                {
+                    GObj.transform.position = GameEntry.HeroManager.GetTerrainMatchHeight(value);
+                }
+            }
+        }
+
         public override Vector3 LogicHitPosition => LogicPosition + Vector3.up * ConstValue.EntityQiziHeight;
 
         public override void Init(int i)
@@ -46,7 +60,7 @@ namespace Entity
         {
             GObj = obj;
             GObj.SetActive(true);
-            GObj.transform.position = LogicPosition;
+            GObj.transform.position = GameEntry.HeroManager.GetTerrainMatchHeight(LogicPosition);
             GObj.transform.localScale = Vector3.one;
             GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
             InitAnimation();
@@ -68,7 +82,7 @@ namespace Entity
             {
                 foreach (var itemID in heroTableData.DefaultItemID)
                 {
-                    EquipItemList.Add(itemID);
+                    EquipItemList.Add(GameEntry.HeroManager.AddEquipItemToEquip(itemID));
                 }
             }
         }

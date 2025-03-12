@@ -115,6 +115,8 @@ namespace Entity
                 var heroData = tableHero[HeroID];
                 GameEntry.HeroManager.ReleaseAnimNeed(heroData.IdleAnimID);
                 GameEntry.HeroManager.ReleaseAnimNeed(heroData.RunAnimID);
+                GameEntry.HeroManager.ReleaseAnimNeed(heroData.WinAnimID);
+                GameEntry.HeroManager.ReleaseAnimNeed(heroData.LoseAnimID);
             }
         }
     }

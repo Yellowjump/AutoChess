@@ -35,7 +35,7 @@ MonoBehaviour:
         m_PreInfinity: 0
         m_PostInfinity: 0
         m_RotationOrder: 0
-  - m_From: MapCamera
+  - m_From: '**ANY CAMERA**'
     m_To: StartCamera
     m_Blend:
       m_Style: 0

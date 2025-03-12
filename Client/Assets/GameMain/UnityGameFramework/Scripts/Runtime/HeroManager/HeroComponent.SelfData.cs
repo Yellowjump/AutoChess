@@ -6,18 +6,30 @@ using GameFramework;
 using GameFramework.Event;
 using Maze;
 using SelfEventArg;
+using SkillSystem;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 
 namespace UnityGameFramework.Runtime
 {
+    public class OneItemData:IReference
+    {
+        public int ItemID;
+        public int UniqueID;
+        public void Clear()
+        {
+            ItemID = 0;
+            UniqueID = 0;
+        }
+    }
     public partial class HeroComponent
     {
         public List<AreaPoint> CurAreaList;
         public AreaPoint CurAreaPoint;
         public int CoinNum;
         public List<EntityQizi> SelfHeroList = new List<EntityQizi>();
-        public Dictionary<int, int> ItemBag = new Dictionary<int, int>();
-
+        public List<OneItemData> ItemBagList = new List<OneItemData>();
+        public int ItemUniqueIndex = 0;
         public void InitDataFormData(HeroComponent.SaveData saveData)
         {
             if (saveData == null)
@@ -58,16 +70,20 @@ namespace UnityGameFramework.Runtime
             }
 
             GameEntry.HeroManager.InitAreaPointCamera();
-            ItemBag.Clear();
+            ItemBagList.Clear();
+            ItemUniqueIndex = 0;
             foreach (var oneItemData in saveData.Bag)
             {
-                ItemBag.Add(oneItemData.itemID, oneItemData.count);
+                AddOneItemToBag(oneItemData.itemID, oneItemData.count);
             }
 
             foreach (var oneHeroData in saveData.HeroList)
             {
                 var newFriendHero = GameEntry.HeroManager.AddNewFriendHero(oneHeroData.heroID, oneHeroData.pos.y, oneHeroData.pos.x);
-                newFriendHero.EquipItemList.AddRange(oneHeroData.equipItem);
+                foreach (var itemID in oneHeroData.equipItem)
+                {
+                    newFriendHero.EquipItemList.Add(AddEquipItemToEquip(itemID));
+                }
                 SelfHeroList.Add(newFriendHero);
             }
 
@@ -82,31 +98,59 @@ namespace UnityGameFramework.Runtime
                 return;
             }
 
-            AddOneItem(ne.ItemID, ne.ItemNum);
+            AddOneItemToBag(ne.ItemID, ne.ItemNum);
         }
 
-        public void AddOneItem(int id, int changeNum)
+        public void AddOneItemToBag(OneItemData itemData)
         {
-            var containItem = ItemBag.ContainsKey(id);
-            if (!containItem)
+            if (ItemBagList != null)
             {
-                if (changeNum > 0)
+                ItemBagList.Add(itemData);
+            }
+        }
+        public void AddOneItemToBag(int id, int changeNum)
+        {
+            if (changeNum > 0)
+            {
+                for (int countIndex = 0; countIndex < changeNum; countIndex++)
                 {
-                    ItemBag.Add(id, changeNum);
+                    var oneNewItemData = ReferencePool.Acquire<OneItemData>();
+                    oneNewItemData.ItemID = id;
+                    oneNewItemData.UniqueID = ++ItemUniqueIndex;
+                    ItemBagList.Add(oneNewItemData);
                 }
             }
             else
             {
-                var curNum = ItemBag[id];
-                if (curNum + changeNum <= 0)
+                List<OneItemData> tempList = ListPool<OneItemData>.Get();
+                tempList.AddRange(ItemBagList);
+                var hasRemoveCount = 0;
+                foreach (var oneItemData in tempList)
                 {
-                    ItemBag.Remove(id);
+                    if (oneItemData.ItemID == id)
+                    {
+                        ItemBagList.Remove(oneItemData);
+                        ReferencePool.Release(oneItemData);
+                        hasRemoveCount++;
+                        if (hasRemoveCount >= -changeNum)
+                        {
+                            break;
+                        }
+                    }
                 }
-                else
+                if (hasRemoveCount < -changeNum)
                 {
-                    ItemBag[id] = curNum + changeNum;
+                    Log.Error($"Try Remove More Item itemID:{{id}} Count {changeNum}");
                 }
+                ListPool<OneItemData>.Release(tempList);
             }
+        }
+        public OneItemData AddEquipItemToEquip(int itemID)
+        {
+            var oneNewItemData = ReferencePool.Acquire<OneItemData>();
+            oneNewItemData.ItemID = itemID;
+            oneNewItemData.UniqueID = ++ItemUniqueIndex;
+            return oneNewItemData;
         }
 
         public bool TryCraftItem(int itemID)
@@ -120,10 +164,10 @@ namespace UnityGameFramework.Runtime
                 {
                     foreach (var idAndNum in needItemList)
                     {
-                        AddOneItem(idAndNum.Item1, -idAndNum.Item2);
+                        AddOneItemToBag(idAndNum.Item1, -idAndNum.Item2);
                     }
 
-                    AddOneItem(itemID, 1);
+                    AddOneItemToBag(itemID, 1);
                     return true;
                 }
             }
@@ -131,16 +175,50 @@ namespace UnityGameFramework.Runtime
             return false;
         }
 
+        public int OwnTargetItemCount(int itemID)
+        {
+            if (ItemBagList == null || ItemBagList.Count == 0)
+            {
+                return 0;
+            }
+
+            var retCount = 0;
+            foreach (var oneItemData in ItemBagList)
+            {
+                if (oneItemData.ItemID == itemID)
+                {
+                    retCount++;
+                }
+            }
+            return retCount;
+        }
+
+        public OneItemData GetBagItemDataByUID(int uniqueID)
+        {
+            if (ItemBagList == null || ItemBagList.Count == 0)
+            {
+                return null;
+            }
+            foreach (var oneItemData in ItemBagList)
+            {
+                if (oneItemData.UniqueID == uniqueID)
+                {
+                    return oneItemData;
+                }
+            }
+
+            return null;
+        }
         private bool MeetCraftItemNeed(List<(int, int)> needItem)
         {
-            if (ItemBag == null || needItem == null || needItem.Count == 0)
+            if (ItemBagList == null || needItem == null || needItem.Count == 0)
             {
                 return false;
             }
-
+            
             foreach (var idAndNum in needItem)
             {
-                if ((ItemBag.ContainsKey(idAndNum.Item1) && ItemBag[idAndNum.Item1] >= idAndNum.Item2) == false)
+                if (OwnTargetItemCount(idAndNum.Item1)< idAndNum.Item2)
                 {
                     return false;
                 }
@@ -149,18 +227,12 @@ namespace UnityGameFramework.Runtime
             return true;
         }
 
-        public bool TryEquipItem(int heroUID, int itemID)
+        public bool TryEquipItem(int heroUID, OneItemData itemData)
         {
-            if (!ItemBag.ContainsKey(itemID))
+            if (itemData == null)
             {
                 return false;
             }
-
-            if (ItemBag[itemID] <= 0)
-            {
-                return false;
-            }
-
             EntityQizi targetHero = null;
             foreach (var oneHero in SelfHeroList)
             {
@@ -181,13 +253,55 @@ namespace UnityGameFramework.Runtime
                 return false;
             }
 
-            AddOneItem(itemID, -1);
-            targetHero.EquipItemList.Add(itemID);
+            ItemBagList.Remove(itemData);
+            itemData.UniqueID = ++ItemUniqueIndex;//重新赋值uid，用作判断 装备时间 先后
+            targetHero.EquipItemList.Add(itemData);
+            targetHero.EquipItemList.Sort(CompareDRItem);
             targetHero.OnChangeEquipItem();
             return true;
         }
+        // 比较函数
+        private int CompareDRItem(OneItemData a, OneItemData b)
+        {
+            var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
+            if (itemTable == null)
+            {
+                return 0;
+            }
 
-        public bool TryRemoveEquip(int heroUID, int itemID, int equipIndex)
+            var itemDataA = itemTable[a.ItemID];
+            var itemDataB = itemTable[b.ItemID];
+            var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
+            // 第一规则：SkillID==0的排在前面
+            int skillA = itemDataA.SkillID == 0 ? 0 : 1;
+            int skillB = itemDataB.SkillID == 0 ? 0 : 1;
+            if (skillA != skillB)
+                return skillA - skillB;
+
+            // 第二规则：按 SkillType 排序
+            if (itemDataA.SkillID != 0 && itemDataB.SkillID != 0)
+            {
+                var typeA = skillTable[itemDataA.SkillID].SkillType;
+                var typeB = skillTable[itemDataB.SkillID].SkillType;
+                int typeOrderA = GetSkillTypeOrder(typeA);
+                int typeOrderB = GetSkillTypeOrder(typeB);
+                if (typeOrderA != typeOrderB)
+                    return typeOrderA - typeOrderB;
+            }
+            // 第三规则：按 UID 排序
+            return a.UniqueID - b.UniqueID;
+        }
+        int GetSkillTypeOrder(int type)
+        {
+            return type switch
+            {
+                (int)SkillType.PassiveSkill => 0,
+                (int)SkillType.NoAnimSkill => 1,
+                (int)SkillType.NormalSkill => 2,
+                _ => int.MaxValue // 其他未定义类型排在最后
+            };
+        }
+        public bool TryRemoveEquip(int heroUID, int equipItemUID)
         {
             EntityQizi targetHero = null;
             foreach (var oneHero in SelfHeroList)
@@ -204,27 +318,29 @@ namespace UnityGameFramework.Runtime
                 return false;
             }
 
-            if (targetHero.EquipItemList.Count <= equipIndex)
+            OneItemData targetItem = null;
+            foreach (var oneEquipItem in targetHero.EquipItemList)
             {
-                return false;
+                if (oneEquipItem.UniqueID == equipItemUID)
+                {
+                    targetItem = oneEquipItem;
+                    break;
+                }
             }
-
-            if (targetHero.EquipItemList[equipIndex] != itemID)
-            {
-                return false;
-            }
-
-            targetHero.EquipItemList.RemoveAt(equipIndex);
+            targetHero.EquipItemList.Remove(targetItem);
             targetHero.OnChangeEquipItem();
-            AddOneItem(itemID, 1);
+            AddOneItemToBag(targetItem);
             return true;
         }
-
-        public void PassCurPoint()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>false表示通关。true表示 还有关卡</returns>
+        public bool PassCurPoint()
         {
             if (CurAreaPoint == null)
             {
-                return;
+                return false;
             }
 
             CurAreaPoint.CurPassState = AreaPoint.PointPassState.Pass;
@@ -239,6 +355,13 @@ namespace UnityGameFramework.Runtime
             }
 
             GameEntry.Event.Fire(this, MapFreshEventArgs.Create());
+            if (!CurAreaList.Exists(point => point.CurPassState == AreaPoint.PointPassState.Unlock))
+            {
+                return false;
+                //通关
+            }
+
+            return true;
         }
 
         public AreaPoint GetPoint(int x, int y)

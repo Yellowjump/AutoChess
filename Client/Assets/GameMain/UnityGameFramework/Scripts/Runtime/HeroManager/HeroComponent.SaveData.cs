@@ -36,10 +36,15 @@ namespace UnityGameFramework.Runtime
             public bool CanSee;
         }
         [Serializable]
-        public class oneItem
+        public class ItemSaveData:IReference
         {
             public int itemID;
             public int count;
+            public void Clear()
+            {
+                itemID = 0;
+                count = 0;
+            }
         }
         [Serializable]
         public class SaveHeroData
@@ -56,7 +61,7 @@ namespace UnityGameFramework.Runtime
             public int CoinNum;
             // ditu
             public List<SaveMazePoint> MazeData;
-            public List<oneItem> Bag;
+            public List<ItemSaveData> Bag;
             public List<SaveHeroData> HeroList;
         }
         /// <summary>
@@ -94,15 +99,31 @@ namespace UnityGameFramework.Runtime
                 newPointData.levelID = onePoint.CurLevelID;
                 newSaveData.MazeData.Add(newPointData);
             }
-            newSaveData.Bag = new();
-            foreach (var keyValue in ItemBag)
+            newSaveData.Bag = ListPool<ItemSaveData>.Get();
+            
+            foreach (var keyValue in ItemBagList)
             {
-                oneItem oneItem = new oneItem()
+                ItemSaveData itemSaveData = null;
+                foreach (var oneBagItem in newSaveData.Bag)
                 {
-                    itemID = keyValue.Key,
-                    count = keyValue.Value
-                };
-                newSaveData.Bag.Add(oneItem);
+                    if (oneBagItem.itemID == keyValue.ItemID)
+                    {
+                        itemSaveData = oneBagItem;
+                        break;
+                    }
+                }
+
+                if (itemSaveData == null)
+                {
+                    itemSaveData = ReferencePool.Acquire<ItemSaveData>();
+                    itemSaveData.itemID = keyValue.ItemID;
+                    itemSaveData.count = 1;
+                    newSaveData.Bag.Add(itemSaveData);
+                }
+                else
+                {
+                    itemSaveData.count++;
+                }
             }
             
             newSaveData.HeroList = new List<SaveHeroData>();
@@ -112,9 +133,9 @@ namespace UnityGameFramework.Runtime
                 newHero.heroID = oneHero.HeroID;
                 newHero.pos = oneHero.SavePos;
                 newHero.equipItem = new List<int>();
-                foreach (var itemID in oneHero.EquipItemList)
+                foreach (var item in oneHero.EquipItemList)
                 {
-                    newHero.equipItem.Add(itemID);
+                    newHero.equipItem.Add(item.ItemID);
                 }
                 newSaveData.HeroList.Add(newHero);
             }

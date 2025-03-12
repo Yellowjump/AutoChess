@@ -96,5 +96,14 @@ namespace UnityGameFramework.Runtime
                 vc.Priority = 0;
             }
         }
+
+        public void CheckToStartCamera()
+        {
+            ResetToMainCamera();
+            if (StartCamera != null)
+            {
+                StartCamera.Priority = 20;
+            }
+        }
     }
 }
