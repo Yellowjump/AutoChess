@@ -218,10 +218,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
                 continue;
             }
             var point=GameEntry.HeroManager.GetPoint(curItem.Index);
-            if (point.CurPassState==AreaPoint.PointPassState.Pass)
-            {
-                curItem.IsPassImg.SetActive(true);
-            }
+            curItem.IsPassImg.SetActive(point.CurPassState==AreaPoint.PointPassState.Pass);
             curItem.BtnClick.interactable = point.CurPassState == AreaPoint.PointPassState.Unlock;
         }
     }

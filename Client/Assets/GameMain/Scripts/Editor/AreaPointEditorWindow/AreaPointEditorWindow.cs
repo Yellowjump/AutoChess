@@ -25,6 +25,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
         public Vector3 CameraPosRelate;//相对pos的偏移
         public Quaternion CameraRotation;
         public AreaPointType CurPointType;
+        public List<int> RandomLevelConfigIDList = new List<int>();
         public List<int> LinkPoint = new List<int>();
         public GameObject obj; // Reference to the associated GameObject
     }
@@ -50,6 +51,8 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
         private GUIStyle startPointStyle;
         private GUIStyle endPointStyle;
         private GUIStyle otherPointStyle;
+
+        private DataTableEditor<DRLevelConfig> levelTable;
         [MenuItem("Window/Area Point Editor")]
         public static void ShowWindow()
         {
@@ -185,6 +188,8 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             {
                 AddNewAreaPoint(oneAreaData);
             }
+            levelTable = new DataTableEditor<DRLevelConfig>("LevelConfig");
+            levelTable.ParseByteFile($"Assets/GameMain/Data/DataTables/LevelConfig.bytes");
         }
         private void OnGUI()
         {
@@ -372,7 +377,14 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
 
             //EditorGUILayout.LabelField("Position:", GUILayout.Width(60));
             Vector3 newPos = EditorGUILayout.Vector3Field("Position:", areaPoint.Pos);
+            var beforeType = areaPoint.CurPointType;
             areaPoint.CurPointType = (AreaPointType)EditorGUILayout.EnumPopup("指定点类型", areaPoint.CurPointType);
+            if (beforeType != areaPoint.CurPointType)
+            {
+                areaPoint.RandomLevelConfigIDList.Clear();
+            }
+
+            //areaPoint.RandomLevelConfigIDList = EditorGUILayout.ObjectField();
             var obj = areaPoint.obj;
             // Only allow changes to X and Z; Y will be updated based on terrain height
             if (newPos.x != areaPoint.Pos.x || newPos.z != areaPoint.Pos.z)
@@ -396,6 +408,12 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             SerializedProperty elementProp = listProp.GetArrayElementAtIndex(areaPoint.Index);
             if (elementProp != null)
             {
+                var randomConfig = elementProp.FindPropertyRelative("RandomLevelConfigIDList");
+                EditorGUILayout.PropertyField(randomConfig, true);
+                if (serializedObject.hasModifiedProperties)
+                {
+                    serializedObject.ApplyModifiedProperties();
+                }
                 var listP = elementProp.FindPropertyRelative("LinkPoint");
                 EditorGUILayout.PropertyField(listP, true);
                 if (serializedObject.hasModifiedProperties)
@@ -473,6 +491,7 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
             };
             if (oneAreaPointData != null)
             {
+                newPoint.RandomLevelConfigIDList.AddRange(oneAreaPointData.RandomLevelConfigID);
                 newPoint.LinkPoint.AddRange(oneAreaPointData.LinkArea);
             }
             var terrain = GetMatchTerrain(newPoint.Pos);
@@ -507,10 +526,10 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
         private void SaveData()
         {
             StringBuilder tableBuild = new StringBuilder();
-            tableBuild.AppendLine("#\t地图区域\t\t\t\t\t");
-            tableBuild.AppendLine("#\tId\tPosition\tAreaPointType\tLinkArea\tCameraPosRelate\tCameraRotate");
-            tableBuild.AppendLine("#\tint\tvector3\tint\tint[]\tvector3\tvector4");
-            tableBuild.AppendLine("#\tIndex\t世界坐标\t类型\t连接的区域\t相机坐标\t相机旋转");
+            tableBuild.AppendLine("#\t地图区域\t\t\t\t\t\t");
+            tableBuild.AppendLine("#\tId\tPosition\tAreaPointType\tLinkArea\tCameraPosRelate\tCameraRotate\tRandomLevelConfigID");
+            tableBuild.AppendLine("#\tint\tvector3\tint\tint[]\tvector3\tvector4\tint[]");
+            tableBuild.AppendLine("#\tIndex\t世界坐标\t类型\t连接的区域\t相机坐标\t相机旋转\t随机level点");
             foreach (var oneAreaPoint in areaPoints)
             {
                 tableBuild.Append($"\t{oneAreaPoint.Index}\t{oneAreaPoint.Pos.x},{oneAreaPoint.Pos.y},{oneAreaPoint.Pos.z}\t{(int)oneAreaPoint.CurPointType}\t");
@@ -527,7 +546,20 @@ namespace GameMain.Scripts.Editor.AreaPointEditorWindow
                     }
                 }
 
-                tableBuild.AppendLine($"\t{oneAreaPoint.CameraPosRelate.x},{oneAreaPoint.CameraPosRelate.y},{oneAreaPoint.CameraPosRelate.z}\t{oneAreaPoint.CameraRotation.x},{oneAreaPoint.CameraRotation.y},{oneAreaPoint.CameraRotation.z},{oneAreaPoint.CameraRotation.w}");
+                tableBuild.Append($"\t{oneAreaPoint.CameraPosRelate.x},{oneAreaPoint.CameraPosRelate.y},{oneAreaPoint.CameraPosRelate.z}\t{oneAreaPoint.CameraRotation.x},{oneAreaPoint.CameraRotation.y},{oneAreaPoint.CameraRotation.z},{oneAreaPoint.CameraRotation.w}\t");
+                for (var levelConfigIndex = 0; levelConfigIndex < oneAreaPoint.RandomLevelConfigIDList.Count; levelConfigIndex++)
+                {
+                    var levelConfigID = oneAreaPoint.RandomLevelConfigIDList[levelConfigIndex];
+                    if (levelConfigIndex == oneAreaPoint.RandomLevelConfigIDList.Count - 1)
+                    {
+                        tableBuild.Append(levelConfigID);
+                    }
+                    else
+                    {
+                        tableBuild.Append($"{levelConfigID},");
+                    }
+                }
+                tableBuild.AppendLine();
             }
 
             using (FileStream fileStream = new FileStream(areaPointTableFilePath, FileMode.Create, FileAccess.Write))

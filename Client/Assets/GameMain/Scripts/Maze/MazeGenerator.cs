@@ -393,20 +393,33 @@ namespace Maze
                 onePoint.LinkPointList.AddRange(oneAreaPointData.LinkArea);
                 onePoint.CurPassState = AreaPoint.PointPassState.Lock;
                 onePoint.AreaPointType = (AreaPointType)oneAreaPointData.AreaPointType;
-                switch ((AreaPointType)oneAreaPointData.AreaPointType)
+                if (oneAreaPointData.RandomLevelConfigID != null && oneAreaPointData.RandomLevelConfigID.Length > 0)
                 {
-                    case AreaPointType.Battle:
-                        onePoint.CurType = MazePointType.SmallBattle;
-                        break;
-                    case AreaPointType.End:
-                        onePoint.CurType = MazePointType.BossBattle;
-                        break;
-                    case AreaPointType.Event:
-                        onePoint.CurType = MazePointType.Event;
-                        break;
-                    case AreaPointType.Empty:
-                        onePoint.CurType = (MazePointType)Utility.Random.GetRandom(2, Enum.GetValues(typeof(MazePointType)).Length - 2);
-                        break;
+                    var randomLevelID = oneAreaPointData.RandomLevelConfigID[Utility.Random.GetRandom(oneAreaPointData.RandomLevelConfigID.Length)];
+                    onePoint.CurLevelID = randomLevelID;
+                    var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
+                    if (levelConfigTable.HasDataRow(onePoint.CurLevelID))
+                    {
+                        onePoint.CurType = (MazePointType)levelConfigTable[onePoint.CurLevelID].MazePointType;
+                    }
+                }
+                else
+                {
+                    switch ((AreaPointType)oneAreaPointData.AreaPointType)
+                    {
+                        case AreaPointType.Battle:
+                            onePoint.CurType = MazePointType.SmallBattle;
+                            break;
+                        case AreaPointType.End:
+                            onePoint.CurType = MazePointType.BossBattle;
+                            break;
+                        case AreaPointType.Event:
+                            onePoint.CurType = MazePointType.Event;
+                            break;
+                        case AreaPointType.Empty:
+                            onePoint.CurType = (MazePointType)Utility.Random.GetRandom(2, Enum.GetValues(typeof(MazePointType)).Length - 2);
+                            break;
+                    }
                 }
                 pointList.Add(onePoint);
             }
@@ -434,7 +447,10 @@ namespace Maze
             }
             foreach (var onePoint in pointList)
             {
-                onePoint.CurLevelID = GameEntry.HeroManager.GetOneRandomLevelIDFormType(onePoint.CurType);
+                if (onePoint.CurLevelID == 0)
+                {
+                    onePoint.CurLevelID = GameEntry.HeroManager.GetOneRandomLevelIDFormType(onePoint.CurType);
+                }
             }
             return pointList;
         }

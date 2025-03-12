@@ -207,6 +207,10 @@ public class BattleBagPanelCtrl : UIFormLogic
     }
     private void OnClickItem(BattleBagItem battleBagItem)
     {
+        if (GameEntry.HeroManager.InBattle)
+        {
+            return;
+        }
         if (_curShowState == BagPanelShowState.Craft)
         {
             if (battleBagItem.CurItemType == BattleBagItem.ItemType.Bag)

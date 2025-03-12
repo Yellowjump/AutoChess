@@ -5,7 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2025-03-04 15:58:17.596
+// 生成时间：2025-03-12 11:22:55.041
 //------------------------------------------------------------
 
 using GameFramework;
@@ -84,6 +84,15 @@ namespace DataTable
             private set;
         }
 
+        /// <summary>
+        /// 获取随机level点。
+        /// </summary>
+        public int[] RandomLevelConfigID
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -100,6 +109,7 @@ namespace DataTable
                 LinkArea = DataTableExtension.ParseInt32Array(columnStrings[index++]);
             CameraPosRelate = DataTableExtension.ParseVector3(columnStrings[index++]);
             CameraRotate = DataTableExtension.ParseVector4(columnStrings[index++]);
+                RandomLevelConfigID = DataTableExtension.ParseInt32Array(columnStrings[index++]);
 
             GeneratePropertyArray();
             return true;
@@ -117,6 +127,7 @@ namespace DataTable
                         LinkArea = binaryReader.ReadInt32Array();
                     CameraPosRelate = binaryReader.ReadVector3();
                     CameraRotate = binaryReader.ReadVector4();
+                        RandomLevelConfigID = binaryReader.ReadInt32Array();
                 }
             }
 

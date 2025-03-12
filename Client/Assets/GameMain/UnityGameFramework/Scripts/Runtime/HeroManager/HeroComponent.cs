@@ -33,6 +33,7 @@ namespace UnityGameFramework.Runtime
         public List<EntityQizi> QiziCSList = new List<EntityQizi>();//保存当前己方棋子 死亡不会移除
         public List<EntityQizi> DirenList = new List<EntityQizi>();//保存当前敌方棋子 死亡不会移除
         public int dangqianliucheng = 0;//保存当前流程，0是prebattle,1是battle
+        public bool InBattle => dangqianliucheng == 1;
         private Vector2Int[] adjacentOffsetDoubleRow = new Vector2Int[6]
         {
             Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right, Vector2Int.one, Vector2Int.down + Vector2Int.right
