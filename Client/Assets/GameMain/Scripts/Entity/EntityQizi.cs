@@ -134,15 +134,12 @@ namespace Entity
         public void RemoveGObj()
         {
             GameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
+            ClearHpBar();
             GObj = null;
         }
         public void Remove()
         {
-            if (HpBar != null)
-            {
-                ReferencePool.Release(HpBar);
-                HpBar = null;
-            }
+            ClearHpBar();
             RemoveAllSfx();
             RemoveGObj();
             ReleaseAnim();
@@ -154,6 +151,14 @@ namespace Entity
             GameEntry.HeroManager.ReleaseEntityQizi(this);
         }
 
+        private void ClearHpBar()
+        {
+            if (HpBar != null)
+            {
+                ReferencePool.Release(HpBar);
+                HpBar = null;
+            }
+        }
         public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds)
         {
             if (IsValid == false)
@@ -182,11 +187,10 @@ namespace Entity
         }
         public void OnDead()
         {
-            ReferencePool.Release(HpBar);
-            HpBar = null;
+            RemoveGObj();
             IsValid = false;
             GameEntry.HeroManager.OnEntityDead(this);
-            GObj?.SetActive(false);
+            //GObj?.SetActive(false);
         }
     }
 }

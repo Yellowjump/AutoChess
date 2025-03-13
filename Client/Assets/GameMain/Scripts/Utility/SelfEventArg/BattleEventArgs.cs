@@ -136,6 +136,29 @@ namespace SelfEventArg
         }
     }
     /// <summary>
+    /// GC 清理完成
+    /// </summary>
+    public class GCFinishEventArg : GameEventArgs
+    {
+        public static readonly int EventId = typeof(GCFinishEventArg).GetHashCode();
+        public override int Id
+        {
+            get
+            {
+                return EventId;
+            }
+        }
+        public override void Clear()
+        {
+            
+        }
+        public static GCFinishEventArg Create()
+        {
+            GCFinishEventArg passPointEventArgs = ReferencePool.Acquire<GCFinishEventArg>();
+            return passPointEventArgs;
+        }
+    }
+    /// <summary>
     /// 地图刷新
     /// </summary>
     public class MapFreshEventArgs:GameEventArgs
@@ -156,6 +179,52 @@ namespace SelfEventArg
         {
             MapFreshEventArgs passPointEventArgs = ReferencePool.Acquire<MapFreshEventArgs>();
             return passPointEventArgs;
+        }
+    }
+    /// <summary>
+    /// 读取游戏存档开始游戏
+    /// </summary>
+    public class MoveToContinueGameEventArgs:GameEventArgs
+    {
+        public static readonly int EventId = typeof(MoveToContinueGameEventArgs).GetHashCode();
+        public override int Id
+        {
+            get
+            {
+                return EventId;
+            }
+        }
+        public override void Clear()
+        {
+            
+        }
+        public static MoveToContinueGameEventArgs Create()
+        {
+            MoveToContinueGameEventArgs moveToContinueGameEventArgs = ReferencePool.Acquire<MoveToContinueGameEventArgs>();
+            return moveToContinueGameEventArgs;
+        }
+    }
+    /// <summary>
+    /// 进入新游戏
+    /// </summary>
+    public class MoveToNewGameEventArgs:GameEventArgs
+    {
+        public static readonly int EventId = typeof(MoveToNewGameEventArgs).GetHashCode();
+        public override int Id
+        {
+            get
+            {
+                return EventId;
+            }
+        }
+        public override void Clear()
+        {
+            
+        }
+        public static MoveToNewGameEventArgs Create()
+        {
+            MoveToNewGameEventArgs moveToNewGameEventArgs = ReferencePool.Acquire<MoveToNewGameEventArgs>();
+            return moveToNewGameEventArgs;
         }
     }
     /// <summary>

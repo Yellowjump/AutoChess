@@ -3,7 +3,9 @@ using DataTable;
 using GameFramework;
 using GameFramework.Procedure;
 using Entity;
+using GameFramework.Event;
 using Maze;
+using SelfEventArg;
 using UnityGameFramework.Runtime;
 using ProcedureOwner = GameFramework.Fsm.IFsm<GameFramework.Procedure.IProcedureManager>;
 namespace Procedure
@@ -15,6 +17,8 @@ namespace Procedure
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
+            GameEntry.Event.Subscribe(MoveToNewGameEventArgs.EventId,OnEventStartNewGame);
+            GameEntry.Event.Subscribe(MoveToContinueGameEventArgs.EventId,OnEventStartContinueGame);
             //打开titleUI
             GameEntry.UI.OpenUIForm(UICtrlName.MainTitlePanel, "middle");
             GameEntry.HeroManager.InitStartCamera();
@@ -44,6 +48,8 @@ namespace Procedure
             base.OnLeave(procedureOwner, isShutdown);
             var mainTitle = GameEntry.UI.GetUIForm(UICtrlName.MainTitlePanel);
             GameEntry.UI.CloseUIForm(mainTitle);
+            GameEntry.Event.Unsubscribe(MoveToNewGameEventArgs.EventId,OnEventStartNewGame);
+            GameEntry.Event.Unsubscribe(MoveToContinueGameEventArgs.EventId,OnEventStartContinueGame);
         }
 
         private void InitNewGameData()
@@ -58,6 +64,7 @@ namespace Procedure
             GameEntry.HeroManager.AddNewFriendHero(1);
             
             GameEntry.HeroManager.AddNewFriendHero(4);
+            GameEntry.HeroManager.TryAddCoin(200);
             GameEntry.HeroManager.ItemBagList.Clear();
         }
 
@@ -73,11 +80,28 @@ namespace Procedure
 
             GameEntry.HeroManager.InitDataFormData(gameData);
         }
-        public void MoveToGame()
+        private void OnEventStartNewGame(object sender, GameEventArgs e)
+        {
+            MoveToNewGameEventArgs ne = (MoveToNewGameEventArgs)e;
+            if (ne == null)
+            {
+                return;
+            }
+            MoveToNewGame();
+        }
+        public void MoveToNewGame()
         {
             moveToNewGame = true;
         }
-
+        private void OnEventStartContinueGame(object sender, GameEventArgs e)
+        {
+            MoveToContinueGameEventArgs ne = (MoveToContinueGameEventArgs)e;
+            if (ne == null)
+            {
+                return;
+            }
+            MoveToContinueGame();
+        }
         public void MoveToContinueGame()
         {
             moveToContinueGame = true;

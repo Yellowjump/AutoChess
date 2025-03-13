@@ -14,6 +14,7 @@
 	2003	剑	Assets/GameMain/Prefeb/Weapons/Sword_01.prefab
 	2004	斧头	Assets/GameMain/Prefeb/Weapons/Ax_01.prefab
 	2005	飞剑	Assets/GameMain/Prefeb/Bullets/SwordFly/sword2_handle.prefab
+	2006	旋转斧头子弹	Assets/GameMain/Prefeb/Weapons/axe_bullet.prefab
 #Entity(3000			
 	3001	角色test	Assets/GameMain/Prefeb/Charactor/qizi0/KyleRobot.prefab
 	3051	敌人test	Assets/GameMain/Prefeb/Charactor/enemy0/enemy0.prefab
@@ -35,6 +36,11 @@
 	4501	旋转斧头	Assets/GameMain/Image/Icons/ItemIcon/BerserkAxe.png
 	4502	反甲	Assets/GameMain/Image/Icons/ItemIcon/DarkMountain.png
 	4503	充能护甲	Assets/GameMain/Image/Icons/ItemIcon/GreyKnight.png
+	4504	技能护盾	Assets/GameMain/Image/Icons/ItemIcon/UI_Skill_Icon_Reflect.png
+	4505	飞剑	Assets/GameMain/Image/Icons/ItemIcon/UI_Skill_Icon_SpiritArrows.png
+	4506	施法飞剑	Assets/GameMain/Image/Icons/ItemIcon/UI_Skill_Icon_Arrow_Barrage.png
+	4507	挥砍	Assets/GameMain/Image/Icons/ItemIcon/UI_Skill_Icon_Slash.png
+	4508	狂热	Assets/GameMain/Image/Icons/ItemIcon/UI_Skill_Icon_Buff.png
 	4800	关卡小怪	Assets/GameMain/Image/Icons/MazePointIcon/0.png
 	4801	关卡精英怪	Assets/GameMain/Image/Icons/MazePointIcon/1.png
 	4802	关卡boss	Assets/GameMain/Image/Icons/MazePointIcon/1.png
@@ -60,7 +66,13 @@
 #Sound(10000			
 	10001	开始界面背景音乐	Assets/GameMain/Audio/Ambient_StartTitle.wav
 	10002	UI按钮音效	Assets/GameMain/Audio/SFX_UI_Button_Keyboard_Enter_Thick_2.wav
+	10003	提示界面出场音效	Assets/GameMain/Audio/SFX_UI_Click_Designed_Liquid_Negative_Close_1.wav
+	10004	战斗音乐	Assets/GameMain/Audio/Action 3 (Loop).wav
+	10005	战斗胜利	Assets/GameMain/Audio/Victory.wav
 	12001	飞剑生成音效	Assets/GameMain/Audio/SFX_UI_Click_Designed_Plastic_Metallic_Negative_Close_1.wav
 	12002	飞剑飞行音效	Assets/GameMain/Audio/electronic_01.wav
 	12003	飞剑命中音效	Assets/GameMain/Audio/cutting_with_a_katana.wav
 	12004	爆炸音效	Assets/GameMain/Audio/short_bomb.mp3
+	12005	电击声	Assets/GameMain/Audio/electronic_02.wav
+	12006	切割声	Assets/GameMain/Audio/SWORD_27.wav
+	12007	子弹命中声	Assets/GameMain/Audio/Bullet Impact 14.wav

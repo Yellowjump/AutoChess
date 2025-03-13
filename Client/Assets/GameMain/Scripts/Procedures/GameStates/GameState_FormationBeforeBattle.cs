@@ -26,8 +26,9 @@ namespace Procedure.GameStates
         {
             base.OnEnter(fsm);
             //初始化 敌人
-            _UIIndex = GameEntry.UI.OpenUIForm(UICtrlName.BattleFormationPanel, "middle");
             GameEntry.UI.OpenUIForm(UICtrlName.BattleMainPanel, "middle");
+            _UIIndex = GameEntry.UI.OpenUIForm(UICtrlName.BattleFormationPanel, "middle");
+            GameEntry.Sound.PlayMusic((int)EnumSound.GameBattleBGM);
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)

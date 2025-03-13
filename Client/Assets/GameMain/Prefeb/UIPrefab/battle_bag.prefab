@@ -1694,7 +1694,9 @@ MonoBehaviour:
   BtnClick: {fileID: 8323668559532978129}
   ItemNumTmp: {fileID: 1428910466552909176}
   ItemNameTmp: {fileID: 4415630515923572017}
+  CDFillImage: {fileID: 0}
   ItemID: 0
+  ItemUniqueID: 0
   itemNum: 0
 --- !u!1 &4016093925335643536
 GameObject:
@@ -3477,6 +3479,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4531485726772508009}
     m_Modifications:
+    - target: {fileID: 4740429878899553395, guid: de0ee56acb9a3e94894cf8f3168e19bd, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0.44239807
+      objectReference: {fileID: 0}
     - target: {fileID: 6098321191409530124, guid: de0ee56acb9a3e94894cf8f3168e19bd, type: 3}
       propertyPath: m_Name
       value: Pa_ItemTip

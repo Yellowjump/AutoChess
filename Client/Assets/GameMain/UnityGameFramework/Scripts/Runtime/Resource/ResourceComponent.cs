@@ -12,6 +12,7 @@ using GameFramework.ObjectPool;
 using GameFramework.Resource;
 using System;
 using System.Collections.Generic;
+using SelfEventArg;
 using UnityEngine;
 
 namespace UnityGameFramework.Runtime
@@ -706,6 +707,7 @@ namespace UnityGameFramework.Runtime
                     Log.Info("GC.Collect...");
                     m_PerformGCCollect = false;
                     GC.Collect();
+                    GameEntry.Event.Fire(this,GCFinishEventArg.Create());
                 }
             }
         }

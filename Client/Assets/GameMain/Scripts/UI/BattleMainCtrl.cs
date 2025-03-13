@@ -34,7 +34,6 @@ public class BattleMainCtrl : UIFormLogic
     [SerializeField] private Transform _releaseItemPa;
     public TextMeshProUGUI AttrAttackNum;
     public TextMeshProUGUI AttrHudunAddNum;
-    public TextMeshProUGUI AttrAtkSpeed;
     public TextMeshProUGUI AttrCDNum;
     private ObjectPool<BattleBagItem> _itemPool;
     private List<BattleBagItem> _curHeroEquipItemList = new();

@@ -74,7 +74,7 @@ public class GameHudCtrl : UIFormLogic
     private void OnClickReturnTitle()
     {
         ConfirmPanelData newConfirmData = ReferencePool.Acquire<ConfirmPanelData>();
-        newConfirmData.Content = GameEntry.Localization.GetString(EnumLanguage.ChangeLanguageTip);
+        newConfirmData.Content = GameEntry.Localization.GetString(EnumLanguage.Confirm_ReturnTitle);
         newConfirmData.ShowSingleConfirmBtn = false;
         newConfirmData.ConfirmCallback = ReturnToTitle;
         newConfirmData.CancelCallback = null;

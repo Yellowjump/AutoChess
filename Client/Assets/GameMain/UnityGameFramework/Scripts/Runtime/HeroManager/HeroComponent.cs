@@ -483,12 +483,15 @@ namespace UnityGameFramework.Runtime
             }
 
             DirenList.Clear();
+            QiziCurUniqueIndex = 0;
             ClearBullet();
             ClearPosPoint();
             ClearAllDamageNum();
             UnloadUnusedAnimation();
             dangqianliucheng = 0;
             CheckToStartCamera();
+            CoinNum = 0;
+            ClearBagList();
         }
 
         /// <summary>

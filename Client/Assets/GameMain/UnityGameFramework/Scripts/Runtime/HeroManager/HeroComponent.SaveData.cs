@@ -217,5 +217,15 @@ namespace UnityGameFramework.Runtime
             GameEntry.Setting.RemoveSetting(ConstValue.SettingKeyGameRecord);
             GameEntry.Setting.Save();
         }
+
+        private void ClearBagList()
+        {
+            foreach (var oneItemData in ItemBagList)
+            {
+                ReferencePool.Release(oneItemData);
+            }
+            ItemBagList.Clear();
+            ItemUniqueIndex = 0;
+        }
     }
 }

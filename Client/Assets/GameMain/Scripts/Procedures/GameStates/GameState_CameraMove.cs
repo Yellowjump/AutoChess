@@ -40,10 +40,12 @@ namespace Procedure.GameStates
                 if (curPoint.CurType is MazePointType.SmallBattle or MazePointType.EliteBattle or MazePointType.BossBattle)
                 {
                     ChangeState<GameState_FormationBeforeBattle>(fsm);
+                    GameEntry.UI.CloseUIForm(UICtrlName.AreaPointList);
                 }
                 else if (curPoint.CurType is MazePointType.Event or MazePointType.Chest or MazePointType.Store)
                 {
                     ChangeState<GameState_Event>(fsm);
+                    GameEntry.UI.CloseUIForm(UICtrlName.AreaPointList);
                 }
             }
             else

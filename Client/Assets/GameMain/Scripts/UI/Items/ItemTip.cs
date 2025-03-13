@@ -38,6 +38,10 @@ namespace GameMain.Scripts.UI.Items
             _itemTipRarity.color = ConstValue.RarityColorList[itemTable[ItemID].Rarity];
             _itemTipRarity.text = ConstValue.RarityNameList[itemTable[ItemID].Rarity];
             var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
+            _itemTipType.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
+            _itemTipAtkDistance.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
+            _itemTipCDNum.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
+            _itemTipCast.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
             if (skillTable.HasDataRow(itemTable[ItemID].SkillID))
             {
                 var skillData = skillTable[itemTable[ItemID].SkillID];
@@ -45,8 +49,8 @@ namespace GameMain.Scripts.UI.Items
                 {
                     _itemTipAtkDistance.text = Mathf.FloorToInt(skillData.SkillRange/1000f).ToString();
                 }
-                _itemTipAtkDistance.gameObject.SetActive(skillData.SkillType == (int)SkillType.NormalSkill);
-                _itemTipCast.gameObject.SetActive(skillData.SkillType != (int)SkillType.PassiveSkill);
+                _itemTipAtkDistance.gameObject.SetActive(skillData.SkillRange != 0);
+                //_itemTipCast.gameObject.SetActive(skillData.SkillType != (int)SkillType.PassiveSkill);
                 string castOrGet = string.Empty;
                 if (skillData.CastPower == 0)
                 {
@@ -61,6 +65,18 @@ namespace GameMain.Scripts.UI.Items
                     castOrGet = $"获得{-skillData.CastPower}法力值";
                 }
                 _itemTipCast.text = castOrGet;
+                var key = EnumLanguage.SkillType_Active;
+                switch (skillData.SkillType)
+                {
+                    case (int)SkillType.NoAnimSkill:
+                        key = EnumLanguage.SkillType_Auto;
+                        break;
+                    case (int)SkillType.PassiveSkill:
+                        key = EnumLanguage.SkillType_Passive;
+                        break;
+                }
+                _itemTipType.text = GameEntry.Localization.GetString(key);
+                _itemTipCDNum.text = Mathf.FloorToInt(skillData.CDMs / 1000f).ToString();
             }
         }
     }

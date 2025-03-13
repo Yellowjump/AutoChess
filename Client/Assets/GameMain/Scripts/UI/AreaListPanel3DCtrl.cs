@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using GameFramework;
 using GameFramework.Event;
 using Maze;
 using UnityEngine;
@@ -36,16 +37,10 @@ public class AreaListPanel3DCtrl : UIFormLogic
         _curMazeItemList ??= ListPool<AreaPointItem>.Get();
         _curMazeItemList.Clear();
         _curLineList ??= ListPool<Image>.Get();
+        _curLineList.Clear();
         _pointPool ??= new ObjectPool<GameObject>(() =>
         {
             GameObject ob = Instantiate(_pointTemp, GameEntry.HeroManager.WorldCanvas.transform);
-            AreaPointItem mp = ob.GetComponent<AreaPointItem>();
-            if (mp != null)
-            {
-                _curMazeItemList.Add(mp);
-                mp.OnClickPointCallback = OnClickPoint;
-                mp.Init();
-            }
             return ob;
         }, (obj) => {obj.SetActive(true); obj.transform.SetParent(GameEntry.HeroManager.WorldCanvas.transform); }, (obj) => {obj.transform.SetParent(GameEntry.HeroManager.DisableRoot);}, Destroy);
         
@@ -54,7 +49,19 @@ public class AreaListPanel3DCtrl : UIFormLogic
             GameObject ob = Instantiate(_lineTemp, GameEntry.HeroManager.DisableRoot);
             return ob;
         }, (obj) => {obj.SetActive(true); obj.transform.SetParent(GameEntry.HeroManager.WorldCanvas.transform); }, (obj) => {obj.transform.SetParent(GameEntry.HeroManager.DisableRoot);}, Destroy);
+    }
 
+    public override void OnOpen(object userData)
+    {
+        base.OnOpen(userData);
+        GenLineAndPoint();
+        GameEntry.Event.Subscribe(MapFreshEventArgs.EventId,OnMapFresh);
+        GameEntry.Event.Subscribe(MapFreshOpaqueEventArgs.EventId,OnMapOpaqueFresh);
+        FreshMazePointItem();
+    }
+
+    private void GenLineAndPoint()
+    {
         var mazeList = GameEntry.HeroManager.CurAreaList;
         if (mazeList == null)
         {
@@ -77,19 +84,12 @@ public class AreaListPanel3DCtrl : UIFormLogic
                     var position = onePointData.Pos;
                     Vector3 direction = position - linkPosition;
                     oneNewLine.transform.position = (position + linkPosition) / 2;
-                    /*oneNewLine.transform.forward = Vector3.up;
-                    oneNewLine.transform.right = direction;*/
-                    /*float angle = Mathf.Atan2(direction.z,direction.x) * Mathf.Rad2Deg;
-                    oneNewLine.transform.rotation = Quaternion.Euler(90, 0,angle);*/
                     var upward = Vector3.Cross(Vector3.up, direction);
                     var forward = Vector3.Cross(upward, direction);
                     oneNewLine.transform.rotation = Quaternion.LookRotation(forward,upward);
-                    //oneNewLine.transform.localScale=new Vector3(direction.magnitude,20,direction.magnitude);
                     Image image = oneNewLine.GetComponent<Image>();
-                    //image.rectTransform.rect.width = direction.magnitude;
                     image.rectTransform.sizeDelta = new Vector2(direction.magnitude, 20);
                     _curLineList.Add(image);
-                    //oneNewLine.transform.SetLocalScaleX(direction.magnitude);
                 }
             }
         }
@@ -102,6 +102,12 @@ public class AreaListPanel3DCtrl : UIFormLogic
             }
             var oneNewPoint = _pointPool.Get();
             AreaPointItem mp = oneNewPoint.GetComponent<AreaPointItem>();
+            if (mp != null)
+            {
+                _curMazeItemList.Add(mp);
+                mp.OnClickPointCallback = OnClickPoint;
+                mp.Init();
+            }
             mp.GetBgImg(4800+(int)onePointData.CurType);
             oneNewPoint.transform.position = onePointData.Pos;
             mp.Index = onePointData.Index;
@@ -112,100 +118,13 @@ public class AreaListPanel3DCtrl : UIFormLogic
                 mp.IsPassImg.SetActive(true);
             }
             mp.BtnClick.interactable = onePointData.CurPassState == AreaPoint.PointPassState.Unlock;
-            /*foreach (var linkPointIndex in onePointData.LinkPointList)
-            {
-                var linkPointData = GameEntry.HeroManager.GetPoint(linkPointIndex);
-                if (linkPointData.Pos.x > onePointData.Pos.x || (Math.Abs(linkPointData.Pos.x - onePointData.Pos.x) < float.Epsilon &&linkPointData.Pos.y > onePointData.Pos.y))
-                {
-                    Vector3 linkPosition = linkPointData.Pos;
-                    var oneNewLine = _linePool.Get();
-                    var position = oneNewPoint.transform.position;
-                    Vector3 direction = position - linkPosition;
-                    float angle = Mathf.Atan2(direction.z,direction.x) * Mathf.Rad2Deg;
-                    oneNewLine.transform.rotation = Quaternion.Euler(90, 0,angle);
-                    oneNewLine.transform.position = (position + linkPosition) / 2;
-                    //oneNewLine.transform.localScale=new Vector3(direction.magnitude,20,direction.magnitude);
-                    Image image = oneNewLine.GetComponent<Image>();
-                    //image.rectTransform.rect.width = direction.magnitude;
-                    image.rectTransform.sizeDelta = new Vector2(direction.magnitude, 20);
-                    _curLineList.Add(image);
-                    //oneNewLine.transform.SetLocalScaleX(direction.magnitude);
-                }
-            }*/
         }
-        InitFog();
-        GameEntry.Event.Subscribe(MapFreshEventArgs.EventId,OnMapFresh);
-        GameEntry.Event.Subscribe(MapFreshOpaqueEventArgs.EventId,OnMapOpaqueFresh);
-    }
-
-    public override void OnOpen(object userData)
-    {
-        base.OnOpen(userData);
-        FreshMazePointItem();
-    }
-
-    private void InitFog()
-    {
-        // 创建一张maskSize x maskSize的纹理
-        /*_maskTexture = new Texture2D(mapWidth, mapHeight, TextureFormat.RGBA32, false);*/
-        FreshFog();
-    }
-
-    public void FreshFog()
-    {
-        /*var mazeList = GameEntry.HeroManager.CurMazeList;
-        // 填充白色
-        for (int y = 0; y < mapHeight; y++)
-        {
-            for (int x = 0; x < mapWidth; x++)
-            {
-                Color color = Color.white;
-                _maskTexture.SetPixel(x, y, color);
-            }
-        }
-        var screenWidth = Screen.width;
-        var screenHeight = Screen.height;
-        var screenPosDir = new Vector2(screenWidth / 2.0f, screenHeight / 2.0f);
-        //对所有可见的point都改为black
-        foreach (var point in mazeList)
-        {
-            if (point.CanSee)
-            {
-                var localPos = ItemStartPos + new Vector2(point.PosObsolete.x * ItemOffSet.x, point.PosObsolete.y * ItemOffSet.y);
-                var screenPos = localPos + screenPosDir;
-                //获取对应位置的 mask 像素点xy
-                var maskXY = new Vector2Int((int)(screenPos.x * mapWidth / screenWidth), (int)(screenPos.y * mapHeight/screenHeight));
-                var startX = Math.Max(0, maskXY.x - onePointFarRadius);
-                var startY = Math.Max(0, maskXY.y - onePointFarRadius);
-                var endX = Math.Min(mapWidth, maskXY.x + onePointFarRadius);
-                var endY = Math.Min(mapHeight, maskXY.y + onePointFarRadius);
-                for (int maskTextureX = startX; maskTextureX < endX; maskTextureX++)
-                {
-                    for (int maskTextureY = startY; maskTextureY < endY; maskTextureY++)
-                    {
-                        if ((maskTextureX - maskXY.x) * (maskTextureX - maskXY.x) + (maskTextureY - maskXY.y) * (maskTextureY - maskXY.y) < onePointFarRadius * onePointFarRadius)
-                        {
-                            _maskTexture.SetPixel(maskTextureX, maskTextureY, Color.black);
-                        }
-                    }
-                }
-            }
-        }
-        // 应用更改
-        _maskTexture.Apply();
-        // 将生成的纹理传递给材质
-        if (_fogImage != null&&_fogImage.material!=null)
-        {
-            _fogImage.material.SetTexture("_MaskTex", _maskTexture);
-        }*/
     }
     private void OnClickPoint(AreaPointItem item)
     {
         Log.Info(item.Index);
         var point=GameEntry.HeroManager.GetPoint(item.Index);
         GameEntry.Event.Fire(this,EnterPointEventArgs.Create(point));
-        //point.CanSee = true;
-        //FreshFog();
     }
 
     private void FreshMazePointItem()
@@ -218,8 +137,15 @@ public class AreaListPanel3DCtrl : UIFormLogic
                 continue;
             }
             var point=GameEntry.HeroManager.GetPoint(curItem.Index);
+            curItem.SetOpaque(1);
+            curItem.gameObject.SetActive(true);
             curItem.IsPassImg.SetActive(point.CurPassState==AreaPoint.PointPassState.Pass);
             curItem.BtnClick.interactable = point.CurPassState == AreaPoint.PointPassState.Unlock;
+        }
+        foreach (var oneImage in _curLineList)
+        {
+            oneImage.color= new Color(oneImage.color.r,oneImage.color.g,oneImage.color.b,1);
+            oneImage.gameObject.SetActive(true);
         }
     }
     public void OnMapFresh(object sender,GameEventArgs e)
@@ -230,7 +156,6 @@ public class AreaListPanel3DCtrl : UIFormLogic
             return;
         }
         FreshMazePointItem();
-        FreshFog();
     }
     public void OnMapOpaqueFresh(object sender,GameEventArgs e)
     {
@@ -250,6 +175,29 @@ public class AreaListPanel3DCtrl : UIFormLogic
         {
             oneMazeItem.SetOpaque(ne.Opacity);
             oneMazeItem.gameObject.SetActive(ne.Opacity>0);
+        }
+    }
+
+    public override void OnClose(bool isShutdown, object userData)
+    {
+        base.OnClose(isShutdown, userData);
+        GameEntry.Event.Unsubscribe(MapFreshEventArgs.EventId,OnMapFresh);
+        GameEntry.Event.Unsubscribe(MapFreshOpaqueEventArgs.EventId,OnMapOpaqueFresh);
+        if (_curMazeItemList != null)
+        {
+            foreach (var oneItem in _curMazeItemList)
+            {
+                _pointPool.Release(oneItem.gameObject);
+            }
+            _curMazeItemList.Clear();
+        }
+        if (_curLineList != null)
+        {
+            foreach (var oneItem in _curLineList)
+            {
+                _linePool.Release(oneItem.gameObject);
+            }
+            _curLineList.Clear();
         }
     }
 }

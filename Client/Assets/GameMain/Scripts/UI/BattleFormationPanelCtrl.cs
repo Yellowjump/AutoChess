@@ -17,6 +17,24 @@ public class BattleFormationPanelCtrl : UIFormLogic
         _btnContinue.onClick.AddListener(OnClickContinueBtn);
     }
 
+    public override void OnOpen(object userData)
+    {
+        base.OnOpen(userData);
+        _btnContinue.gameObject.SetActive(true);
+    }
+
+    public override void OnReveal()
+    {
+        base.OnReveal();
+        _btnContinue.gameObject.SetActive(true);
+    }
+
+    public override void OnCover()
+    {
+        base.OnCover();
+        _btnContinue.gameObject.SetActive(false);
+    }
+
     private void OnClickContinueBtn()
     {
         GameEntry.Event.Fire(this,FormationToBattleEventArgs.Create());

@@ -1,5 +1,5 @@
 ﻿// 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2025-03-13 08:30:19.024
+// 生成时间：2025-03-14 05:10:36.610
 //------------------------------------------------------------
 
 namespace DataTable
@@ -82,6 +82,21 @@ namespace DataTable
         Setting_Language = 22,
 
         /// <summary>
+        /// 返回主界面
+        /// </summary>
+        Confirm_ReturnTitle = 23,
+
+        /// <summary>
+        /// 开始战斗
+        /// </summary>
+        StartBattle = 24,
+
+        /// <summary>
+        /// 通关
+        /// </summary>
+        GameFinish = 25,
+
+        /// <summary>
         /// 当前血量
         /// </summary>
         Attr_Hp = 5001,
@@ -122,6 +137,21 @@ namespace DataTable
         Attr_ATK = 5008,
 
         /// <summary>
+        /// 技能类型_主动
+        /// </summary>
+        SkillType_Active = 5010,
+
+        /// <summary>
+        /// 技能类型_主动
+        /// </summary>
+        SkillType_Auto = 5011,
+
+        /// <summary>
+        /// 技能类型_主动
+        /// </summary>
+        SkillType_Passive = 5012,
+
+        /// <summary>
         /// 斧头
         /// </summary>
         ItemName_Axe = 10001,
@@ -132,9 +162,9 @@ namespace DataTable
         ItemName_Bullet = 10002,
 
         /// <summary>
-        /// 匕首
+        /// 生命比例护盾
         /// </summary>
-        ItemName_Dagger = 10003,
+        ItemName_Shield = 10003,
 
         /// <summary>
         /// 护甲板
@@ -157,6 +187,21 @@ namespace DataTable
         ItemName_UniversalAdhesive = 10007,
 
         /// <summary>
+        /// 战斗狂热
+        /// </summary>
+        ItemName_MoreFast = 10008,
+
+        /// <summary>
+        /// 飞剑
+        /// </summary>
+        ItemName_FlySword = 10009,
+
+        /// <summary>
+        /// 施法飞剑
+        /// </summary>
+        ItemName_FlySwordAnim = 10010,
+
+        /// <summary>
         /// 旋转斧头
         /// </summary>
         ItemName_WhirlingAxe = 11001,
@@ -165,11 +210,6 @@ namespace DataTable
         /// 反甲
         /// </summary>
         ItemName_ThornArmor = 11002,
-
-        /// <summary>
-        /// 充能护甲
-        /// </summary>
-        ItemName_ChargedArmor = 11003,
 
         /// <summary>
         /// 两把斧头
@@ -184,16 +224,46 @@ namespace DataTable
         /// <summary>
         /// 斧头描述
         /// </summary>
-        ItemDecs_Axes = 20001,
+        ItemDesc_Axes = 20001,
 
         /// <summary>
         /// 子弹描述
         /// </summary>
-        ItemDecs_Bullet = 20002,
+        ItemDesc_Bullet = 20002,
 
         /// <summary>
         /// 生命比例护盾
         /// </summary>
-        ItemDecs_Shield = 20003,
+        ItemDesc_Shield = 20003,
+
+        /// <summary>
+        /// 护甲板
+        /// </summary>
+        ItemDesc_ArmorPlate = 20004,
+
+        /// <summary>
+        /// 战斗狂热描述
+        /// </summary>
+        ItemDesc_MoreFast = 20008,
+
+        /// <summary>
+        /// 飞剑
+        /// </summary>
+        ItemDesc_FlySword = 20009,
+
+        /// <summary>
+        /// 施法飞剑
+        /// </summary>
+        ItemDesc_FlySwordAnim = 20010,
+
+        /// <summary>
+        /// 旋转斧头
+        /// </summary>
+        ItemDesc_WhirlingAxe = 21001,
+
+        /// <summary>
+        /// 反甲
+        /// </summary>
+        ItemDesc_ThornArmor = 21002,
     }
 }

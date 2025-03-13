@@ -1,4 +1,5 @@
 using System;
+using DataTable;
 using GameFramework;
 using Procedure;
 using TMPro;
@@ -39,6 +40,7 @@ public class ConfirmPanelCtrl : UIFormLogic
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
+        GameEntry.Sound.PlayUISound((int)EnumSound.ConfirmTipShow);
         if (userData is ConfirmPanelData confirmData)
         {
             _confirmCallback = confirmData.ConfirmCallback;

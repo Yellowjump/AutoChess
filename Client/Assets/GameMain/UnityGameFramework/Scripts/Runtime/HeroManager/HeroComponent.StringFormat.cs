@@ -14,6 +14,10 @@ namespace UnityGameFramework.Runtime
         private Color whiteColor = new Color(0.93f, 0.93f, 0.93f);
         public string FormatItemDesc(string desc, int heroUID)
         {
+            if (string.IsNullOrEmpty(desc))
+            {
+                return string.Empty;
+            }
             currentHeroUID = heroUID;
             return Regex.Replace(desc, @"\{0\} = \[(.*?)\]", MatchSkillDescription);
         }

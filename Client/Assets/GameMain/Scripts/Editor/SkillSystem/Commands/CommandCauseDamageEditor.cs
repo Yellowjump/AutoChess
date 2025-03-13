@@ -34,6 +34,8 @@ namespace Editor.SkillSystem.Commands
                 {
                     
                 }
+
+                commandCauseDamage.TriggerDamageRelate = EditorGUILayout.Toggle("是否触发伤害相关触发器", commandCauseDamage.TriggerDamageRelate);
             }
         }
     }

@@ -30,11 +30,7 @@ namespace Procedure.GameStates
             GameEntry.Event.Subscribe(EnterPointEventArgs.EventId,EnterPoint);
             //打开titleUI
             _mapUIIndex = GameEntry.UI.OpenUIForm(UICtrlName.AreaPointList, "middle");
-            var battleMainForm = GameEntry.UI.GetUIForm(UICtrlName.BattleMainPanel);
-            if (battleMainForm != null)
-            {
-                GameEntry.UI.CloseUIForm(battleMainForm);
-            }
+            GameEntry.UI.CloseUIForm(UICtrlName.BattleMainPanel);
         }
 
         private void ReleaseLastEventPointGObj()
@@ -62,7 +58,6 @@ namespace Procedure.GameStates
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)
         {
             base.OnLeave(fsm, isShutdown);
-            GameEntry.UI.CloseUIForm(_mapUIIndex);
             GameEntry.Event.Unsubscribe(EnterPointEventArgs.EventId,EnterPoint);
         }
         public void EnterPoint(object sender,GameEventArgs e)

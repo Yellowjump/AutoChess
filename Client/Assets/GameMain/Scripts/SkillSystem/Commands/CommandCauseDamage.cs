@@ -11,13 +11,14 @@ namespace SkillSystem
         public Skill SourceSkill;
         public EntityQizi Target;
         public float DamageValue;
-
+        public bool TriggerDamageRelate;
         public CauseDamageData()
         {
         }
 
         public void Clear()
         {
+            TriggerDamageRelate = true;
             Caster = null;
             SourceSkill = null;
             Target = null;
@@ -29,6 +30,7 @@ namespace SkillSystem
     {
         public override CommandType CurCommandType => CommandType.CauseDamage;
         public DamageComputeType CurDamageComputeType = DamageComputeType.NormalDamage;
+        public bool TriggerDamageRelate = true;
         public TableParamInt ParamInt1;
         public TableParamInt ParamInt2;
         public TableParamInt ParamInt3;
@@ -74,8 +76,12 @@ namespace SkillSystem
                     beforeCauseDamageData.SourceSkill = trigger.ParentTriggerList.ParentSkill;
                     beforeCauseDamageData.Target = target;
                     beforeCauseDamageData.DamageValue = finalDamage;
-                    caster.OnTrigger(TriggerType.BeforeCauseDamage, beforeCauseDamageData);
-                    target.OnTrigger(TriggerType.BeforeBeCauseDamage, beforeCauseDamageData);
+                    beforeCauseDamageData.TriggerDamageRelate = TriggerDamageRelate;
+                    if (TriggerDamageRelate)
+                    {
+                        caster.OnTrigger(TriggerType.BeforeCauseDamage, beforeCauseDamageData);
+                        target.OnTrigger(TriggerType.BeforeBeCauseDamage, beforeCauseDamageData);    
+                    }
                     target.BeCauseDamage(beforeCauseDamageData);
                     ReferencePool.Release(beforeCauseDamageData);
                 }
@@ -95,6 +101,7 @@ namespace SkillSystem
         public override void WriteToFile(BinaryWriter writer)
         {
             writer.Write((int)CurDamageComputeType);
+            writer.Write(TriggerDamageRelate);
             ParamInt1.WriteToFile(writer);
             ParamInt2.WriteToFile(writer);
             ParamInt3.WriteToFile(writer);
@@ -103,6 +110,7 @@ namespace SkillSystem
         public override void ReadFromFile(BinaryReader reader)
         {
             CurDamageComputeType = (DamageComputeType)reader.ReadInt32();
+            TriggerDamageRelate = reader.ReadBoolean();
             ParamInt1.ReadFromFile(reader);
             ParamInt2.ReadFromFile(reader);
             ParamInt3.ReadFromFile(reader);
@@ -114,6 +122,7 @@ namespace SkillSystem
             if (copy is CommandCauseDamage copyDamage)
             {
                 copyDamage.CurDamageComputeType = CurDamageComputeType;
+                copyDamage.TriggerDamageRelate = TriggerDamageRelate;
                 ParamInt1.Clone(copyDamage.ParamInt1);
                 ParamInt2.Clone(copyDamage.ParamInt2);
                 ParamInt3.Clone(copyDamage.ParamInt3);

@@ -89,6 +89,10 @@ namespace Entity
                     foreach (var typeAndValue in itemData.AttrAdd)
                     {
                         TryAddAttrValue((AttributeType)typeAndValue.Item1, typeAndValue.Item2);
+                        if (typeAndValue.Item1 == (int)AttributeType.MaxHp)
+                        {
+                            TryAddAttrValue(AttributeType.Hp, typeAndValue.Item2);
+                        }
                     }
                 }
             }
@@ -571,11 +575,12 @@ namespace Entity
             {
                 hpAttr.AddNum(-(int)damageData.DamageValue);
             }
-            
-            
-            damageData.Caster.OnTrigger(TriggerType.AfterCauseDamage,damageData);
-            OnTrigger(TriggerType.AfterBeCauseDamage,damageData);
-            
+
+            if (damageData.TriggerDamageRelate)
+            {
+                damageData.Caster.OnTrigger(TriggerType.AfterCauseDamage,damageData);
+                OnTrigger(TriggerType.AfterBeCauseDamage,damageData);
+            }
             GameEntry.HeroManager.ShowDamageNum(damageData);
             
             var curHp = (int)hpAttr.GetFinalValue();

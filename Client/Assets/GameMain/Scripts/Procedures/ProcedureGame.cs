@@ -24,15 +24,16 @@ namespace Procedure
         protected override void OnInit(ProcedureOwner procedureOwner)
         {
             base.OnInit(procedureOwner);
-            var eventComp = GameEntry.GetComponent<EventComponent>();
-            eventComp?.Subscribe(ReturnToTitleEventArgs.EventId,OnEventReturnToTitle);
-            eventComp?.Subscribe(EventChangeToBattleEventArg.EventId,OnEventChangeToBattle);
-            eventComp?.Subscribe(EventCompleteToMapEventArg.EventId,OnEventComplete);
+            
         }
 
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
+            var eventComp = GameEntry.GetComponent<EventComponent>();
+            eventComp?.Subscribe(ReturnToTitleEventArgs.EventId,OnEventReturnToTitle);
+            eventComp?.Subscribe(EventChangeToBattleEventArg.EventId,OnEventChangeToBattle);
+            eventComp?.Subscribe(EventCompleteToMapEventArg.EventId,OnEventComplete);
             GameEntry.HeroManager.StartToMapCamera();
             GameEntry.UI.OpenUIForm(UICtrlName.GameHudPanel, "tips");
             _gameStateFsm = Fsm<ProcedureGame>.Create("",this, new GameState_Map(),new GameState_BeforeCameraMove(),new GameState_CameraMove(), new GameState_Event() ,new GameState_FormationBeforeBattle(),new GameState_Reward(),new GameState_Lose(),new GameState_Battle(),new GameState_SpEvent());
@@ -43,7 +44,7 @@ namespace Procedure
             if (_exitGame)
             {
                 _exitGame = false;
-                ChangeState<ProcedureTitle>(procedureOwner);
+                ChangeState<ProcedureGameToTitle>(procedureOwner);
             }
             base.OnUpdate(procedureOwner, elapseSeconds, realElapseSeconds);
             _gameStateFsm?.UpdatePublic(elapseSeconds,realElapseSeconds);
@@ -52,17 +53,17 @@ namespace Procedure
         protected override void OnLeave(ProcedureOwner procedureOwner, bool isShutdown)
         {
             base.OnLeave(procedureOwner, isShutdown);
-            var hud = GameEntry.UI.GetUIForm(UICtrlName.GameHudPanel);
-            if (hud != null)
-            {
-                GameEntry.UI.CloseUIForm(hud);
-            }
+            GameEntry.UI.CloseUIForm(UICtrlName.GameHudPanel);
+            GameEntry.UI.CloseUIForm(UICtrlName.AreaPointList);
+            GameEntry.Event.Unsubscribe(ReturnToTitleEventArgs.EventId,OnEventReturnToTitle);
+            GameEntry.Event.Unsubscribe(EventChangeToBattleEventArg.EventId,OnEventChangeToBattle);
+            GameEntry.Event.Unsubscribe(EventCompleteToMapEventArg.EventId,OnEventComplete);
         }
 
         protected override void OnDestroy(ProcedureOwner procedureOwner)
         {
             base.OnDestroy(procedureOwner);
-            GameEntry.Event.Unsubscribe(ReturnToTitleEventArgs.EventId,OnEventReturnToTitle);
+            
             //清除所有数据
             
         }
@@ -79,6 +80,7 @@ namespace Procedure
         private void ReturnToTitle()
         {
             GameEntry.UI.CloseUIForm(UICtrlName.BattleMainPanel);
+            GameEntry.UI.CloseUIForm(UICtrlName.BattleRewardPanel);
             GameEntry.HeroManager.GameOver();
             ReferencePool.Release(_gameStateFsm);
             _gameStateFsm = null;
@@ -93,13 +95,6 @@ namespace Procedure
                 return;
             }
             _gameStateFsm.ChangeStatePublic<GameState_FormationBeforeBattle>();
-            //GameEntry.HeroManager.CurAreaPoint.CurLevelID = ne.BattleLevelID;
-            /*var levelConfigsTable=GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
-            if (levelConfigsTable.HasDataRow(ne.BattleLevelID))
-            {
-                var levelConfigData = levelConfigsTable[ne.BattleLevelID];
-                GameEntry.HeroManager.CurAreaPoint.CurType = (MazePointType)levelConfigData.MazePointType;
-            }*/
         }
 
         private void OnEventComplete(object sender, GameEventArgs e)
@@ -117,7 +112,11 @@ namespace Procedure
             else
             {
                 GameEntry.HeroManager.DeleteGameRecord();
-                ReturnToTitle();
+                ConfirmPanelData newConfirmData = ReferencePool.Acquire<ConfirmPanelData>();
+                newConfirmData.Content = GameEntry.Localization.GetString(EnumLanguage.GameFinish);
+                newConfirmData.ShowSingleConfirmBtn = true;
+                newConfirmData.ConfirmCallback = ReturnToTitle;
+                GameEntry.UI.OpenUIForm(UICtrlName.ConfirmPanel, "tips", newConfirmData);
             }
         }
     }

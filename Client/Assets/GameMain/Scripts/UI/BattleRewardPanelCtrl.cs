@@ -39,6 +39,7 @@ public class BattleRewardPanelCtrl : UIFormLogic
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
+        GameEntry.Sound.PlayUISound((int)EnumSound.BattleWin);
         _btnContinue.gameObject.SetActive(false);
         _itemParent.gameObject.SetActive(true);
         List<int> rewardItemIDList = ListPool<int>.Get();

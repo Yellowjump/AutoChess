@@ -4,6 +4,7 @@ using DataTable;
 using GameFramework;
 using GameFramework.Localization;
 using Procedure;
+using SelfEventArg;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -76,14 +77,12 @@ public class MainTitlePanelCtrl : UIFormLogic
     {
         Log.Info("OnClickContinueBtn OnClick");
         GameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
-        var titleProcedure = GameEntry.Procedure.GetProcedure<ProcedureTitle>() as ProcedureTitle;
-        titleProcedure?.MoveToContinueGame();
+        GameEntry.Event.Fire(this,MoveToContinueGameEventArgs.Create());
     }
     private void OnClickStartBtn()
     {
         GameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
-         var titleProcedure = GameEntry.Procedure.GetProcedure<ProcedureTitle>() as ProcedureTitle;
-         titleProcedure?.MoveToGame();
+        GameEntry.Event.Fire(this,MoveToNewGameEventArgs.Create());
     }
     private void OnClickSettingBtn()
     {

@@ -58,7 +58,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a32226bc457a66d458b64daeee769a71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AutoLanguageTmp: []
+  AutoLanguageTmp:
+  - Tmp: {fileID: 6699532190141483756}
+    LanguageKey: StartBattle
   _btnContinue: {fileID: 6912950765849859878}
 --- !u!1 &2919956406678954373
 GameObject:
