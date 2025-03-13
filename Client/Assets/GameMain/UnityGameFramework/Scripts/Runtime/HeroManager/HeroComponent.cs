@@ -100,6 +100,7 @@ namespace UnityGameFramework.Runtime
             }
             var eventComp = GameEntry.GetComponent<EventComponent>();
             eventComp.Subscribe(CMDGetItemEventArgs.EventId,OnCMDGetItem);
+            InitSkillDecsFormat();
         }
 
         void InitQige()

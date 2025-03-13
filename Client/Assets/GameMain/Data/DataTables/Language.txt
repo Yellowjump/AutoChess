@@ -16,6 +16,14 @@
 	20	设置界面UI音量	Setting_UIVolume	UI音量	UI Volume
 	21	设置界面BGM音量	Setting_BGMVolume	BGM音量	BGM Volume
 	22	设置界面语言	Setting_Language	语言	Language
+	5001	当前血量	Attr_Hp	当前血量	
+	5002	最大血量	Attr_MaxHp	最大血量	
+	5003	当前蓝量	Attr_Power	当前蓝量	
+	5004	最大蓝量	Attr_MaxPower	最大蓝量	
+	5005	护盾	Attr_HuDun	护盾	
+	5006	护盾增益	Attr_HuDunBoost	护盾增益	
+	5007	技能急速	Attr_CooldownReduce	技能急速	
+	5008	攻击力	Attr_ATK	攻击力	
 #10000+itemID是道具名					
 	10001	斧头	ItemName_Axe	斧头	Axe
 	10002	子弹	ItemName_Bullet	子弹	Bullet
@@ -32,3 +40,6 @@
 	12001	两把斧头	ItemName_TwoAxes	两把斧头	Two Axes
 	12002	三把斧头	ItemName_ThreeAxes	三把斧头	Three Axes
 #20000+itemID是道具描述					
+	20001	斧头描述	ItemDecs_Axes	掏出一把斧头,朝最近的敌人挥砍，造成 {0} = [20 + 100%Attr_ATK] 伤害	
+	20002	子弹描述	ItemDecs_Bullet	朝最近的敌人扔出子弹壳，造成 {0} = [ 100%Attr_ATK] 伤害	
+	20003	生命比例护盾	ItemDecs_Shield	给自己生成 {0} = [ 10%Attr_MaxHp] 的护盾，持续4秒，不可叠加	

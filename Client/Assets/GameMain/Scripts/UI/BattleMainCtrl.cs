@@ -430,6 +430,7 @@ public class BattleMainCtrl : UIFormLogic
     private void OnPointItemEnter(BattleBagItem battleBagItem)
     {
         _itemTip.ItemID = battleBagItem.ItemID;
+        _itemTip.CurHeroUID = curTargetQizi?.HeroUID ?? 0;
         _itemTip.gameObject.SetActive(true);
         _itemTip.FreshTip();
     }

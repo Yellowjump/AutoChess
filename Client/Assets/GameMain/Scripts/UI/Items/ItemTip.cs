@@ -16,7 +16,7 @@ namespace GameMain.Scripts.UI.Items
         [SerializeField] private TextMeshProUGUI _itemTipDec;
         [SerializeField] private TextMeshProUGUI _itemTipAtkDistance;
         public int ItemID;
-
+        public int CurHeroUID = 0;
         public void FreshTip()
         {
             var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
@@ -27,7 +27,14 @@ namespace GameMain.Scripts.UI.Items
             }
 
             _itemTipName.text = GameEntry.Localization.GetString(itemTable[ItemID].Name);
-            _itemTipDec.text = itemTable[ItemID].Decs;
+            if (!string.IsNullOrEmpty(itemTable[ItemID].Decs))
+            {
+                _itemTipDec.text = GameEntry.HeroManager.FormatItemDesc(GameEntry.Localization.GetString(itemTable[ItemID].Decs),CurHeroUID);
+            }
+            else
+            {
+                _itemTipDec.text = string.Empty;
+            }
             _itemTipRarity.color = ConstValue.RarityColorList[itemTable[ItemID].Rarity];
             _itemTipRarity.text = ConstValue.RarityNameList[itemTable[ItemID].Rarity];
             var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
@@ -54,7 +61,6 @@ namespace GameMain.Scripts.UI.Items
                     castOrGet = $"获得{-skillData.CastPower}法力值";
                 }
                 _itemTipCast.text = castOrGet;
-            
             }
         }
     }

@@ -40,7 +40,7 @@ namespace Entity
         {
             IsValid = true;
             HeroID = i;
-            HeroUID = GameEntry.HeroManager.QiziCurUniqueIndex++;
+            HeroUID = ++GameEntry.HeroManager.QiziCurUniqueIndex;
             if (equipItem == null)
             {
                 InitAddDefaultItemToList();

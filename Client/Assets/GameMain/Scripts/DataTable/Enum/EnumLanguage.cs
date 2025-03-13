@@ -1,5 +1,5 @@
 ﻿// 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2025-03-02 10:16:38.805
+// 生成时间：2025-03-13 08:30:19.024
 //------------------------------------------------------------
 
 namespace DataTable
@@ -82,6 +82,46 @@ namespace DataTable
         Setting_Language = 22,
 
         /// <summary>
+        /// 当前血量
+        /// </summary>
+        Attr_Hp = 5001,
+
+        /// <summary>
+        /// 最大血量
+        /// </summary>
+        Attr_MaxHp = 5002,
+
+        /// <summary>
+        /// 当前蓝量
+        /// </summary>
+        Attr_Power = 5003,
+
+        /// <summary>
+        /// 最大蓝量
+        /// </summary>
+        Attr_MaxPower = 5004,
+
+        /// <summary>
+        /// 护盾
+        /// </summary>
+        Attr_HuDun = 5005,
+
+        /// <summary>
+        /// 护盾增益
+        /// </summary>
+        Attr_HuDunBoost = 5006,
+
+        /// <summary>
+        /// 技能急速
+        /// </summary>
+        Attr_CooldownReduce = 5007,
+
+        /// <summary>
+        /// 攻击力
+        /// </summary>
+        Attr_ATK = 5008,
+
+        /// <summary>
         /// 斧头
         /// </summary>
         ItemName_Axe = 10001,
@@ -140,5 +180,20 @@ namespace DataTable
         /// 三把斧头
         /// </summary>
         ItemName_ThreeAxes = 12002,
+
+        /// <summary>
+        /// 斧头描述
+        /// </summary>
+        ItemDecs_Axes = 20001,
+
+        /// <summary>
+        /// 子弹描述
+        /// </summary>
+        ItemDecs_Bullet = 20002,
+
+        /// <summary>
+        /// 生命比例护盾
+        /// </summary>
+        ItemDecs_Shield = 20003,
     }
 }
