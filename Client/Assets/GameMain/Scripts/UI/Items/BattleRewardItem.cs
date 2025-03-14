@@ -36,7 +36,7 @@ public class BattleRewardItem:MonoBehaviour
         Name.text = GameEntry.Localization.GetString(itemData.Name);
         Desc.text = GameEntry.HeroManager.FormatItemDesc(GameEntry.Localization.GetString(itemData.Decs),0);
         Rarity.color = ConstValue.RarityColorList[itemData.Rarity];
-        Rarity.text = ConstValue.RarityNameList[itemData.Rarity];
+        Rarity.text = GameEntry.Localization.GetString(ConstValue.RarityNameList[itemTable[ItemID].Rarity]);
     }
     private void OnClickBtn()
     {

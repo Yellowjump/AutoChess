@@ -16,45 +16,56 @@
 	20	设置界面UI音量	Setting_UIVolume	UI音量	UI Volume
 	21	设置界面BGM音量	Setting_BGMVolume	BGM音量	BGM Volume
 	22	设置界面语言	Setting_Language	语言	Language
-	23	返回主界面	Confirm_ReturnTitle	将返回主界面，为保存的游戏进度将丢失	
-	24	开始战斗	StartBattle	开始战斗	
-	25	通关	GameFinish	游戏通关，将回到主界面。\n 感谢游玩	
-	5001	当前血量	Attr_Hp	当前血量	
-	5002	最大血量	Attr_MaxHp	最大血量	
-	5003	当前蓝量	Attr_Power	当前蓝量	
-	5004	最大蓝量	Attr_MaxPower	最大蓝量	
-	5005	护盾	Attr_HuDun	护盾	
-	5006	护盾增益	Attr_HuDunBoost	护盾增益	
-	5007	技能急速	Attr_CooldownReduce	技能急速	
-	5008	攻击力	Attr_ATK	攻击力	
-	5010	技能类型_主动	SkillType_Active	主动	
-	5011	技能类型_主动	SkillType_Auto	自动	
-	5012	技能类型_主动	SkillType_Passive	被动	
+	23	返回主界面	Confirm_ReturnTitle	将返回主界面，为保存的游戏进度将丢失	Returning to the main menu will cause unsaved progress to be lost
+	24	开始战斗	StartBattle	开始战斗	Start Battle
+	25	通关	GameFinish	游戏通关，将回到主界面。\n 感谢游玩	Game cleared, returning to the main menu.\n Thank you for playing
+	26	背包	BtnBag	背包	Bag
+	27	普通	Rarity_Normal	普通	Common
+	28	稀有	Rarity_Rare	稀有	Rare
+	29	史诗	Rarity_Epic	史诗	Epic
+	30	传说	Rarity_Legendary	传说	Legendary
+	31	消耗法力值	CastPowerNum	消耗{0}法力值	Consumes {0} Mana
+	32	获得法力值	GetPowerNum	获得{0}法力值	Gains {0} Mana
+	33	无消耗	NoCastPower	无消耗	No Cost
+	34	离开	BtnLeave	离开	Leave
+	35	秒	ItemDetail_Second	{0}秒	{0}S
+	36	选择奖励	Reward_SelectReward	选择奖励	Choose Reward
+	5001	当前血量	Attr_Hp	当前血量	Current HP
+	5002	最大血量	Attr_MaxHp	最大血量	Max HP
+	5003	当前蓝量	Attr_Power	当前蓝量	Current MP
+	5004	最大蓝量	Attr_MaxPower	最大蓝量	Max MP
+	5005	护盾	Attr_HuDun	护盾	Shield
+	5006	护盾增益	Attr_HuDunBoost	护盾增益	Shield Boost
+	5007	技能急速	Attr_CooldownReduce	技能急速	Skill Haste
+	5008	攻击力	Attr_ATK	攻击力	Attack Power
+	5010	技能类型_主动	SkillType_Active	主动	Active
+	5011	技能类型_主动	SkillType_Auto	自动	Auto
+	5012	技能类型_主动	SkillType_Passive	被动	Passive
 #10000+itemID是道具名					
 	10001	斧头	ItemName_Axe	斧头	Axe
 	10002	子弹	ItemName_Bullet	子弹	Bullet
-	10003	生命比例护盾	ItemName_Shield	生命护盾	Dagger
+	10003	生命比例护盾	ItemName_Shield	生命护盾	Life Shield
 	10004	护甲板	ItemName_ArmorPlate	护甲板	Armor Plate
 	10005	动能引擎	ItemName_KineticEngine	动能引擎	Kinetic Engine
-	10006	计算单元	ItemName_ComputingUnit	计算单元	Computing Unit
-	10007	万能胶	ItemName_UniversalAdhesive	万能胶	Universal Adhesive
-	10008	战斗狂热	ItemName_MoreFast	战斗狂热	
-	10009	飞剑	ItemName_FlySword	自动飞剑	
-	10010	施法飞剑	ItemName_FlySwordAnim	持续飞剑	
+	10006	计算单元	ItemName_ComputingUnit	计算单元	Computation Unit
+	10007	万能胶	ItemName_UniversalAdhesive	万能胶	Universal Glue
+	10008	战斗狂热	ItemName_MoreFast	战斗狂热	Battle Frenzy
+	10009	飞剑	ItemName_FlySword	自动飞剑	Auto Flying Sword
+	10010	施法飞剑	ItemName_FlySwordAnim	持续飞剑	Sustained Flying Sword
 #					
-	11001	旋转斧头	ItemName_WhirlingAxe	旋转斧头	Whirling Axe
-	11002	反甲	ItemName_ThornArmor	反甲	Reflective Armor
+	11001	旋转斧头	ItemName_WhirlingAxe	旋转斧头	Spinning Axe
+	11002	反甲	ItemName_ThornArmor	反甲	Thorn Armor
 #	11003	充能护甲	ItemName_ChargedArmor	充能护甲	Charged Armor
 #					
 	12001	两把斧头	ItemName_TwoAxes	两把斧头	Two Axes
 	12002	三把斧头	ItemName_ThreeAxes	三把斧头	Three Axes
 #20000+itemID是道具描述					
-	20001	斧头描述	ItemDesc_Axes	掏出一把斧头,朝最近的敌人挥砍，造成 {0} = [20 + 100%Attr_ATK] 伤害	
-	20002	子弹描述	ItemDesc_Bullet	朝最近的敌人扔出子弹壳，造成 {0} = [ 100%Attr_ATK] 伤害	
-	20003	生命比例护盾	ItemDesc_Shield	给自己生成 {0} = [ 10%Attr_MaxHp] 的护盾，持续4秒，不可叠加	
-	20004	护甲板	ItemDesc_ArmorPlate	增加 20 点 护盾增益,增加500最大生命值	
-	20008	战斗狂热描述	ItemDesc_MoreFast	每次主动技能释放后增加释放者 20 点技能急速，持续5s，最多叠加10层	
-	20009	飞剑	ItemDesc_FlySword	在身后生成6把飞剑，朝最近的敌人突刺，每把造成 {0} = [ 100%Attr_ATK]伤害	
-	20010	施法飞剑	ItemDesc_FlySwordAnim	每隔0.2s生成一把飞剑，随机选取攻击距离内的目标，并对飞行途中的敌人造成 {0} = [ 100%Attr_ATK]伤害，在释放结束时朝人群最密集的区域释放爆炸。造成 {0} = [ 100%Attr_ATK]伤害	
-	21001	旋转斧头	ItemDesc_WhirlingAxe	生成两把斧头围绕自身旋转，对周围目标造成 {0} = [ 100%Attr_ATK]伤害	
-	21002	反甲	ItemDesc_ThornArmor	每次受到伤害，给伤害来源 {0} = [5 + 1%Attr_MaxHp] 伤害	
+	20001	斧头描述	ItemDesc_Axes	掏出一把斧头,朝最近的敌人挥砍，造成 {0} = [20 + 100%Attr_ATK] 伤害	Draws an axe and slashes at the nearest enemy, dealing {0} = [20 + 100%Attr_ATK] damage
+	20002	子弹描述	ItemDesc_Bullet	朝最近的敌人扔出子弹壳，造成 {0} = [ 100%Attr_ATK] 伤害	Throws a bullet casing at the nearest enemy, dealing {0} = [100%Attr_ATK] damage
+	20003	生命比例护盾	ItemDesc_Shield	给自己生成 {0} = [ 10%Attr_MaxHp] 的护盾，持续4秒，不可叠加	Generates a shield for yourself of {0} = [10%Attr_MaxHp] for 4 seconds, non-stackable
+	20004	护甲板	ItemDesc_ArmorPlate	增加 20 点 护盾增益,增加500最大生命值	Increases Shield Boost by 20 and Max HP by 500
+	20008	战斗狂热描述	ItemDesc_MoreFast	每次主动技能释放后增加释放者 20 点技能急速，持续5s，最多叠加10层	Each time an active skill is cast, increases the caster's Skill Haste by 20 for 5s, stacking up to 10 times
+	20009	飞剑	ItemDesc_FlySword	在身后生成6把飞剑，朝最近的敌人突刺，每把造成 {0} = [ 100%Attr_ATK]伤害	Generates 6 flying swords behind you, stabbing at the nearest enemy, each dealing {0} = [100%Attr_ATK] damage
+	20010	施法飞剑	ItemDesc_FlySwordAnim	每隔0.2s生成一把飞剑，随机选取攻击距离内的目标，并对飞行途中的敌人造成 {0} = [ 100%Attr_ATK]伤害，在释放结束时朝人群最密集的区域释放爆炸。造成 {0} = [ 100%Attr_ATK]伤害	Generates a flying sword every 0.2s, randomly selecting a target within attack range, dealing {0} = [100%Attr_ATK] damage to enemies in its path. At the end of the release, explodes in the most densely populated area, dealing {0} = [100%Attr_ATK] damage
+	21001	旋转斧头	ItemDesc_WhirlingAxe	生成两把斧头围绕自身旋转，对周围目标造成 {0} = [ 100%Attr_ATK]伤害	Generates two axes that spin around you, dealing {0} = [100%Attr_ATK] damage to nearby enemies
+	21002	反甲	ItemDesc_ThornArmor	每次受到伤害，给伤害来源 {0} = [5 + 1%Attr_MaxHp] 伤害	Each time you take damage, deals {0} = [5 + 1%Attr_MaxHp] damage to the source of the damage

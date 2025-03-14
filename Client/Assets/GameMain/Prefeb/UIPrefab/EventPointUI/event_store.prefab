@@ -656,7 +656,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 884fe17411d74cf3941ce8d3f7facc8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AutoLanguageTmp: []
+  AutoLanguageTmp:
+  - Tmp: {fileID: 7186436325559731951}
+    LanguageKey: BtnLeave
   _btnLoseLevel: {fileID: 4697135293342138100}
   _storeItemTemplete: {fileID: 215588391514199926}
   _storeItemParent: {fileID: 2287772848343953809}

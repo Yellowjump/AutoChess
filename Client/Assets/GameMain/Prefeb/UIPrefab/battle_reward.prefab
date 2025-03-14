@@ -200,14 +200,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.5882353, g: 0.56062746, b: 0.49411768, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 040c880d45e3bce4a8d8ea152e01e130, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 857d1505256958046bfac798b6eefcc8, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -476,7 +476,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0086a5f4b750d4e44bcc30d22e09c95a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AutoLanguageTmp: []
+  AutoLanguageTmp:
+  - Tmp: {fileID: 3617702326564461244}
+    LanguageKey: Reward_SelectReward
   _btnContinue: {fileID: 6912950765849859878}
   _rewardItemTemp: {fileID: 1055310714111509786}
   _itemParent: {fileID: 6250493165766478695}

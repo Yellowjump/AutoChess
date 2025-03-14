@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ItemIcon
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 1
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings: []
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 0
+      enableTightPacking: 0
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 102900000, guid: 107f591e0b2c455478071ddf822f6d3c, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+    packedSpriteRenderDataKeys:
+    - e5c15330b713be442b72f8974adc8030: -9050780628090338871
+    - 4fe558315d9265d45a42860b8e7d22c3: 21300000
+    - 0825dfa25de4551469e65496af7b3c71: 21300000
+    - 551fdbb4ac22a89409814e2721bc8045: 21300000
+    - 71b37f250d1c45244bcf9c979495b813: 21300000
+    - f0956835f417fe84a886e501e152ae1d: 21300000
+    - c7ff7455ac480944a943db36038afb84: 21300000
+    - fa56cae7c0b4c484b8188237d3741fe1: 7162954115942857661
+    - 659366083e6d801468f52a500e4bdab3: 21300000
+    - 3e910e592ce7a6841973879d67555763: 21300000
+    - 4605338a5a51383478a6b8eb3707e90c: 21300000
+    - 090fc9ea3181dd040ab58947557b5988: 21300000
+    - 2a5c892bdd014164da633b8c6fd0f246: 21300000
+    - a2563f2b8dbc4044b9a50537d3a29962: 21300000
+    - 125bb49b217257347be09ede099b888d: 21300000
+    - f6b8b85cbdc82ce439a41ae3d56d57ee: 21300000
+    - d82a3f9e384078143a0ab9a81f8f642a: 21300000
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: -9050780628090338871, guid: e5c15330b713be442b72f8974adc8030, type: 3}
+  - {fileID: 21300000, guid: 4fe558315d9265d45a42860b8e7d22c3, type: 3}
+  - {fileID: 21300000, guid: 0825dfa25de4551469e65496af7b3c71, type: 3}
+  - {fileID: 21300000, guid: 551fdbb4ac22a89409814e2721bc8045, type: 3}
+  - {fileID: 21300000, guid: 71b37f250d1c45244bcf9c979495b813, type: 3}
+  - {fileID: 21300000, guid: f0956835f417fe84a886e501e152ae1d, type: 3}
+  - {fileID: 21300000, guid: c7ff7455ac480944a943db36038afb84, type: 3}
+  - {fileID: 7162954115942857661, guid: fa56cae7c0b4c484b8188237d3741fe1, type: 3}
+  - {fileID: 21300000, guid: 659366083e6d801468f52a500e4bdab3, type: 3}
+  - {fileID: 21300000, guid: 3e910e592ce7a6841973879d67555763, type: 3}
+  - {fileID: 21300000, guid: 4605338a5a51383478a6b8eb3707e90c, type: 3}
+  - {fileID: 21300000, guid: 090fc9ea3181dd040ab58947557b5988, type: 3}
+  - {fileID: 21300000, guid: 2a5c892bdd014164da633b8c6fd0f246, type: 3}
+  - {fileID: 21300000, guid: a2563f2b8dbc4044b9a50537d3a29962, type: 3}
+  - {fileID: 21300000, guid: 125bb49b217257347be09ede099b888d, type: 3}
+  - {fileID: 21300000, guid: f6b8b85cbdc82ce439a41ae3d56d57ee, type: 3}
+  - {fileID: 21300000, guid: d82a3f9e384078143a0ab9a81f8f642a, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - White Hour Glass_0
+  - SteelTowerShield
+  - UI_Skill_Icon_SpiritArrows
+  - FreeFolkAxe
+  - Apple
+  - SmallPotion
+  - BattleBow
+  - White Target 2_0
+  - BerserkAxe
+  - DarkMountain
+  - Copper Coin
+  - AssassinDagger
+  - UI_Skill_Icon_Slash
+  - UI_Skill_Icon_Buff
+  - UI_Skill_Icon_Arrow_Barrage
+  - UI_Skill_Icon_Reflect
+  - GreyKnight
+  m_RenderDataMap: {}
+  m_Tag: ItemIcon
+  m_IsVariant: 0

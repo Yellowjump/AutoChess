@@ -84,6 +84,7 @@ public class BattleMainCtrl : UIFormLogic
         base.OnOpen(userData);
         qizishuxin.gameObject.SetActive(false);
         _itemTip.gameObject.SetActive(false);
+        GameEntry.UI.OpenUIForm(UICtrlName.BattleFormationPanel, "middle");
     }
 
     public override void OnClose(bool isShutdown, object userData)

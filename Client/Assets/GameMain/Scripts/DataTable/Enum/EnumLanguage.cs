@@ -1,5 +1,5 @@
 ﻿// 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2025-03-14 05:10:36.610
+// 生成时间：2025-03-14 10:27:34.898
 //------------------------------------------------------------
 
 namespace DataTable
@@ -95,6 +95,61 @@ namespace DataTable
         /// 通关
         /// </summary>
         GameFinish = 25,
+
+        /// <summary>
+        /// 背包
+        /// </summary>
+        BtnBag = 26,
+
+        /// <summary>
+        /// 普通
+        /// </summary>
+        Rarity_Normal = 27,
+
+        /// <summary>
+        /// 稀有
+        /// </summary>
+        Rarity_Rare = 28,
+
+        /// <summary>
+        /// 史诗
+        /// </summary>
+        Rarity_Epic = 29,
+
+        /// <summary>
+        /// 传说
+        /// </summary>
+        Rarity_Legendary = 30,
+
+        /// <summary>
+        /// 消耗法力值
+        /// </summary>
+        CastPowerNum = 31,
+
+        /// <summary>
+        /// 获得法力值
+        /// </summary>
+        GetPowerNum = 32,
+
+        /// <summary>
+        /// 无消耗
+        /// </summary>
+        NoCastPower = 33,
+
+        /// <summary>
+        /// 离开
+        /// </summary>
+        BtnLeave = 34,
+
+        /// <summary>
+        /// 秒
+        /// </summary>
+        ItemDetail_Second = 35,
+
+        /// <summary>
+        /// 选择奖励
+        /// </summary>
+        Reward_SelectReward = 36,
 
         /// <summary>
         /// 当前血量

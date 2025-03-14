@@ -317,7 +317,7 @@ public class BattleBagPanelCtrl : UIFormLogic
                 _craftItemName.text = GameEntry.Localization.GetString(itemTable[matchID].Name);
                 _craftItemDesc.text = itemTable[matchID].Decs;
                 _craftItemRarity.color = ConstValue.RarityColorList[itemTable[matchID].Rarity];
-                _craftItemRarity.text = ConstValue.RarityNameList[itemTable[matchID].Rarity];
+                _craftItemRarity.text = GameEntry.Localization.GetString(ConstValue.RarityNameList[itemTable[matchID].Rarity]); 
                 _craftItem.Fresh();
                 _willCraftParent.gameObject.SetActive(true);
                 _btnCraft.interactable = true;

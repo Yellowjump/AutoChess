@@ -36,7 +36,7 @@ namespace GameMain.Scripts.UI.Items
                 _itemTipDec.text = string.Empty;
             }
             _itemTipRarity.color = ConstValue.RarityColorList[itemTable[ItemID].Rarity];
-            _itemTipRarity.text = ConstValue.RarityNameList[itemTable[ItemID].Rarity];
+            _itemTipRarity.text = GameEntry.Localization.GetString(ConstValue.RarityNameList[itemTable[ItemID].Rarity]);
             var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
             _itemTipType.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
             _itemTipAtkDistance.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
@@ -54,15 +54,15 @@ namespace GameMain.Scripts.UI.Items
                 string castOrGet = string.Empty;
                 if (skillData.CastPower == 0)
                 {
-                    castOrGet = "无消耗";
+                    castOrGet = GameEntry.Localization.GetString(EnumLanguage.NoCastPower) ;
                 }
                 else if (skillData.CastPower > 0)
                 {
-                    castOrGet = $"消耗{skillData.CastPower}法力值";
+                    castOrGet = string.Format(GameEntry.Localization.GetString(EnumLanguage.CastPowerNum),skillData.CastPower);
                 }
                 else
                 {
-                    castOrGet = $"获得{-skillData.CastPower}法力值";
+                    castOrGet = string.Format(GameEntry.Localization.GetString(EnumLanguage.GetPowerNum),-skillData.CastPower);
                 }
                 _itemTipCast.text = castOrGet;
                 var key = EnumLanguage.SkillType_Active;

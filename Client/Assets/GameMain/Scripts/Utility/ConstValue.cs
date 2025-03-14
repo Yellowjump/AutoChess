@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DataTable;
 using UnityEngine;
 
 public class ConstValue
@@ -12,12 +13,12 @@ public class ConstValue
         Color.yellow,
     };
 
-    public static List<string> RarityNameList = new List<string>()
+    public static List<EnumLanguage> RarityNameList = new List<EnumLanguage>()
     {
-        "普通",
-        "稀有",
-        "史诗",
-        "传说",
+        EnumLanguage.Rarity_Normal,
+        EnumLanguage.Rarity_Rare,
+        EnumLanguage.Rarity_Epic,
+        EnumLanguage.Rarity_Legendary,
     };
     public const string SettingKeyLanguage = "Setting.Language";
     public const string SettingKeySoundGroupVolume = "Setting.{0}Volume";

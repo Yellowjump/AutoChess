@@ -27,7 +27,6 @@ namespace Procedure.GameStates
             base.OnEnter(fsm);
             //初始化 敌人
             GameEntry.UI.OpenUIForm(UICtrlName.BattleMainPanel, "middle");
-            _UIIndex = GameEntry.UI.OpenUIForm(UICtrlName.BattleFormationPanel, "middle");
             GameEntry.Sound.PlayMusic((int)EnumSound.GameBattleBGM);
         }
 
@@ -46,7 +45,7 @@ namespace Procedure.GameStates
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)
         {
             base.OnLeave(fsm, isShutdown);
-            GameEntry.UI.CloseUIForm(_UIIndex);
+            GameEntry.UI.CloseUIForm(UICtrlName.BattleFormationPanel);
         }
 
         protected override void OnDestroy(IFsm<ProcedureGame> fsm)
