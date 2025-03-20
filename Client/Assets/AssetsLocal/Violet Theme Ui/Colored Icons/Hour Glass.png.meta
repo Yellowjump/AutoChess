@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: 647a538c2f2902245bf207b897881a5f
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235559
+  packageName: Violet Themed UI
+  packageVersion: 1.1
+  assetPath: Assets/Violet Theme Ui/Colored Icons/Hour Glass.png
+  uploadId: 700144
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -150,10 +157,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 235559
-  packageName: Violet Themed UI
-  packageVersion: 1.1
-  assetPath: Assets/Violet Theme Ui/Colored Icons/Hour Glass.png
-  uploadId: 700144

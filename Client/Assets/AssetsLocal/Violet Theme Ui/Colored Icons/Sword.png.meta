@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: 5555116c8467a454c8c90c5cece8dc84
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235559
+  packageName: Violet Themed UI
+  packageVersion: 1.1
+  assetPath: Assets/Violet Theme Ui/Colored Icons/Sword.png
+  uploadId: 700144
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -150,10 +157,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 235559
-  packageName: Violet Themed UI
-  packageVersion: 1.1
-  assetPath: Assets/Violet Theme Ui/Colored Icons/Sword.png
-  uploadId: 700144

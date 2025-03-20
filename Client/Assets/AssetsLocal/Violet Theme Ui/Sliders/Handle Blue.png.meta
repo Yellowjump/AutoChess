@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: 90a65e5f1a9c4c04a89791b3a9eda3c9
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235559
+  packageName: Violet Themed UI
+  packageVersion: 1.1
+  assetPath: Assets/Violet Theme Ui/Sliders/Handle Blue.png
+  uploadId: 700144
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -150,10 +157,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 235559
-  packageName: Violet Themed UI
-  packageVersion: 1.1
-  assetPath: Assets/Violet Theme Ui/Sliders/Handle Blue.png
-  uploadId: 700144

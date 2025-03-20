@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: f013fbdef39944b438a519b1307f1ba6
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235559
+  packageName: Violet Themed UI
+  packageVersion: 1.1
+  assetPath: Assets/Violet Theme Ui/Panels/Dark Panel Purple.png
+  uploadId: 700144
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -150,10 +157,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 235559
-  packageName: Violet Themed UI
-  packageVersion: 1.1
-  assetPath: Assets/Violet Theme Ui/Panels/Dark Panel Purple.png
-  uploadId: 700144

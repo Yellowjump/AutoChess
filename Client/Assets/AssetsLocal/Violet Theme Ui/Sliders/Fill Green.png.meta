@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: 5c6b1d8bbb4d72743bce6f67053ac941
+AssetOrigin:
+  serializedVersion: 1
+  productId: 235559
+  packageName: Violet Themed UI
+  packageVersion: 1.1
+  assetPath: Assets/Violet Theme Ui/Sliders/Fill Green.png
+  uploadId: 700144
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -150,10 +157,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 235559
-  packageName: Violet Themed UI
-  packageVersion: 1.1
-  assetPath: Assets/Violet Theme Ui/Sliders/Fill Green.png
-  uploadId: 700144

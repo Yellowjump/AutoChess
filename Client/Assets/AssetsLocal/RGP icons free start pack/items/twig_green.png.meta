@@ -1,9 +1,16 @@
 fileFormatVersion: 2
 guid: 4f83da16a2d475f42a8fb81cd908c3fd
+AssetOrigin:
+  serializedVersion: 1
+  productId: 245521
+  packageName: RPG icons free starter pack
+  packageVersion: 1.1
+  assetPath: Assets/RGP icons free start pack/items/twig_green.png
+  uploadId: 687566
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
-  serializedVersion: 12
+  serializedVersion: 13
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -106,6 +113,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites: []
@@ -125,10 +145,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 245521
-  packageName: RPG icons free starter pack
-  packageVersion: 1.1
-  assetPath: Assets/RGP icons free start pack/items/twig_green.png
-  uploadId: 687566
