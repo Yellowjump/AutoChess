@@ -1,0 +1,29 @@
+fileFormatVersion: 2
+guid: 30510a35bfd53435e9963c3a7594417b
+AudioImporter:
+  externalObjects: {}
+  serializedVersion: 6
+  defaultSettings:
+    loadType: 0
+    sampleRateSetting: 0
+    sampleRateOverride: 44100
+    compressionFormat: 1
+    quality: 1
+    conversionMode: 0
+  platformSettingOverrides: {}
+  forceToMono: 0
+  normalize: 1
+  preloadAudioData: 1
+  loadInBackground: 0
+  ambisonic: 0
+  3D: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 191422
+  packageName: Retro synth - 80/90's
+  packageVersion: 1.0
+  assetPath: Assets/Retro Synth/Can't espace with us .wav
+  uploadId: 424123
