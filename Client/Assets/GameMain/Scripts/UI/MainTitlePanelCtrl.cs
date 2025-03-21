@@ -28,6 +28,12 @@ public class MainTitlePanelCtrl : UIFormLogic
     [SerializeField] private TMP_Dropdown mLanguageDropDown;
     private Language currentLanguage;
     private Language selectLanguage;
+    [SerializeField] private TMP_Dropdown mResolutionDropDown;
+    private int curResolutionIndex;
+    private int selectResolutionIndex;
+    [SerializeField] private TMP_Dropdown mFullScreenModeDropDown;
+    private FullScreenMode  curFullScreenMode;
+    private FullScreenMode  selectFullScreenMode;
     public override void OnInit(object userData)
     {
         base.OnInit(userData);
@@ -62,8 +68,45 @@ public class MainTitlePanelCtrl : UIFormLogic
         mVolumeBgmSlider.onValueChanged.AddListener(OnBgmVolumeSliderChange);
         mVolumeSfxSlider.onValueChanged.AddListener(OnSFXVolumeSliderChange);
         mVolumeUISlider.onValueChanged.AddListener(OnMusicVolumeSliderChange);
+
+        InitScreenResolution();
+        InitScreenFullMode();
     }
 
+    private void InitScreenResolution()
+    {
+        Resolution[] resolutions = Screen.resolutions;
+        List<string> resolutionStrList = ListPool<string>.Get();
+        foreach (Resolution res in resolutions)
+        {
+            Debug.Log($"支持的分辨率: {res.width} × {res.height}");
+            resolutionStrList.Add($"{res.width} × {res.height}");
+        }
+        mResolutionDropDown.ClearOptions();
+        mResolutionDropDown.AddOptions(resolutionStrList);
+        ListPool<string>.Release(resolutionStrList);
+        curResolutionIndex = GameEntry.Setting.GetInt(ConstValue.SettingKeyScreenResolution,  0);
+        curFullScreenMode = (FullScreenMode)GameEntry.Setting.GetInt(ConstValue.SettingFullScreenMode, (int)FullScreenMode.Windowed);
+        selectResolutionIndex = curResolutionIndex;
+        mResolutionDropDown.value = curResolutionIndex;
+        mResolutionDropDown.onValueChanged.AddListener(OnScreenResolutionChanged);
+    }
+
+    private void InitScreenFullMode()
+    {
+        var stringList = ListPool<string>.Get();
+        stringList.Add(GameEntry.Localization.GetString(EnumLanguage.FullScreenMode_ExclusiveFullScreen));
+        stringList.Add(GameEntry.Localization.GetString(EnumLanguage.FullScreenMode_FullScreenWindow));
+        stringList.Add(GameEntry.Localization.GetString(EnumLanguage.FullScreenMode_MaximizedWindow));
+        stringList.Add(GameEntry.Localization.GetString(EnumLanguage.FullScreenMode_Windowed));
+        mFullScreenModeDropDown.ClearOptions();
+        mFullScreenModeDropDown.AddOptions(stringList);
+        curFullScreenMode = (FullScreenMode)GameEntry.Setting.GetInt(ConstValue.SettingFullScreenMode, (int)FullScreenMode.Windowed);
+        selectFullScreenMode = curFullScreenMode;
+        mFullScreenModeDropDown.value = (int)curFullScreenMode;
+        mFullScreenModeDropDown.onValueChanged.AddListener(OnScreenFullModeChanged);
+        ListPool<string>.Release(stringList);
+    }
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
@@ -114,6 +157,35 @@ public class MainTitlePanelCtrl : UIFormLogic
         newConfirmData.ConfirmCallback = OnConfirmChangeLanguageClick;
         newConfirmData.CancelCallback = OnCancelChangeLanguageClick;
         GameEntry.UI.OpenUIForm(UICtrlName.ConfirmPanel, "tips", newConfirmData);
+    }
+
+    private void OnScreenResolutionChanged(int newValue)
+    {
+        selectResolutionIndex = newValue;
+        var resolution = UnityExtension.GetResolutionByIndex(selectResolutionIndex);
+        if (resolution.HasValue &&selectResolutionIndex != curResolutionIndex)
+        {
+            curResolutionIndex = selectResolutionIndex;
+            GameEntry.Setting.SetInt(ConstValue.SettingKeyScreenResolution, curResolutionIndex);
+            GameEntry.Setting.Save();
+            Screen.SetResolution(resolution.Value.width, resolution.Value.height, curFullScreenMode);
+        }
+    }
+
+    private void OnScreenFullModeChanged(int newValue)
+    {
+        selectFullScreenMode = (FullScreenMode)newValue;
+        if (selectFullScreenMode != curFullScreenMode)
+        {
+            curFullScreenMode = selectFullScreenMode;
+            GameEntry.Setting.SetInt(ConstValue.SettingFullScreenMode, (int)selectFullScreenMode);
+            GameEntry.Setting.Save();
+            var resolution = UnityExtension.GetResolutionByIndex(curResolutionIndex);
+            if (resolution.HasValue)
+            {
+                Screen.SetResolution(resolution.Value.width, resolution.Value.height, curFullScreenMode);
+            }
+        }
     }
     private void OnConfirmChangeLanguageClick()
     {

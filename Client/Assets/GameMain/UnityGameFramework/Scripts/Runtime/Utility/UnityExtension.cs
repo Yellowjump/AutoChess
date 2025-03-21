@@ -112,6 +112,32 @@ public static class UnityExtension
     {
         return Mathf.Sqrt((pos1.x - pos2.x) * (pos1.x - pos2.x) + (pos1.z - pos2.z) * (pos1.z - pos2.z));
     }
+    public static int GetCurrentResolutionIndex()
+    {
+        Resolution[] resolutions = Screen.resolutions;
+        int currentIndex = 0;
+    
+        for (int i = 0; i < resolutions.Length; i++)
+        {
+            if (resolutions[i].width == Screen.width && resolutions[i].height == Screen.height)
+            {
+                currentIndex = i;
+                break;
+            }
+        }
+
+        return currentIndex;
+    }
+
+    public static Resolution? GetResolutionByIndex(int index)
+    {
+        Resolution[] resolutions = Screen.resolutions;
+        if (resolutions != null && resolutions.Length > index)
+        {
+            return resolutions[index];
+        }
+        return null;
+    }
     #region Transform
 
     /// <summary>

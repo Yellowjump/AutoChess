@@ -9,15 +9,16 @@ using GameFramework.Procedure;
 using GameFramework.DataTable;
 using GameFramework.Localization;
 using UnityEngine;
-
 using ProcedureOwner = GameFramework.Fsm.IFsm<GameFramework.Procedure.IProcedureManager>;
+
 namespace Procedure
 {
     public class ProcedurePreload : ProcedureBase
     {
-        private Dictionary<string,(Type,bool)> _dataTableFlag = new Dictionary<string, (Type, bool)>();
+        private Dictionary<string, (Type, bool)> _dataTableFlag = new Dictionary<string, (Type, bool)>();
         private Dictionary<string, bool> m_LoadedFlag = new Dictionary<string, bool>();
         private bool m_ResourceLoaded = false;
+
         protected override void OnInit(ProcedureOwner procedureOwner)
         {
             base.OnInit(procedureOwner);
@@ -29,6 +30,7 @@ namespace Procedure
             InitLanguageSettings();
             InitCurrentVariant();
             InitSoundVolume();
+            InitScreenResolution();
             if (GameEntry.Base.EditorResourceMode)
             {
                 OnInitResourceComplete();
@@ -37,8 +39,8 @@ namespace Procedure
             {
                 GameEntry.Resource.InitResources(OnInitResourceComplete);
             }
-            
         }
+
         private void InitLanguageSettings()
         {
             if (GameEntry.Base.EditorResourceMode && GameEntry.Base.EditorLanguage != Language.Unspecified)
@@ -57,9 +59,25 @@ namespace Procedure
                 GameEntry.Setting.SetString(ConstValue.SettingKeyLanguage, language.ToString());
                 GameEntry.Setting.Save();
             }
+
             GameEntry.Localization.Language = language;
             Log.Info("Init language settings complete, current language is '{0}'.", language.ToString());
         }
+
+        private void InitScreenResolution()
+        {
+            var savedFullScreenMode = (FullScreenMode)GameEntry.Setting.GetInt(ConstValue.SettingFullScreenMode, (int)FullScreenMode.Windowed);
+            var savedScreenResolution = GameEntry.Setting.GetInt(ConstValue.SettingKeyScreenResolution, UnityExtension.GetCurrentResolutionIndex());
+            var savedResolution = UnityExtension.GetResolutionByIndex(savedScreenResolution);
+            if (savedResolution != null)
+            {
+                GameEntry.Setting.SetInt(ConstValue.SettingFullScreenMode,(int)savedFullScreenMode);
+                GameEntry.Setting.SetInt(ConstValue.SettingKeyScreenResolution,savedScreenResolution);
+                GameEntry.Setting.Save();
+                Screen.SetResolution(savedResolution.Value.width,savedResolution.Value.height, savedFullScreenMode);
+            }
+        }
+
         private void InitCurrentVariant()
         {
             if (GameEntry.Base.EditorResourceMode)
@@ -79,6 +97,7 @@ namespace Procedure
                     currentVariant = "zh_cn";
                     break;
             }
+
             GameEntry.Resource.SetCurrentVariant(currentVariant);
             Log.Info("Init current variant complete.current variant :{0}.", currentVariant);
         }
@@ -90,6 +109,7 @@ namespace Procedure
             GameEntry.Sound.SetVolume("UI", GameEntry.Setting.GetSoundGroupVolume("UI"));
             GameEntry.Sound.SetVolume("Sfx", GameEntry.Setting.GetSoundGroupVolume("Sfx"));
         }
+
         private void OnInitResourceComplete()
         {
             GameEntry.UI.OpenUIForm(UICtrlName.LoadingPanel, "top");
@@ -99,11 +119,12 @@ namespace Procedure
             GameEntry.Event.Subscribe(LoadSceneSuccessEventArgs.EventId, OnLoadTerrainSceneSuccess);
             GameEntry.Event.Subscribe(LoadDictionarySuccessEventArgs.EventId, OnLoadLocalDataTableSuccess);
             GameEntry.Event.Subscribe(LoadDictionaryFailureEventArgs.EventId, OnLoadLocalTableFailure);
-            m_LoadedFlag.Add("Assets/GameMain/Scenes/terrain.unity",false);
+            m_LoadedFlag.Add("Assets/GameMain/Scenes/terrain.unity", false);
             GameEntry.Scene.LoadScene("Assets/GameMain/Scenes/terrain.unity");
             PreloadDataTable();
             Log.Info("Init resources complete.");
         }
+
         protected override void OnUpdate(ProcedureOwner procedureOwner, float elapseSeconds, float realElapseSeconds)
         {
             base.OnUpdate(procedureOwner, elapseSeconds, realElapseSeconds);
@@ -111,6 +132,7 @@ namespace Procedure
             {
                 return;
             }
+
             foreach (var item in m_LoadedFlag)
             {
                 if (!item.Value)
@@ -125,6 +147,7 @@ namespace Procedure
                 if (!item.Value.Item2)
                     return;
             }
+
             ChangeState<ProcedureTitle>(procedureOwner);
         }
 
@@ -148,33 +171,31 @@ namespace Procedure
         private void PreloadDataTable()
         {
             _dataTableFlag.Clear();
-            _dataTableFlag.Add("AssetsPath",(typeof(DRAssetsPath),false));
-            _dataTableFlag.Add("Hero",(typeof(DRHero),false));
-            _dataTableFlag.Add("Skill",(typeof(DRSkill),false));
-            _dataTableFlag.Add("Buff",(typeof(DRBuff),false));
-            _dataTableFlag.Add("SkillTemplate",(typeof(DRSkillTemplate),false));
-            _dataTableFlag.Add("BuffTemplate",(typeof(DRBuffTemplate),false));
-            _dataTableFlag.Add("Bullet",(typeof(DRBullet),false));
-            _dataTableFlag.Add("EnemyConfig",(typeof(DREnemyConfig),false));
-            _dataTableFlag.Add("HeroAttribute",(typeof(DRHeroAttribute),false));
-            _dataTableFlag.Add("Item",(typeof(DRItem),false));
-            _dataTableFlag.Add("LevelConfig",(typeof(DRLevelConfig),false));
-            _dataTableFlag.Add("Sfx",(typeof(DRSfx),false));
-            _dataTableFlag.Add("AreaPoint",(typeof(DRAreaPoint),false));
-            _dataTableFlag.Add("RewardConfig",(typeof(DRRewardConfig),false));
-            _dataTableFlag.Add("Sound",(typeof(DRSound),false));
+            _dataTableFlag.Add("AssetsPath", (typeof(DRAssetsPath), false));
+            _dataTableFlag.Add("Hero", (typeof(DRHero), false));
+            _dataTableFlag.Add("Skill", (typeof(DRSkill), false));
+            _dataTableFlag.Add("Buff", (typeof(DRBuff), false));
+            _dataTableFlag.Add("SkillTemplate", (typeof(DRSkillTemplate), false));
+            _dataTableFlag.Add("BuffTemplate", (typeof(DRBuffTemplate), false));
+            _dataTableFlag.Add("Bullet", (typeof(DRBullet), false));
+            _dataTableFlag.Add("EnemyConfig", (typeof(DREnemyConfig), false));
+            _dataTableFlag.Add("HeroAttribute", (typeof(DRHeroAttribute), false));
+            _dataTableFlag.Add("Item", (typeof(DRItem), false));
+            _dataTableFlag.Add("LevelConfig", (typeof(DRLevelConfig), false));
+            _dataTableFlag.Add("Sfx", (typeof(DRSfx), false));
+            _dataTableFlag.Add("AreaPoint", (typeof(DRAreaPoint), false));
+            _dataTableFlag.Add("RewardConfig", (typeof(DRRewardConfig), false));
+            _dataTableFlag.Add("Sound", (typeof(DRSound), false));
             foreach (var tableName in _dataTableFlag)
             {
                 DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(tableName.Value.Item1, tableName.Key);
-                dataTable.ReadData($"Assets/GameMain/Data/DataTables/{tableName.Key}.bytes",0, null);
+                dataTable.ReadData($"Assets/GameMain/Data/DataTables/{tableName.Key}.bytes", 0, null);
             }
-            _dataTableFlag.Add("Language",(typeof(DRLanguage),false));//交给localizationComponent
-            GameEntry.Localization.ReadData("Assets/GameMain/Data/DataTables/Language.bytes",0);
-        }
-        
 
-        
-        
+            _dataTableFlag.Add("Language", (typeof(DRLanguage), false)); //交给localizationComponent
+            GameEntry.Localization.ReadData("Assets/GameMain/Data/DataTables/Language.bytes", 0);
+        }
+
 
         private void OnLoadDataTableSuccess(object sender, GameEventArgs e)
         {
@@ -187,7 +208,7 @@ namespace Procedure
             var tableName = ExtractFileName(ne.DataTableAssetName);
             if (_dataTableFlag.ContainsKey(tableName))
             {
-                _dataTableFlag[tableName] = new ValueTuple<Type, bool>(_dataTableFlag[tableName].Item1,true);
+                _dataTableFlag[tableName] = new ValueTuple<Type, bool>(_dataTableFlag[tableName].Item1, true);
                 Log.Info("Load config '{0}' OK.", ne.DataTableAssetName);
             }
             else
@@ -199,13 +220,14 @@ namespace Procedure
         private void OnLoadDataTableFailure(object sender, GameEventArgs e)
         {
             LoadDataTableFailureEventArgs ne = (LoadDataTableFailureEventArgs)e;
-            if (ne==null)
+            if (ne == null)
             {
                 return;
             }
 
-            Log.Error("Can not load table '{0}' with error: {1}", ne.DataTableAssetName,ne.ErrorMessage);
+            Log.Error("Can not load table '{0}' with error: {1}", ne.DataTableAssetName, ne.ErrorMessage);
         }
+
         private void OnLoadLocalDataTableSuccess(object sender, GameEventArgs e)
         {
             LoadDictionarySuccessEventArgs ne = (LoadDictionarySuccessEventArgs)e;
@@ -217,7 +239,7 @@ namespace Procedure
             var tableName = ExtractFileName(ne.DictionaryAssetName);
             if (_dataTableFlag.ContainsKey(tableName))
             {
-                _dataTableFlag[tableName] = new ValueTuple<Type, bool>(_dataTableFlag[tableName].Item1,true);
+                _dataTableFlag[tableName] = new ValueTuple<Type, bool>(_dataTableFlag[tableName].Item1, true);
                 Log.Info("Load Localization config '{0}' OK.", ne.DictionaryAssetName);
             }
             else
@@ -225,20 +247,22 @@ namespace Procedure
                 Log.Error("load Localization error table '{0}' ", ne.DictionaryAssetName);
             }
         }
+
         private void OnLoadLocalTableFailure(object sender, GameEventArgs e)
         {
             LoadDictionaryFailureEventArgs ne = (LoadDictionaryFailureEventArgs)e;
-            if (ne==null)
+            if (ne == null)
             {
                 return;
             }
 
-            Log.Error("Can not load table '{0}' with error: {1}", ne.DictionaryAssetName,ne.ErrorMessage);
+            Log.Error("Can not load table '{0}' with error: {1}", ne.DictionaryAssetName, ne.ErrorMessage);
         }
+
         private void OnLoadTerrainSceneSuccess(object sender, GameEventArgs e)
         {
             LoadSceneSuccessEventArgs ne = (LoadSceneSuccessEventArgs)e;
-            if (ne==null)
+            if (ne == null)
             {
                 return;
             }
@@ -247,9 +271,11 @@ namespace Procedure
             {
                 m_LoadedFlag[ne.SceneAssetName] = true;
             }
+
             GameEntry.HeroManager.InitTerrainList();
             GameEntry.HeroManager.InitStartCamera();
         }
+
         private string ExtractFileName(string filePath)
         {
             // 找到最后一个斜杠（/）或反斜杠（\）的索引位置
@@ -280,4 +306,3 @@ namespace Procedure
         }
     }
 }
-

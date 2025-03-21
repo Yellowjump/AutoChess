@@ -23,6 +23,8 @@ public class ConstValue
     public const string SettingKeyLanguage = "Setting.Language";
     public const string SettingKeySoundGroupVolume = "Setting.{0}Volume";
     public const string SettingKeyGameRecord = "Setting.GameRecord";
+    public const string SettingKeyScreenResolution = "Setting.ScreenResolution";
+    public const string SettingFullScreenMode = "Setting.FullScreenMode";
     public static class AssetPriority
     {
         public const int ConfigAsset = 100;

@@ -2,7 +2,7 @@
 Start GameTitle_Setting设置Setting/Title_ContinueGame继续游戏Continue GameSetting_Audio音效Audio.Setting_MasterVolume	总音量Master Volume+Setting_SfxVolume特效音量
 SFX Volume%Setting_UIVolumeUI音量	UI Volume(Setting_BGMVolume	BGM音量
 BGM Volume"Setting_Language语言Language�Confirm_ReturnTitle6将返回主界面，为保存的游戏进度将丢失AReturning to the main menu will cause unsaved progress to be lost'StartBattle开始战斗Start Battle�
-GameFinish3游戏通关，将回到主界面。\n 感谢游玩AGame cleared, returning to the main menu.\n Thank you for playingBtnBag背包BagRarity_Normal普通CommonRarity_Rare稀有RareRarity_Epic史诗Epic#Rarity_Legendary传说	Legendary3CastPowerNum消耗{0}法力值Consumes {0} Mana/ GetPowerNum获得{0}法力值Gains {0} Mana!NoCastPower	无消耗No Cost"BtnLeave离开Leave#ItemDetail_Second{0}秒{0}S0$Reward_SelectReward选择奖励Choose Reward"�'Attr_Hp当前血量
+GameFinish3游戏通关，将回到主界面。\n 感谢游玩AGame cleared, returning to the main menu.\n Thank you for playingBtnBag背包BagRarity_Normal普通CommonRarity_Rare稀有RareRarity_Epic史诗Epic#Rarity_Legendary传说	Legendary3CastPowerNum消耗{0}法力值Consumes {0} Mana/ GetPowerNum获得{0}法力值Gains {0} Mana!NoCastPower	无消耗No Cost"BtnLeave离开Leave#ItemDetail_Second{0}秒{0}S0$Reward_SelectReward选择奖励Choose RewardE%"FullScreenMode_ExclusiveFullScreen独占全屏ExclusiveFullScreenB&FullScreenMode_FullScreenWindow无边框全屏FullScreenWindow@'FullScreenMode_MaximizedWindow最大化窗口MaximizedWindow/(FullScreenMode_Windowed窗口模式Windowed"�'Attr_Hp当前血量
 Current HP!�'
 Attr_MaxHp最大血量Max HP%�'
 Attr_Power当前蓝量

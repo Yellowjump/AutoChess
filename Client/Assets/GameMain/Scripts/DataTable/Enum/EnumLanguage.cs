@@ -1,5 +1,5 @@
 ﻿// 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2025-03-14 10:27:34.898
+// 生成时间：2025-03-21 11:36:44.817
 //------------------------------------------------------------
 
 namespace DataTable
@@ -150,6 +150,26 @@ namespace DataTable
         /// 选择奖励
         /// </summary>
         Reward_SelectReward = 36,
+
+        /// <summary>
+        /// 独占全屏
+        /// </summary>
+        FullScreenMode_ExclusiveFullScreen = 37,
+
+        /// <summary>
+        /// 无边框全屏
+        /// </summary>
+        FullScreenMode_FullScreenWindow = 38,
+
+        /// <summary>
+        /// 最大化窗口
+        /// </summary>
+        FullScreenMode_MaximizedWindow = 39,
+
+        /// <summary>
+        /// 窗口模式
+        /// </summary>
+        FullScreenMode_Windowed = 40,
 
         /// <summary>
         /// 当前血量

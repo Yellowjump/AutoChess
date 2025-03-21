@@ -30,6 +30,10 @@
 	34	离开	BtnLeave	离开	Leave
 	35	秒	ItemDetail_Second	{0}秒	{0}S
 	36	选择奖励	Reward_SelectReward	选择奖励	Choose Reward
+	37	独占全屏	FullScreenMode_ExclusiveFullScreen	独占全屏	ExclusiveFullScreen
+	38	无边框全屏	FullScreenMode_FullScreenWindow	无边框全屏	FullScreenWindow
+	39	最大化窗口	FullScreenMode_MaximizedWindow	最大化窗口	MaximizedWindow
+	40	窗口模式	FullScreenMode_Windowed	窗口模式	Windowed
 	5001	当前血量	Attr_Hp	当前血量	Current HP
 	5002	最大血量	Attr_MaxHp	最大血量	Max HP
 	5003	当前蓝量	Attr_Power	当前蓝量	Current MP
