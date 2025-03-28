@@ -257,7 +257,7 @@ namespace UnityGameFramework.Runtime
                 // 归还对象到池
                 foreach (var interval in intervals)
                 {
-                    interval.Clear();
+                    ReferencePool.Release(interval);
                 }
                 ListPool<AngleInterval>.Release(intervals);
             }

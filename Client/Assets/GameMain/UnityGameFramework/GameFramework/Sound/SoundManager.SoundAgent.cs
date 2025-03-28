@@ -378,10 +378,10 @@ namespace GameFramework.Sound
             {
                 if (m_SoundAsset != null)
                 {
+                    m_SoundHelper.OnAudioPlayEnd(SerialId);
                     m_SoundHelper.ReleaseSoundAsset(m_SoundAsset);
                     m_SoundAsset = null;
                 }
-
                 m_SetSoundAssetTime = DateTime.MinValue;
                 Time = Constant.DefaultTime;
                 MuteInSoundGroup = Constant.DefaultMute;

@@ -147,6 +147,10 @@ namespace Entity
             DestorySkill();
             RemoveAllWeapon();
             DestoryAttribute();
+            foreach (var oneItem in EquipItemList)
+            {
+                ReferencePool.Release(oneItem);
+            }
             EquipItemList.Clear();
             GameEntry.HeroManager.ReleaseEntityQizi(this);
         }

@@ -5,6 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using System;
 using GameFramework;
 using GameFramework.Resource;
 #if UNITY_5_3
@@ -12,12 +13,36 @@ using GameFramework.Scene;
 #endif
 using GameFramework.Sound;
 using System.Collections.Generic;
+using DataTable;
+using GameFramework.DataTable;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 namespace UnityGameFramework.Runtime
 {
+    public class SfxAudioWaitData : IReference
+    {
+        public int SfxSoundID;
+        public Vector3 Pos;
+        public float Volume;//音量
+        public int Count = 0;
+        public bool HasStop = false;
+        public int SfxWaitIndex = 0;
+        public int serialId = 0;
+
+        public void Clear()
+        {
+            SfxSoundID = 0;
+            Volume = 1;
+            Pos = Vector3.zero;
+            Count = 0;
+            SfxWaitIndex = 0;
+            serialId = 0;
+            HasStop = false;
+        }
+    }
     /// <summary>
     /// 声音组件。
     /// </summary>
@@ -85,7 +110,9 @@ namespace UnityGameFramework.Runtime
                 return m_AudioMixer;
             }
         }
-
+        public List<SfxAudioWaitData> SfxAudioWaitList = new();
+        public List<SfxAudioWaitData> SfxAudioPlayingList = new();
+        private int sfxWaitIndex = 0;
         /// <summary>
         /// 游戏框架组件初始化。
         /// </summary>
@@ -225,7 +252,6 @@ namespace UnityGameFramework.Runtime
         {
             return m_SoundManager.GetAllSoundGroups();
         }
-
         /// <summary>
         /// 获取所有声音组。
         /// </summary>
@@ -640,7 +666,7 @@ namespace UnityGameFramework.Runtime
             {
                 Log.Warning(logMessage);
             }
-
+            HasStopPlayingSfxData(e.SerialId);
             m_EventComponent.Fire(this, PlaySoundFailureEventArgs.Create(e));
         }
 
@@ -687,6 +713,100 @@ namespace UnityGameFramework.Runtime
         private void RefreshAudioListener()
         {
             m_AudioListener.enabled = FindObjectsOfType<AudioListener>().Length <= 1;
+        }
+
+        private void Update()
+        {
+            foreach (var oneSfx in SfxAudioWaitList)
+            {
+                PlaySfxSoundReal(oneSfx);
+                SfxAudioPlayingList.Add(oneSfx);
+            }
+            SfxAudioWaitList.Clear();
+            for (int i = SfxAudioPlayingList.Count-1; i >=0 ; i--)
+            {
+                var audioData = SfxAudioPlayingList[i];
+                if (audioData.Count <= 0||audioData.HasStop)
+                {
+                    if (audioData.HasStop == false)
+                    {
+                        StopSound(audioData.serialId);
+                    }
+                    SfxAudioPlayingList.Remove(audioData);
+                    ReferencePool.Release(audioData);
+                }
+            }
+        }
+
+        public void HasStopPlayingSfxData(int serialId)
+        {
+            foreach (var onePlayingData in SfxAudioPlayingList)
+            {
+                if (onePlayingData.serialId == serialId)
+                {
+                    onePlayingData.HasStop= true;
+                }
+            }
+        }
+        public void ReducePlayingSfxCount(int dataIndex)
+        {
+            foreach (var onePlayingData in SfxAudioPlayingList)
+            {
+                if (onePlayingData.SfxWaitIndex == dataIndex)
+                {
+                    onePlayingData.Count--;
+                }
+            }
+        }
+        public int PlaySfxSoundThisFrame(int soundId, Vector3 worldPos)
+        {
+            foreach (var oneSfx in SfxAudioWaitList)
+            {
+                if (oneSfx.SfxSoundID == soundId)
+                {
+                    oneSfx.Count++;
+                    float volume = 1 + Mathf.Log(oneSfx.Count, 2) / Mathf.Log(16, 2);
+                    oneSfx.Volume = Mathf.Min(2, volume); // 限制最大值为 2
+                    if (Vector3.Distance(worldPos, oneSfx.Pos) > 5)
+                    {
+                        oneSfx.Pos = (oneSfx.Pos + worldPos) / 2;
+                    }
+                    return oneSfx.SfxWaitIndex;
+                }
+            }
+
+            var oneSfxAudioWaitData = ReferencePool.Acquire<SfxAudioWaitData>();
+            oneSfxAudioWaitData.SfxWaitIndex = ++sfxWaitIndex;
+            oneSfxAudioWaitData.SfxSoundID = soundId;
+            oneSfxAudioWaitData.Pos = worldPos;
+            oneSfxAudioWaitData.Count = 1;
+            oneSfxAudioWaitData.Volume = 1;
+            SfxAudioWaitList.Add(oneSfxAudioWaitData);
+            return oneSfxAudioWaitData.SfxWaitIndex;
+        }
+        private void PlaySfxSoundReal(SfxAudioWaitData sfxAudioData)
+        {
+            if (sfxAudioData == null)
+            {
+                return;
+            }
+                
+            IDataTable<DRSound> dtSound = GameEntry.DataTable.GetDataTable<DRSound>("Sound");
+            DRSound drSound = dtSound.GetDataRow(sfxAudioData.SfxSoundID);
+            if (drSound == null)
+            {
+                Log.Warning("Can not load sound '{0}' from data table.", sfxAudioData.SfxSoundID.ToString());
+                return;
+            }
+
+            PlaySoundParams playSoundParams = PlaySoundParams.Create();
+            playSoundParams.Priority = drSound.Priority;
+            playSoundParams.Loop = drSound.Loop;
+            playSoundParams.VolumeInSoundGroup = drSound.Volume * sfxAudioData.Volume;
+            playSoundParams.VolumeMaster = MasterVolume;
+            playSoundParams.Pitch = (float)Utility.Random.GetRandomNoLogic(0.95d, 1.05d);
+            //playSoundParams.SpatialBlend = drSound.SpatialBlend;
+            sfxAudioData.serialId = PlaySound(AssetUtility.GetAssetPathByID(drSound.AssetId), drSound.SoundGroupId, ConstValue.AssetPriority.SoundAsset, playSoundParams,sfxAudioData.Pos);
         }
     }
 }

@@ -101,6 +101,9 @@ namespace UnityGameFramework.Runtime
             var eventComp = GameEntry.GetComponent<EventComponent>();
             eventComp.Subscribe(CMDGetItemEventArgs.EventId,OnCMDGetItem);
             InitSkillDecsFormat();
+            
+            // 初始化伤害数字系统
+            InitializeDamageNumberSystem();
         }
 
         void InitQige()

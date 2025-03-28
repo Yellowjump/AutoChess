@@ -23,6 +23,11 @@ namespace UnityGameFramework.Runtime
             m_ResourceComponent.UnloadAsset(soundAsset);
         }
 
+        public override void OnAudioPlayEnd(int serialID)
+        {
+            GameEntry.Sound.HasStopPlayingSfxData(serialID);
+        }
+
         private void Start()
         {
             m_ResourceComponent = GameEntry.GetComponent<ResourceComponent>();

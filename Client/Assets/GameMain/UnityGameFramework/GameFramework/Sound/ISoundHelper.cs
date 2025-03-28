@@ -17,5 +17,7 @@ namespace GameFramework.Sound
         /// </summary>
         /// <param name="soundAsset">要释放的声音资源。</param>
         void ReleaseSoundAsset(object soundAsset);
+
+        void OnAudioPlayEnd(int serialID);
     }
 }

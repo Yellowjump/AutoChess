@@ -17,7 +17,6 @@ namespace Entity
         public TriggerList OwnerTriggerList;
         public int DurationMs;//总持续时间，无限是0
         public float RemainMs;//剩余时间
-        public bool IsValid = true;
         private List<SfxEntity> _sfxList = new List<SfxEntity>();
         public void LogicUpdate(float elapseSeconds, float realElapseSeconds)
         {
