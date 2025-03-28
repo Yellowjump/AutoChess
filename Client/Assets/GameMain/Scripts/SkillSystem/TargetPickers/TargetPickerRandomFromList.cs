@@ -16,15 +16,20 @@ namespace SkillSystem
         public TableParamInt ParamInt1;
         public bool MeetNumber;//完全满足数量，来源list数量不足也循环补足
         public TargetPickerBase WorkTargetPicker;
-        public override List<EntityBase> GetTarget(OneTrigger trigger,object arg = null)
+        public override void GetTarget(OneTrigger trigger,object arg = null)
         {
             if (WorkTargetPicker != null)
             {
-                var workTargetList = WorkTargetPicker.GetTarget(trigger, arg);
+                var workTargetList = ListPool<EntityBase>.Get();
+                WorkTargetPicker.GetTarget(trigger, arg);
+                workTargetList.AddRange(trigger.CurTargetList);
+                
                 if (workTargetList.Count == 0)
                 {
-                    return workTargetList;
+                    ListPool<EntityBase>.Release(workTargetList);
+                    return;
                 }
+
                 var targetNum = 0;
                 switch (CurNumberType)
                 {
@@ -46,14 +51,15 @@ namespace SkillSystem
                 if (targetNum <= 0)
                 {
                     ListPool<EntityBase>.Release(workTargetList);
-                    return ListPool<EntityBase>.Get();;
+                    return;
                 }
 
                 var retTargetList = GetRandomList(workTargetList, targetNum);
+                trigger.CurTargetList.Clear();
+                trigger.CurTargetList.AddRange(retTargetList);
                 ListPool<EntityBase>.Release(workTargetList);
-                return retTargetList;
+                ListPool<EntityBase>.Release(retTargetList);
             }
-            return ListPool<EntityBase>.Get();;
         }
         private int GetNumberContainSubItem(int itemID)
         {
@@ -137,11 +143,11 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            if (ParamInt1 != null)
-            {
-                ReferencePool.Release(ParamInt1);
-                ParamInt1 = null;
-            }
+            //if (ParamInt1 != null)
+            //{
+            //    ReferencePool.Release(ParamInt1);
+            //    ParamInt1 = null;
+            //}
             if (WorkTargetPicker != null)
             {
                 ReferencePool.Release(WorkTargetPicker);

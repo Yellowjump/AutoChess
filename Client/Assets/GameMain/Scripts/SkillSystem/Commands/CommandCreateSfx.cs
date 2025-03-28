@@ -63,8 +63,8 @@ namespace SkillSystem
         public override void Clear()
         {
             CreateOrRemove = true;
-            ReferencePool.Release(SfxID);
-            SfxID = null;
+            // ReferencePool.Release(SfxID);
+            // SfxID = null;
         }
     }
 }

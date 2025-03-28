@@ -29,7 +29,7 @@ namespace SkillSystem
             {
                 if (CurTargetPicker != null)
                 {
-                    CurTargetList = CurTargetPicker.GetTarget(this,arg);
+                    CurTargetPicker.GetTarget(this,arg);
                 }
 
                 if (CurCommandList != null && CurCommandList.Count != 0)
@@ -39,10 +39,7 @@ namespace SkillSystem
                         oneCommand?.OnExecute(this,arg);
                     }
                 }
-                if (CurTargetList != null)
-                {
-                    ListPool<EntityBase>.Release(CurTargetList);
-                }
+                CurTargetList?.Clear();
             }
         }
 
@@ -139,10 +136,11 @@ namespace SkillSystem
                 {
                     ReferencePool.Release(oneCommand);
                 }
-                ListPool<CommandBase>.Release(CurCommandList);
-                CurCommandList = null;
+                CurCommandList.Clear();
+                /*ListPool<CommandBase>.Release(CurCommandList);
+                CurCommandList = null;*/
             }
-            CurTargetList = null;
+            CurTargetList.Clear();
         }
     }
 }

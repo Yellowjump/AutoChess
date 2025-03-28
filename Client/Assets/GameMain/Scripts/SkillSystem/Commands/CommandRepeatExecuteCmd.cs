@@ -100,16 +100,17 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            ReferencePool.Release(ParamInt1);
-            ParamInt1 = null;
+            // ReferencePool.Release(ParamInt1);
+            // ParamInt1 = null;
             if (CurCommandList != null)
             {
                 foreach (var oneCommand in CurCommandList)
                 {
                     ReferencePool.Release(oneCommand);
                 }
-                ListPool<CommandBase>.Release(CurCommandList);
-                CurCommandList = null;
+                CurCommandList.Clear();
+                /*ListPool<CommandBase>.Release(CurCommandList);
+                CurCommandList = null;*/
             }
         }
 

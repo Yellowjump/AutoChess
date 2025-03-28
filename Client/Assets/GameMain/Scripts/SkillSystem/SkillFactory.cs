@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DataTable;
+using Entity;
 using UnityGameFramework.Runtime;
 using GameFramework;
 using UnityEngine.Pool;
@@ -16,67 +17,67 @@ namespace SkillSystem
                     return ReferencePool.Acquire<CommandBase>();
                 case CommandType.CauseDamage:
                     var commandCauseDamage = ReferencePool.Acquire<CommandCauseDamage>();
-                    commandCauseDamage.ParamInt1 = CreateTableParamInt();
-                    commandCauseDamage.ParamInt2 = CreateTableParamInt();
-                    commandCauseDamage.ParamInt3 = CreateTableParamInt();
+                    commandCauseDamage.ParamInt1 ??= CreateTableParamInt();
+                    commandCauseDamage.ParamInt2 ??= CreateTableParamInt();
+                    commandCauseDamage.ParamInt3 ??= CreateTableParamInt();
                     return commandCauseDamage;
                 case CommandType.CreateBuff:
                     var commandCauseBuff = ReferencePool.Acquire<CommandCreateBuff>();
-                    commandCauseBuff.BuffID = CreateTableParamInt();
-                    commandCauseBuff.BuffList = CreateTableParamString();
+                    commandCauseBuff.BuffID ??= CreateTableParamInt();
+                    commandCauseBuff.BuffList ??= CreateTableParamString();
                     return commandCauseBuff;
                 case CommandType.PlayAnim:
                     var commandPlayAnim = ReferencePool.Acquire<CommandPlayAnim>();
-                    commandPlayAnim.AnimAssetID = CreateTableParamInt();
+                    commandPlayAnim.AnimAssetID ??= CreateTableParamInt();
                     return commandPlayAnim;
                 case CommandType.CreateBullet:
                     var commandCauseBullet = ReferencePool.Acquire<CommandCreateBullet>();
-                    commandCauseBullet.ParamInt1 = CreateTableParamInt();
-                    commandCauseBullet.CurBulletID = CreateTableParamInt();
-                    commandCauseBullet.BulletTrigger = CreateNewEmptyTriggerList();
-                    commandCauseBullet.PosOffset = CreateTableParamVector3();
+                    commandCauseBullet.ParamInt1 ??= CreateTableParamInt();
+                    commandCauseBullet.CurBulletID ??= CreateTableParamInt();
+                    commandCauseBullet.BulletTrigger ??= CreateNewEmptyTriggerList();
+                    commandCauseBullet.PosOffset ??= CreateTableParamVector3();
                     return commandCauseBullet;
                 case CommandType.CreateHuDun:
                     var commandHuDun = ReferencePool.Acquire<CommandHuDun>();
-                    commandHuDun.ParamInt1 = CreateTableParamInt();
-                    commandHuDun.ParamInt2 = CreateTableParamInt();
-                    commandHuDun.ParamInt3 = CreateTableParamInt();
+                    commandHuDun.ParamInt1 ??= CreateTableParamInt();
+                    commandHuDun.ParamInt2 ??= CreateTableParamInt();
+                    commandHuDun.ParamInt3 ??= CreateTableParamInt();
                     return commandHuDun;
                 case CommandType.CreateSfx:
                     var commandCreateSfx = ReferencePool.Acquire<CommandCreateSfx>();
-                    commandCreateSfx.SfxID = CreateTableParamInt();
+                    commandCreateSfx.SfxID ??= CreateTableParamInt();
                     return commandCreateSfx;
                 case CommandType.ShowWeapon:
                     var commandShowWeapon = ReferencePool.Acquire<CommandShowWeapon>();
-                    commandShowWeapon.ShowWeaponItemID = CreateTableParamInt();
+                    commandShowWeapon.ShowWeaponItemID ??= CreateTableParamInt();
                     return commandShowWeapon;
                 case CommandType.RepeatExecute:
                     var commandRepeatExecuteCmd = ReferencePool.Acquire<CommandRepeatExecuteCmd>();
-                    commandRepeatExecuteCmd.ParamInt1 = CreateTableParamInt();
-                    commandRepeatExecuteCmd.CurCommandList = ListPool<CommandBase>.Get();
+                    commandRepeatExecuteCmd.ParamInt1 ??= CreateTableParamInt();
+                    commandRepeatExecuteCmd.CurCommandList ??= ListPool<CommandBase>.Get();
                     return commandRepeatExecuteCmd;
                 case CommandType.RemoveBuff:
                     var commandRemoveBuff = ReferencePool.Acquire<CommandRemoveBuff>();
-                    commandRemoveBuff.BuffID = CreateTableParamInt();
+                    commandRemoveBuff.BuffID ??= CreateTableParamInt();
                     return commandRemoveBuff;
                 case CommandType.RemoveBullet:
                     return ReferencePool.Acquire<CommandRemoveBullet>();
                 case CommandType.ChangeAttribute:
                     var commandChangeAttribute = ReferencePool.Acquire<CommandChangeAttribute>();
-                    commandChangeAttribute.TargetAttrType = CreateTableParamInt();
-                    commandChangeAttribute.ParamInt1 = CreateTableParamInt();
+                    commandChangeAttribute.TargetAttrType ??= CreateTableParamInt();
+                    commandChangeAttribute.ParamInt1 ??= CreateTableParamInt();
                     return commandChangeAttribute;
                 case CommandType.CreatePosPoint:
                     var commandCreatePosPoint = ReferencePool.Acquire<CommandCreatePosPoint>();
-                    commandCreatePosPoint.DurationMS = CreateTableParamInt();
-                    commandCreatePosPoint.PosPointTrigger = CreateNewEmptyTriggerList();
-                    commandCreatePosPoint.PosOffset = CreateTableParamVector3();
-                    commandCreatePosPoint.PosOffsetMax = CreateTableParamVector3();
-                    commandCreatePosPoint.LookAtTarget = CreateTableParamInt();
+                    commandCreatePosPoint.DurationMS ??= CreateTableParamInt();
+                    commandCreatePosPoint.PosPointTrigger ??= CreateNewEmptyTriggerList();
+                    commandCreatePosPoint.PosOffset ??= CreateTableParamVector3();
+                    commandCreatePosPoint.PosOffsetMax ??= CreateTableParamVector3();
+                    commandCreatePosPoint.LookAtTarget ??= CreateTableParamInt();
                     return commandCreatePosPoint;
                 case CommandType.PlayAudio:
                     var commandPlayAudio = ReferencePool.Acquire<CommandPlayAudio>();
-                    commandPlayAudio.AudioID = CreateTableParamInt();
+                    commandPlayAudio.AudioID ??= CreateTableParamInt();
                     return commandPlayAudio;
                 default:
                     return ReferencePool.Acquire<CommandBase>();
@@ -90,26 +91,26 @@ namespace SkillSystem
                     return ReferencePool.Acquire<ConditionBase>();
                 case ConditionType.ConditionGroup:
                     var conditionGroup = ReferencePool.Acquire<ConditionGroup>();
-                    conditionGroup.ConditionList = ListPool<ConditionBase>.Get();
+                    conditionGroup.ConditionList ??= ListPool<ConditionBase>.Get();
                     return conditionGroup;
                 case ConditionType.Percentage:
                     var conditionPercent = ReferencePool.Acquire<ConditionPercent>();
-                    conditionPercent.PercentTarget = CreateTableParamInt();
+                    conditionPercent.PercentTarget ??= CreateTableParamInt();
                     return conditionPercent;
                 case ConditionType.Timed:
                     var conditionTimed = ReferencePool.Acquire<ConditionTimed>();
-                    conditionTimed.TimeIntervalMs = CreateTableParamInt();
-                    conditionTimed.PassNumber = CreateTableParamInt();
+                    conditionTimed.TimeIntervalMs ??= CreateTableParamInt();
+                    conditionTimed.PassNumber ??= CreateTableParamInt();
                     return conditionTimed;
                 case ConditionType.RelateItem:
                     var conditionRelateItem = ReferencePool.Acquire<ConditionRelateItem>();
-                    conditionRelateItem.ParamInt1 = CreateTableParamInt();
-                    conditionRelateItem.ParamInt2 = CreateTableParamInt();
+                    conditionRelateItem.ParamInt1 ??= CreateTableParamInt();
+                    conditionRelateItem.ParamInt2 ??= CreateTableParamInt();
                     return conditionRelateItem;
                 case ConditionType.RelateSkill:
                     var conditionRelateSkill = ReferencePool.Acquire<ConditionRelateSkill>();
-                    conditionRelateSkill.ParamInt1 = CreateTableParamInt();
-                    conditionRelateSkill.ParamInt2 = CreateTableParamInt();
+                    conditionRelateSkill.ParamInt1 ??= CreateTableParamInt();
+                    conditionRelateSkill.ParamInt2 ??= CreateTableParamInt();
                     return conditionRelateSkill;
                 default:
                     return ReferencePool.Acquire<ConditionBase>();
@@ -133,25 +134,25 @@ namespace SkillSystem
                     return ReferencePool.Acquire<TargetPickerRelatedDamageTarget>();
                 case TargetPickerType.OwnerDirection:
                     var targetPickerOwnerDirection = ReferencePool.Acquire<TargetPickerOwnerDirection>();
-                    targetPickerOwnerDirection.WeaponLength = CreateTableParamInt();
-                    targetPickerOwnerDirection.ValidAngle = CreateTableParamInt();
+                    targetPickerOwnerDirection.WeaponLength ??= CreateTableParamInt();
+                    targetPickerOwnerDirection.ValidAngle ??= CreateTableParamInt();
                     return targetPickerOwnerDirection;
                 case TargetPickerType.RandomFromList:
                     var targetPickerRandomFromList = ReferencePool.Acquire<TargetPickerRandomFromList>();
-                    targetPickerRandomFromList.ParamInt1 = CreateTableParamInt();
-                    targetPickerRandomFromList.WorkTargetPicker = CreateTargetPicker(TargetPickerType.NoTarget);
+                    targetPickerRandomFromList.ParamInt1 ??= CreateTableParamInt();
+                    targetPickerRandomFromList.WorkTargetPicker ??= CreateTargetPicker(TargetPickerType.NoTarget);
                     return targetPickerRandomFromList;
                 case TargetPickerType.Bullet:
                     var targetPickerBullet = ReferencePool.Acquire<TargetPickerBullet>();
-                    targetPickerBullet.BulletID = CreateTableParamInt();
+                    targetPickerBullet.BulletID ??= CreateTableParamInt();
                     return targetPickerBullet;
                 case TargetPickerType.Nearest:
                     var targetPickerNearest = ReferencePool.Acquire<TargetPickerNearest>();
-                    targetPickerNearest.WeaponLength = CreateTableParamInt();
+                    targetPickerNearest.WeaponLength ??= CreateTableParamInt();
                     return targetPickerNearest;
                 case TargetPickerType.OwnerDistance:
                     var targetPickerOwnerDistance = ReferencePool.Acquire<TargetPickerOwnerDistance>();
-                    targetPickerOwnerDistance.WeaponLength = CreateTableParamInt();
+                    targetPickerOwnerDistance.WeaponLength ??= CreateTableParamInt();
                     return targetPickerOwnerDistance;
                 default:
                     return ReferencePool.Acquire<TargetPickerBase>();
@@ -173,14 +174,15 @@ namespace SkillSystem
         public static TriggerList CreateNewEmptyTriggerList(Skill skill = null)
         {
             var emptyTriggerList = ReferencePool.Acquire<TriggerList>();
-            emptyTriggerList.CurTriggerList = ListPool<OneTrigger>.Get();
+            emptyTriggerList.CurTriggerList ??= ListPool<OneTrigger>.Get();
             emptyTriggerList.ParentSkill = skill;
             return emptyTriggerList;
         }
         public static OneTrigger CreateNewDefaultTrigger()
         {
             var emptyTrigger =  ReferencePool.Acquire<OneTrigger>();
-            emptyTrigger.CurCommandList = ListPool<CommandBase>.Get();
+            emptyTrigger.CurCommandList ??= ListPool<CommandBase>.Get();
+            emptyTrigger.CurTargetList ??= ListPool<EntityBase>.Get();
             emptyTrigger.CurCondition = CreateCondition(ConditionType.NoCondition);
             emptyTrigger.CurTargetPicker = CreateTargetPicker(TargetPickerType.NoTarget);
             return emptyTrigger;
@@ -188,21 +190,22 @@ namespace SkillSystem
         public static OneTrigger CreateNewEmptyTrigger()
         {
             var emptyTrigger = ReferencePool.Acquire<OneTrigger>();
-            emptyTrigger.CurCommandList = ListPool<CommandBase>.Get();
+            emptyTrigger.CurCommandList ??= ListPool<CommandBase>.Get();
+            emptyTrigger.CurTargetList ??= ListPool<EntityBase>.Get();
             return emptyTrigger;
         }
 
         public static Buff CreateNewBuff()
         {
             var newBuff = ReferencePool.Acquire<Buff>();
-            newBuff.CurTriggerList = ListPool<OneTrigger>.Get();
+            newBuff.CurTriggerList ??= ListPool<OneTrigger>.Get();
             return newBuff;
         }
 
         public static Skill CreateNewSkill()
         {
             var newSkill = ReferencePool.Acquire<Skill>();
-            newSkill.CurTriggerList = ListPool<OneTrigger>.Get();
+            newSkill.CurTriggerList ??= ListPool<OneTrigger>.Get();
             newSkill.ParentSkill = newSkill;
             return newSkill;
         }
@@ -210,7 +213,7 @@ namespace SkillSystem
         public static Skill CreateDefaultSkill()
         {
             var newSkill = ReferencePool.Acquire<Skill>();;
-            newSkill.CurTriggerList = ListPool<OneTrigger>.Get();
+            newSkill.CurTriggerList ??= ListPool<OneTrigger>.Get();
             newSkill.ParentSkill = newSkill;
             var playAniTrigger = CreateNewEmptyTrigger();
             playAniTrigger.CurTriggerType = TriggerType.OnActive;

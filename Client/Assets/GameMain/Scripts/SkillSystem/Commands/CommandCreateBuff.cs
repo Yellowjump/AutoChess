@@ -187,10 +187,10 @@ namespace SkillSystem
                 TemporaryBuff = null;
             }
 
-            ReferencePool.Release(BuffID);
-            BuffID = null;
-            ReferencePool.Release(BuffList);
-            BuffList = null;
+            // ReferencePool.Release(BuffID);
+            // BuffID = null;
+            // ReferencePool.Release(BuffList);
+            // BuffList = null;
         }
     }
 }

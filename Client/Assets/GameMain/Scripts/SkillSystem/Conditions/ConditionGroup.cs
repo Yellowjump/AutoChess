@@ -99,8 +99,9 @@ namespace SkillSystem
                 {
                     ReferencePool.Release(oneCondition);
                 }
-                ListPool<ConditionBase>.Release(ConditionList);
-                ConditionList = null;
+                ConditionList.Clear();
+                /*ListPool<ConditionBase>.Release(ConditionList);
+                ConditionList = null;*/
             }
         }
     }

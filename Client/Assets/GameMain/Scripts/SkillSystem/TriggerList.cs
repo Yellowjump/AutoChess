@@ -134,8 +134,6 @@ namespace SkillSystem
                 {
                     ReferencePool.Release(oneTrigger);
                 }
-                ListPool<OneTrigger>.Release(CurTriggerList);
-                CurTriggerList = null;
             }
             ParentSkill = null;
             Owner = null;

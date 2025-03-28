@@ -91,8 +91,8 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            ReferencePool.Release(ShowWeaponItemID);
-            ShowWeaponItemID = null;
+            // ReferencePool.Release(ShowWeaponItemID);
+            // ShowWeaponItemID = null;
         }
     }
 }

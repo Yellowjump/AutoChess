@@ -60,16 +60,16 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            if (TimeIntervalMs != null)
-            {
-                ReferencePool.Release(TimeIntervalMs);
-                TimeIntervalMs = null;
-            }
-            if (PassNumber != null)
-            {
-                ReferencePool.Release(PassNumber);
-                PassNumber = null;
-            }
+            // if (TimeIntervalMs != null)
+            // {
+            //     ReferencePool.Release(TimeIntervalMs);
+            //     TimeIntervalMs = null;
+            // }
+            // if (PassNumber != null)
+            // {
+            //     ReferencePool.Release(PassNumber);
+            //     PassNumber = null;
+            // }
             HavePass = 0;
             _timeAccumulatorMs = 0;
         }

@@ -67,8 +67,8 @@ namespace SkillSystem
         public override void Clear()
         {
             GameEntry.HeroManager.ReleaseAnimNeed(AnimAssetID.Value);
-            ReferencePool.Release(AnimAssetID);
-            AnimAssetID = null;
+            // ReferencePool.Release(AnimAssetID);
+            // AnimAssetID = null;
         }
     }
 }

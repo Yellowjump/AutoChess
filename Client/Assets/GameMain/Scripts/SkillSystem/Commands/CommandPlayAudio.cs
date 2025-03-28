@@ -60,8 +60,8 @@ namespace SkillSystem
         public override void Clear()
         {
             CreateOrRemove = true;
-            ReferencePool.Release(AudioID);
-            AudioID = null;
+            // ReferencePool.Release(AudioID);
+            // AudioID = null;
         }
     }
 }

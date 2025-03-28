@@ -61,9 +61,18 @@ namespace Procedure
             GameEntry.HeroManager.InitAreaPointCamera();
             /*var fakeMazeGen = new MazeGenerator();
             GameEntry.HeroManager.CurMazeList = fakeMazeGen.GenerateMaze();*/
-            GameEntry.HeroManager.AddNewFriendHero(1);
-            
-            GameEntry.HeroManager.AddNewFriendHero(4);
+            GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(5);
             GameEntry.HeroManager.TryAddCoin(200);
             GameEntry.HeroManager.ItemBagList.Clear();
         }

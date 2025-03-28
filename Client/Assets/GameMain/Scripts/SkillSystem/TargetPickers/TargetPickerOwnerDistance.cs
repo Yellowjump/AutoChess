@@ -16,11 +16,10 @@ namespace SkillSystem
         public bool LengthUseWeapon;
         public TableParamInt WeaponLength;
         public CampType TargetCamp;
-        public override List<EntityBase> GetTarget(OneTrigger trigger, object arg = null)
+        public override void GetTarget(OneTrigger trigger, object arg = null)
         {
             if (trigger != null && trigger.ParentTriggerList != null)
             {
-                List<EntityBase> targetList = ListPool<EntityBase>.Get();
                 var owner = trigger.ParentTriggerList.Owner;
                 var weaponLength = WeaponLength.Value;
                 if (LengthUseWeapon)
@@ -51,14 +50,13 @@ namespace SkillSystem
                     }
                     if (oneEntity.LogicPosition.Vector3DistanceNoY(owner.LogicPosition) <weaponLength/1000f)
                     {
-                        targetList.Add(oneEntity);
+                        trigger.CurTargetList.Add(oneEntity);
                     }
                 }
                 ListPool<EntityQizi>.Release(campList);
-                return targetList;
             }
-            return null;
         }
+
         public override void ReadFromFile(BinaryReader reader)
         {
             LengthUseWeapon = reader.ReadBoolean();
@@ -90,11 +88,11 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            if (WeaponLength != null)
-            {
-                ReferencePool.Release(WeaponLength);
-                WeaponLength = null;
-            }
+            //if (WeaponLength != null)
+            //{
+            //    ReferencePool.Release(WeaponLength);
+            //    WeaponLength = null;
+            //}
         }
     }
 }

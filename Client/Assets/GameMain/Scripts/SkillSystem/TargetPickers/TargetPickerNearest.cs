@@ -15,7 +15,7 @@ namespace SkillSystem
         public override TargetPickerType CurTargetPickerType => TargetPickerType.Nearest;
         public CampType TargetCamp;
         public TableParamInt WeaponLength;
-        public override List<EntityBase> GetTarget(OneTrigger trigger, object arg = null)
+        public override void GetTarget(OneTrigger trigger, object arg = null)
         {
             if (trigger != null && trigger.ParentTriggerList != null)
             {
@@ -28,13 +28,11 @@ namespace SkillSystem
                 GameEntry.HeroManager.GetNearestTarget(owner, TargetCamp, out var target, weaponLength);
                 if (target != null)
                 {
-                    List<EntityBase> targetList = ListPool<EntityBase>.Get();
-                    targetList.Add(target);
-                    return targetList;
+                    trigger.CurTargetList.Add(target);
                 }
             }
-            return null;
         }
+
         public override void ReadFromFile(BinaryReader reader)
         {
             TargetCamp = (CampType)reader.ReadInt32();
@@ -63,11 +61,11 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            if (WeaponLength != null)
-            {
-                ReferencePool.Release(WeaponLength);
-                WeaponLength = null;
-            }
+            //if (WeaponLength != null)
+            //{
+            //    ReferencePool.Release(WeaponLength);
+            //    WeaponLength = null;
+            //}
         }
     }
 }

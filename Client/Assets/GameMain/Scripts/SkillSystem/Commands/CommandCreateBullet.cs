@@ -89,14 +89,15 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            ReferencePool.Release(ParamInt1);
-            ReferencePool.Release(CurBulletID);
             ReferencePool.Release(BulletTrigger);
-            ReferencePool.Release(PosOffset);
             BulletTrigger = null;
-            ParamInt1 = null;
-            CurBulletID = null;
-            PosOffset = null;
+            // ReferencePool.Release(ParamInt1);
+            // ReferencePool.Release(CurBulletID);
+            // ReferencePool.Release(PosOffset);
+            // BulletTrigger = null;
+            // ParamInt1 = null;
+            // CurBulletID = null;
+            // PosOffset = null;
         }
     }
 }

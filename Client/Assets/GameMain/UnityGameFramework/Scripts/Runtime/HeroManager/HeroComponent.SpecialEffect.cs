@@ -31,9 +31,10 @@ namespace UnityGameFramework.Runtime
         public Vector3 SizeOffset = Vector3.one;
         public int SfxID;
         public int ExistNum;
+        private HeroComponent.GetGObjSuccessCallback m_GetObjCallback;
         public void Clear()
         {
-            GameEntry.HeroManager.ReleaseSfxGameObject(SfxID, GObj, OnGetHeroGObjCallback);
+            GameEntry.HeroManager.ReleaseSfxGameObject(SfxID, GObj, m_GetObjCallback);
             Owner = null;
             PosOffset= Vector3.zero;
             SizeOffset = Vector3.one;
@@ -43,7 +44,8 @@ namespace UnityGameFramework.Runtime
         }
         public void InitGObj()
         {
-            GameEntry.HeroManager.GetSfxByID(SfxID,OnGetHeroGObjCallback);
+            m_GetObjCallback ??= OnGetHeroGObjCallback;
+            GameEntry.HeroManager.GetSfxByID(SfxID,m_GetObjCallback);
         }
         protected void OnGetHeroGObjCallback(GameObject obj,string path)
         {

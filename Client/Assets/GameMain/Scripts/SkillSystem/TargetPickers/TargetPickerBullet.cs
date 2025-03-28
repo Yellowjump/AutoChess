@@ -13,9 +13,8 @@ namespace SkillSystem
         public override TargetPickerType CurTargetPickerType => TargetPickerType.Bullet;
         public TableParamInt BulletID;
         public bool SameCaster;
-        public override List<EntityBase> GetTarget(OneTrigger trigger,object arg = null)
+        public override void GetTarget(OneTrigger trigger,object arg = null)
         {
-            List<EntityBase> targetList = ListPool<EntityBase>.Get();
             var bulletList = GameEntry.HeroManager.BulletList;
             foreach (var oneBullet in bulletList)
             {
@@ -28,11 +27,10 @@ namespace SkillSystem
                 {
                     if (!SameCaster||(SameCaster && oneBullet.Caster == trigger.ParentTriggerList.ParentSkill.Caster))
                     {
-                        targetList.Add(oneBullet);
+                        trigger.CurTargetList.Add(oneBullet);
                     }
                 }
             }
-            return targetList;
         }
 
         public override void ReadFromFile(BinaryReader reader)
@@ -63,11 +61,11 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            if (BulletID != null)
-            {
-                ReferencePool.Release(BulletID);
-                BulletID = null;
-            }
+            //if (BulletID != null)
+            //{
+            //    ReferencePool.Release(BulletID);
+            //    BulletID = null;
+            //}
             SameCaster = false;
         }
     }

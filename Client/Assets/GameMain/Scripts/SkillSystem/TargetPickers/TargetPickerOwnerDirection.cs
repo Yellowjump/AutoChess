@@ -16,11 +16,10 @@ namespace SkillSystem
         public bool LengthUseWeapon;
         public TableParamInt WeaponLength;
         public TableParamInt ValidAngle;
-        public override List<EntityBase> GetTarget(OneTrigger trigger, object arg = null)
+        public override void GetTarget(OneTrigger trigger, object arg = null)
         {
             if (trigger != null && trigger.ParentTriggerList != null)
             {
-                List<EntityBase> targetList = ListPool<EntityBase>.Get();
                 var owner = trigger.ParentTriggerList.Owner;
                 if (owner is EntityQizi entityOwner)
                 {
@@ -57,13 +56,13 @@ namespace SkillSystem
                         var targetDir2V = (oneEntity.LogicPosition - entityOwner.LogicPosition).ToVector2();
                         if (targetDir2V.magnitude < 0.5f)
                         {
-                            targetList.Add(oneEntity);//owner 和 target重叠
+                            trigger.CurTargetList.Add(oneEntity);//owner 和 target重叠
                             continue;
                         }
                         //判断圆心是否在扇形内
                         if (IsPointInSector(targetPos2V, ownerPos2V, lineMidDir, weaponLength / 1000f, ValidAngle.Value,0.5f))
                         {
-                            targetList.Add(oneEntity);//owner在 target的范围里
+                            trigger.CurTargetList.Add(oneEntity);//owner在 target的范围里
                             continue;
                         }
                         // 判断扇形的两条半径线是否与圆碰撞
@@ -76,13 +75,11 @@ namespace SkillSystem
                         if (DistanceToSegment(targetPos2V, ownerPos2V, ownerPos2V + rline1) <= 0.5f ||
                             DistanceToSegment(targetPos2V, ownerPos2V, ownerPos2V + rline2) <= 0.5f)
                         {
-                            targetList.Add(oneEntity);
+                            trigger.CurTargetList.Add(oneEntity);
                         }
                     }
                 }
-                return targetList;
             }
-            return null;
         }
         /// <summary>
         /// 判断点p是否在扇形S内
@@ -163,16 +160,16 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            if (WeaponLength != null)
-            {
-                ReferencePool.Release(WeaponLength);
-                WeaponLength = null;
-            }
-            if (ValidAngle != null)
-            {
-                ReferencePool.Release(ValidAngle);
-                ValidAngle = null;
-            }
+            //if (WeaponLength != null)
+            //{
+            //    ReferencePool.Release(WeaponLength);
+            //    WeaponLength = null;
+            //}
+            //if (ValidAngle != null)
+            //{
+            //    ReferencePool.Release(ValidAngle);
+            //    ValidAngle = null;
+            //}
         }
     }
 }

@@ -11,9 +11,9 @@ namespace SkillSystem
     {
         public OneTrigger ParentTrigger;
         public virtual TargetPickerType CurTargetPickerType => TargetPickerType.NoTarget;
-        public virtual List<EntityBase> GetTarget(OneTrigger trigger,object arg = null)
+        public virtual void GetTarget(OneTrigger trigger,object arg = null)
         {
-            return null;
+            return;
         }
         public virtual void WriteToFile(BinaryWriter writer)
         {

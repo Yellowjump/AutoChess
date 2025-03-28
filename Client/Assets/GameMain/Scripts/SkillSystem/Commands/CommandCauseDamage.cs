@@ -139,12 +139,12 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            ReferencePool.Release(ParamInt1);
-            ReferencePool.Release(ParamInt2);
-            ReferencePool.Release(ParamInt3);
-            ParamInt1 = null;
-            ParamInt2 = null;
-            ParamInt3 = null;
+            // ReferencePool.Release(ParamInt1);
+            // ReferencePool.Release(ParamInt2);
+            // ReferencePool.Release(ParamInt3);
+            // ParamInt1 = null;
+            // ParamInt2 = null;
+            // ParamInt3 = null;
         }
     }
 }

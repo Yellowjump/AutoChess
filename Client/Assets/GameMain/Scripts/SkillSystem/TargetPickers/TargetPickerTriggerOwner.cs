@@ -7,15 +7,12 @@ namespace SkillSystem
     public class TargetPickerTriggerOwner:TargetPickerBase
     {
         public override TargetPickerType CurTargetPickerType => TargetPickerType.TriggerOwner;
-        public override List<EntityBase> GetTarget(OneTrigger trigger, object arg = null)
+        public override void GetTarget(OneTrigger trigger, object arg = null)
         {
             if (trigger != null && trigger.ParentTriggerList != null)
             {
-                List<EntityBase> targetList = ListPool<EntityBase>.Get();
-                targetList.Add(trigger.ParentTriggerList.Owner);
-                return targetList;
+                trigger.CurTargetList.Add(trigger.ParentTriggerList.Owner);
             }
-            return null;
         }
     }
 }

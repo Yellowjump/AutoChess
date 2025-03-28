@@ -16,14 +16,16 @@ namespace Entity.Bullet
         public EntityQizi Target;
         public TriggerList OwnerTriggerList;
         public DRBullet CurBulletData;
+        private HeroComponent.GetGObjSuccessCallback m_GetObjCallback;
         public virtual void SetParamValue(List<TableParamInt> paramIntArray)
         {
             
         }
         public override void InitGObj()
         {
+            m_GetObjCallback ??= OnGetHeroGObjCallback;
             OwnerTriggerList?.OnTrigger(TriggerType.OnActive);
-            GameEntry.HeroManager.GetBulletObjByID(BulletID,OnGetHeroGObjCallback);
+            GameEntry.HeroManager.GetBulletObjByID(BulletID,m_GetObjCallback);
         }
         protected virtual void OnGetHeroGObjCallback(GameObject obj,string path)
         {
@@ -57,7 +59,7 @@ namespace Entity.Bullet
 
         public virtual void Clear()
         {
-            GameEntry.HeroManager.ReleaseBulletGameObject(BulletID,GObj,OnGetHeroGObjCallback);
+            GameEntry.HeroManager.ReleaseBulletGameObject(BulletID,GObj,m_GetObjCallback);
             BulletID = 0;
             GObj = null;
             IsValid = true;

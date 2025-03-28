@@ -60,8 +60,8 @@ namespace SkillSystem
         public override void Clear()
         {
             RemoveCurBuff = true;
-            ReferencePool.Release(BuffID);
-            BuffID = null;
+            // ReferencePool.Release(BuffID);
+            // BuffID = null;
         }
     }
 }

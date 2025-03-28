@@ -173,16 +173,17 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            ReferencePool.Release(DurationMS);
             ReferencePool.Release(PosPointTrigger);
-            ReferencePool.Release(PosOffset);
-            ReferencePool.Release(PosOffsetMax);
-            ReferencePool.Release(LookAtTarget);
             PosPointTrigger = null;
-            DurationMS = null;
-            PosOffset = null;
-            LookAtTarget = null;
-            PosOffsetMax = null;
+            // ReferencePool.Release(DurationMS);
+            // ReferencePool.Release(PosOffset);
+            // ReferencePool.Release(PosOffsetMax);
+            // ReferencePool.Release(LookAtTarget);
+            
+            // DurationMS = null;
+            // PosOffset = null;
+            // LookAtTarget = null;
+            // PosOffsetMax = null;
         }
     }
 }
