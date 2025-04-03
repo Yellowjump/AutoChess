@@ -46,11 +46,11 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            if (PercentTarget != null)
-            {
-                ReferencePool.Release(PercentTarget);
-                PercentTarget = null;
-            }
+            // if (PercentTarget != null)
+            // {
+            //     ReferencePool.Release(PercentTarget);
+            //     PercentTarget = null;
+            // }
         }
     }
 }

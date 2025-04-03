@@ -81,16 +81,16 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            if (ParamInt1 != null)
-            {
-                ReferencePool.Release(ParamInt1);
-                ParamInt1 = null;
-            }
-            if (ParamInt2 != null)
-            {
-                ReferencePool.Release(ParamInt2);
-                ParamInt2 = null;
-            }
+            // if (ParamInt1 != null)
+            // {
+            //     ReferencePool.Release(ParamInt1);
+            //     ParamInt1 = null;
+            // }
+            // if (ParamInt2 != null)
+            // {
+            //     ReferencePool.Release(ParamInt2);
+            //     ParamInt2 = null;
+            // }
         }
     }
 }

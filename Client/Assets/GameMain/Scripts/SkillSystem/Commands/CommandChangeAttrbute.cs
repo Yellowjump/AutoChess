@@ -71,10 +71,10 @@ namespace SkillSystem
 
         public override void Clear()
         {
-            ReferencePool.Release(ParamInt1);
-            ParamInt1 = null;
-            ReferencePool.Release(TargetAttrType);
-            TargetAttrType = null;
+            // ReferencePool.Release(ParamInt1);
+            // ParamInt1 = null;
+            // ReferencePool.Release(TargetAttrType);
+            // TargetAttrType = null;
         }
         
     }
