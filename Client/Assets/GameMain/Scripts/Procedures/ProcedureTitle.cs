@@ -73,6 +73,7 @@ namespace Procedure
             GameEntry.HeroManager.AddNewFriendHero(5);
             GameEntry.HeroManager.AddNewFriendHero(5);
             GameEntry.HeroManager.AddNewFriendHero(5);
+            GameEntry.HeroManager.AddNewFriendHero(1);
             GameEntry.HeroManager.TryAddCoin(200);
             GameEntry.HeroManager.ItemBagList.Clear();
         }

@@ -3,6 +3,7 @@ using DataTable;
 using Entity;
 using GameFramework.Event;
 using GameFramework.Fsm;
+using GameFramework.Resource;
 using Maze;
 using SkillSystem;
 using UnityGameFramework.Runtime;
@@ -37,7 +38,13 @@ namespace Procedure.GameStates
                 if (curPoint.CurType == MazePointType.Store||(curPoint.CurType == MazePointType.Event&&levelData.BattleOrLoadAsset==false))
                 {
                 
-                    GameEntry.HeroManager.GetPrefabByAssetID(levelData.ParamInt1,OnGetLevelObjCallback);
+                    var assetPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
+                    if (assetPathTable.HasDataRow(levelData.ParamInt1))
+                    {
+                        var assetData = assetPathTable[levelData.ParamInt1];
+                        GameEntry.Resource.LoadAsset(assetData.AssetPath,new LoadAssetCallbacks((OnGetLevelObjCallbacktemp)));
+                    }
+                    //GameEntry.HeroManager.GetPrefabByAssetID(levelData.ParamInt1,OnGetLevelObjCallback);
                     return;
                 }
                 else
@@ -61,6 +68,19 @@ namespace Procedure.GameStates
             GameEntry.HeroManager.CurAreaPoint.LevelGObj = obj;
             obj.transform.position = GameEntry.HeroManager.CurAreaPoint.Pos;
             var setHeight = obj.GetComponent<AutoSetHeightWithTerrain>();
+            if (setHeight != null)
+            {
+                setHeight.SetTransformHeightWithTerrain();
+            }
+            ChangeState<GameState_CameraMove>(m_fsm);
+        }
+        private void OnGetLevelObjCallbacktemp(string assetName, object asset, float duration, object userData)
+        {
+            var obj = asset as GameObject;
+            GameEntry.HeroManager.CurAreaPoint.SourceObj = obj;
+            GameEntry.HeroManager.CurAreaPoint.LevelGObj = UnityEngine.Object.Instantiate(obj);
+            GameEntry.HeroManager.CurAreaPoint.LevelGObj.transform.position = GameEntry.HeroManager.CurAreaPoint.Pos;
+            var setHeight = GameEntry.HeroManager.CurAreaPoint.LevelGObj.GetComponent<AutoSetHeightWithTerrain>();
             if (setHeight != null)
             {
                 setHeight.SetTransformHeightWithTerrain();

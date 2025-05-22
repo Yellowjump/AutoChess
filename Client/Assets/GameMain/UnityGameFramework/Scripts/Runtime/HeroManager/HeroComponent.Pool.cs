@@ -24,6 +24,7 @@ namespace UnityGameFramework.Runtime
         public ObjectPool<GameObject> EmptyPool;
         public Dictionary<string, List<GetGObjSuccessCallback>> WaitAssetLoadThenGetFromPool = new();
         public Dictionary<string, ObjectPool<GameObject>> PoolDic = new();
+        public Dictionary<string, GameObject> SourcePool = new();
         public delegate void GetGObjSuccessCallback(GameObject asset,string path);
         private LoadAssetCallbacks OnLoadGameObjectCallback;
         
@@ -352,7 +353,8 @@ namespace UnityGameFramework.Runtime
             {
                 if (asset is GameObject gObj)
                 {
-                    PoolDic.Add(path, new ObjectPool<GameObject>(() => Instantiate(gObj),(g)=>g.transform.SetParent(m_InstanceRoot),
+                    SourcePool.Add(path,gObj);
+                    PoolDic.Add(path, new ObjectPool<GameObject>(() => Instantiate(SourcePool[path]),(g)=>g.transform.SetParent(m_InstanceRoot),
                         (g)=>
                     {
                         g.transform.SetParent(m_InstanceDisableRoot);
@@ -466,6 +468,33 @@ namespace UnityGameFramework.Runtime
                 if (obj != null) ReleaseGameObject(assetData.AssetPath, obj);
                 RemoveOneWaitAssetLoadThenGet(assetData.AssetPath, callback);
             }
+        }
+
+        public void ClearSource()
+        {
+            if (PoolDic == null || SourcePool == null)
+            {
+                return;
+            }
+
+            List<string> willRemoveKey = ListPool<string>.Get();
+            foreach (var keyValue in PoolDic)
+            {
+                var onePool = keyValue.Value;
+                if (onePool.CountActive == 0)
+                {
+                    var sourceObj = SourcePool[keyValue.Key];
+                    GameEntry.Resource.UnloadAsset(sourceObj);
+                    SourcePool.Remove(keyValue.Key);
+                    willRemoveKey.Add(keyValue.Key);
+                }
+            }
+
+            foreach (var oneKey in willRemoveKey)
+            {
+                PoolDic.Remove(oneKey);
+            }
+            ListPool<string>.Release(willRemoveKey);
         }
     }
 }

@@ -112,8 +112,8 @@ namespace Entity
         public void ReInit()
         {
             RemoveAllSfx();
-            GObj?.SetActive(true);
-            GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
+            //GObj?.SetActive(true);
+            //GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
             IsValid = true;
             ChangeToIdleState();
             DestorySkill();

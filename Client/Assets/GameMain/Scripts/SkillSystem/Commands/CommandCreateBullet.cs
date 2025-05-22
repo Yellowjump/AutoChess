@@ -34,6 +34,7 @@ namespace SkillSystem
                     var forward = oneTarget.LogicPosition - newBullet.Owner.LogicPosition;
                     var rotateQ = Quaternion.LookRotation(forward, Vector3.up);
                     newBullet.LogicPosition = newBullet.Owner.LogicPosition + rotateQ * PosOffset.Value;
+                    //GameEntry.HeroManager.FireBullet(trigger.ParentTriggerList.ParentSkill.Caster,newBullet.Owner.LogicPosition + rotateQ * PosOffset.Value,forward,10);
                     if (BulletTrigger != null)
                     {
                         var newTriggerList = SkillFactory.CreateNewEmptyTriggerList();

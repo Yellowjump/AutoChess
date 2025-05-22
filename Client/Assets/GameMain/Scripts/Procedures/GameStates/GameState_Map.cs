@@ -25,6 +25,7 @@ namespace Procedure.GameStates
             _fsm = fsm;
             GameEntry.HeroManager.ResetToMainCamera();
             GameEntry.HeroManager.ShowQige(false);
+            GameEntry.HeroManager.ClearSource();
             var eventArg = MapFreshOpaqueEventArgs.Create(1);
             GameEntry.Event.Fire(this,eventArg);
             GameEntry.Event.Subscribe(EnterPointEventArgs.EventId,EnterPoint);
@@ -43,7 +44,17 @@ namespace Procedure.GameStates
                 if (levelTable.HasDataRow(levelID))
                 {
                     var levelData = levelTable[levelID];
-                    GameEntry.HeroManager.ReleaseAssetObj(levelData.ParamInt1,GameEntry.HeroManager.CurAreaPoint.LevelGObj,null);
+                    var assetPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
+                    if (assetPathTable.HasDataRow(levelData.ParamInt1))
+                    {
+                        var assetData = assetPathTable[levelData.ParamInt1];
+                        if (assetData != null)
+                        {
+                            GameEntry.Resource.UnloadAsset(GameEntry.HeroManager.CurAreaPoint.SourceObj);
+                        }
+                    }
+
+                    //GameEntry.HeroManager.ReleaseAssetObj(levelData.ParamInt1,GameEntry.HeroManager.CurAreaPoint.LevelGObj,null);
                 }
                 
                 GameEntry.HeroManager.CurAreaPoint.LevelGObj = null;

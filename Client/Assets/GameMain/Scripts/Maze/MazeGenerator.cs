@@ -57,6 +57,7 @@ namespace Maze
         public int Index;//areaPoint表ID
         public Vector3 Pos{ get; set; }
         public GameObject LevelGObj;
+        public GameObject SourceObj;
         public AreaPointType AreaPointType;
         public MazePointType CurType { get; set; }
         public int CurLevelID;

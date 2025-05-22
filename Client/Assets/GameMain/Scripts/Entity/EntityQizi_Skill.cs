@@ -581,7 +581,7 @@ namespace Entity
                 damageData.Caster.OnTrigger(TriggerType.AfterCauseDamage,damageData);
                 OnTrigger(TriggerType.AfterBeCauseDamage,damageData);
             }
-            GameEntry.HeroManager.ShowDamageNum(damageData);
+            //GameEntry.HeroManager.ShowDamageNum(damageData);
             
             var curHp = (int)hpAttr.GetFinalValue();
             if (curHp == 0)
