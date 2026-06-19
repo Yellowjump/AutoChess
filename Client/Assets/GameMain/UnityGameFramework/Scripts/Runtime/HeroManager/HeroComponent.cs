@@ -103,7 +103,7 @@ namespace UnityGameFramework.Runtime
             InitSkillDecsFormat();
             
             // 初始化伤害数字系统
-            InitializeDamageNumberSystem();
+            //InitializeDamageNumberSystem();
         }
 
         void InitQige()

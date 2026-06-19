@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using SkillSystem;
 using UnityEngine;
 using UnityGameFramework.Runtime;

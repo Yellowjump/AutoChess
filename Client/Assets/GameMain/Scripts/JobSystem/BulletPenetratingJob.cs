@@ -7,7 +7,7 @@ using UnityGameFramework.Runtime;
 namespace GameMain.Scripts.JobSystem
 {
     [BurstCompile]
-    public struct TrackingBulletFlyJob: IJobParallelFor
+    public struct BulletPenetratingJob : IJobParallelFor
     {
         public float ElapsedTime;
         public NativeArray<HeroComponent.BulletData> Bullets;

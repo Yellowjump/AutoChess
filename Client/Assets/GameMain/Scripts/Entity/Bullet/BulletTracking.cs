@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using GameFramework;
 using SkillSystem;
+using Unity.Mathematics;
 
 namespace Entity.Bullet
 {
     public class BulletTracking:BulletBase
     {
         public float MoveSpeed = 10;
+        public float3 TargetPosition;
         public override void SetParamValue(List<TableParamInt> paramIntArray)
         {
             if (CurBulletData != null)
@@ -17,7 +19,7 @@ namespace Entity.Bullet
         public override void LogicUpdate(float elapseSeconds, float realElapseSeconds)
         {
             base.LogicUpdate(elapseSeconds,realElapseSeconds);
-            if (Target == null||Target.IsValid==false)
+            /*if (Target == null||Target.IsValid==false)
             {
                 OnDead();
                 return;
@@ -33,6 +35,21 @@ namespace Entity.Bullet
             if (GObj != null)
             {
                 GObj.transform.LookAt(Target.LogicHitPosition);
+            }*/
+        }
+        public void ApplyLogicResult(float3 newPos, bool hit)
+        {
+            LogicPosition = newPos;
+            if (GObj != null)
+                GObj.transform.position = LogicPosition;
+
+            if (hit)
+            {
+                OnHitTarget(Target);
+            }
+            else if (Target != null)
+            {
+                GObj?.transform.LookAt(Target.LogicHitPosition);
             }
         }
     }
