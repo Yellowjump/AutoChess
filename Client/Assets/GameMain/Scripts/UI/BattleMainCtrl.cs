@@ -117,10 +117,10 @@ public class BattleMainCtrl : UIFormLogic
             var targetQizi = GetMousePosQizi();
             if (targetQizi != null && targetQizi.IsValid)
             {
-                if (targetQizi.BelongCamp == CampType.Friend && GameEntry.HeroManager.dangqianliucheng == 0)
+                if (targetQizi.BelongCamp == CampType.Friend && HotGameEntry.HeroManager.dangqianliucheng == 0)
                 {
                     tryDragTargetQizi = targetQizi;
-                    GameEntry.HeroManager.ShowQige(true);
+                    HotGameEntry.HeroManager.ShowQige(true);
                 }
 
                 if (curTargetQizi != null && curTargetQizi != targetQizi)
@@ -163,9 +163,9 @@ public class BattleMainCtrl : UIFormLogic
                 if (GetMousePosGezi(out var geziPos, false))
                 {
                     //另一个格子里有hero
-                    if (GameEntry.HeroManager.GetQiziByQigeIndex(geziPos, out var curPosQizi))
+                    if (HotGameEntry.HeroManager.GetQiziByQigeIndex(geziPos, out var curPosQizi))
                     {
-                        GameEntry.HeroManager.UpdateEntityPos(curPosQizi, new Vector2Int(tryDragTargetQizi.columnIndex, tryDragTargetQizi.rowIndex));
+                        HotGameEntry.HeroManager.UpdateEntityPos(curPosQizi, new Vector2Int(tryDragTargetQizi.columnIndex, tryDragTargetQizi.rowIndex));
                     }
 
                     if (geziPos.y == tryDragTargetQizi.rowIndex && geziPos.x == tryDragTargetQizi.columnIndex) //選中位置沒有移動
@@ -176,17 +176,17 @@ public class BattleMainCtrl : UIFormLogic
                         keepCurTarget = true;
                     }
 
-                    GameEntry.HeroManager.UpdateEntityPos(tryDragTargetQizi, geziPos);
+                    HotGameEntry.HeroManager.UpdateEntityPos(tryDragTargetQizi, geziPos);
                 }
                 else
                 {
                     //不在格子中释放qizi
-                    tryDragTargetQizi.LogicPosition = GameEntry.HeroManager.GetGeziPos(tryDragTargetQizi.rowIndex, tryDragTargetQizi.columnIndex);
+                    tryDragTargetQizi.LogicPosition = HotGameEntry.HeroManager.GetGeziPos(tryDragTargetQizi.rowIndex, tryDragTargetQizi.columnIndex);
                 }
 
                 tryDragTargetQizi.HpBar.UpdataMoveHpBar();
                 tryDragTargetQizi = null;
-                GameEntry.HeroManager.ShowQige(false);
+                HotGameEntry.HeroManager.ShowQige(false);
                 if (keepCurTarget == false)
                 {
                     curTargetQizi.ShowHighlight(false);
@@ -206,7 +206,7 @@ public class BattleMainCtrl : UIFormLogic
             }
         }
 
-        /*if (GameEntry.HeroManager.dangqianliucheng == 0)
+        /*if (HotGameEntry.HeroManager.dangqianliucheng == 0)
         {
             if (!GetOrNotGetQizi)
             {
@@ -242,16 +242,16 @@ public class BattleMainCtrl : UIFormLogic
                     if (GetMousePosGezi(out var geziPos, false))
                     {
                         //另一个格子里有hero
-                        if (GameEntry.HeroManager.GetQiziByQigeIndex(geziPos, out var curPosQizi))
+                        if (HotGameEntry.HeroManager.GetQiziByQigeIndex(geziPos, out var curPosQizi))
                         {
-                            GameEntry.HeroManager.UpdateEntityPos(curPosQizi,new Vector2Int(curTargetQizi.columnIndex,curTargetQizi.rowIndex));
+                            HotGameEntry.HeroManager.UpdateEntityPos(curPosQizi,new Vector2Int(curTargetQizi.columnIndex,curTargetQizi.rowIndex));
                         }
-                        GameEntry.HeroManager.UpdateEntityPos(curTargetQizi,geziPos);
+                        HotGameEntry.HeroManager.UpdateEntityPos(curTargetQizi,geziPos);
                     }
                     else
                     {
                         //不在格子中释放qizi
-                        curTargetQizi.LogicPosition = GameEntry.HeroManager.GetGeziPos(curTargetQizi.rowIndex,curTargetQizi.columnIndex);
+                        curTargetQizi.LogicPosition = HotGameEntry.HeroManager.GetGeziPos(curTargetQizi.rowIndex,curTargetQizi.columnIndex);
                     }
                     curTargetQizi.HpBar.UpdataMoveHpBar();
                     curTargetQizi = null;
@@ -272,27 +272,27 @@ public class BattleMainCtrl : UIFormLogic
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         EntityQizi target;
-        _plane.SetNormalAndPosition(Vector3.up, GameEntry.HeroManager.QigePosOffset);
+        _plane.SetNormalAndPosition(Vector3.up, HotGameEntry.HeroManager.QigePosOffset);
         if (_plane.Raycast(ray, out var enter))
         {
             // 计算相交点
             var hitPoint = ray.GetPoint(enter);
-            for (int i = 0; i < GameEntry.HeroManager.QiziCSList.Count; i++)
+            for (int i = 0; i < HotGameEntry.HeroManager.QiziCSList.Count; i++)
             {
-                hitPoint.y = GameEntry.HeroManager.QiziCSList[i].LogicPosition.y; //放置y分量影响
-                if (Vector3.Distance(GameEntry.HeroManager.QiziCSList[i].LogicPosition, hitPoint) < 0.5f)
+                hitPoint.y = HotGameEntry.HeroManager.QiziCSList[i].LogicPosition.y; //放置y分量影响
+                if (Vector3.Distance(HotGameEntry.HeroManager.QiziCSList[i].LogicPosition, hitPoint) < 0.5f)
                 {
-                    return GameEntry.HeroManager.QiziCSList[i];
+                    return HotGameEntry.HeroManager.QiziCSList[i];
                 }
             }
 
             if (containEnemy)
             {
-                for (int i = 0; i < GameEntry.HeroManager.DirenList.Count; i++)
+                for (int i = 0; i < HotGameEntry.HeroManager.DirenList.Count; i++)
                 {
-                    if (Vector3.Distance(GameEntry.HeroManager.DirenList[i].LogicPosition, hitPoint) < 0.5f)
+                    if (Vector3.Distance(HotGameEntry.HeroManager.DirenList[i].LogicPosition, hitPoint) < 0.5f)
                     {
-                        return GameEntry.HeroManager.DirenList[i];
+                        return HotGameEntry.HeroManager.DirenList[i];
                     }
                 }
             }
@@ -315,7 +315,7 @@ public class BattleMainCtrl : UIFormLogic
         {
             // 计算相交点
             var hitPoint = ray.GetPoint(enter);
-            if (GameEntry.HeroManager.CheckInGezi(hitPoint, out geziPos))
+            if (HotGameEntry.HeroManager.CheckInGezi(hitPoint, out geziPos))
             {
                 return containEnemy || geziPos.y <= 3;
             }

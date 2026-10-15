@@ -34,7 +34,7 @@ namespace Procedure
             eventComp?.Subscribe(ReturnToTitleEventArgs.EventId,OnEventReturnToTitle);
             eventComp?.Subscribe(EventChangeToBattleEventArg.EventId,OnEventChangeToBattle);
             eventComp?.Subscribe(EventCompleteToMapEventArg.EventId,OnEventComplete);
-            GameEntry.HeroManager.StartToMapCamera();
+            HotGameEntry.HeroManager.StartToMapCamera();
             GameEntry.UI.OpenUIForm(UICtrlName.GameHudPanel, "tips");
             _gameStateFsm = Fsm<ProcedureGame>.Create("",this, new GameState_Map(),new GameState_BeforeCameraMove(),new GameState_CameraMove(), new GameState_Event() ,new GameState_FormationBeforeBattle(),new GameState_Reward(),new GameState_Lose(),new GameState_Battle(),new GameState_SpEvent());
             _gameStateFsm.Start<GameState_Map>();
@@ -81,7 +81,7 @@ namespace Procedure
         {
             GameEntry.UI.CloseUIForm(UICtrlName.BattleMainPanel);
             GameEntry.UI.CloseUIForm(UICtrlName.BattleRewardPanel);
-            GameEntry.HeroManager.GameOver();
+            HotGameEntry.HeroManager.GameOver();
             ReferencePool.Release(_gameStateFsm);
             _gameStateFsm = null;
             _exitGame = true;
@@ -105,13 +105,13 @@ namespace Procedure
                 return;
             }
 
-            if (GameEntry.HeroManager.PassCurPoint())
+            if (HotGameEntry.HeroManager.PassCurPoint())
             {
                 _gameStateFsm.ChangeStatePublic<GameState_Map>();
             }
             else
             {
-                GameEntry.HeroManager.DeleteGameRecord();
+                HotGameEntry.HeroManager.DeleteGameRecord();
                 ConfirmPanelData newConfirmData = ReferencePool.Acquire<ConfirmPanelData>();
                 newConfirmData.Content = GameEntry.Localization.GetString(EnumLanguage.GameFinish);
                 newConfirmData.ShowSingleConfirmBtn = true;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DataTable;
@@ -37,7 +37,11 @@ namespace Procedure
             }
             else
             {
-                GameEntry.Resource.InitResources(OnInitResourceComplete);
+                GameEntry.Resource.CheckResources((moved, removed, update, length, zipped) =>
+                {
+                    if (update == 0) OnInitResourceComplete();
+                    else Log.Error("Bootstrap did not finish downloading {0} resources.", update);
+                });
             }
         }
 
@@ -104,10 +108,10 @@ namespace Procedure
 
         private void InitSoundVolume()
         {
-            GameEntry.Sound.SetMasterVolume(GameEntry.Setting.GetSoundGroupVolume("Master"));
-            GameEntry.Sound.SetVolume("BGM", GameEntry.Setting.GetSoundGroupVolume("BGM"));
-            GameEntry.Sound.SetVolume("UI", GameEntry.Setting.GetSoundGroupVolume("UI"));
-            GameEntry.Sound.SetVolume("Sfx", GameEntry.Setting.GetSoundGroupVolume("Sfx"));
+            HotGameEntry.Sound.SetMasterVolume(GameEntry.Setting.GetSoundGroupVolume("Master"));
+            HotGameEntry.Sound.SetVolume("BGM", GameEntry.Setting.GetSoundGroupVolume("BGM"));
+            HotGameEntry.Sound.SetVolume("UI", GameEntry.Setting.GetSoundGroupVolume("UI"));
+            HotGameEntry.Sound.SetVolume("Sfx", GameEntry.Setting.GetSoundGroupVolume("Sfx"));
         }
 
         private void OnInitResourceComplete()
@@ -272,8 +276,8 @@ namespace Procedure
                 m_LoadedFlag[ne.SceneAssetName] = true;
             }
 
-            GameEntry.HeroManager.InitTerrainList();
-            GameEntry.HeroManager.InitStartCamera();
+            HotGameEntry.HeroManager.InitTerrainList();
+            HotGameEntry.HeroManager.InitStartCamera();
         }
 
         private string ExtractFileName(string filePath)

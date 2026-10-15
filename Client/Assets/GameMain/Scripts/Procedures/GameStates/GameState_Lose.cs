@@ -13,13 +13,13 @@ namespace Procedure.GameStates
         {
             base.OnEnter(fsm);
             GameEntry.UI.OpenUIForm(UICtrlName.BattleLosePanel, "middle");
-            GameEntry.HeroManager.OnBattleLose();
+            HotGameEntry.HeroManager.OnBattleLose();
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
         {
             base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
-            GameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
+            HotGameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
         }
 
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)

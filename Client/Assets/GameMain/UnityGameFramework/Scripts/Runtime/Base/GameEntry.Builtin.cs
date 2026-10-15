@@ -1,4 +1,3 @@
-using GameMain.UnityGameFramework.Scripts.Runtime;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
@@ -40,15 +39,6 @@ namespace UnityGameFramework.Runtime
         /// 获取数据表组件。
         /// </summary>
         public static DataTableComponent DataTable
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// 获取调试组件。
-        /// </summary>
-        public static DebuggerComponent Debugger
         {
             get;
             private set;
@@ -163,15 +153,6 @@ namespace UnityGameFramework.Runtime
         }
 
         /// <summary>
-        /// 获取声音组件。
-        /// </summary>
-        public static SoundComponent Sound
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
         /// 获取界面组件。
         /// </summary>
         public static UIComponent UI
@@ -188,15 +169,12 @@ namespace UnityGameFramework.Runtime
             get;
             private set;
         }
-        public static HeroComponent HeroManager;
-        public static ChatAIComponent ChatAI;
         public static void InitBuiltinComponents()
         {
             Base = GetComponent<BaseComponent>();
             Config = GetComponent<ConfigComponent>();
             DataNode = GetComponent<DataNodeComponent>();
             DataTable = GetComponent<DataTableComponent>();
-            Debugger = GetComponent<DebuggerComponent>();
             Download = GetComponent<DownloadComponent>();
             Entity = GetComponent<EntityComponent>();
             Event = GetComponent<EventComponent>();
@@ -209,11 +187,8 @@ namespace UnityGameFramework.Runtime
             Resource = GetComponent<ResourceComponent>();
             Scene = GetComponent<SceneComponent>();
             Setting = GetComponent<SettingComponent>();
-            Sound = GetComponent<SoundComponent>();
             UI = GetComponent<UIComponent>();
             WebRequest = GetComponent<WebRequestComponent>();
-            HeroManager = GetComponent<HeroComponent>();
-            ChatAI = GetComponent<ChatAIComponent>();
         }
     }
 }

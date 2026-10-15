@@ -41,7 +41,7 @@ namespace SkillSystem
                 }
 
                 var campList = ListPool<EntityQizi>.Get();
-                GameEntry.HeroManager.GetEntityQiziList(TargetCamp,owner.BelongCamp,ref campList);
+                HotGameEntry.HeroManager.GetEntityQiziList(TargetCamp,owner.BelongCamp,ref campList);
                 foreach (var oneEntity in campList)
                 {
                     if (!oneEntity.IsValid)

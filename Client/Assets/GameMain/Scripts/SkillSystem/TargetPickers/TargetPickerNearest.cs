@@ -25,7 +25,7 @@ namespace SkillSystem
                 {
                     weaponLength = int.MaxValue;
                 }
-                GameEntry.HeroManager.GetNearestTarget(owner, TargetCamp, out var target, weaponLength);
+                HotGameEntry.HeroManager.GetNearestTarget(owner, TargetCamp, out var target, weaponLength);
                 if (target != null)
                 {
                     trigger.CurTargetList.Add(target);

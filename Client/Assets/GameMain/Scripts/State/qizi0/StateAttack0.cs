@@ -36,7 +36,7 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         /*if (Time.time-timebegin>0.5f)
         {
             timebegin = Time.time + 0.5f;
-            if (GameEntry.HeroManager.dangqianliucheng == 0 || qizitarget == null)
+            if (HotGameEntry.HeroManager.dangqianliucheng == 0 || qizitarget == null)
             {
                 ChangeState<StateIdle0>(fsm);
             }

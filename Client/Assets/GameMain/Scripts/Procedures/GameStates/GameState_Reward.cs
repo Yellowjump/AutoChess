@@ -19,22 +19,22 @@ namespace Procedure.GameStates
         protected override void OnEnter(IFsm<ProcedureGame> fsm)
         {
             base.OnEnter(fsm);
-            GameEntry.Sound.StopMusic();
+            HotGameEntry.Sound.StopMusic();
             GameEntry.UI.OpenUIForm(UICtrlName.BattleRewardPanel, "middle");
-            GameEntry.HeroManager.OnBattleWin();
+            HotGameEntry.HeroManager.OnBattleWin();
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
         {
             base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
-            GameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
+            HotGameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
         }
 
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)
         {
-            GameEntry.HeroManager.FreshBattle();
-            GameEntry.HeroManager.ReleaseFriendGObj();
-            GameEntry.Sound.PlayMusic((int)EnumSound.GameStartBGM);
+            HotGameEntry.HeroManager.FreshBattle();
+            HotGameEntry.HeroManager.ReleaseFriendGObj();
+            HotGameEntry.Sound.PlayMusic((int)EnumSound.GameStartBGM);
             base.OnLeave(fsm, isShutdown);
         }
     }

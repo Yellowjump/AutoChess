@@ -21,7 +21,7 @@ namespace Procedure.GameStates
         {
             base.OnEnter(fsm);
             m_fsm = fsm;
-            var curPoint = GameEntry.HeroManager.CurAreaPoint;
+            var curPoint = HotGameEntry.HeroManager.CurAreaPoint;
             if (curPoint == null)
             {
                 Log.Error("No CurPoint");
@@ -37,15 +37,15 @@ namespace Procedure.GameStates
                 if (curPoint.CurType == MazePointType.Store||(curPoint.CurType == MazePointType.Event&&levelData.BattleOrLoadAsset==false))
                 {
                 
-                    GameEntry.HeroManager.GetPrefabByAssetID(levelData.ParamInt1,OnGetLevelObjCallback);
+                    HotGameEntry.HeroManager.GetPrefabByAssetID(levelData.ParamInt1,OnGetLevelObjCallback);
                     return;
                 }
                 else
                 {
-                    GameEntry.HeroManager.MoveQigeRoot(GameEntry.HeroManager.CurAreaPoint.Pos);
+                    HotGameEntry.HeroManager.MoveQigeRoot(HotGameEntry.HeroManager.CurAreaPoint.Pos);
                     InitEnemy();
-                    GameEntry.HeroManager.FreshFriendEntityPos();
-                    GameEntry.HeroManager.InitFriendGObj();
+                    HotGameEntry.HeroManager.FreshFriendEntityPos();
+                    HotGameEntry.HeroManager.InitFriendGObj();
                     ChangeState<GameState_CameraMove>(fsm);
                 }
             }
@@ -58,8 +58,8 @@ namespace Procedure.GameStates
 
         private void OnGetLevelObjCallback(GameObject obj, string path)
         {
-            GameEntry.HeroManager.CurAreaPoint.LevelGObj = obj;
-            obj.transform.position = GameEntry.HeroManager.CurAreaPoint.Pos;
+            HotGameEntry.HeroManager.CurAreaPoint.LevelGObj = obj;
+            obj.transform.position = HotGameEntry.HeroManager.CurAreaPoint.Pos;
             var setHeight = obj.GetComponent<AutoSetHeightWithTerrain>();
             if (setHeight != null)
             {
@@ -84,7 +84,7 @@ namespace Procedure.GameStates
         }
         private void InitEnemy()
         {
-            var curPoint = GameEntry.HeroManager.CurAreaPoint;
+            var curPoint = HotGameEntry.HeroManager.CurAreaPoint;
             if (curPoint == null)
             {
                 Log.Error("No CurPoint");
@@ -101,7 +101,7 @@ namespace Procedure.GameStates
                     var enemyInfo = enemyConfigs[levelData.LevelInfo].EnemyInfo;
                     foreach (var oneInfo in enemyInfo.InfoList)
                     {
-                        GameEntry.HeroManager.InitOneEnemy(oneInfo);
+                        HotGameEntry.HeroManager.InitOneEnemy(oneInfo);
                     }
                 }
             }

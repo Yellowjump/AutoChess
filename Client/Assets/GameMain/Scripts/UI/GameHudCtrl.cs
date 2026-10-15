@@ -33,7 +33,7 @@ public class GameHudCtrl : UIFormLogic
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
-        CoinText.text = GameEntry.HeroManager.CoinNum.ToString();
+        CoinText.text = HotGameEntry.HeroManager.CoinNum.ToString();
     }
 
     private void OnClickBagBtn()
@@ -68,7 +68,7 @@ public class GameHudCtrl : UIFormLogic
         {
             return;
         }
-        CoinText.text = GameEntry.HeroManager.CoinNum.ToString();
+        CoinText.text = HotGameEntry.HeroManager.CoinNum.ToString();
     }
 
     private void OnClickReturnTitle()

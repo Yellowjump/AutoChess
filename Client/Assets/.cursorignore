@@ -1,0 +1,94 @@
+# Unity 项目忽略文件
+*.meta
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.prefab
+*.mat
+*.asset
+*.anim
+*.controller
+*.overrideController
+
+# Unity3D 生成的文件
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Unity3D 生成的崩溃报告文件
+sysinfo.txt
+
+# Builds 构建文件
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Crashlytics 生成的文件
+crashlytics-build.properties
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+
+# 系统文件
+.DS_Store
+Thumbs.db
+# 临时第三方资源
+*.AssetsLocal/
+# 包管理
+/[Pp]ackages/
+/[Pp]rojectSettings/
+
+# 大型二进制文件
+*.unitypackage
+*.assetbundle
+*.bundle
+
+# 3D模型文件
+*.fbx
+*.obj
+*.3ds
+*.max
+*.blend
+*.dae
+*.gltf
+*.glb
+*.abc
+*.usd
+*.usda
+*.usdc
+*.usdz
+
+# 音频文件
+*.mp3
+*.wav
+*.ogg
+*.aac
+*.m4a
+*.wma
+*.flac
+*.aiff
+*.aif
+*.mid
+*.midi
+*.mod
+*.it
+*.s3m
+*.xm
+
+# 其他
+*.bak
+*.swp
+*~ 

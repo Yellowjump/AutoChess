@@ -1,26 +1,28 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <UnityGameFramework>
   <ResourceCollection>
     <Resources>
-      <Resource Name="dataTable" LoadType="0" Packed="False" />
-      <Resource Name="Font" LoadType="0" Packed="False" />
-      <Resource Name="GameMain/Scenes/qipan" LoadType="0" Packed="False" />
-      <Resource Name="GameMain/Scenes/terrain" LoadType="0" Packed="False" />
-      <Resource Name="gezi" LoadType="0" Packed="False" />
-      <Resource Name="image" LoadType="0" Packed="False" />
-      <Resource Name="mat" LoadType="0" Packed="False" />
-      <Resource Name="PrefabLevel" LoadType="0" Packed="False" />
-      <Resource Name="PrefabSfx" LoadType="0" Packed="False" />
-      <Resource Name="PrefabWeapon" LoadType="0" Packed="False" />
-      <Resource Name="Render" LoadType="0" Packed="False" />
-      <Resource Name="RolaAnimation" LoadType="0" Packed="False" />
-      <Resource Name="RoleRobot" LoadType="0" Packed="False" />
-      <Resource Name="RoleZombie" LoadType="0" Packed="False" />
-      <Resource Name="sceneDelay" LoadType="0" Packed="False" />
-      <Resource Name="Sound" LoadType="0" Packed="False" />
-      <Resource Name="UIPrefabs" LoadType="0" Packed="False" />
+      <Resource Name="HotUpdate" LoadType="0" Packed="True" />
+      <Resource Name="dataTable" LoadType="0" Packed="True" />
+      <Resource Name="Font" LoadType="0" Packed="True" />
+      <Resource Name="GameMain/Scenes/terrain" LoadType="0" Packed="True" />
+      <Resource Name="gezi" LoadType="0" Packed="True" />
+      <Resource Name="image" LoadType="0" Packed="True" />
+      <Resource Name="mat" LoadType="0" Packed="True" />
+      <Resource Name="PrefabLevel" LoadType="0" Packed="True" />
+      <Resource Name="PrefabSfx" LoadType="0" Packed="True" />
+      <Resource Name="PrefabWeapon" LoadType="0" Packed="True" />
+      <Resource Name="Render" LoadType="0" Packed="True" />
+      <Resource Name="RolaAnimation" LoadType="0" Packed="True" />
+      <Resource Name="RoleRobot" LoadType="0" Packed="True" />
+      <Resource Name="RoleZombie" LoadType="0" Packed="True" />
+      <Resource Name="sceneDelay" LoadType="0" Packed="True" />
+      <Resource Name="Sound" LoadType="0" Packed="True" />
+      <Resource Name="UIPrefabs" LoadType="0" Packed="True" />
     </Resources>
     <Assets>
+      <Asset Guid="ab61425954e84ed5a72c06bb279688bd" ResourceName="HotUpdate" />
+      <Asset Guid="bdd6eca49e4644518e576b668a521734" ResourceName="HotUpdate" />
       <Asset Guid="012bdef28c86a854586b89e061380295" ResourceName="PrefabWeapon" />
       <Asset Guid="0160d5e89a94e174bb17a7d386d4596f" ResourceName="UIPrefabs" />
       <Asset Guid="02954ed9bed83bb46872110a3e9b9059" ResourceName="PrefabLevel" />
@@ -238,7 +240,6 @@
       <Asset Guid="b431c815d89fb3946aaac14bbc784162" ResourceName="UIPrefabs" />
       <Asset Guid="b4bd19aa3d62abd41acc4bd34c8b198a" ResourceName="sceneDelay" />
       <Asset Guid="b4c058e0744fa8b4f89db9d3171f4eb9" ResourceName="PrefabSfx" />
-      <Asset Guid="b55d9d15d2e91904684aeff46cf0ebe3" ResourceName="GameMain/Scenes/qipan" />
       <Asset Guid="b7c74c75bb40a98438f7ba84cb1221fe" ResourceName="sceneDelay" />
       <Asset Guid="b7d3d31a47feb684381c8e16cce325ff" ResourceName="mat" />
       <Asset Guid="b84d7ca3927758646a65731cc107aa76" ResourceName="PrefabWeapon" />

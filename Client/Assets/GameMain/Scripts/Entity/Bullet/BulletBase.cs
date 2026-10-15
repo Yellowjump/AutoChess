@@ -25,7 +25,7 @@ namespace Entity.Bullet
         {
             m_GetObjCallback ??= OnGetHeroGObjCallback;
             OwnerTriggerList?.OnTrigger(TriggerType.OnActive);
-            GameEntry.HeroManager.GetBulletObjByID(BulletID,m_GetObjCallback);
+            HotGameEntry.HeroManager.GetBulletObjByID(BulletID,m_GetObjCallback);
         }
         protected virtual void OnGetHeroGObjCallback(GameObject obj,string path)
         {
@@ -54,12 +54,12 @@ namespace Entity.Bullet
         {
             OwnerTriggerList?.OnTrigger(TriggerType.OnDestory);
             IsValid = false;
-            GameEntry.HeroManager.DestoryBullet(this);
+            HotGameEntry.HeroManager.DestoryBullet(this);
         }
 
         public virtual void Clear()
         {
-            GameEntry.HeroManager.ReleaseBulletGameObject(BulletID,GObj,m_GetObjCallback);
+            HotGameEntry.HeroManager.ReleaseBulletGameObject(BulletID,GObj,m_GetObjCallback);
             BulletID = 0;
             GObj = null;
             IsValid = true;

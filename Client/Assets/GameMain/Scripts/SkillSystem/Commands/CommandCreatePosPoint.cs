@@ -31,13 +31,13 @@ namespace SkillSystem
                         continue;
                     }
 
-                    var newPosPoint = GameEntry.HeroManager.CreatePosPoint();
+                    var newPosPoint = HotGameEntry.HeroManager.CreatePosPoint();
                     newPosPoint.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
                     newPosPoint.Target = oneTarget;
                     newPosPoint.BelongCamp = newPosPoint.Caster.BelongCamp;
                     newPosPoint.DurationMs = DurationMS.Value;
                     newPosPoint.RemainMs = DurationMS.Value;
-                    newPosPoint.GObj = GameEntry.HeroManager.GetNewEmptyObj(ConstValue.PosPointObjName);
+                    newPosPoint.GObj = HotGameEntry.HeroManager.GetNewEmptyObj(ConstValue.PosPointObjName);
                     var posOffset = PosOffset.Value;
                     if (PosOffsetMax.Value != Vector3.zero)//使用随机位置
                     {
@@ -92,7 +92,7 @@ namespace SkillSystem
         private Vector3 GetCrowdedPos(CampType targetBelongType, float radius)
         {
             List<EntityQizi> targetCampList = ListPool<EntityQizi>.Get();
-            GameEntry.HeroManager.GetEntityQiziList(targetBelongType,CampType.Friend,ref targetCampList);
+            HotGameEntry.HeroManager.GetEntityQiziList(targetBelongType,CampType.Friend,ref targetCampList);
             List<Vector3> targetPosList = ListPool<Vector3>.Get();
             foreach (var oneEntity in targetCampList)
             {
@@ -104,7 +104,7 @@ namespace SkillSystem
             ListPool<EntityQizi>.Release(targetCampList);
             if (targetPosList.Count >= 3)
             {
-                var targetPos = GameEntry.HeroManager.GetCrowdedPos(targetPosList, radius);
+                var targetPos = HotGameEntry.HeroManager.GetCrowdedPos(targetPosList, radius);
                 ListPool<Vector3>.Release(targetPosList);
                 return targetPos;
             }
@@ -127,7 +127,7 @@ namespace SkillSystem
                 return targetA;
             }
             ListPool<Vector3>.Release(targetPosList);
-            return GameEntry.HeroManager.QigePosOffset;
+            return HotGameEntry.HeroManager.QigePosOffset;
         }
         public override void Clone(CommandBase copy)
         {

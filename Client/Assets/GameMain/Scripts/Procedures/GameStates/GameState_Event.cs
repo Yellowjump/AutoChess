@@ -22,7 +22,7 @@ namespace Procedure.GameStates
         protected override void OnEnter(IFsm<ProcedureGame> fsm)
         {
             base.OnEnter(fsm);
-            var curPoint = GameEntry.HeroManager.CurAreaPoint;
+            var curPoint = HotGameEntry.HeroManager.CurAreaPoint;
             if (curPoint == null)
             {
                 Log.Error("No CurPoint");

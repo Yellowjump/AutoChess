@@ -19,13 +19,13 @@ namespace Procedure.GameStates
         protected override void OnEnter(IFsm<ProcedureGame> fsm)
         {
             base.OnEnter(fsm);
-            var curPoint = GameEntry.HeroManager.CurAreaPoint;
+            var curPoint = HotGameEntry.HeroManager.CurAreaPoint;
             if (curPoint == null)
             {
                 Log.Error("No CurPoint");
                 return;
             }
-            GameEntry.HeroManager.CheckToAreaPointCamera(curPoint.Index);
+            HotGameEntry.HeroManager.CheckToAreaPointCamera(curPoint.Index);
             cameraMoveDuration = 0;
         }
 
@@ -36,7 +36,7 @@ namespace Procedure.GameStates
             {
                 var eventArg = MapFreshOpaqueEventArgs.Create(0);
                 GameEntry.Event.Fire(this,eventArg);
-                var curPoint = GameEntry.HeroManager.CurAreaPoint;
+                var curPoint = HotGameEntry.HeroManager.CurAreaPoint;
                 if (curPoint.CurType is MazePointType.SmallBattle or MazePointType.EliteBattle or MazePointType.BossBattle)
                 {
                     ChangeState<GameState_FormationBeforeBattle>(fsm);

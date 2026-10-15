@@ -52,7 +52,7 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
                 owner.LogicPosition = nextpos;
                 //已到达目标点
                 _moving = false;
-                var v2 = GameEntry.HeroManager.GetIndexQizi(owner);
+                var v2 = HotGameEntry.HeroManager.GetIndexQizi(owner);
                 owner.columnIndex = v2.x;
                 owner.rowIndex = v2.y;
             }
@@ -90,19 +90,19 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
             else if (result == CheckCastSkillResult.TargetOutRange)
             {
                 owner.CurAttackTarget = target;
-                Vector2Int ownerIndex = GameEntry.HeroManager.GetIndexQizi(owner);
-                Vector2Int targetIndex = GameEntry.HeroManager.GetIndexQizi(target);
-                nextPosIndex = GameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.NormalSkillList[checkNormalSkillList[index]].SkillRange);
+                Vector2Int ownerIndex = HotGameEntry.HeroManager.GetIndexQizi(owner);
+                Vector2Int targetIndex = HotGameEntry.HeroManager.GetIndexQizi(target);
+                nextPosIndex = HotGameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.NormalSkillList[checkNormalSkillList[index]].SkillRange);
                 if (nextPosIndex.x != -1 && nextPosIndex.y != -1&&nextPosIndex!=ownerIndex)
                 {
                     noNextPosMove = false;
                     _moving = true;
                     startpos = owner.LogicPosition;
-                    nextpos = GameEntry.HeroManager.GetGeziPos(nextPosIndex.y,nextPosIndex.x);;
+                    nextpos = HotGameEntry.HeroManager.GetGeziPos(nextPosIndex.y,nextPosIndex.x);;
                     owner.AddAnimCommandRun();
                     owner.GObj?.transform.LookAt(nextpos);
-                    GameEntry.HeroManager.qige[ownerIndex.y][ownerIndex.x] = -1;
-                    GameEntry.HeroManager.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
+                    HotGameEntry.HeroManager.qige[ownerIndex.y][ownerIndex.x] = -1;
+                    HotGameEntry.HeroManager.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
                     break;
                 }
             }

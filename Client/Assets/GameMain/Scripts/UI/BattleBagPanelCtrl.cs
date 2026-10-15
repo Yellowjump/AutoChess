@@ -141,7 +141,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     
     private void ShowBagItem()
     {
-        var bagList = GameEntry.HeroManager.ItemBagList;
+        var bagList = HotGameEntry.HeroManager.ItemBagList;
         var tempList = ListPool<OneItemData>.Get();
         tempList.AddRange(bagList);
         tempList.Sort((a,b)=>a.ItemID.CompareTo(b.ItemID));
@@ -207,7 +207,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     }
     private void OnClickItem(BattleBagItem battleBagItem)
     {
-        if (GameEntry.HeroManager.InBattle)
+        if (HotGameEntry.HeroManager.InBattle)
         {
             return;
         }
@@ -355,7 +355,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     {
         if (_craftItem != null && _craftItem.ItemID != 0)
         {
-            if (GameEntry.HeroManager.TryCraftItem(_craftItem.ItemID))
+            if (HotGameEntry.HeroManager.TryCraftItem(_craftItem.ItemID))
             {
                 _craftItem.ItemID = 0;
                 _willCraftParent.gameObject.SetActive(false);
@@ -398,7 +398,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     private void ShowHeroEquip()
     {
         //刷新角色toggle（实际是button）
-        var heroList = GameEntry.HeroManager.QiziCSList;
+        var heroList = HotGameEntry.HeroManager.QiziCSList;
         foreach (var oneHero in heroList.OrderBy((a)=>a.HeroUID))
         {
             var oneHeroItem = _heroToggleItemPool.Get();
@@ -419,8 +419,8 @@ public class BattleBagPanelCtrl : UIFormLogic
         var itemID = battleBagItem.ItemID;
         var itemUniqueID = battleBagItem.ItemUniqueID;
         var itemBagNum = battleBagItem.itemNum;
-        var oneItemData = GameEntry.HeroManager.GetBagItemDataByUID(itemUniqueID);
-        var success = GameEntry.HeroManager.TryEquipItem(_curShowHeroUID,oneItemData);
+        var oneItemData = HotGameEntry.HeroManager.GetBagItemDataByUID(itemUniqueID);
+        var success = HotGameEntry.HeroManager.TryEquipItem(_curShowHeroUID,oneItemData);
         if (!success)
         {
             return;
@@ -432,7 +432,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     }
     private void OnClickHeroEquipItem(BattleBagItem battleBagItem)
     {
-        var success = GameEntry.HeroManager.TryRemoveEquip(_curShowHeroUID,battleBagItem.ItemUniqueID);
+        var success = HotGameEntry.HeroManager.TryRemoveEquip(_curShowHeroUID,battleBagItem.ItemUniqueID);
         if (!success)
         {
             return;
@@ -456,7 +456,7 @@ public class BattleBagPanelCtrl : UIFormLogic
     private void FreshEquipItem()
     {
         ClearCurHeroEquipItem();
-        var entity = GameEntry.HeroManager.GetEntityByUID(_curShowHeroUID);
+        var entity = HotGameEntry.HeroManager.GetEntityByUID(_curShowHeroUID);
         if (entity != null)
         {
             foreach (var oneItemData in entity.EquipItemList)

@@ -152,7 +152,7 @@ namespace Maze
             {
                 if (onePoint.CurLevelID == 0)
                 {
-                    onePoint.CurLevelID = GameEntry.HeroManager.GetOneRandomLevelIDFormType(onePoint.CurType);
+                    onePoint.CurLevelID = HotGameEntry.HeroManager.GetOneRandomLevelIDFormType(onePoint.CurType);
                 }
             }
             return pointList;

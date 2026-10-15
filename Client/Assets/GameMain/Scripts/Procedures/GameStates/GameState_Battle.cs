@@ -28,7 +28,7 @@ namespace Procedure.GameStates
             battleTime = Time.time;
             _battleEnd = false;
             _battleEndWin = false;
-            GameEntry.HeroManager.StartBattle();
+            HotGameEntry.HeroManager.StartBattle();
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
@@ -58,7 +58,7 @@ namespace Procedure.GameStates
                 // 当累积时间大于等于固定的DeltaTime时，执行selfLogicUpdate方法
                 while (timeAccumulator >= GameEntry.LogicDeltaTime)
                 {
-                    GameEntry.HeroManager.OnLogicUpdate(GameEntry.LogicDeltaTime,realElapseSeconds);
+                    HotGameEntry.HeroManager.OnLogicUpdate(GameEntry.LogicDeltaTime,realElapseSeconds);
                     timeAccumulator -= GameEntry.LogicDeltaTime;
                 }
             }

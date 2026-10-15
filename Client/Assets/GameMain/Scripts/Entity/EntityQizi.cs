@@ -29,7 +29,7 @@ namespace Entity
                 _logicPosition = value;
                 if (GObj != null)
                 {
-                    GObj.transform.position = GameEntry.HeroManager.GetTerrainMatchHeight(value);
+                    GObj.transform.position = HotGameEntry.HeroManager.GetTerrainMatchHeight(value);
                 }
             }
         }
@@ -40,7 +40,7 @@ namespace Entity
         {
             IsValid = true;
             HeroID = i;
-            HeroUID = ++GameEntry.HeroManager.QiziCurUniqueIndex;
+            HeroUID = ++HotGameEntry.HeroManager.QiziCurUniqueIndex;
             if (equipItem == null)
             {
                 InitAddDefaultItemToList();
@@ -58,16 +58,16 @@ namespace Entity
         public override void InitGObj()
         {
             //添加血条预制体到worldcanvas
-            GameEntry.HeroManager.AddHpBar(this);
+            HotGameEntry.HeroManager.AddHpBar(this);
             
-            GameEntry.HeroManager.GetHeroObjByID(HeroID,OnGetHeroGObjCallback);
+            HotGameEntry.HeroManager.GetHeroObjByID(HeroID,OnGetHeroGObjCallback);
         }
 
         private void OnGetHeroGObjCallback(GameObject obj,string path)
         {
             GObj = obj;
             GObj.SetActive(true);
-            GObj.transform.position = GameEntry.HeroManager.GetTerrainMatchHeight(LogicPosition);
+            GObj.transform.position = HotGameEntry.HeroManager.GetTerrainMatchHeight(LogicPosition);
             GObj.transform.localScale = Vector3.one;
             GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
             InitAnimation();
@@ -89,7 +89,7 @@ namespace Entity
             {
                 foreach (var itemID in heroTableData.DefaultItemID)
                 {
-                    EquipItemList.Add(GameEntry.HeroManager.AddEquipItemToEquip(itemID));
+                    EquipItemList.Add(HotGameEntry.HeroManager.AddEquipItemToEquip(itemID));
                 }
             }
         }
@@ -103,7 +103,7 @@ namespace Entity
 
             foreach (var itemID in itemList)
             {
-                EquipItemList.Add(GameEntry.HeroManager.AddEquipItemToEquip(itemID));
+                EquipItemList.Add(HotGameEntry.HeroManager.AddEquipItemToEquip(itemID));
             }
         }
         /// <summary>
@@ -133,7 +133,7 @@ namespace Entity
 
         public void RemoveGObj()
         {
-            GameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
+            HotGameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
             ClearHpBar();
             GObj = null;
         }
@@ -152,7 +152,7 @@ namespace Entity
                 ReferencePool.Release(oneItem);
             }
             EquipItemList.Clear();
-            GameEntry.HeroManager.ReleaseEntityQizi(this);
+            HotGameEntry.HeroManager.ReleaseEntityQizi(this);
         }
 
         private void ClearHpBar()
@@ -193,7 +193,7 @@ namespace Entity
         {
             RemoveGObj();
             IsValid = false;
-            GameEntry.HeroManager.OnEntityDead(this);
+            HotGameEntry.HeroManager.OnEntityDead(this);
             //GObj?.SetActive(false);
         }
     }

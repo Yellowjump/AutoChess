@@ -5,7 +5,6 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
-using DataTable;
 using GameFramework;
 using GameFramework.Localization;
 using GameFramework.Resource;
@@ -300,10 +299,6 @@ namespace UnityGameFramework.Runtime
             return m_LocalizationManager.GetString(key);
         }
 
-        public string GetString(EnumLanguage enumLanguage)
-        {
-            return GetString(enumLanguage.ToString());
-        }
         /// <summary>
         /// 根据字典主键获取字典内容字符串。
         /// </summary>

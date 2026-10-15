@@ -29,7 +29,7 @@ namespace GameMain.Scripts.UI.Items
             _itemTipName.text = GameEntry.Localization.GetString(itemTable[ItemID].Name);
             if (!string.IsNullOrEmpty(itemTable[ItemID].Decs))
             {
-                _itemTipDec.text = GameEntry.HeroManager.FormatItemDesc(GameEntry.Localization.GetString(itemTable[ItemID].Decs),CurHeroUID);
+                _itemTipDec.text = HotGameEntry.HeroManager.FormatItemDesc(GameEntry.Localization.GetString(itemTable[ItemID].Decs),CurHeroUID);
             }
             else
             {

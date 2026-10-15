@@ -27,7 +27,7 @@ namespace Procedure.GameStates
             base.OnEnter(fsm);
             //初始化 敌人
             GameEntry.UI.OpenUIForm(UICtrlName.BattleMainPanel, "middle");
-            GameEntry.Sound.PlayMusic((int)EnumSound.GameBattleBGM);
+            HotGameEntry.Sound.PlayMusic((int)EnumSound.GameBattleBGM);
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
@@ -39,7 +39,7 @@ namespace Procedure.GameStates
                 ChangeState<GameState_Battle>(fsm);
                 return;
             }
-            GameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
+            HotGameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
         }
 
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)

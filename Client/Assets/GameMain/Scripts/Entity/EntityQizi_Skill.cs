@@ -483,7 +483,7 @@ namespace Entity
             switch (willCastSkill.CurSkillCastTargetType)
             {
                 case SkillCastTargetType.NearestEnemy:
-                    return GameEntry.HeroManager.GetNearestTarget(this,CampType.Enemy,out target,willCastSkill.SkillRange);
+                    return HotGameEntry.HeroManager.GetNearestTarget(this,CampType.Enemy,out target,willCastSkill.SkillRange);
                 case SkillCastTargetType.NoNeedTarget:
                     return true;
             }
@@ -581,7 +581,7 @@ namespace Entity
                 damageData.Caster.OnTrigger(TriggerType.AfterCauseDamage,damageData);
                 OnTrigger(TriggerType.AfterBeCauseDamage,damageData);
             }
-            GameEntry.HeroManager.ShowDamageNum(damageData);
+            HotGameEntry.HeroManager.ShowDamageNum(damageData);
             
             var curHp = (int)hpAttr.GetFinalValue();
             if (curHp == 0)

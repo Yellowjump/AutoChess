@@ -26,7 +26,7 @@ namespace SkillSystem
                     {
                         continue;
                     }
-                    var newBullet = GameEntry.HeroManager.CreateBullet(CurBulletID.Value);
+                    var newBullet = HotGameEntry.HeroManager.CreateBullet(CurBulletID.Value);
                     newBullet.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
                     newBullet.BelongCamp = newBullet.Caster.BelongCamp;
                     newBullet.Target = oneTarget as EntityQizi;

@@ -10,14 +10,14 @@ namespace Maze
 
         public void SetTransformHeightWithTerrain()
         {
-            if (ListSetHeightTerrain == null || ListSetHeightTerrain.Count == 0||!GameEntry.HeroManager.HasInitTerrain())
+            if (ListSetHeightTerrain == null || ListSetHeightTerrain.Count == 0||!HotGameEntry.HeroManager.HasInitTerrain())
             {
                 return;
             }
 
             foreach (var oneTrans in ListSetHeightTerrain)
             {
-                oneTrans.position = GameEntry.HeroManager.GetTerrainMatchHeight(oneTrans.position);
+                oneTrans.position = HotGameEntry.HeroManager.GetTerrainMatchHeight(oneTrans.position);
             }
         }
     }

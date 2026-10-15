@@ -19,7 +19,8 @@ public class MainTitlePanelCtrl : UIFormLogic
     private Button _btnStart;
     [SerializeField]
     private Button _btnSetting;
-
+    [SerializeField]
+    private Button _btnTestHotFixing;
     [SerializeField] private Transform mTransSetting;
     [SerializeField] private Slider mVolumeMasterSlider;
     [SerializeField] private Slider mVolumeBgmSlider;
@@ -40,6 +41,7 @@ public class MainTitlePanelCtrl : UIFormLogic
         _btnContinue.onClick.AddListener(OnClickContinueBtn);
         _btnStart.onClick.AddListener(OnClickStartBtn);
         _btnSetting.onClick.AddListener(OnClickSettingBtn);
+        _btnTestHotFixing.onClick.AddListener(OnClickHotFix);
         mLanguageDropDown.ClearOptions();
         var stringList = ListPool<string>.Get();
         stringList.Add(GameEntry.Localization.GetString(EnumLanguage.Language_Chinese));
@@ -60,10 +62,10 @@ public class MainTitlePanelCtrl : UIFormLogic
         mLanguageDropDown.value = dropDownValue;
         mLanguageDropDown.onValueChanged.AddListener(OnLanguageDropdownValueChanged);
         ListPool<string>.Release(stringList);
-        mVolumeMasterSlider.value = GameEntry.Sound.GetMasterVolume();
-        mVolumeSfxSlider.value = GameEntry.Sound.GetVolume("Sfx");
-        mVolumeUISlider.value = GameEntry.Sound.GetVolume("UI");
-        mVolumeBgmSlider.value = GameEntry.Sound.GetVolume("BGM");
+        mVolumeMasterSlider.value = HotGameEntry.Sound.GetMasterVolume();
+        mVolumeSfxSlider.value = HotGameEntry.Sound.GetVolume("Sfx");
+        mVolumeUISlider.value = HotGameEntry.Sound.GetVolume("UI");
+        mVolumeBgmSlider.value = HotGameEntry.Sound.GetVolume("BGM");
         mVolumeMasterSlider.onValueChanged.AddListener(OnMasterVolumeSliderChange);
         mVolumeBgmSlider.onValueChanged.AddListener(OnBgmVolumeSliderChange);
         mVolumeSfxSlider.onValueChanged.AddListener(OnSFXVolumeSliderChange);
@@ -110,7 +112,7 @@ public class MainTitlePanelCtrl : UIFormLogic
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
-        var hasData = GameEntry.HeroManager.HasSaveData();
+        var hasData = HotGameEntry.HeroManager.HasSaveData();
         _btnContinue.gameObject.SetActive(hasData);
         GameEntry.UI.CloseUIForm(UICtrlName.LoadingPanel);
         mTransSetting.gameObject.SetActive(false);
@@ -119,20 +121,24 @@ public class MainTitlePanelCtrl : UIFormLogic
     private void OnClickContinueBtn()
     {
         Log.Info("OnClickContinueBtn OnClick");
-        GameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
+        HotGameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
         GameEntry.Event.Fire(this,MoveToContinueGameEventArgs.Create());
     }
     private void OnClickStartBtn()
     {
-        GameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
+        HotGameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
         GameEntry.Event.Fire(this,MoveToNewGameEventArgs.Create());
     }
     private void OnClickSettingBtn()
     {
-        GameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
+        HotGameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
         mTransSetting.gameObject.SetActive(!mTransSetting.gameObject.activeSelf);
     }
 
+    private void OnClickHotFix()
+    {
+        Log.Info("hotfix test 1");
+    }
     private void OnLanguageDropdownValueChanged(int newValue)
     {
         var newLanguage = Language.ChineseSimplified;
@@ -213,19 +219,19 @@ public class MainTitlePanelCtrl : UIFormLogic
     }
     private void OnMasterVolumeSliderChange(float value)
     {
-        GameEntry.Sound.SetMasterVolume(value);
+        HotGameEntry.Sound.SetMasterVolume(value);
     }
     private void OnBgmVolumeSliderChange(float value)
     {
-        GameEntry.Sound.SetVolume("BGM", value);
+        HotGameEntry.Sound.SetVolume("BGM", value);
     }
     private void OnSFXVolumeSliderChange(float value)
     {
-        GameEntry.Sound.SetVolume("Sfx", value);
+        HotGameEntry.Sound.SetVolume("Sfx", value);
     }
 
     private void OnMusicVolumeSliderChange(float value)
     {
-        GameEntry.Sound.SetVolume("UI", value);
+        HotGameEntry.Sound.SetVolume("UI", value);
     }
 }

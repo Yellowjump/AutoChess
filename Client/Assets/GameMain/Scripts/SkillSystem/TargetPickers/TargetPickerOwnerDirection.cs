@@ -45,7 +45,7 @@ namespace SkillSystem
                         }
                     }
                     lineMidDir = lineMidDir.normalized * weaponLength / 1000f;
-                    var direnList = GameEntry.HeroManager.GetEnemyList(owner.BelongCamp);
+                    var direnList = HotGameEntry.HeroManager.GetEnemyList(owner.BelongCamp);
                     foreach (var oneEntity in direnList)
                     {
                         if (!oneEntity.IsValid)

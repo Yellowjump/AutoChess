@@ -19,13 +19,13 @@ namespace SkillSystem
                 {
                     if (CreateOrRemove)
                     {
-                        var serialId = GameEntry.Sound.PlaySfxSoundThisFrame(AudioID.Value, oneTarget.LogicHitPosition);
+                        var serialId = HotGameEntry.Sound.PlaySfxSoundThisFrame(AudioID.Value, oneTarget.LogicHitPosition);
                         trigger.ParentTriggerList.paramInt = serialId;
                     }
                     else
                     {
                         var sfxDataIndex = trigger.ParentTriggerList.paramInt;
-                        GameEntry.Sound.ReducePlayingSfxCount(sfxDataIndex);
+                        HotGameEntry.Sound.ReducePlayingSfxCount(sfxDataIndex);
                     }
                 }
             }

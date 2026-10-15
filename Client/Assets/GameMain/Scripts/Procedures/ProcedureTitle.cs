@@ -21,8 +21,8 @@ namespace Procedure
             GameEntry.Event.Subscribe(MoveToContinueGameEventArgs.EventId,OnEventStartContinueGame);
             //打开titleUI
             GameEntry.UI.OpenUIForm(UICtrlName.MainTitlePanel, "middle");
-            GameEntry.HeroManager.InitStartCamera();
-            GameEntry.Sound.PlayMusic((int)EnumSound.GameStartBGM);
+            HotGameEntry.HeroManager.InitStartCamera();
+            HotGameEntry.Sound.PlayMusic((int)EnumSound.GameStartBGM);
         }
         protected override void OnUpdate(ProcedureOwner procedureOwner, float elapseSeconds, float realElapseSeconds)
         {
@@ -56,30 +56,30 @@ namespace Procedure
         {
             //一局关卡游戏初始化
             var mazeGen = new MazeGeneratorFromAreaPointTable();
-            GameEntry.HeroManager.CurAreaList = mazeGen.InitMap();
+            HotGameEntry.HeroManager.CurAreaList = mazeGen.InitMap();
             //创建所有点得相机
-            GameEntry.HeroManager.InitAreaPointCamera();
+            HotGameEntry.HeroManager.InitAreaPointCamera();
             /*var fakeMazeGen = new MazeGenerator();
-            GameEntry.HeroManager.CurMazeList = fakeMazeGen.GenerateMaze();*/
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.AddNewFriendHero(5);
-            GameEntry.HeroManager.TryAddCoin(200);
-            GameEntry.HeroManager.ItemBagList.Clear();
+            HotGameEntry.HeroManager.CurMazeList = fakeMazeGen.GenerateMaze();*/
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.AddNewFriendHero(5);
+            HotGameEntry.HeroManager.TryAddCoin(200);
+            HotGameEntry.HeroManager.ItemBagList.Clear();
         }
 
         private void InitContinueGameData()
         {
-            var gameData = GameEntry.HeroManager.Load();
+            var gameData = HotGameEntry.HeroManager.Load();
             if (gameData == null)
             {
                 Log.Error("GameData error");
@@ -87,7 +87,7 @@ namespace Procedure
                 return;
             }
 
-            GameEntry.HeroManager.InitDataFormData(gameData);
+            HotGameEntry.HeroManager.InitDataFormData(gameData);
         }
         private void OnEventStartNewGame(object sender, GameEventArgs e)
         {

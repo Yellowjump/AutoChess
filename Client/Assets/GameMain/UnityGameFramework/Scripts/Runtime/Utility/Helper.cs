@@ -40,7 +40,10 @@ namespace UnityGameFramework.Runtime
             T helper = null;
             if (!string.IsNullOrEmpty(helperTypeName))
             {
-                System.Type helperType = Utility.Assembly.GetType(helperTypeName);
+                // Bootstrap has a second, AOT copy of the framework helpers. Prefer
+                // the assembly that defines T so a hot component gets a hot helper.
+                System.Type helperType = typeof(T).Assembly.GetType(helperTypeName)
+                    ?? Utility.Assembly.GetType(helperTypeName);
                 if (helperType == null)
                 {
                     Log.Warning("Can not find helper type '{0}'.", helperTypeName);

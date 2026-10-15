@@ -15,7 +15,7 @@ ScriptedImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-  script: {instanceID: 0}
+  script: {fileID: 11500000, guid: fe56ec25963759b49955809beeb4324b, type: 3}
   renderPipelineDetection: 0
   detectedRenderPipeline: Universal Render Pipeline
   strippedLinesCount: 45
@@ -63,6 +63,8 @@ ScriptedImporter:
     \"CFXR_PASSES.cginc\"\r\n\r\n\t\t\t\tENDCG\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t}\r\n\t\r\n\tCustomEditor
     \"CartoonFX.MaterialInspector\"\r\n}\r\n\r\n"
   shaderName: Cartoon FX/Remaster/Particle Screen Distortion
-  shaderErrors: []
+  shaderErrors:
+  - Couldn't open include file 'CFXR_PASSES.cginc'. (line 87)
+  - Couldn't open include file 'CFXR_PASSES.cginc'. (line 121)
   variantCount: 32
   variantCountUsed: 2

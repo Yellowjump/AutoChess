@@ -40,7 +40,7 @@ public class StateIdle0 : FsmState<EntityQizi>,IReference
             return;
         }
 
-        if (GameEntry.HeroManager.dangqianliucheng == 0||owner.rowIndex==-1)//非战斗状态或者 没上场就一直在idle状态
+        if (HotGameEntry.HeroManager.dangqianliucheng == 0||owner.rowIndex==-1)//非战斗状态或者 没上场就一直在idle状态
         {
             return;
         }
@@ -65,9 +65,9 @@ public class StateIdle0 : FsmState<EntityQizi>,IReference
             }
             else if (result == CheckCastSkillResult.TargetOutRange)
             {
-                Vector2Int ownerIndex = GameEntry.HeroManager.GetIndexQizi(owner);
-                Vector2Int targetIndex = GameEntry.HeroManager.GetIndexQizi(target);
-                var nextPosIndex = GameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.NormalSkillList[checkNormalSkillList[index]].SkillRange);
+                Vector2Int ownerIndex = HotGameEntry.HeroManager.GetIndexQizi(owner);
+                Vector2Int targetIndex = HotGameEntry.HeroManager.GetIndexQizi(target);
+                var nextPosIndex = HotGameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.NormalSkillList[checkNormalSkillList[index]].SkillRange);
                 if (nextPosIndex != new Vector2Int(-1, -1))//有路线可走
                 {
                     owner.CurAttackTarget = target;

@@ -93,7 +93,7 @@ namespace Entity.Bullet
             }
             ListPool<Buff>.Release(tempBuffList);
             IsValid = false;
-            GameEntry.HeroManager.DestoryBullet(this);
+            HotGameEntry.HeroManager.DestoryBullet(this);
         }
         public override void Clear()
         {

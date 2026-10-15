@@ -72,7 +72,7 @@ namespace Entity.Bullet
             }
 
             // 判断命中敌人
-            var enemyList = GameEntry.HeroManager.GetEnemyList(BelongCamp);
+            var enemyList = HotGameEntry.HeroManager.GetEnemyList(BelongCamp);
             foreach (var enemy in enemyList)
             {
                 if (!enemy.IsValid)

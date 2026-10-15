@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DataTable;
 using GameFramework.Resource;
 using TMPro;
@@ -34,7 +34,7 @@ public class BattleRewardItem:MonoBehaviour
         item.Fresh();
         var itemData = itemTable[ItemID];
         Name.text = GameEntry.Localization.GetString(itemData.Name);
-        Desc.text = GameEntry.HeroManager.FormatItemDesc(GameEntry.Localization.GetString(itemData.Decs),0);
+        Desc.text = HotGameEntry.HeroManager.FormatItemDesc(GameEntry.Localization.GetString(itemData.Decs),0);
         Rarity.color = ConstValue.RarityColorList[itemData.Rarity];
         Rarity.text = GameEntry.Localization.GetString(ConstValue.RarityNameList[itemTable[ItemID].Rarity]);
     }

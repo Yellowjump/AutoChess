@@ -40,15 +40,15 @@ public class AreaListPanel3DCtrl : UIFormLogic
         _curLineList.Clear();
         _pointPool ??= new ObjectPool<GameObject>(() =>
         {
-            GameObject ob = Instantiate(_pointTemp, GameEntry.HeroManager.WorldCanvas.transform);
+            GameObject ob = Instantiate(_pointTemp, HotGameEntry.HeroManager.WorldCanvas.transform);
             return ob;
-        }, (obj) => {obj.SetActive(true); obj.transform.SetParent(GameEntry.HeroManager.WorldCanvas.transform); }, (obj) => {obj.transform.SetParent(GameEntry.HeroManager.DisableRoot);}, Destroy);
+        }, (obj) => {obj.SetActive(true); obj.transform.SetParent(HotGameEntry.HeroManager.WorldCanvas.transform); }, (obj) => {obj.transform.SetParent(HotGameEntry.HeroManager.DisableRoot);}, Destroy);
         
         _linePool ??= new ObjectPool<GameObject>(() =>
         {
-            GameObject ob = Instantiate(_lineTemp, GameEntry.HeroManager.DisableRoot);
+            GameObject ob = Instantiate(_lineTemp, HotGameEntry.HeroManager.DisableRoot);
             return ob;
-        }, (obj) => {obj.SetActive(true); obj.transform.SetParent(GameEntry.HeroManager.WorldCanvas.transform); }, (obj) => {obj.transform.SetParent(GameEntry.HeroManager.DisableRoot);}, Destroy);
+        }, (obj) => {obj.SetActive(true); obj.transform.SetParent(HotGameEntry.HeroManager.WorldCanvas.transform); }, (obj) => {obj.transform.SetParent(HotGameEntry.HeroManager.DisableRoot);}, Destroy);
     }
 
     public override void OnOpen(object userData)
@@ -62,7 +62,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
 
     private void GenLineAndPoint()
     {
-        var mazeList = GameEntry.HeroManager.CurAreaList;
+        var mazeList = HotGameEntry.HeroManager.CurAreaList;
         if (mazeList == null)
         {
             return;
@@ -76,7 +76,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
             }
             foreach (var linkPointIndex in onePointData.LinkPointList)
             {
-                var linkPointData = GameEntry.HeroManager.GetPoint(linkPointIndex);
+                var linkPointData = HotGameEntry.HeroManager.GetPoint(linkPointIndex);
                 if (linkPointData.Pos.x > onePointData.Pos.x || (Math.Abs(linkPointData.Pos.x - onePointData.Pos.x) < float.Epsilon &&linkPointData.Pos.y > onePointData.Pos.y))
                 {
                     Vector3 linkPosition = linkPointData.Pos;
@@ -123,7 +123,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
     private void OnClickPoint(AreaPointItem item)
     {
         Log.Info(item.Index);
-        var point=GameEntry.HeroManager.GetPoint(item.Index);
+        var point=HotGameEntry.HeroManager.GetPoint(item.Index);
         GameEntry.Event.Fire(this,EnterPointEventArgs.Create(point));
     }
 
@@ -136,7 +136,7 @@ public class AreaListPanel3DCtrl : UIFormLogic
             {
                 continue;
             }
-            var point=GameEntry.HeroManager.GetPoint(curItem.Index);
+            var point=HotGameEntry.HeroManager.GetPoint(curItem.Index);
             curItem.SetOpaque(1);
             curItem.gameObject.SetActive(true);
             curItem.IsPassImg.SetActive(point.CurPassState==AreaPoint.PointPassState.Pass);

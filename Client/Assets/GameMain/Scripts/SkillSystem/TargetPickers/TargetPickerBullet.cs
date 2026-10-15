@@ -15,7 +15,7 @@ namespace SkillSystem
         public bool SameCaster;
         public override void GetTarget(OneTrigger trigger,object arg = null)
         {
-            var bulletList = GameEntry.HeroManager.BulletList;
+            var bulletList = HotGameEntry.HeroManager.BulletList;
             foreach (var oneBullet in bulletList)
             {
                 if (!oneBullet.IsValid)

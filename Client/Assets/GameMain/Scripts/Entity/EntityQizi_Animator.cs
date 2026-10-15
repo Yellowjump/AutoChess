@@ -36,17 +36,17 @@ namespace Entity
             if (tableHero.HasDataRow(HeroID))
             {
                 var heroData = tableHero[HeroID];
-                GameEntry.HeroManager.LoadAnimationClip(heroData.IdleAnimID);
-                GameEntry.HeroManager.LoadAnimationClip(heroData.RunAnimID);
-                GameEntry.HeroManager.LoadAnimationClip(heroData.WinAnimID);
-                GameEntry.HeroManager.LoadAnimationClip(heroData.LoseAnimID);
+                HotGameEntry.HeroManager.LoadAnimationClip(heroData.IdleAnimID);
+                HotGameEntry.HeroManager.LoadAnimationClip(heroData.RunAnimID);
+                HotGameEntry.HeroManager.LoadAnimationClip(heroData.WinAnimID);
+                HotGameEntry.HeroManager.LoadAnimationClip(heroData.LoseAnimID);
             }
         }
         private void UpdateAnimCommand()
         {
             if (_animancer != null && _waitPlayAni!=null)
             {
-                var anim = GameEntry.HeroManager.GetAnimClipByPath(_waitPlayAni.AnimAssetPath);
+                var anim = HotGameEntry.HeroManager.GetAnimClipByPath(_waitPlayAni.AnimAssetPath);
                 if (anim != null)
                 {
                     var state = _animancer.Play(anim,0.25f);
@@ -113,10 +113,10 @@ namespace Entity
             if (tableHero.HasDataRow(HeroID))
             {
                 var heroData = tableHero[HeroID];
-                GameEntry.HeroManager.ReleaseAnimNeed(heroData.IdleAnimID);
-                GameEntry.HeroManager.ReleaseAnimNeed(heroData.RunAnimID);
-                GameEntry.HeroManager.ReleaseAnimNeed(heroData.WinAnimID);
-                GameEntry.HeroManager.ReleaseAnimNeed(heroData.LoseAnimID);
+                HotGameEntry.HeroManager.ReleaseAnimNeed(heroData.IdleAnimID);
+                HotGameEntry.HeroManager.ReleaseAnimNeed(heroData.RunAnimID);
+                HotGameEntry.HeroManager.ReleaseAnimNeed(heroData.WinAnimID);
+                HotGameEntry.HeroManager.ReleaseAnimNeed(heroData.LoseAnimID);
             }
         }
     }

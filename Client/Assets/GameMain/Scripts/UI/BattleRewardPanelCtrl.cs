@@ -39,11 +39,11 @@ public class BattleRewardPanelCtrl : UIFormLogic
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
-        GameEntry.Sound.PlayUISound((int)EnumSound.BattleWin);
+        HotGameEntry.Sound.PlayUISound((int)EnumSound.BattleWin);
         _btnContinue.gameObject.SetActive(false);
         _itemParent.gameObject.SetActive(true);
         List<int> rewardItemIDList = ListPool<int>.Get();
-        var levelID = GameEntry.HeroManager.CurAreaPoint.CurLevelID;
+        var levelID = HotGameEntry.HeroManager.CurAreaPoint.CurLevelID;
         var levelConfigTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
         if (!levelConfigTable.HasDataRow(levelID))
         {
@@ -100,7 +100,7 @@ public class BattleRewardPanelCtrl : UIFormLogic
 
     private void OnClickRewardItem(BattleRewardItem battleRewardItem)
     {
-        GameEntry.HeroManager.AddOneItemToBag(battleRewardItem.ItemID, 1);
+        HotGameEntry.HeroManager.AddOneItemToBag(battleRewardItem.ItemID, 1);
         //关闭奖励选项
         _itemParent.gameObject.SetActive(false);
         _btnContinue.gameObject.SetActive(true);

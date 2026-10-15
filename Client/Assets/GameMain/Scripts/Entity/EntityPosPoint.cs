@@ -121,7 +121,7 @@ namespace Entity
             Caster = null;
             if (GObj != null)
             {
-                GameEntry.HeroManager.ReleaseEmptyObj(GObj);
+                HotGameEntry.HeroManager.ReleaseEmptyObj(GObj);
                 GObj = null;
             }
 

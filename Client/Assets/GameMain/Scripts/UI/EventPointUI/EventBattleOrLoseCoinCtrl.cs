@@ -26,7 +26,7 @@ public class EventBattleOrLoseCoinCtrl : UIFormLogic
 
     private void OnClickBtnLoseCoin()
     {
-        GameEntry.HeroManager.TryAddCoin(-30);
+        HotGameEntry.HeroManager.TryAddCoin(-30);
         GameEntry.Event.Fire(this,EventCompleteToMapEventArg.Create());
     }
     private void OnClickBtnStartBattle()

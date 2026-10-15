@@ -60,7 +60,7 @@ namespace Entity.Bullet
             _curAngle = Mathf.Repeat(_curAngle, 360);
             _curSumRotateAngle += changeAngle;
             ComputeCurPosAndDir();
-            var heroList = GameEntry.HeroManager.GetEnemyList(BelongCamp);
+            var heroList = HotGameEntry.HeroManager.GetEnemyList(BelongCamp);
             var beforeDir = new Vector2(Mathf.Cos(Mathf.Deg2Rad * beforeAngle), Mathf.Sin(Mathf.Deg2Rad * beforeAngle));
             //var curDir = new Vector2(Mathf.Cos(Mathf.Deg2Rad * _curAngle), Mathf.Sin(Mathf.Deg2Rad * _curAngle));
             foreach (var oneEntity in heroList)

@@ -20,11 +20,11 @@ namespace Procedure.GameStates
         protected override void OnEnter(IFsm<ProcedureGame> fsm)
         {
             base.OnEnter(fsm);
-            GameEntry.HeroManager.Save();
+            HotGameEntry.HeroManager.Save();
             ReleaseLastEventPointGObj();
             _fsm = fsm;
-            GameEntry.HeroManager.ResetToMainCamera();
-            GameEntry.HeroManager.ShowQige(false);
+            HotGameEntry.HeroManager.ResetToMainCamera();
+            HotGameEntry.HeroManager.ShowQige(false);
             var eventArg = MapFreshOpaqueEventArgs.Create(1);
             GameEntry.Event.Fire(this,eventArg);
             GameEntry.Event.Subscribe(EnterPointEventArgs.EventId,EnterPoint);
@@ -36,23 +36,23 @@ namespace Procedure.GameStates
         private void ReleaseLastEventPointGObj()
         {
             //清除event对应的GameObj
-            if (GameEntry.HeroManager.CurAreaPoint!=null&&GameEntry.HeroManager.CurAreaPoint.LevelGObj != null)
+            if (HotGameEntry.HeroManager.CurAreaPoint!=null&&HotGameEntry.HeroManager.CurAreaPoint.LevelGObj != null)
             {
-                var levelID = GameEntry.HeroManager.CurAreaPoint.CurLevelID;
+                var levelID = HotGameEntry.HeroManager.CurAreaPoint.CurLevelID;
                 var levelTable = GameEntry.DataTable.GetDataTable<DRLevelConfig>("LevelConfig");
                 if (levelTable.HasDataRow(levelID))
                 {
                     var levelData = levelTable[levelID];
-                    GameEntry.HeroManager.ReleaseAssetObj(levelData.ParamInt1,GameEntry.HeroManager.CurAreaPoint.LevelGObj,null);
+                    HotGameEntry.HeroManager.ReleaseAssetObj(levelData.ParamInt1,HotGameEntry.HeroManager.CurAreaPoint.LevelGObj,null);
                 }
                 
-                GameEntry.HeroManager.CurAreaPoint.LevelGObj = null;
+                HotGameEntry.HeroManager.CurAreaPoint.LevelGObj = null;
             }
         }
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
         {
             base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
-            //GameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
+            //HotGameEntry.HeroManager.UpdateNoBattle(GameEntry.LogicDeltaTime,realElapseSeconds);
         }
 
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)
@@ -70,7 +70,7 @@ namespace Procedure.GameStates
             AreaPoint point = ne.TargetPoint;
             if (point != null && point.CurPassState == AreaPoint.PointPassState.Unlock)
             {
-                GameEntry.HeroManager.CurAreaPoint = point;
+                HotGameEntry.HeroManager.CurAreaPoint = point;
                 if (point.CurType is MazePointType.UnKnown)
                 {
                     List<int> typeList = ListPool<int>.Get();
@@ -82,7 +82,7 @@ namespace Procedure.GameStates
                     var typeIndex = Utility.Random.GetRandom(typeList.Count);
                     //随机修改当前点为 其他类型
                     point.CurType = (MazePointType)typeList[typeIndex];
-                    point.CurLevelID = GameEntry.HeroManager.GetOneRandomLevelIDFormType(point.CurType);
+                    point.CurLevelID = HotGameEntry.HeroManager.GetOneRandomLevelIDFormType(point.CurType);
                 }
                 ChangeState<GameState_BeforeCameraMove>(_fsm);
             }
