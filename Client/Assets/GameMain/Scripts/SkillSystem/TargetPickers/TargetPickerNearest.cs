@@ -7,6 +7,7 @@ using GameFramework;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace SkillSystem
 {
@@ -15,23 +16,6 @@ namespace SkillSystem
         public override TargetPickerType CurTargetPickerType => TargetPickerType.Nearest;
         public CampType TargetCamp;
         public TableParamInt WeaponLength;
-        public override void GetTarget(OneTrigger trigger, object arg = null)
-        {
-            if (trigger != null && trigger.ParentTriggerList != null)
-            {
-                var owner = trigger.ParentTriggerList.Owner;
-                var weaponLength = WeaponLength.Value;
-                if (weaponLength <= 0)
-                {
-                    weaponLength = int.MaxValue;
-                }
-                HotGameEntry.HeroManager.GetNearestTarget(owner, TargetCamp, out var target, weaponLength);
-                if (target != null)
-                {
-                    trigger.CurTargetList.Add(target);
-                }
-            }
-        }
 
         public override void ReadFromFile(BinaryReader reader)
         {

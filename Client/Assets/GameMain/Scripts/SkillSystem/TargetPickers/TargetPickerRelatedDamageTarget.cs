@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using Entity;
 using UnityEngine.Pool;
+using Zizouqi.CombatDots;
 
 namespace SkillSystem
 {
@@ -9,20 +10,6 @@ namespace SkillSystem
     {
         public override TargetPickerType CurTargetPickerType => TargetPickerType.RelatedDamageTarget;
         public DamageDataTargetType CurDamageDataTargetType;
-        public override void GetTarget(OneTrigger trigger, object arg = null)
-        {
-            if (arg is CauseDamageData damageData)
-            {
-                if (CurDamageDataTargetType==DamageDataTargetType.Caster)
-                {
-                    trigger.CurTargetList.Add(damageData.Caster);
-                }
-                else//后面需更改添加list列表，完善目标
-                {
-                    trigger.CurTargetList.Add(damageData.Target);
-                }
-            }
-        }
 
         public override void Clone(TargetPickerBase copy)
         {

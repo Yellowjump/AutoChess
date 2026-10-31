@@ -11,25 +11,6 @@ namespace SkillSystem
         public override CommandType CurCommandType => CommandType.RemoveBuff;
         public bool RemoveCurBuff;
         public TableParamInt BuffID;
-        public override void OnExecute(OneTrigger trigger, object arg = null)
-        {
-            if (RemoveCurBuff&&trigger.ParentTriggerList is Buff curBuff)
-            {
-                curBuff.OnDestory();
-                return;
-            }
-            if (BuffID.Value!=0&&trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
-            {
-                foreach (var oneTarget in trigger.CurTargetList)
-                {
-                    if (oneTarget == null || oneTarget.IsValid == false)
-                    {
-                        continue;
-                    }
-                    oneTarget.RemoveBuff(BuffID.Value);
-                }
-            }
-        }
 
         public override void WriteToFile(BinaryWriter writer)
         {

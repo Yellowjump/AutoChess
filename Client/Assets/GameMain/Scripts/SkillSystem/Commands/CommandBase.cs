@@ -9,10 +9,6 @@ namespace SkillSystem
     {
         public OneTrigger ParentTrigger;
         public virtual CommandType CurCommandType => CommandType.DoNothing;
-        public virtual void OnExecute(OneTrigger trigger,object arg = null)
-        {
-            
-        }
         public virtual void WriteToFile(BinaryWriter writer)
         {
             

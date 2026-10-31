@@ -1,11 +1,8 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using DataTable;
 using Entity;
 using GameFramework;
 using UnityEngine;
-using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
@@ -28,83 +25,67 @@ namespace SkillSystem
         /// </summary>
         public Buff TemporaryBuff;
 
-        public override void OnExecute(OneTrigger trigger, object arg = null)
-        {
-            if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
-            {
-                foreach (var oneTarget in trigger.CurTargetList)
-                {
-                    var target = oneTarget;
-                    if (target == null || target.IsValid == false)
-                    {
-                        continue;
-                    }
 
-                    //对当前 target 创建一个buff
-                    if (UseTemplateBuff == false)
+        internal void ExecuteTarget(OneTrigger trigger, EntityBase target, int buffId,
+            bool createTemporaryBuff)
+        {
+            ExecuteTarget(trigger.ParentTriggerList.ParentSkill, target,
+                TemporaryBuff, buffId, createTemporaryBuff);
+        }
+
+        internal static void ExecuteTarget(Skill sourceSkill, EntityBase target,
+            Buff temporaryBuff, int buffId, bool createTemporaryBuff)
+        {
+            if (target == null || target.IsValid == false)
+            {
+                return;
+            }
+
+            //对当前 target 创建一个buff
+            if (createTemporaryBuff)
+            {
+                if (temporaryBuff != null)
+                {
+                    var newBuff = SkillFactory.CreateNewBuff();
+                    temporaryBuff.Clone(newBuff);
+                    newBuff.Owner = target;
+                    newBuff.ParentSkill = sourceSkill;
+                    newBuff.DurationMs = temporaryBuff.DurationMs;
+                    newBuff.RemainMs = newBuff.DurationMs;
+                    target.AddBuff(newBuff);
+                }
+            }
+            else
+            {
+                var buffTempTable = GameEntry.DataTable.GetDataTable<DRBuffTemplate>("BuffTemplate");
+                var buffTable = GameEntry.DataTable.GetDataTable<DRBuff>("Buff");
+                if (buffTable.HasDataRow(buffId))
+                {
+                    var buffData = buffTable[buffId];
+                    var buffTempId = buffData.TemplateID;
+                    if (buffTempTable != null && buffTempTable.HasDataRow(buffTempId))
                     {
-                        if (TemporaryBuff != null)
-                        {
-                            var newBuff = SkillFactory.CreateNewBuff();
-                            TemporaryBuff.Clone(newBuff);
-                            newBuff.Owner = target;
-                            newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
-                            newBuff.DurationMs = TemporaryBuff.DurationMs;
-                            newBuff.RemainMs = newBuff.DurationMs;
-                            target.AddBuff(newBuff);
-                        }
+                        var buffTemp = buffTempTable[buffTempId].BuffTemplate;
+                        var newBuff = SkillFactory.CreateNewBuff();
+                        buffTemp.Clone(newBuff);
+                        newBuff.BuffID = buffData.Id;
+                        newBuff.ParentSkill = sourceSkill;
+                        newBuff.DurationMs = buffData.Duration;
+                        newBuff.RemainMs = buffData.Duration;
+                        newBuff.MaxLayerNum = buffData.MaxLayerNum;
+                        newBuff.FreshOtherBuffDuration = buffData.FreshDuration;
+                        newBuff.SetSkillValue(buffData);
+                        newBuff.Owner = target;
+                        target.AddBuff(newBuff);
                     }
                     else
                     {
-                        if (TemporaryBuff == null)
-                        {
-                            var buffTempTable = GameEntry.DataTable.GetDataTable<DRBuffTemplate>("BuffTemplate");
-                            var buffTable = GameEntry.DataTable.GetDataTable<DRBuff>("Buff");
-                            var tempBuffIDList = ListPool<int>.Get();
-                            if (BuffID.Value != 0)
-                            {
-                                tempBuffIDList.Add(BuffID.Value);
-                            }
-
-                            if (!string.IsNullOrEmpty(BuffList.Value))
-                            {
-                                tempBuffIDList.AddRange(BuffList.Value.Split(',').Select(int.Parse));
-                            }
-
-                            foreach (var oneBuffID in tempBuffIDList)
-                            {
-                                if (buffTable.HasDataRow(oneBuffID))
-                                {
-                                    var buffData = buffTable[oneBuffID];
-                                    var buffTempId = buffData.TemplateID;
-                                    if (buffTempTable != null && buffTempTable.HasDataRow(buffTempId))
-                                    {
-                                        var buffTemp = buffTempTable[buffTempId].BuffTemplate;
-                                        var newBuff = SkillFactory.CreateNewBuff();
-                                        buffTemp.Clone(newBuff);
-                                        newBuff.BuffID = buffData.Id;
-                                        newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
-                                        newBuff.DurationMs = buffData.Duration;
-                                        newBuff.RemainMs = buffData.Duration;
-                                        newBuff.MaxLayerNum = buffData.MaxLayerNum;
-                                        newBuff.FreshOtherBuffDuration = buffData.FreshDuration;
-                                        newBuff.SetSkillValue(buffData);
-                                        newBuff.Owner = target;
-                                        target.AddBuff(newBuff);
-                                    }
-                                    else
-                                    {
-                                        Log.Error($"No BuffTemplate ID:{buffTempId}");
-                                    }
-                                }
-                                else
-                                {
-                                    Log.Error($"No BuffID:{oneBuffID}");
-                                }
-                            }
-                            ListPool<int>.Release(tempBuffIDList);
-                        }
+                        Log.Error($"No BuffTemplate ID:{buffTempId}");
                     }
+                }
+                else
+                {
+                    Log.Error($"No BuffID:{buffId}");
                 }
             }
         }
@@ -116,12 +97,17 @@ namespace SkillSystem
                 copyCreateBuff.UseTemplateBuff = UseTemplateBuff;
                 if (UseTemplateBuff)
                 {
+                    if (copyCreateBuff.TemporaryBuff != null)
+                    {
+                        ReferencePool.Release(copyCreateBuff.TemporaryBuff);
+                        copyCreateBuff.TemporaryBuff = null;
+                    }
                     BuffID.Clone(copyCreateBuff.BuffID);
                     BuffList.Clone(copyCreateBuff.BuffList);
                 }
                 else
                 {
-                    copyCreateBuff.TemporaryBuff = SkillFactory.CreateNewBuff();
+                    copyCreateBuff.TemporaryBuff ??= SkillFactory.CreateNewBuff();
                     TemporaryBuff.Clone(copyCreateBuff.TemporaryBuff);
                 }
             }

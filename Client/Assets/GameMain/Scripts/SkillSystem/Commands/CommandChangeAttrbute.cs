@@ -5,6 +5,7 @@ using GameFramework;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace SkillSystem
 {
@@ -16,25 +17,6 @@ namespace SkillSystem
         public bool AddOrReduce;
         public AttributeChangeType CurAttributeChangeType;
         public TableParamInt ParamInt1;
-        public override void OnExecute(OneTrigger trigger, object arg = null)
-        {
-            if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
-            {
-                foreach (var oneTarget in trigger.CurTargetList)
-                {
-                    EntityQizi target = oneTarget as EntityQizi;
-                    var targetAttr = target.GetAttribute((AttributeType)TargetAttrType.Value);
-                    if (AddOrReduce)
-                    {
-                        targetAttr.AddNum(ParamInt1.Value);
-                    }
-                    else
-                    {
-                        targetAttr.AddNum(-ParamInt1.Value);
-                    }
-                }
-            }
-        }
 
         public override void Clone(CommandBase copy)
         {

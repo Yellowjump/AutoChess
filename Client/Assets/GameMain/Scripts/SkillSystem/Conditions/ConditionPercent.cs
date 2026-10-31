@@ -9,16 +9,6 @@ namespace SkillSystem
     {
         public override ConditionType CurConditionType => ConditionType.Percentage;
         public TableParamInt PercentTarget;
-        public override bool OnCheck(OneTrigger trigger,object arg = null)
-        {
-            var ran =  Utility.Random.GetRandom(100);
-            if (ran < PercentTarget.Value)
-            {
-                return true;
-            }
-            return false;
-        }
-
         public override void WriteToFile(BinaryWriter writer)
         {
             base.WriteToFile(writer);

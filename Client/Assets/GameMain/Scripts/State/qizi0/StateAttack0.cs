@@ -9,13 +9,10 @@ using SkillSystem;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 public class StateAttack0 : FsmState<EntityQizi>,IReference
 {
-    private int curNormalIndex = 0;
-    private float durationAccumulate = 0f;
-    private bool m_HasEnterShakeBefore = false;
-    private bool m_HasAnimEndCheckToIdle = false;
     protected override void OnInit(IFsm<EntityQizi> fsm)
     {
         base.OnInit(fsm);
@@ -28,7 +25,7 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
             return;
         }
         var owner = fsm.Owner;
-        curNormalIndex = owner.CurCastNormalSkillIndex;
+        CombatAttackCastBridge.Begin(owner.CombatUnitHandle, owner.CurCastNormalSkillIndex);
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
@@ -36,7 +33,7 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         /*if (Time.time-timebegin>0.5f)
         {
             timebegin = Time.time + 0.5f;
-            if (HotGameEntry.HeroManager.dangqianliucheng == 0 || qizitarget == null)
+            if (!HotGameEntry.HeroManager.InBattle || qizitarget == null)
             {
                 ChangeState<StateIdle0>(fsm);
             }
@@ -56,24 +53,21 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         }
 
         var owner = fsm.Owner;
-        durationAccumulate += elapseSeconds;
         //update 技能时间
-        var curSkill = owner.NormalSkillList[curNormalIndex];
+        var curSkill = owner.NormalSkillList[CombatAttackCastBridge.GetNormalSkillIndex(owner.CombatUnitHandle)];
         var curCDMs = curSkill.CurCastCDMs;
         var curAnimEndMs = curSkill.CurAnimationDurationMs;
         var curShakeBeforeMs = curSkill.CurShakeBeforeMs;
-        if (m_HasEnterShakeBefore==false&& durationAccumulate * 1000 >= curShakeBeforeMs)
+        if (CombatAttackCastBridge.TryConsumeShake(owner.CombatUnitHandle, curShakeBeforeMs))
         {
-            m_HasEnterShakeBefore = true;
             curSkill.OnSkillBeforeShakeEnd();
         }
-        if (m_HasAnimEndCheckToIdle==false&& durationAccumulate * 1000 >= curAnimEndMs)
+        if (CombatAttackCastBridge.TryConsumeAnimationEnd(owner.CombatUnitHandle, curAnimEndMs))
         {
-            m_HasAnimEndCheckToIdle = true;
             owner.AddAnimCommandIdle();
         }
         
-        if (durationAccumulate * 1000 >= curCDMs)
+        if (CombatAttackCastBridge.IsComplete(owner.CombatUnitHandle, curCDMs))
         {
             curSkill.OnDestory();
             //技能结束回到idle状态
@@ -83,10 +77,10 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {
         base.OnLeave(fsm, isShutdown);
-        durationAccumulate = 0;
-        curNormalIndex = 0;
-        m_HasEnterShakeBefore = false;
-        m_HasAnimEndCheckToIdle = false;
+        if (fsm != null && fsm.Owner != null)
+        {
+            CombatAttackCastBridge.End(fsm.Owner.CombatUnitHandle);
+        }
     }
     protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {

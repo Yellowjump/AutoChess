@@ -6,15 +6,10 @@ using SkillSystem;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 public class StateMove0 : FsmState<EntityQizi>,IReference
 {
-    Vector2Int nextPosIndex;
-    Vector3 startpos;
-    Vector3 nextpos;
-    private const float MoveOneCellDuration = 0.5f;
-    private float _moveAccumulate = 0f;
-    private bool _moving = false;
     protected override void OnEnter(IFsm<EntityQizi> fsm)
     {
         base.OnEnter(fsm);
@@ -23,9 +18,7 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
             return;
         }
 
-        var owner = fsm.Owner;
-        startpos = owner.LogicPosition;
-        nextPosIndex = new Vector2Int(-1, -1);
+        CombatMovementBridge.End(fsm.Owner.CombatUnitHandle);
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
@@ -37,25 +30,14 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
             return;
         }
         //判断是否在移动中
-        if (_moving)
+        if (CombatMovementBridge.ConsumeAdvanced(owner.CombatUnitHandle, elapseSeconds,
+                out bool arrived, out _, out _, out _))
         {
-            _moveAccumulate += elapseSeconds;
-            if (_moveAccumulate < MoveOneCellDuration)
+            if (!arrived)
             {
-                owner.LogicPosition = Vector3.Lerp(startpos, nextpos, _moveAccumulate / MoveOneCellDuration);
-                /*owner.LogicPosition = new Vector3(Mathf.Lerp(startpos.x, nextpos.x, _moveAccumulate/MoveOneCellDuration), 0, Mathf.Lerp(startpos.z, nextpos.z, _moveAccumulate/MoveOneCellDuration));*/
                 return;
             }
-            else
-            {
-                _moveAccumulate = 0;
-                owner.LogicPosition = nextpos;
-                //已到达目标点
-                _moving = false;
-                var v2 = HotGameEntry.HeroManager.GetIndexQizi(owner);
-                owner.columnIndex = v2.x;
-                owner.rowIndex = v2.y;
-            }
+            //棋盘占位已在开始移动时写入 ECS。
         }
         //判断是否可以changeState或者确定下一移动目标点
         CheckChangeStateOrMovePos(fsm);
@@ -71,18 +53,22 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
         var owner = fsm.Owner;
         var result = CheckCastSkillResult.Error;
         EntityQizi target = null;
-        List<int> checkNormalSkillList = owner.GetNormalSkillCheckSort();
+        int skillCount = owner.NormalSkillList.Count;
         var noNextPosMove = true;
-        for (var index = 0; index < checkNormalSkillList.Count; index++)
+        for (var offset = 0; offset < skillCount; offset++)
         {
-            result = owner.CheckCanCastSkill(out target,checkNormalSkillList[index]);
+            int skillIndex = CombatAttributeBridge.GetNormalSkillIndexAtOffset(
+                owner.CombatUnitHandle, skillCount, offset);
+            result = owner.CheckCanCastSkill(out target, skillIndex);
             if (result == CheckCastSkillResult.CanCast)
             {
                 owner.CurAttackTarget = target;
-                owner.CastNormalSkill(checkNormalSkillList[index]);
+                owner.CastNormalSkill(skillIndex);
                 if (target != null)
                 {
-                    owner.GObj?.transform.LookAt(target.GObj.transform);
+                    Vector3 targetPosition = target.LogicPosition;
+                    CombatAttributeBridge.QueueFacing(owner.CombatUnitHandle,
+                        targetPosition.x, targetPosition.y, targetPosition.z);
                 }
                 ChangeState<StateAttack0>(fsm);
                 return;
@@ -92,22 +78,22 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
                 owner.CurAttackTarget = target;
                 Vector2Int ownerIndex = HotGameEntry.HeroManager.GetIndexQizi(owner);
                 Vector2Int targetIndex = HotGameEntry.HeroManager.GetIndexQizi(target);
-                nextPosIndex = HotGameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.NormalSkillList[checkNormalSkillList[index]].SkillRange);
+                Vector2Int nextPosIndex = HotGameEntry.HeroManager.Findpath(ownerIndex, targetIndex,
+                    CombatSkillSlotBridge.GetNormalRange(owner.CombatUnitHandle, skillIndex));
                 if (nextPosIndex.x != -1 && nextPosIndex.y != -1&&nextPosIndex!=ownerIndex)
                 {
                     noNextPosMove = false;
-                    _moving = true;
-                    startpos = owner.LogicPosition;
-                    nextpos = HotGameEntry.HeroManager.GetGeziPos(nextPosIndex.y,nextPosIndex.x);;
+                    Vector3 nextpos = HotGameEntry.HeroManager.GetGeziPos(nextPosIndex.y,nextPosIndex.x);
+                    CombatMovementBridge.Begin(owner.CombatUnitHandle, nextpos.x, nextpos.y, nextpos.z);
                     owner.AddAnimCommandRun();
-                    owner.GObj?.transform.LookAt(nextpos);
-                    HotGameEntry.HeroManager.qige[ownerIndex.y][ownerIndex.x] = -1;
-                    HotGameEntry.HeroManager.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
+                    CombatAttributeBridge.QueueFacing(owner.CombatUnitHandle,
+                        nextpos.x, nextpos.y, nextpos.z);
+                    CombatBoardBridge.MoveOccupant(ownerIndex.y,
+                        ownerIndex.x, nextPosIndex.y, nextPosIndex.x, owner.HeroUID);
                     break;
                 }
             }
         }
-        ListPool<int>.Release(checkNormalSkillList);
         if (noNextPosMove)
         {
             ChangeState<StateIdle0>(fsm);
@@ -118,6 +104,10 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {
         base.OnLeave(fsm, isShutdown);
+        if (fsm != null && fsm.Owner != null)
+        {
+            CombatMovementBridge.End(fsm.Owner.CombatUnitHandle);
+        }
     }
     protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {

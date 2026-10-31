@@ -1,0 +1,14 @@
+{
+    "name": "Zizouqi.CombatVisuals",
+    "rootNamespace": "Zizouqi.CombatVisuals",
+    "references": ["Zizouqi.CombatDots", "Unity.Entities", "Unity.Entities.Graphics", "Unity.Transforms", "Unity.Burst", "Unity.Collections", "Unity.Mathematics"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

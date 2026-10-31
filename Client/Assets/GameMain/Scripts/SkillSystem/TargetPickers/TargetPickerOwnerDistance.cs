@@ -7,6 +7,7 @@ using GameFramework;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace SkillSystem
 {
@@ -16,46 +17,6 @@ namespace SkillSystem
         public bool LengthUseWeapon;
         public TableParamInt WeaponLength;
         public CampType TargetCamp;
-        public override void GetTarget(OneTrigger trigger, object arg = null)
-        {
-            if (trigger != null && trigger.ParentTriggerList != null)
-            {
-                var owner = trigger.ParentTriggerList.Owner;
-                var weaponLength = WeaponLength.Value;
-                if (LengthUseWeapon)
-                {
-                    var skill = trigger.ParentTriggerList.ParentSkill;
-                    if (skill != null&&skill.FromItemID!=0)
-                    {
-                        var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
-                        if (itemTable.HasDataRow(skill.FromItemID))
-                        {
-                            var itemData = itemTable[skill.FromItemID];
-                            var lengthArray = itemData.AssetObjLength;
-                            if (lengthArray.Length != 0)
-                            {
-                                weaponLength = lengthArray[0];
-                            }
-                        }
-                    }
-                }
-
-                var campList = ListPool<EntityQizi>.Get();
-                HotGameEntry.HeroManager.GetEntityQiziList(TargetCamp,owner.BelongCamp,ref campList);
-                foreach (var oneEntity in campList)
-                {
-                    if (!oneEntity.IsValid)
-                    {
-                        continue;
-                    }
-                    if (oneEntity.LogicPosition.Vector3DistanceNoY(owner.LogicPosition) <weaponLength/1000f)
-                    {
-                        trigger.CurTargetList.Add(oneEntity);
-                    }
-                }
-                ListPool<EntityQizi>.Release(campList);
-            }
-        }
 
         public override void ReadFromFile(BinaryReader reader)
         {

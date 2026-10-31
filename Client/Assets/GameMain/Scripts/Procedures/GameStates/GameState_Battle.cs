@@ -2,8 +2,10 @@ using GameFramework.Event;
 using GameFramework.Fsm;
 using Maze;
 using SelfEventArg;
+using Unity.Profiling;
 using UnityEngine;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace Procedure.GameStates
 {
@@ -12,10 +14,10 @@ namespace Procedure.GameStates
     /// </summary>
     public class GameState_Battle:FsmState<ProcedureGame>
     {
-        float battleTime;
-        private float timeAccumulator = 0f;
-        private bool _battleEnd = false;
-        private bool _battleEndWin = false;
+        private const int MaxLogicStepsPerFrame = 2;
+        private static readonly ProfilerMarker LogicStepMarker =
+            new ProfilerMarker("Combat.LogicStep");
+
         protected override void OnInit(IFsm<ProcedureGame> fsm)
         {
             base.OnInit(fsm);
@@ -25,21 +27,19 @@ namespace Procedure.GameStates
         protected override void OnEnter(IFsm<ProcedureGame> fsm)
         {
             base.OnEnter(fsm);
-            battleTime = Time.time;
-            _battleEnd = false;
-            _battleEndWin = false;
+            GameEntry.CurrentLogicDeltaTime = GameEntry.BattleLogicDeltaTime;
+            CombatBoardBridge.PrepareBattle(Time.time);
             HotGameEntry.HeroManager.StartBattle();
         }
 
         protected override void OnUpdate(IFsm<ProcedureGame> fsm, float elapseSeconds, float realElapseSeconds)
         {
             base.OnUpdate(fsm, elapseSeconds, realElapseSeconds);
-            if (_battleEnd)
+            bool battleWon;
+            if (CombatBoardBridge.TryConsumeBattleOutcome(out battleWon))
             {
-                _battleEnd = false;
-                if (_battleEndWin)
+                if (battleWon)
                 {
-                    _battleEndWin = false;
                     ChangeState<GameState_Reward>(fsm);
                 }
                 else
@@ -48,26 +48,35 @@ namespace Procedure.GameStates
                 }
                 return;
             }
-            if (Time.time-battleTime>ConstValue.BattleMaxDuration)
+            if (CombatBoardBridge.HasBattleTimedOut(Time.time, ConstValue.BattleMaxDuration))
             {
                 ChangeState<GameState_Lose>(fsm);
             }
             else
             {
-                timeAccumulator += elapseSeconds;
-                // 当累积时间大于等于固定的DeltaTime时，执行selfLogicUpdate方法
-                while (timeAccumulator >= GameEntry.LogicDeltaTime)
+                CombatBoardBridge.AddFrameTime(elapseSeconds);
+                // Keep a slow frame from replaying an unbounded backlog on the main thread.
+                CombatBoardBridge.LimitFixedStepBacklog(
+                    MaxLogicStepsPerFrame * GameEntry.BattleLogicDeltaTime);
+                while (CombatBoardBridge.TryConsumeFixedStep(GameEntry.BattleLogicDeltaTime))
                 {
-                    HotGameEntry.HeroManager.OnLogicUpdate(GameEntry.LogicDeltaTime,realElapseSeconds);
-                    timeAccumulator -= GameEntry.LogicDeltaTime;
+                    using (LogicStepMarker.Auto())
+                    {
+                        HotGameEntry.HeroManager.OnLogicUpdate(
+                            GameEntry.BattleLogicDeltaTime,
+                            GameEntry.BattleLogicDeltaTime);
+                    }
                 }
+                HotGameEntry.HeroManager.UpdateBattlePresentation(elapseSeconds,
+                    realElapseSeconds);
             }
         }
 
         protected override void OnLeave(IFsm<ProcedureGame> fsm, bool isShutdown)
         {
             base.OnLeave(fsm, isShutdown);
-            timeAccumulator = 0;
+            GameEntry.CurrentLogicDeltaTime = GameEntry.LogicDeltaTime;
+            CombatBoardBridge.ResetFixedStepAccumulator();
         }
         public void OnBattleEnd(object sender,GameEventArgs e)
         {
@@ -77,11 +86,7 @@ namespace Procedure.GameStates
                 return;
             }
 
-            if (_battleEnd == false)
-            {
-                _battleEnd = true;
-                _battleEndWin = ne.Win;
-            }
+            CombatBoardBridge.QueueBattleOutcome(ne.Win);
         }
     }
 }

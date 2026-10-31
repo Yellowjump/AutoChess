@@ -1,98 +1,78 @@
-using System;
 using GameFramework;
 using SkillSystem;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace Entity.Attribute
 {
-    public class CharacterAttribute:IReference
+    // Compatibility view for skill commands and UI. Values live in CombatAttribute.
+    public class CharacterAttribute : IReference
     {
         public AttributeType CurAttributeType;
-        private IModifyAttribute _curModify;
+        private int m_UnitHandle;
+        private int m_InitialBase;
+        private int m_InitialMin;
+        private int m_InitialMax;
+        private int m_DynamicMaxType;
+        private bool m_PercentBased;
 
-        public CharacterAttribute()
+        public CharacterAttribute InitializeIntAttr(AttributeType type, int baseValue,
+            int minValue = int.MinValue, int maxValue = int.MaxValue,
+            bool isFixModify = true, AttributeType dynamicMaxType = 0)
         {
-            
-        }
-        public CharacterAttribute Initialize(AttributeType attributeTypeType, IModifyAttribute curModify)
-        {
-            CurAttributeType = attributeTypeType;
-            if (curModify == null)
-            {
-                Log.Error($"attribute:{attributeTypeType} no Modify");
-            }
-            _curModify = curModify;
+            CurAttributeType = type;
+            m_InitialBase = baseValue;
+            m_InitialMin = minValue;
+            m_InitialMax = maxValue;
+            m_DynamicMaxType = (int)dynamicMaxType;
+            m_PercentBased = !isFixModify;
             return this;
         }
 
-        public CharacterAttribute InitializeIntAttr(AttributeType attributeTypeType, int baseValue, int minValue = int.MinValue, int maxValue = int.MaxValue, bool isFixModify = true)
+        public void Bind(int unitHandle)
         {
-            CurAttributeType = attributeTypeType;
-            ILimitedAttribute<int> minLimit = minValue == int.MinValue ? null : ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(minValue);
-            ILimitedAttribute<int> maxLimit = maxValue == int.MaxValue ? null : ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(maxValue);
-            if (isFixModify)
-            {
-                _curModify = ReferencePool.Acquire<FixedModifyAttribute>().Initialize(baseValue, minLimit, maxLimit);
-            }
-            else
-            {
-                _curModify = ReferencePool.Acquire<IntPercentModifyAttribute>().Initialize(baseValue, minLimit, maxLimit);
-            }
-
-            return this;
+            CombatAttributeBridge.AddAttribute(unitHandle, (int)CurAttributeType,
+                m_InitialBase, m_InitialMin, m_InitialMax, m_DynamicMaxType, m_PercentBased);
+            m_UnitHandle = unitHandle;
+            m_InitialBase = 0;
+            m_InitialMin = 0;
+            m_InitialMax = 0;
+            m_DynamicMaxType = 0;
+            m_PercentBased = false;
         }
 
-        public CharacterAttribute InitializeFloatAttr(AttributeType attributeTypeType, float baseValue, float minValue = float.MinValue, float maxValue = float.MaxValue)
-        {
-            CurAttributeType = attributeTypeType;
-            ILimitedAttribute<float> minLimit = Math.Abs(minValue - float.MinValue) < float.Epsilon ? null : ReferencePool.Acquire<FixedLimitAttribute<float>>().Initialize(minValue);
-            ILimitedAttribute<float> maxLimit = Math.Abs(maxValue - float.MaxValue) < float.Epsilon ? null : ReferencePool.Acquire<FixedLimitAttribute<float>>().Initialize(maxValue);
-            _curModify = ReferencePool.Acquire<FloatPercentModifyAttribute>().Initialize(baseValue, minLimit, maxLimit);
-            return this;
-        }
         public object GetFinalValue()
         {
-            if (_curModify == null)
-            {
-                Log.Error($"attribute:{CurAttributeType} no Modify");
-                return null;
-            }
-            return _curModify.GetFinalValue();
+            return CombatAttributeBridge.GetValue(m_UnitHandle, (int)CurAttributeType);
         }
 
         public void SetBaseNum(object baseValue)
         {
-            if (_curModify == null)
-            {
-                Log.Error($"attribute:{CurAttributeType} no Modify");
-                return;
-            }
-            _curModify.SetBaseNum(baseValue);
+            CombatAttributeBridge.SetBase(m_UnitHandle, (int)CurAttributeType, (int)baseValue);
         }
+
         public void AddNum(object addValue)
         {
-            if (_curModify == null)
-            {
-                Log.Error($"attribute:{CurAttributeType} no Modify");
-                return;
-            }
-            _curModify.AddNum(addValue);
+            CombatAttributeBridge.AddNum(m_UnitHandle, (int)CurAttributeType, (int)addValue);
         }
 
         public void AddPercent(int addPercentNum)
         {
-            if (_curModify == null)
+            if (!CombatAttributeBridge.AddPercent(m_UnitHandle, (int)CurAttributeType, addPercentNum))
             {
-                Log.Error($"attribute:{CurAttributeType} no Modify");
-                return;
+                Log.Error("fixedModifyAttribute cant AddPercent");
             }
-            _curModify.AddPercent(addPercentNum);
         }
 
         public void Clear()
         {
-            ReferencePool.Release(_curModify);
-            _curModify = null;
+            CurAttributeType = 0;
+            m_UnitHandle = 0;
+            m_InitialBase = 0;
+            m_InitialMin = 0;
+            m_InitialMax = 0;
+            m_DynamicMaxType = 0;
+            m_PercentBased = false;
         }
     }
 }

@@ -1,0 +1,14 @@
+{
+    "name": "Zizouqi.CombatDots",
+    "rootNamespace": "Zizouqi.CombatDots",
+    "references": ["Unity.Entities", "Unity.Burst", "Unity.Collections", "Unity.Mathematics", "Unity.Profiling.Core"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

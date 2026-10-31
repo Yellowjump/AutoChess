@@ -5,6 +5,7 @@ using Entity;
 using GameFramework;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace SkillSystem
 {
@@ -13,25 +14,6 @@ namespace SkillSystem
         public override TargetPickerType CurTargetPickerType => TargetPickerType.Bullet;
         public TableParamInt BulletID;
         public bool SameCaster;
-        public override void GetTarget(OneTrigger trigger,object arg = null)
-        {
-            var bulletList = HotGameEntry.HeroManager.BulletList;
-            foreach (var oneBullet in bulletList)
-            {
-                if (!oneBullet.IsValid)
-                {
-                    continue;
-                }
-
-                if (oneBullet.BulletID == BulletID.Value)
-                {
-                    if (!SameCaster||(SameCaster && oneBullet.Caster == trigger.ParentTriggerList.ParentSkill.Caster))
-                    {
-                        trigger.CurTargetList.Add(oneBullet);
-                    }
-                }
-            }
-        }
 
         public override void ReadFromFile(BinaryReader reader)
         {

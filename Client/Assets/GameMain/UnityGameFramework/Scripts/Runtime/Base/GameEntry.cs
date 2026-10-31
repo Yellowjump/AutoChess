@@ -25,6 +25,8 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         internal const int GameFrameworkSceneId = 0;
         public const float LogicDeltaTime = 1f / 60f; // 1/60秒
+        public const float BattleLogicDeltaTime = 1f / 30f;
+        public static float CurrentLogicDeltaTime { get; set; } = LogicDeltaTime;
         /// <summary>
         /// 获取游戏框架组件。
         /// </summary>

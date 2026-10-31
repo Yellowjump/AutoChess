@@ -2,8 +2,8 @@ using System.IO;
 using DataTable;
 using Entity;
 using GameFramework;
-using UnityEngine;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace SkillSystem
 {
@@ -15,49 +15,6 @@ namespace SkillSystem
         public TableParamInt ParamInt1;
         public TableParamInt ParamInt2;
         public TableParamInt ParamInt3;
-        public override void OnExecute(OneTrigger trigger, object arg = null)
-        {
-            if (trigger.ParentTriggerList is Buff curBuff)
-            {
-                if (curBuff.CheckBuffTag(BuffTag.Shield))
-                {
-                    if (curBuff.Owner is EntityQizi curqizi)
-                    {
-                        var hudunAttr = curqizi.GetAttribute(AttributeType.HuDun);
-                        if (RemoveCurHudun)
-                        {
-                            if (curBuff.paramInt > 0)
-                            {
-                                hudunAttr.AddNum(-curBuff.paramInt);
-                            }
-                        }
-                        else
-                        {
-                            float finalShieldValue = 0;
-                            switch (HudunChangeType)
-                            {
-                                case AttributeChangeType.ConstNum:
-                                    finalShieldValue = ParamInt1.Value;
-                                    break;
-                                case AttributeChangeType.FixNumAddAttrPercent:
-                                    var fixValue = ParamInt1.Value;
-                                    var attrValue = 0f;
-                                    if (ParamInt3.Value > 0)
-                                    {
-                                        var attr = (int)curqizi.GetAttribute((AttributeType)ParamInt2.Value).GetFinalValue();
-                                        attrValue = attr * ParamInt3.Value / 100f;
-                                    }
-                                    finalShieldValue = fixValue + attrValue;
-                                    break;
-                            }
-                            var huDunBoost = (int)curqizi.GetAttribute(AttributeType.HuDunBoost).GetFinalValue();
-                            curBuff.paramInt = Mathf.FloorToInt(finalShieldValue * (1+huDunBoost/100f));
-                            hudunAttr.AddNum(curBuff.paramInt);
-                        }
-                    }
-                }
-            }
-        }
 
         public override void Clone(CommandBase copy)
         {

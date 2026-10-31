@@ -3,47 +3,72 @@ using GameFramework;
 using SkillSystem;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace Entity.Bullet
 {
     public class BulletMarkPoint:BulletBase
     {
-        public int AllDuration;//总持续时间ms
-        private float _liveDuration;//已存在时间
-        public List<Buff> BuffList;
-        public override void SetParamValue(List<TableParamInt> paramIntArray)
+        private int m_DurationBeforeInit;
+        public int AllDuration
         {
-            BuffList = ListPool<Buff>.Get();
-            if (CurBulletData != null)
+            get => m_ProjectileHandle == 0 ? m_DurationBeforeInit :
+                CombatProjectileBridge.GetDuration(m_ProjectileHandle);
+            set
             {
-                AllDuration = CurBulletData.ParamInt1;
+                if (m_ProjectileHandle == 0) m_DurationBeforeInit = value;
+                else CombatProjectileBridge.SetDuration(m_ProjectileHandle, value);
             }
+        }
+        private readonly Dictionary<int, Buff> m_BuffByTimerHandle = new Dictionary<int, Buff>();
+        private readonly List<int> m_ExpiredBuffHandles = new List<int>();
+        internal override void BindRuntime(int handle, int parameter)
+        {
+            base.BindRuntime(handle, parameter);
         }
         public override void LogicUpdate(float elapseSeconds, float realElapseSeconds)
         {
-            base.LogicUpdate(elapseSeconds,realElapseSeconds);
-            UpdateBuffTime(elapseSeconds, realElapseSeconds);
-            if (AllDuration != 0)
+            LogicUpdate(elapseSeconds, realElapseSeconds, null);
+        }
+
+        public void LogicUpdate(float elapseSeconds, float realElapseSeconds,
+            CombatProjectileMotionBatch motion)
+        {
+            if (m_ProjectileHandle == 0)
             {
-                _liveDuration += elapseSeconds / 1000f;
-                if (_liveDuration >= AllDuration)
-                {
-                    OnDead();
-                }
+                return;
+            }
+            int executingHandle = m_ProjectileHandle;
+            base.LogicUpdate(elapseSeconds,realElapseSeconds);
+            if (m_ProjectileHandle != executingHandle)
+            {
+                return;
+            }
+            UpdateBuffTime(elapseSeconds, realElapseSeconds);
+            if (m_ProjectileHandle != executingHandle) return;
+            bool completed;
+            if (motion == null || !motion.TryApplyMarkPoint(m_ProjectileHandle,
+                    out completed))
+                completed = CombatProjectileBridge.AdvanceMarkPoint(m_ProjectileHandle,
+                    elapseSeconds);
+            if (completed)
+            {
+                OnDead();
             }
         }
         private void UpdateBuffTime(float elapseSeconds, float realElapseSeconds)
         {
-            List<Buff> tempBuffList = ListPool<Buff>.Get();
-            tempBuffList.AddRange(BuffList);
-            foreach (var buff in tempBuffList)
+            int projectileHandle = m_ProjectileHandle;
+            List<int> activeHandles = ListPool<int>.Get();
+            CombatBuffTimerBridge.CollectActiveForProjectile(projectileHandle, activeHandles);
+            foreach (int handle in activeHandles)
             {
-                if (buff.IsValid == false)
+                if (m_ProjectileHandle != projectileHandle) break;
+                if (!m_BuffByTimerHandle.TryGetValue(handle, out Buff buff) || !buff.IsValid)
                 {
                     continue;
                 }
-                buff.RemainMs -= elapseSeconds*1000;
-                if (buff.DurationMs!=0&&buff.RemainMs<=0)
+                if (buff.UpdateTimer(elapseSeconds))
                 {
                     buff.OnDestory();
                 }
@@ -52,58 +77,80 @@ namespace Entity.Bullet
                     buff.OnTrigger(TriggerType.PerTick);
                 }
             }
-            ListPool<Buff>.Release(tempBuffList);
-            for (var i = BuffList.Count - 1; i >= 0; i--)
+            ListPool<int>.Release(activeHandles);
+            if (m_ProjectileHandle != projectileHandle) return;
+            m_ExpiredBuffHandles.Clear();
+            foreach (KeyValuePair<int, Buff> entry in m_BuffByTimerHandle)
             {
-                if (BuffList[i].IsValid == false)
-                {
-                    ReferencePool.Release(BuffList[i]);
-                    BuffList.RemoveAt(i);
-                }
+                if (!entry.Value.IsValid)
+                    m_ExpiredBuffHandles.Add(entry.Key);
             }
+            foreach (int handle in m_ExpiredBuffHandles)
+            {
+                if (m_ProjectileHandle != projectileHandle) break;
+                if (!m_BuffByTimerHandle.TryGetValue(handle, out Buff buff))
+                    continue;
+                m_BuffByTimerHandle.Remove(handle);
+                CombatProjectileBridge.RemoveBuffTimer(projectileHandle, handle);
+                ReferencePool.Release(buff);
+            }
+            m_ExpiredBuffHandles.Clear();
         }
         public override void AddBuff(Buff buff)
         {
-            BuffList.Add(buff);
+            if (buff == null)
+            {
+                return;
+            }
+            buff.BindCombatProjectile(m_ProjectileHandle);
+            m_BuffByTimerHandle[buff.TimerHandle] = buff;
+            CombatProjectileBridge.AddBuffTimer(m_ProjectileHandle,
+                buff.TimerHandle);
+            CombatBuffTimerBridge.SetActive(buff.TimerHandle, true);
+            buff.ActivateTimer();
             buff.OnActive();
         }
 
         public override void RemoveBuff(int buffID)
         {
-            foreach (var oneBuff in BuffList)
+            List<int> handles = ListPool<int>.Get();
+            CombatBuffTimerBridge.CollectActiveByProjectileId(m_ProjectileHandle, buffID, handles);
+            foreach (int handle in handles)
             {
-                if (oneBuff.BuffID == buffID)
+                if (m_BuffByTimerHandle.TryGetValue(handle, out Buff buff))
                 {
-                    oneBuff.OnDestory();
+                    buff.OnDestory();
                 }
             }
+            ListPool<int>.Release(handles);
         }
         public override void OnDead()
         {
+            CombatTriggerProjectileSpawnQueue.FlushBeforeRecycle(this);
             OwnerTriggerList?.OnTrigger(TriggerType.OnDestory);
-            List<Buff> tempBuffList = ListPool<Buff>.Get();
-            tempBuffList.AddRange(BuffList);
-            foreach (var buff in tempBuffList)
+            List<int> activeHandles = ListPool<int>.Get();
+            CombatBuffTimerBridge.CollectActiveForProjectile(m_ProjectileHandle, activeHandles);
+            foreach (int handle in activeHandles)
             {
-                if (buff.IsValid == false)
+                if (!m_BuffByTimerHandle.TryGetValue(handle, out Buff buff) || !buff.IsValid)
                 {
                     continue;
                 }
                 buff.OnDestory();
             }
-            ListPool<Buff>.Release(tempBuffList);
+            ListPool<int>.Release(activeHandles);
             IsValid = false;
             HotGameEntry.HeroManager.DestoryBullet(this);
         }
         public override void Clear()
         {
-            AllDuration = 0;
-            _liveDuration = 0;
-            for (var i = BuffList.Count - 1; i >= 0; i--)
-            {
-                ReferencePool.Release(BuffList[i]);
-            }
-            ListPool<Buff>.Release(BuffList);
+            m_DurationBeforeInit = 0;
+            foreach (Buff buff in m_BuffByTimerHandle.Values)
+                ReferencePool.Release(buff);
+            m_BuffByTimerHandle.Clear();
+            m_ExpiredBuffHandles.Clear();
+            if (m_ProjectileHandle != 0)
+                CombatProjectileBridge.ClearBuffTimers(m_ProjectileHandle);
             base.Clear();
         }
     }

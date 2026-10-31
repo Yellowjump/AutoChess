@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using DataTable;
@@ -5,13 +6,29 @@ using Entity;
 using GameFramework;
 using UnityEngine;
 using UnityEngine.Pool;
+using Unity.Profiling;
 using UnityEngine.Serialization;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace SkillSystem
 {
     public class CommandCreatePosPoint : CommandBase
     {
+        private static readonly ProfilerMarker CreateCommandMarker =
+            new ProfilerMarker("Combat.Point.CreateCommand");
+        private static readonly ProfilerMarker CloneTriggerMarker =
+            new ProfilerMarker("Combat.Point.CloneTrigger");
+        private static readonly ProfilerMarker PointEntityMarker =
+            new ProfilerMarker("Combat.Point.CreateEntity");
+        private static readonly ProfilerMarker PositionMarker =
+            new ProfilerMarker("Combat.Point.Position");
+        private static readonly ProfilerMarker ActivateMarker =
+            new ProfilerMarker("Combat.Point.OnActive");
+        private static readonly ProfilerMarker TimerMarker =
+            new ProfilerMarker("Combat.Point.ScheduleTimer");
+        private static readonly Func<double, double, double> RollOffset =
+            (minimum, maximum) => Utility.Random.GetRandomDouble(minimum, maximum);
         public override CommandType CurCommandType => CommandType.CreatePosPoint;
         public PosPointPositionType CurPositionType;
         public TableParamInt LookAtTarget;
@@ -20,115 +37,101 @@ namespace SkillSystem
         public TableParamVector3 PosOffsetMax;
         public TriggerList PosPointTrigger;
 
-        public override void OnExecute(OneTrigger trigger, object arg = null)
+
+        internal void ExecuteTarget(OneTrigger trigger, EntityBase oneTarget,
+            CombatCommandNode node)
         {
-            if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
+            if (oneTarget == null || oneTarget.IsValid == false)
             {
-                foreach (var oneTarget in trigger.CurTargetList)
+                return;
+            }
+            using var createSample = CreateCommandMarker.Auto();
+
+            EntityPosPoint newPosPoint;
+            using (PointEntityMarker.Auto())
+                newPosPoint = HotGameEntry.HeroManager.CreatePosPoint();
+            newPosPoint.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
+            newPosPoint.Target = oneTarget;
+            EntityBase owner = trigger.ParentTriggerList.Owner;
+            using (PositionMarker.Auto())
+            {
+                Vector3 position = CombatSpawnPlacement.ResolvePositionPoint(node,
+                    owner != null ? owner.LogicPosition : Vector3.zero,
+                    oneTarget.LogicPosition, owner != null,
+                    (int)oneTarget.BelongCamp, RollOffset);
+                Quaternion rotation = Quaternion.identity;
+                if (node.PositionPointLookAtTarget)
                 {
-                    if (oneTarget == null || oneTarget.IsValid == false)
+                    Vector3 direction = oneTarget.LogicHitPosition - position;
+                    if (direction.sqrMagnitude > 0.000001f)
                     {
+                        rotation = Quaternion.LookRotation(direction);
+                    }
+                }
+                CombatPosPointBridge.Initialize(newPosPoint.CombatHandle,
+                    (int)newPosPoint.Caster.BelongCamp,
+                    node.PositionPointDurationMs,
+                    new Unity.Mathematics.float3(position.x, position.y, position.z),
+                    new Unity.Mathematics.quaternion(rotation.x, rotation.y,
+                        rotation.z, rotation.w));
+            }
+            if (PosPointTrigger?.CurTriggerList != null &&
+                PosPointTrigger.CurTriggerList.Count != 0)
+            {
+                bool ecsActive = CombatPointActiveSfxCompiler.TryQueue(
+                    PosPointTrigger, newPosPoint.CombatHandle);
+                bool ecsTimed = CombatPointTimedTriggerCompiler.TryConfigure(
+                    PosPointTrigger, newPosPoint,
+                    trigger.ParentTriggerList.ParentSkill);
+                bool hasManagedTriggers = false;
+                foreach (OneTrigger nested in PosPointTrigger.CurTriggerList)
+                {
+                    if (ecsActive && nested.CurTriggerType == TriggerType.OnActive)
                         continue;
-                    }
-
-                    var newPosPoint = HotGameEntry.HeroManager.CreatePosPoint();
-                    newPosPoint.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
-                    newPosPoint.Target = oneTarget;
-                    newPosPoint.BelongCamp = newPosPoint.Caster.BelongCamp;
-                    newPosPoint.DurationMs = DurationMS.Value;
-                    newPosPoint.RemainMs = DurationMS.Value;
-                    newPosPoint.GObj = HotGameEntry.HeroManager.GetNewEmptyObj(ConstValue.PosPointObjName);
-                    var posOffset = PosOffset.Value;
-                    if (PosOffsetMax.Value != Vector3.zero)//使用随机位置
-                    {
-                        var randomX = Utility.Random.GetRandomDouble(PosOffset.Value.x,PosOffsetMax.Value.x);
-                        var randomY = Utility.Random.GetRandomDouble(PosOffset.Value.y, PosOffsetMax.Value.y);
-                        var randomZ = Utility.Random.GetRandomDouble(PosOffset.Value.z, PosOffsetMax.Value.z);
-                        posOffset = new Vector3((float)randomX, (float)randomY, (float)randomZ);
-                    }
-                    var tempTargetPos = Vector3.zero;
-                    switch (CurPositionType)
-                    {
-                        case PosPointPositionType.OwnerOffset:
-                            tempTargetPos = GetPosEntityOffset(trigger.ParentTriggerList.Owner, posOffset, oneTarget);
-                            break;
-                        case PosPointPositionType.TargetOffset:
-                            tempTargetPos = GetPosEntityOffset(oneTarget, posOffset,trigger.ParentTriggerList.Owner);
-                            break;
-                        case PosPointPositionType.CrowdedPos:
-                            tempTargetPos = GetCrowdedPos(oneTarget.BelongCamp, posOffset.x / 1000);
-                            break;
-                    }
-                    newPosPoint.LogicPosition = tempTargetPos;
-                    if (LookAtTarget.Value == 1)
-                    {
-                        newPosPoint.GObj.transform.LookAt(oneTarget.LogicHitPosition);
-                    }
-                    if (PosPointTrigger != null)
-                    {
-                        var newTriggerList = SkillFactory.CreateNewEmptyTriggerList();
-                        PosPointTrigger.Clone(newTriggerList);
-                        newTriggerList.ParentSkill = trigger.ParentTriggerList.ParentSkill;
-                        newTriggerList.Owner = newPosPoint;
-                        newPosPoint.OwnerTriggerList = newTriggerList;
-                        newTriggerList.OnTrigger(TriggerType.OnActive);
-                    }
+                    if (ecsTimed && nested.CurTriggerType == TriggerType.PerTick)
+                        continue;
+                    hasManagedTriggers = true;
+                    break;
                 }
-            }
-        }
-
-        private Vector3 GetPosEntityOffset(EntityBase theBase, Vector3 offset, EntityBase theBaseLookAt = null)
-        {
-            if (theBaseLookAt != null)
-            {
-                var forward =theBaseLookAt.LogicPosition - theBase.LogicPosition;
-                var rotateQ = Quaternion.LookRotation(forward, Vector3.up);
-                return theBase.LogicPosition + rotateQ * offset;
-            }
-
-            return theBase.LogicPosition + offset;
-        }
-
-        private Vector3 GetCrowdedPos(CampType targetBelongType, float radius)
-        {
-            List<EntityQizi> targetCampList = ListPool<EntityQizi>.Get();
-            HotGameEntry.HeroManager.GetEntityQiziList(targetBelongType,CampType.Friend,ref targetCampList);
-            List<Vector3> targetPosList = ListPool<Vector3>.Get();
-            foreach (var oneEntity in targetCampList)
-            {
-                if (oneEntity.IsValid)
+                if (hasManagedTriggers)
                 {
-                    targetPosList.Add(oneEntity.LogicPosition);
+                    var newTriggerList = newPosPoint.OwnerTriggerList ??
+                        SkillFactory.CreateNewEmptyTriggerList();
+                    using (CloneTriggerMarker.Auto())
+                    {
+                        PosPointTrigger.ClonePointRuntime(newTriggerList,
+                            ecsActive, ecsTimed);
+                    }
+                    newTriggerList.ParentSkill = trigger.ParentTriggerList.ParentSkill;
+                    newTriggerList.Owner = newPosPoint;
+                    newPosPoint.OwnerTriggerList = newTriggerList;
+                    using (ActivateMarker.Auto())
+                    {
+                        if (!ecsActive)
+                            newTriggerList.OnTrigger(TriggerType.OnActive);
+                    }
+                    using (TimerMarker.Auto())
+                    {
+                        if (!ecsTimed && newPosPoint.CombatHandle != 0 &&
+                            newTriggerList.TrySchedulePointTimer(newPosPoint.CombatHandle))
+                        {
+                            CombatPosPointBridge.SetScheduledTick(newPosPoint.CombatHandle);
+                        }
+                    }
                 }
-            }
-            ListPool<EntityQizi>.Release(targetCampList);
-            if (targetPosList.Count >= 3)
-            {
-                var targetPos = HotGameEntry.HeroManager.GetCrowdedPos(targetPosList, radius);
-                ListPool<Vector3>.Release(targetPosList);
-                return targetPos;
-            }
-            if (targetPosList.Count == 1)
-            {
-                var targetPos = targetPosList[0];
-                ListPool<Vector3>.Release(targetPosList);
-                return targetPos;
-            }
-
-            if (targetPosList.Count == 2)
-            {
-                var targetA = targetPosList[0];
-                var targetB = targetPosList[1];
-                if (targetA.Vector3DistanceNoY(targetB) < radius)
+                else if (newPosPoint.OwnerTriggerList != null)
                 {
-                    return (targetA + targetB) / 2;
+                    ReferencePool.Release(newPosPoint.OwnerTriggerList);
+                    newPosPoint.OwnerTriggerList = null;
                 }
-                ListPool<Vector3>.Release(targetPosList);
-                return targetA;
             }
-            ListPool<Vector3>.Release(targetPosList);
-            return HotGameEntry.HeroManager.QigePosOffset;
+            else if (newPosPoint.OwnerTriggerList != null)
+            {
+                ReferencePool.Release(newPosPoint.OwnerTriggerList);
+                newPosPoint.OwnerTriggerList = null;
+            }
         }
+
         public override void Clone(CommandBase copy)
         {
             if (copy is CommandCreatePosPoint commandCreatePosPoint)

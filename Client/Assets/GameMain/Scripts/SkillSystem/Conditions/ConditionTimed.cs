@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using System.IO;
-using GameFramework;
-using UnityEngine.Serialization;
 using UnityGameFramework.Runtime;
 
 namespace SkillSystem
@@ -11,24 +8,6 @@ namespace SkillSystem
         public override ConditionType CurConditionType => ConditionType.Timed;
         public TableParamInt TimeIntervalMs;
         public TableParamInt PassNumber;//能触发次数
-        private float _timeAccumulatorMs;
-        private int HavePass = 0;
-        public override bool OnCheck(OneTrigger trigger,object arg = null)
-        {
-            if (PassNumber.Value!=0 && PassNumber.Value<=HavePass)
-            {
-                return false;
-            }
-            _timeAccumulatorMs += GameEntry.LogicDeltaTime*1000;
-            if (_timeAccumulatorMs >= TimeIntervalMs.Value)
-            {
-                _timeAccumulatorMs -= TimeIntervalMs.Value;
-                HavePass ++;
-                return true;
-            }
-            return false;
-        }
-
         public override void WriteToFile(BinaryWriter writer)
         {
             base.WriteToFile(writer);
@@ -70,8 +49,6 @@ namespace SkillSystem
             //     ReferencePool.Release(PassNumber);
             //     PassNumber = null;
             // }
-            HavePass = 0;
-            _timeAccumulatorMs = 0;
         }
     }
 }

@@ -2,6 +2,7 @@ using System.IO;
 using Entity;
 using GameFramework;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace SkillSystem
 {
@@ -35,60 +36,33 @@ namespace SkillSystem
         public TableParamInt ParamInt2;
         public TableParamInt ParamInt3;
 
-        public override void OnExecute(OneTrigger trigger, object arg = null)
+
+        internal void ApplyDamage(OneTrigger trigger, EntityQizi target,
+            EntityQizi caster, float finalDamage, bool triggerDamageRelate)
         {
-            if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
-            {
-                foreach (var oneTarget in trigger.CurTargetList)
-                {
-                    EntityQizi target = oneTarget as EntityQizi;
-                    if (target == null || target.IsValid == false)
-                    {
-                        continue;
-                    }
-                    //对当前 target 造成伤害
-                    EntityQizi caster = GetDamageCaster();
-                    float damageParam = 0;
-                    float finalDamage = 0;
-                    if (caster != null)
-                    {
-                        if (CurDamageComputeType == DamageComputeType.NormalDamage)
-                        {
-                            damageParam = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
-                        }
-                        else if (CurDamageComputeType == DamageComputeType.FixNumAddAttrPercent)
-                        {
-                            var fixValue = ParamInt1.Value;
-                            var attrValue = 0f;
-                            if (ParamInt3.Value > 0)
-                            {
-                                var attr = (int)caster.GetAttribute((AttributeType)ParamInt2.Value).GetFinalValue();
-                                attrValue = attr * ParamInt3.Value / 100;
-                            }
-
-                            damageParam = fixValue + attrValue;
-                        }
-                    }
-                    finalDamage = damageParam;
-
-                    CauseDamageData beforeCauseDamageData = ReferencePool.Acquire<CauseDamageData>();
-                    beforeCauseDamageData.Caster = caster;
-                    beforeCauseDamageData.SourceSkill = trigger.ParentTriggerList.ParentSkill;
-                    beforeCauseDamageData.Target = target;
-                    beforeCauseDamageData.DamageValue = finalDamage;
-                    beforeCauseDamageData.TriggerDamageRelate = TriggerDamageRelate;
-                    if (TriggerDamageRelate)
-                    {
-                        caster.OnTrigger(TriggerType.BeforeCauseDamage, beforeCauseDamageData);
-                        target.OnTrigger(TriggerType.BeforeBeCauseDamage, beforeCauseDamageData);    
-                    }
-                    target.BeCauseDamage(beforeCauseDamageData);
-                    ReferencePool.Release(beforeCauseDamageData);
-                }
-            }
+            ApplyDamage(trigger.ParentTriggerList.ParentSkill, target, caster,
+                finalDamage, triggerDamageRelate);
         }
 
-        private EntityQizi GetDamageCaster()
+        internal static void ApplyDamage(Skill sourceSkill, EntityQizi target,
+            EntityQizi caster, float finalDamage, bool triggerDamageRelate)
+        {
+            CauseDamageData beforeCauseDamageData = ReferencePool.Acquire<CauseDamageData>();
+            beforeCauseDamageData.Caster = caster;
+            beforeCauseDamageData.SourceSkill = sourceSkill;
+            beforeCauseDamageData.Target = target;
+            beforeCauseDamageData.DamageValue = finalDamage;
+            beforeCauseDamageData.TriggerDamageRelate = triggerDamageRelate;
+            if (triggerDamageRelate)
+            {
+                caster.OnTrigger(TriggerType.BeforeCauseDamage, beforeCauseDamageData);
+                target.OnTrigger(TriggerType.BeforeBeCauseDamage, beforeCauseDamageData);
+            }
+            target.BeCauseDamage(beforeCauseDamageData);
+            ReferencePool.Release(beforeCauseDamageData);
+        }
+
+        internal EntityQizi GetDamageCaster()
         {
             if (ParentTrigger != null)
             {

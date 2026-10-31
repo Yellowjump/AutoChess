@@ -13,47 +13,26 @@ namespace SkillSystem
         public bool ShowItemWeapon;
         public WeaponHandleType ShowHandleType;
         public TableParamInt ShowWeaponItemID;
-        public override void OnExecute(OneTrigger trigger, object arg = null)
-        {
-            if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
-            {
-                var skill = trigger.ParentTriggerList.ParentSkill;
-                if (skill == null)
-                {
-                    return;
-                }
-                foreach (var oneTarget in trigger.CurTargetList)
-                {
-                    EntityQizi target = oneTarget as EntityQizi;
-                    if (target == null || target.IsValid == false)
-                    {
-                        continue;
-                    }
 
-                    if (ShowOrHidden)
-                    {
-                        if (ShowItemWeapon)
-                        {
-                            var itemID = skill.FromItemID;
-                            if (itemID != 0)
-                            {
-                                target.AddOneWeapon(itemID,ShowHandleType,skill);
-                            }
-                        }
-                        else
-                        {
-                            var itemID = ShowWeaponItemID.Value;
-                            if (itemID != 0)
-                            {
-                                target.AddOneWeapon(itemID,ShowHandleType,skill);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        target.RemoveOneSkillAllWeapon(skill);
-                    }
+        internal void ExecuteTarget(Skill skill, EntityBase oneTarget, bool show,
+            bool useItemWeapon, WeaponHandleType handleType, int weaponItemId)
+        {
+            EntityQizi target = oneTarget as EntityQizi;
+            if (skill == null || target == null || target.IsValid == false)
+            {
+                return;
+            }
+            if (show)
+            {
+                int itemID = useItemWeapon ? skill.FromItemID : weaponItemId;
+                if (itemID != 0)
+                {
+                    target.AddOneWeapon(itemID, handleType, skill);
                 }
+            }
+            else
+            {
+                target.RemoveOneSkillAllWeapon(skill);
             }
         }
 

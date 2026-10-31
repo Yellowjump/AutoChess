@@ -1248,7 +1248,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CameraBrain: {fileID: 0}
   qigeXOffset: 1
-  dangqianliucheng: 0
   QigePrefab: {fileID: 613257466680777229, guid: 0ef37d727bf3b084ea936ae8a8840f79, type: 3}
   m_QigeRoot: {fileID: 0}
   QiziCurUniqueIndex: 0

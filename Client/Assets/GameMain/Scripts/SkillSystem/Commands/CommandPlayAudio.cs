@@ -11,23 +11,19 @@ namespace SkillSystem
         public override CommandType CurCommandType => CommandType.PlayAudio;
         public bool CreateOrRemove = true;
         public TableParamInt AudioID;
-        public override void OnExecute(OneTrigger trigger, object arg = null)
+
+        internal void ExecuteTarget(OneTrigger trigger, EntityBase oneTarget,
+            bool create, int audioId)
         {
-            if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
+            if (create)
             {
-                foreach (var oneTarget in trigger.CurTargetList)
-                {
-                    if (CreateOrRemove)
-                    {
-                        var serialId = HotGameEntry.Sound.PlaySfxSoundThisFrame(AudioID.Value, oneTarget.LogicHitPosition);
-                        trigger.ParentTriggerList.paramInt = serialId;
-                    }
-                    else
-                    {
-                        var sfxDataIndex = trigger.ParentTriggerList.paramInt;
-                        HotGameEntry.Sound.ReducePlayingSfxCount(sfxDataIndex);
-                    }
-                }
+                var serialId = HotGameEntry.Sound.PlaySfxSoundThisFrame(audioId, oneTarget.LogicHitPosition);
+                trigger.ParentTriggerList.paramInt = serialId;
+            }
+            else
+            {
+                var sfxDataIndex = trigger.ParentTriggerList.paramInt;
+                HotGameEntry.Sound.ReducePlayingSfxCount(sfxDataIndex);
             }
         }
 

@@ -1,196 +1,231 @@
 using System.Collections.Generic;
 using GameFramework;
 using SkillSystem;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace Entity.Bullet
 {
-    public class BulletPenetrating:BulletBase
+    public class BulletPenetrating : BulletBase
     {
-        private Vector3 _startPos;
-        private Vector3 _targetPos;
-        private Vector3 _controlPoint;
-        private float _controlPointLerpStartToTarget; // 控制点水平位置
-        private float _controlPointOffsetMax; // 最终控制点随机偏移最大值 
-        private float _controlPointOffsetMin; // 最终控制点随机偏移最小值 （上下限都是非负数）比如 （500，600）
-        private float _controlPointOffsetFinal; // 最终控制点随机偏移 设定line为start到target的距离长度 1000的效果是 让_controlPoint在start和target 连线的中间法线上高度是line/2。_controlPointOffsetFinal为-1000指方向在法线负方向
-        private bool _trackingTargetEntity;//追踪目标
-        public float MoveSpeed = 10;
-        
-        private float _traveledDistance = 0f; // 当前已经移动的距离
-        private float _totalDistance; // 贝塞尔曲线的总距离
-        private Vector3 _previousPosition; // 上一帧的位置，用于判断命中
-        private List<Vector3> _curvePoints; // 贝塞尔曲线的采样点
-        private List<int> _hasHitQiziUid;
-        public override void SetParamValue(List<TableParamInt> paramIntArray)
-        {
-            if (CurBulletData != null)
-            {
-                MoveSpeed = CurBulletData.ParamInt1/1000.0f;
-                _controlPointOffsetMin = CurBulletData.ParamInt2;
-                _controlPointOffsetMax = CurBulletData.ParamInt3;
-                _trackingTargetEntity = CurBulletData.ParamInt4==1;
-                _controlPointLerpStartToTarget = CurBulletData.ParamInt5;
-            }
-            // 初始化位置和控制点
-            _startPos = LogicPosition;
-            _targetPos = Target.LogicHitPosition;
-            GenerateRandomControlPoint();
+        private static readonly ProfilerMarker HitScanMarker =
+            new ProfilerMarker("Combat.Bullet.Penetrating.HitScan");
+        private static readonly ProfilerMarker IndexedScanMarker =
+            new ProfilerMarker("Combat.Bullet.Penetrating.IndexedScan");
+        private static readonly ProfilerMarker BatchCandidateMarker =
+            new ProfilerMarker("Combat.Bullet.Penetrating.BatchCandidates");
+        private static readonly ProfilerMarker LiveScanMarker =
+            new ProfilerMarker("Combat.Bullet.Penetrating.LiveScan");
+        private static readonly ProfilerMarker BezierFallbackMarker =
+            new ProfilerMarker("Combat.Bullet.Penetrating.BezierFallback");
 
-            // 采样贝塞尔曲线并计算总距离
-            _curvePoints = SampleBezierCurve(10);
-            _totalDistance = CalculateTotalCurveLength(_curvePoints);
-            ListPool<Vector3>.Release(_curvePoints);
-            _curvePoints = null;
-            _previousPosition = _startPos;
-            _hasHitQiziUid = ListPool<int>.Get();
-        }
+
         public override void LogicUpdate(float elapseSeconds, float realElapseSeconds)
         {
-            base.LogicUpdate(elapseSeconds,realElapseSeconds);
-            // 计算子弹运动的距离
-            _traveledDistance += MoveSpeed * elapseSeconds;
-            float t = _traveledDistance / _totalDistance;
-            t = Mathf.Clamp01(t);
-
-            // 根据贝塞尔曲线计算当前子弹位置
-            Vector3 currentPosition = GetBezierPosition(t);
-            LogicPosition = currentPosition;
-            // 更新子弹方向
-            if (GObj != null)
-            {
-                // 获取切线方向
-                Vector3 tangent = GetBezierTangent(t);
-
-                // 计算新的朝向（Z 轴对齐切线方向）
-                if (tangent != Vector3.zero)
-                {
-                    GObj.transform.rotation = Quaternion.LookRotation(tangent, Vector3.up);
-                }
-            }
-
-            // 判断命中敌人
-            var enemyList = HotGameEntry.HeroManager.GetEnemyList(BelongCamp);
-            foreach (var enemy in enemyList)
-            {
-                if (!enemy.IsValid)
-                {
-                    continue;
-                }
-                if (IsHitEnemy(enemy))
-                {
-                    OnHitTarget(enemy); // 命中目标的逻辑
-                }
-            }
-
-            // 如果到达目标位置，子弹消失
-            if (t >= 1.0f)
-            {
-                OnDead(); // 子弹消失
-            }
-
-            _previousPosition = LogicPosition; // 更新上一帧位置
+            LogicUpdate(elapseSeconds, realElapseSeconds, null, null, null);
         }
-        public override void OnHitTarget(EntityQizi target)
+
+        public void LogicUpdate(float elapseSeconds, float realElapseSeconds,
+            CombatProjectileBroadphase broadphase, CombatBezierStepBatch bezierSteps,
+            CombatProjectileHitCandidateBatch hitCandidates)
         {
-            OwnerTriggerList?.OnTrigger(TriggerType.OnBulletHitTarget,target);
+            if (m_ProjectileHandle == 0)
+            {
+                return;
+            }
+            int executingHandle = m_ProjectileHandle;
+            base.LogicUpdate(elapseSeconds, realElapseSeconds);
+            if (m_ProjectileHandle != executingHandle)
+            {
+                return;
+            }
+            Vector3 segmentStart = LogicPosition;
+            bool completed;
+            Vector3 scanPosition;
+            if (bezierSteps == null || !bezierSteps.TryApply(m_ProjectileHandle,
+                    out completed, out scanPosition,
+                    out _, out _, out _))
+            {
+                using (BezierFallbackMarker.Auto())
+                {
+                    Vector3 currentTarget =
+                        CombatProjectileBridge.BezierTracksTarget(m_ProjectileHandle)
+                            ? Target.LogicHitPosition : Vector3.zero;
+                    completed = CombatProjectileBridge.StepBezier(m_ProjectileHandle,
+                        elapseSeconds, currentTarget.x, currentTarget.y, currentTarget.z,
+                        out _, out _, out _);
+                }
+                scanPosition = LogicPosition;
+            }
+            using (HitScanMarker.Auto())
+            {
+                int sourceCamp = (int)BelongCamp;
+                List<int> nearbyUids = ListPool<int>.Get();
+                bool useBatch;
+                using (BatchCandidateMarker.Auto())
+                {
+                    useBatch = hitCandidates != null && hitCandidates.TryCollect(
+                        executingHandle, sourceCamp, segmentStart.x, segmentStart.z,
+                        scanPosition.x, scanPosition.z, nearbyUids);
+                }
+                bool useBroadphase = !useBatch && broadphase != null &&
+                    broadphase.IsCurrent;
+                List<int> opposingUids = useBatch || useBroadphase
+                    ? null : ListPool<int>.Get();
+                try
+                {
+                    if (useBatch || useBroadphase)
+                    {
+                        if (!useBatch)
+                        {
+                            broadphase.CollectNearbySegment(sourceCamp,
+                                segmentStart.x, segmentStart.z,
+                                scanPosition.x, scanPosition.z, nearbyUids);
+                        }
+                        int lastUid = int.MinValue;
+                        using (IndexedScanMarker.Auto())
+                        {
+                            foreach (int uid in nearbyUids)
+                            {
+                                if (m_ProjectileHandle != executingHandle)
+                                {
+                                    break;
+                                }
+                                lastUid = uid;
+                                float beforeX = scanPosition.x;
+                                float beforeZ = scanPosition.z;
+                                if (TryHitEnemy(uid, executingHandle,
+                                        ref segmentStart, ref scanPosition) &&
+                                    (scanPosition.x != beforeX || scanPosition.z != beforeZ ||
+                                     (useBatch ? !hitCandidates.IsCurrent :
+                                         !broadphase.IsCurrent)))
+                                {
+                                    useBroadphase = false;
+                                    useBatch = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!useBatch && !useBroadphase &&
+                            m_ProjectileHandle == executingHandle)
+                        {
+                            using (LiveScanMarker.Auto())
+                            {
+                                List<int> liveUids = ListPool<int>.Get();
+                                try
+                                {
+                                    CombatTargetQueries.CollectOpposingGroup(sourceCamp, liveUids);
+                                    foreach (int uid in liveUids)
+                                    {
+                                        if (m_ProjectileHandle != executingHandle)
+                                        {
+                                            break;
+                                        }
+                                        if (uid > lastUid)
+                                        {
+                                            TryHitEnemy(uid, executingHandle,
+                                                ref segmentStart, ref scanPosition);
+                                        }
+                                    }
+                                }
+                                finally
+                                {
+                                    ListPool<int>.Release(liveUids);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        CombatTargetQueries.CollectOpposingGroup(sourceCamp, opposingUids);
+                        using (LiveScanMarker.Auto())
+                        {
+                            foreach (int uid in opposingUids)
+                            {
+                                if (m_ProjectileHandle != executingHandle)
+                                {
+                                    break;
+                                }
+                                TryHitEnemy(uid, executingHandle,
+                                    ref segmentStart, ref scanPosition);
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    if (nearbyUids != null)
+                    {
+                        ListPool<int>.Release(nearbyUids);
+                    }
+                    if (opposingUids != null)
+                    {
+                        ListPool<int>.Release(opposingUids);
+                    }
+                }
+            }
+
+            if (completed && m_ProjectileHandle == executingHandle)
+            {
+                OnDead();
+            }
         }
-        // 判断是否命中敌人
-        private bool IsHitEnemy(EntityQizi enemy)
+
+        private bool TryHitEnemy(int uid, int executingHandle,
+            ref Vector3 segmentStart, ref Vector3 scanPosition)
         {
-            if (_hasHitQiziUid.Contains(enemy.HeroUID))
+            EntityQizi enemy = HotGameEntry.HeroManager.GetEntityByUID(uid);
+            if (enemy == null || !enemy.IsValid ||
+                !CombatProjectileBridge.TryHitBezierAlongSegment(m_ProjectileHandle,
+                    enemy.CombatUnitHandle, enemy.HeroUID,
+                    segmentStart.x, segmentStart.z,
+                    scanPosition.x, scanPosition.z))
             {
                 return false;
             }
-            float hitRadius = 0.5f; // 子弹的命中范围
-            if (LogicPosition.Vector3DistanceNoY(enemy.LogicHitPosition) <= hitRadius)
+            OnHitTarget(enemy);
+            if (m_ProjectileHandle == executingHandle)
             {
-                _hasHitQiziUid.Add(enemy.HeroUID);
-                return true;
+                Vector3 currentPosition = LogicPosition;
+                if (currentPosition != scanPosition)
+                {
+                    scanPosition = currentPosition;
+                    segmentStart = currentPosition;
+                }
             }
-            return false;
+            return true;
         }
-        // 生成随机控制点
-        private void GenerateRandomControlPoint()
-        {
-            Vector3 midPoint = _startPos + (_targetPos - _startPos) * _controlPointLerpStartToTarget / 1000f;
-            float oriDistance = (_targetPos - _startPos).magnitude;
-            Vector3 direction = (_targetPos - _startPos).normalized;
 
-            // 计算法线方向并随机选择一个方向
-            Vector3 randomOffset = Vector3.Cross(direction, Vector3.up).normalized * oriDistance;
-            if (Utility.Random.GetRandomNoLogic(2) == 0)
+        public override void OnHitTarget(EntityQizi target)
+        {
+            if (CombatTriggerProjectileSpawnQueue.TryEnqueueSimpleHit(this,
+                    target)) return;
+            if (!CombatTriggerProjectileSpawnQueue.TryEnqueue(OwnerTriggerList, target))
             {
-                randomOffset = -randomOffset;
+                OwnerTriggerList?.OnTrigger(TriggerType.OnBulletHitTarget, target);
             }
+        }
 
-            // 随机生成控制点偏移量
-            _controlPointOffsetFinal = (float)Utility.Random.GetRandomDouble(_controlPointOffsetMin, _controlPointOffsetMax);
-            _controlPoint = midPoint + randomOffset * _controlPointOffsetFinal/1000;
-        }
-        // 采样贝塞尔曲线
-        private List<Vector3> SampleBezierCurve(int numSamples)
+        public override void UpdateVisual()
         {
-            List<Vector3> points = ListPool<Vector3>.Get();
-            for (int i = 0; i <= numSamples; i++)
-            {
-                float t = i / (float)numSamples;
-                points.Add(GetBezierPosition(t));
-            }
-            return points;
-        }
-        // 获取贝塞尔曲线上某点位置
-        private Vector3 GetBezierPosition(float t)
-        {
-            if (_trackingTargetEntity)
-            {
-                return Mathf.Pow(1 - t, 2) * _startPos + 2 * (1 - t) * t * _controlPoint + Mathf.Pow(t, 2) * Target.LogicHitPosition;
-            }
-            return Mathf.Pow(1 - t, 2) * _startPos + 2 * (1 - t) * t * _controlPoint + Mathf.Pow(t, 2) * _targetPos;
-        }
-        // 获取贝塞尔曲线上某点的朝向
-        private Vector3 GetBezierTangent(float t)
-        {
-            Vector3 P0 = _startPos;
-            Vector3 P1 = _controlPoint;
-            Vector3 P2 = _trackingTargetEntity ? Target.LogicHitPosition : _targetPos;
-
-            // 计算一阶导数（切线向量）
-            Vector3 tangent = 2 * (1 - t) * (P1 - P0) + 2 * t * (P2 - P1);
-
-            // 归一化后返回方向
-            return tangent.normalized;
-        }
-        // 计算贝塞尔曲线总长度
-        private float CalculateTotalCurveLength(List<Vector3> points)
-        {
-            float length = 0f;
-            for (int i = 1; i < points.Count; i++)
-            {
-                length += Vector3.Distance(points[i - 1], points[i]);
-            }
-            return length;
+            base.UpdateVisual();
+            if (GObj == null || m_ProjectileHandle == 0) return;
+            Vector3 target = Target != null
+                ? Target.LogicHitPosition : Vector3.zero;
+            CombatProjectileBridge.GetBezierTangent(m_ProjectileHandle,
+                target.x, target.y, target.z,
+                out float x, out float y, out float z);
+            Vector3 tangent = new Vector3(x, y, z);
+            if (tangent != Vector3.zero)
+                GObj.transform.rotation = Quaternion.LookRotation(tangent, Vector3.up);
         }
 
         public override void Clear()
         {
             base.Clear();
-            if (_hasHitQiziUid != null)
-            {
-                ListPool<int>.Release(_hasHitQiziUid);
-                _hasHitQiziUid = null;
-            }
-            MoveSpeed = 0;
-            _controlPointOffsetMin = 0;
-            _controlPointOffsetMax = 0;
-            _trackingTargetEntity = false;
-            _controlPointLerpStartToTarget = 0;
-            _traveledDistance = 0;
-            _startPos = Vector3.zero;
-            _targetPos = Vector3.zero;
-            _previousPosition = Vector3.zero;
         }
     }
 }

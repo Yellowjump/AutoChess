@@ -14,34 +14,6 @@ namespace SkillSystem
         public ConditionRelateSkillCheckType CheckType;
         public TableParamInt ParamInt1;
         public TableParamInt ParamInt2;
-        public override bool OnCheck(OneTrigger trigger,object arg = null)
-        {
-            Skill targetSkill = null;
-            switch (SkillFrom)
-            {
-                case ConditionRelateSkillFrom.Source:
-                    targetSkill = trigger.ParentTriggerList.ParentSkill;
-                    break;
-                case ConditionRelateSkillFrom.ArgSkill:
-                    if (arg is Skill argSkill)
-                    {
-                        targetSkill = argSkill;
-                    }
-                    break;
-            }
-
-            if (targetSkill == null)
-            {
-                return false;
-            }
-            switch (CheckType)
-            {
-                case ConditionRelateSkillCheckType.SkillType:
-                    return targetSkill.CurSkillType ==(SkillType) ParamInt1.Value;
-            }
-            return false;
-        }
-
         public override void WriteToFile(BinaryWriter writer)
         {
             base.WriteToFile(writer);

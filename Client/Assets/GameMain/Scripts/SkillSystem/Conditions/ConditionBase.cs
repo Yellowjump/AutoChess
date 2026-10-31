@@ -9,11 +9,6 @@ namespace SkillSystem
         public OneTrigger ParentTrigger;
         public virtual ConditionType CurConditionType => ConditionType.NoCondition;
         public bool ReverseResult = false;
-        public virtual bool OnCheck(OneTrigger trigger,object arg = null)
-        {
-            return true;
-        }
-
         public virtual void WriteToFile(BinaryWriter writer)
         {
             writer.Write(ReverseResult);

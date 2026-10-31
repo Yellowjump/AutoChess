@@ -2,8 +2,10 @@
   "dependencies": {
     "com.code-philosophy.hybridclr": "https://github.com/focus-creative-games/hybridclr_unity.git",
     "com.unity.2d.sprite": "1.0.0",
-    "com.unity.burst": "1.8.11",
+    "com.unity.burst": "1.8.12",
     "com.unity.cinemachine": "2.9.7",
+    "com.unity.entities": "1.0.16",
+    "com.unity.entities.graphics": "1.0.16",
     "com.unity.collab-proxy": "2.2.0",
     "com.unity.ext.nunit": "2.0.5",
     "com.unity.feature.development": "1.0.2",

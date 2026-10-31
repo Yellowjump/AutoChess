@@ -1,39 +1,57 @@
-using System.Collections.Generic;
 using GameFramework;
 using SkillSystem;
+using UnityEngine;
+using Zizouqi.CombatDots;
 
 namespace Entity.Bullet
 {
     public class BulletTracking:BulletBase
     {
-        public float MoveSpeed = 10;
-        public override void SetParamValue(List<TableParamInt> paramIntArray)
-        {
-            if (CurBulletData != null)
-            {
-                MoveSpeed = CurBulletData.ParamInt1/1000.0f;
-            }
-        }
         public override void LogicUpdate(float elapseSeconds, float realElapseSeconds)
         {
+            LogicUpdate(elapseSeconds, realElapseSeconds, null);
+        }
+
+        public void LogicUpdate(float elapseSeconds, float realElapseSeconds,
+            CombatProjectileMotionBatch motion)
+        {
+            if (m_ProjectileHandle == 0)
+            {
+                return;
+            }
+            int executingHandle = m_ProjectileHandle;
             base.LogicUpdate(elapseSeconds,realElapseSeconds);
-            if (Target == null||Target.IsValid==false)
+            if (m_ProjectileHandle != executingHandle)
+            {
+                return;
+            }
+            if (Target == null)
             {
                 OnDead();
                 return;
             }
-
-            var dir = Target.LogicHitPosition - LogicPosition;
-            if (dir.magnitude < MoveSpeed * elapseSeconds)
+            CombatProjectileStep step;
+            if (motion == null || !motion.TryApplyTracking(m_ProjectileHandle,
+                    out step))
+                step = CombatProjectileBridge.StepTracking(m_ProjectileHandle,
+                    elapseSeconds, ConstValue.EntityQiziHeight);
+            if (step == CombatProjectileStep.TargetLost)
+            {
+                OnDead();
+                return;
+            }
+            if (step == CombatProjectileStep.Hit)
             {
                 OnHitTarget(Target);//命中目标
                 return;
             }
-            LogicPosition += dir.normalized * (MoveSpeed * elapseSeconds);
-            if (GObj != null)
-            {
+        }
+
+        public override void UpdateVisual()
+        {
+            base.UpdateVisual();
+            if (GObj != null && Target != null)
                 GObj.transform.LookAt(Target.LogicHitPosition);
-            }
         }
     }
 }

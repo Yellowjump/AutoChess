@@ -2,35 +2,112 @@ using System.Collections.Generic;
 using DataTable;
 using GameFramework;
 using SkillSystem;
+using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace Entity
 {
     public partial class EntityQizi : EntityBase
     {
+        private static readonly ProfilerMarker StateUpdateMarker =
+            new ProfilerMarker("Combat.Unit.State");
+        private static readonly ProfilerMarker SkillUpdateMarker =
+            new ProfilerMarker("Combat.Unit.Skill");
+        private static readonly ProfilerMarker SliderUpdateMarker =
+            new ProfilerMarker("Combat.Unit.Slider");
+        private static readonly ProfilerMarker AnimationUpdateMarker =
+            new ProfilerMarker("Combat.Unit.Animation");
+        private static readonly ProfilerMarker PosePresentationMarker =
+            new ProfilerMarker("Combat.Presentation.UnitPose");
+        private static readonly ProfilerMarker SfxPresentationMarker =
+            new ProfilerMarker("Combat.Presentation.UnitSfx");
+
         public int HeroID;//hero表中ID
         public int HeroUID;//qizi唯一id
-        public int rowIndex;
-        public int columnIndex;//在棋盘上的位置下标,左下角是0，0,如果在备战棋格，rowIndex = -1，columnIndex是第几个
-        public Vector2Int SavePos;//进入战斗时的位置
         public HeroComponent.HpBar HpBar;
         public Slider xuetiao;
         public Slider power;
         public Slider hudun;
+        private Vector3 m_LastPresentedLogicPosition;
+        private bool m_HasPresentedLogicPosition;
         public List<OneItemData> EquipItemList = new List<OneItemData>();
+
+        public override CampType BelongCamp
+        {
+            get => m_CombatUnitHandle != 0
+                ? (CampType)Zizouqi.CombatDots.CombatAttributeBridge.GetCamp(m_CombatUnitHandle)
+                : _belongCamp;
+            set
+            {
+                if (m_CombatUnitHandle == 0)
+                {
+                    _belongCamp = value;
+                }
+                else
+                {
+                    Zizouqi.CombatDots.CombatAttributeBridge.SetCamp(m_CombatUnitHandle, (int)value);
+                }
+            }
+        }
+
+        public override bool IsValid
+        {
+            get => m_CombatUnitHandle != 0
+                ? Zizouqi.CombatDots.CombatAttributeBridge.IsAlive(m_CombatUnitHandle)
+                : _isValid;
+            set
+            {
+                if (m_CombatUnitHandle == 0)
+                {
+                    _isValid = value;
+                }
+                else
+                {
+                    Zizouqi.CombatDots.CombatAttributeBridge.SetAlive(m_CombatUnitHandle, value);
+                }
+            }
+        }
 
         public override Vector3 LogicPosition
         {
-            get=>base.LogicPosition;
+            get
+            {
+                if (m_CombatUnitHandle == 0)
+                {
+                    return _logicPosition;
+                }
+                Zizouqi.CombatDots.CombatAttributeBridge.GetPosition(m_CombatUnitHandle,
+                    out float x, out float y, out float z);
+                return new Vector3(x, y, z);
+            }
             set
             {
-                _logicPosition = value;
-                if (GObj != null)
+                if (m_CombatUnitHandle == 0)
                 {
-                    GObj.transform.position = HotGameEntry.HeroManager.GetTerrainMatchHeight(value);
+                    _logicPosition = value;
                 }
+                else
+                {
+                    Zizouqi.CombatDots.CombatAttributeBridge.SetPosition(m_CombatUnitHandle,
+                        value.x, value.y, value.z);
+                }
+                if (!HotGameEntry.HeroManager.InBattle)
+                    SyncCombatPositionPresentation(value.x, value.y, value.z);
+            }
+        }
+
+        internal void SyncCombatPositionPresentation(float x, float y, float z)
+        {
+            if (GObj != null)
+            {
+                GObj.transform.position = HotGameEntry.HeroManager.GetTerrainMatchHeight(
+                    new Vector3(x, y, z));
+                m_LastPresentedLogicPosition = new Vector3(x, y, z);
+                m_HasPresentedLogicPosition = true;
             }
         }
 
@@ -40,7 +117,7 @@ namespace Entity
         {
             IsValid = true;
             HeroID = i;
-            HeroUID = ++HotGameEntry.HeroManager.QiziCurUniqueIndex;
+            HeroUID = CombatBoardBridge.AllocateHeroUid();
             if (equipItem == null)
             {
                 InitAddDefaultItemToList();
@@ -125,9 +202,14 @@ namespace Entity
 
         public void OnChangeEquipItem()
         {
+            CombatAttributeBridge.GetDeploymentCell(m_CombatUnitHandle,
+                out int deploymentRow, out int deploymentColumn);
             DestorySkill();
             DestoryAttribute();
             InitAttribute();
+            CombatAttributeBridge.SetDeploymentCell(m_CombatUnitHandle,
+                deploymentRow, deploymentColumn);
+            LogicPosition = _logicPosition;
             InitSkill();
         }
 
@@ -136,6 +218,7 @@ namespace Entity
             HotGameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
             ClearHpBar();
             GObj = null;
+            m_HasPresentedLogicPosition = false;
         }
         public void Remove()
         {
@@ -163,22 +246,76 @@ namespace Entity
                 HpBar = null;
             }
         }
-        public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds)
+        public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds,
+            CombatUnitSkillPlanBatch skillPlans = null)
         {
             if (IsValid == false)
             {
                 return;
             }
-            UpdateState(elapseSeconds,realElapseSeconds);
-            UpdateSkill(elapseSeconds, realElapseSeconds);
-            UpdateShowSlider();
-            UpdateAnimCommand();
+            m_UnitSkillPlans = skillPlans;
+            try
+            {
+                using (StateUpdateMarker.Auto())
+                {
+                    UpdateState(elapseSeconds, realElapseSeconds);
+                }
+                using (SkillUpdateMarker.Auto())
+                {
+                    UpdateSkill(elapseSeconds, realElapseSeconds);
+                }
+            }
+            finally
+            {
+                m_UnitSkillPlans = null;
+                m_UsePreparedSkillDecisions = false;
+                m_UsePreparedAutomaticSkills = false;
+            }
+        }
+
+        public void UpdateCombatPresentation()
+        {
+            if (!IsValid)
+            {
+                using (SfxPresentationMarker.Auto())
+                {
+                    ReplaySfxEvents();
+                }
+                return;
+            }
+            using (PosePresentationMarker.Auto())
+            {
+                Vector3 position = LogicPosition;
+                if (GObj != null && (!m_HasPresentedLogicPosition ||
+                    position != m_LastPresentedLogicPosition))
+                    SyncCombatPositionPresentation(position.x, position.y, position.z);
+                if (GObj != null && m_CombatUnitHandle != 0 &&
+                    CombatAttributeBridge.TryConsumeFacing(m_CombatUnitHandle,
+                        out Unity.Mathematics.float3 facing))
+                {
+                    GObj.transform.LookAt(HotGameEntry.HeroManager.GetTerrainMatchHeight(
+                        new Vector3(facing.x, facing.y, facing.z)));
+                }
+            }
+            using (SliderUpdateMarker.Auto())
+            {
+                UpdateShowSlider();
+            }
+            using (AnimationUpdateMarker.Auto())
+            {
+                UpdateAnimCommand();
+            }
+            using (SfxPresentationMarker.Auto())
+            {
+                ReplaySfxEvents();
+            }
         }
 
         public void UpdateNoBattle(float elapseSeconds, float realElapseSeconds)
         {
             UpdateShowSlider();
             UpdateAnimCommand();
+            ReplaySfxEvents();
         }
 
         public void OnWinBattle()
@@ -191,6 +328,7 @@ namespace Entity
         }
         public void OnDead()
         {
+            CombatBuffTimerBridge.PauseActiveForOwner(m_CombatUnitHandle);
             RemoveGObj();
             IsValid = false;
             HotGameEntry.HeroManager.OnEntityDead(this);

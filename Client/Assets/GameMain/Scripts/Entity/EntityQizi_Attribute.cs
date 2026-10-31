@@ -4,12 +4,14 @@ using Entity.Attribute;
 using GameFramework;
 using SkillSystem;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace Entity
 {
     public partial class EntityQizi
     {
         public Dictionary<AttributeType,CharacterAttribute> AttributeList = new Dictionary<AttributeType,CharacterAttribute>();
+        private int m_CombatUnitHandle;
 
         public CharacterAttribute GetAttribute(AttributeType attributeType)
         {
@@ -28,6 +30,7 @@ namespace Entity
                 Log.Error($"EntityQizi UID:{HeroUID} Add Attribute Error");
                 return;
             }
+            newAttribute.Bind(m_CombatUnitHandle);
             AttributeList.Add(newAttribute.CurAttributeType,newAttribute);
         }
         public void InitAttribute()
@@ -47,10 +50,15 @@ namespace Entity
                 return;
             }
             var attributeData = heroAttributeTable[attributeID];
+            CombatAttributeBridge.CreateUnit(ref m_CombatUnitHandle, HeroUID, (int)_belongCamp,
+                _isValid, _logicPosition.x, _logicPosition.y, _logicPosition.z);
+            CombatAttributeBridge.SetAttackTargetUid(m_CombatUnitHandle, m_AttackTargetUidBeforeInit);
+            CombatAttributeBridge.SetNextNormalSkillIndex(m_CombatUnitHandle, m_NextNormalSkillIndexBeforeInit);
+            CombatAttributeBridge.SetCurrentNormalSkillIndex(m_CombatUnitHandle, m_CurrentNormalSkillIndexBeforeInit);
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MaxHp,attributeData.Hp,0,int.MaxValue));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.Hp,ReferencePool.Acquire<FixedModifyAttribute>().Initialize(attributeData.Hp,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<DynamicLimitAttribute<int>>().Initialize(AttributeType.MaxHp,this))));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.Hp,attributeData.Hp,0,dynamicMaxType:AttributeType.MaxHp));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MaxPower,attributeData.Power,0,int.MaxValue));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.Power,ReferencePool.Acquire<FixedModifyAttribute>().Initialize(0,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<DynamicLimitAttribute<int>>().Initialize(AttributeType.MaxPower,this))));
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.Power,0,0,dynamicMaxType:AttributeType.MaxPower));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.HuDun,0,0));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.AttackDamage,attributeData.AttackDamage,isFixModify:false));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.HuDunBoost,attributeData.HudunBoost,0,int.MaxValue));//todo
@@ -92,6 +100,15 @@ namespace Entity
 
         private void DestoryAttribute()
         {
+            if (m_CombatUnitHandle != 0)
+            {
+                _belongCamp = BelongCamp;
+                _isValid = IsValid;
+                _logicPosition = LogicPosition;
+                m_AttackTargetUidBeforeInit = CombatAttributeBridge.GetAttackTargetUid(m_CombatUnitHandle);
+                m_NextNormalSkillIndexBeforeInit = CombatAttributeBridge.GetNextNormalSkillIndex(m_CombatUnitHandle);
+                m_CurrentNormalSkillIndexBeforeInit = CombatAttributeBridge.GetCurrentNormalSkillIndex(m_CombatUnitHandle);
+            }
             if (AttributeList != null)
             {
                 foreach (var oneAttrKeyValue in AttributeList)
@@ -100,6 +117,7 @@ namespace Entity
                 }
             }
             AttributeList.Clear();
+            CombatAttributeBridge.Release(ref m_CombatUnitHandle);
         }
     }
 }

@@ -11,26 +11,20 @@ namespace SkillSystem
         public override CommandType CurCommandType => CommandType.CreateSfx;
         public bool CreateOrRemove = true;
         public TableParamInt SfxID;
-        public override void OnExecute(OneTrigger trigger, object arg = null)
-        {
-            if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
-            {
-                foreach (var oneTarget in trigger.CurTargetList)
-                {
-                    if (oneTarget == null || oneTarget.IsValid == false)
-                    {
-                        continue;
-                    }
 
-                    if (CreateOrRemove)
-                    {
-                        oneTarget.AddSfx(SfxID.Value);
-                    }
-                    else
-                    {
-                        oneTarget.RemoveSfx(SfxID.Value);
-                    }
-                }
+        internal void ExecuteTarget(EntityBase oneTarget, bool create, int sfxId)
+        {
+            if (oneTarget == null || oneTarget.IsValid == false)
+            {
+                return;
+            }
+            if (create)
+            {
+                oneTarget.AddSfx(sfxId);
+            }
+            else
+            {
+                oneTarget.RemoveSfx(sfxId);
             }
         }
 

@@ -7,6 +7,7 @@ using SkillSystem;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 public class StateIdle0 : FsmState<EntityQizi>,IReference
 {
@@ -40,25 +41,30 @@ public class StateIdle0 : FsmState<EntityQizi>,IReference
             return;
         }
 
-        if (HotGameEntry.HeroManager.dangqianliucheng == 0||owner.rowIndex==-1)//非战斗状态或者 没上场就一直在idle状态
+        if (!HotGameEntry.HeroManager.InBattle ||
+            !CombatBoardBridge.FindOccupant(owner.HeroUID, out _, out _))//非战斗状态或者没上场就一直在idle状态
         {
             return;
         }
         //技能
         var result = CheckCastSkillResult.Error;
         EntityQizi target = null;
-        List<int> checkNormalSkillList = owner.GetNormalSkillCheckSort();
-        for (var index = 0; index < checkNormalSkillList.Count; index++)
+        int skillCount = owner.NormalSkillList.Count;
+        for (var offset = 0; offset < skillCount; offset++)
         {
+            int skillIndex = CombatAttributeBridge.GetNormalSkillIndexAtOffset(
+                owner.CombatUnitHandle, skillCount, offset);
             //普攻
-            result = owner.CheckCanCastSkill(out target,checkNormalSkillList[index]);
+            result = owner.CheckCanCastSkill(out target, skillIndex);
             if (result == CheckCastSkillResult.CanCast)
             {
                 owner.CurAttackTarget = target;
-                owner.CastNormalSkill(checkNormalSkillList[index]);
+                owner.CastNormalSkill(skillIndex);
                 if (target != null)
                 {
-                    owner.GObj?.transform.LookAt(target.GObj.transform);
+                    Vector3 targetPosition = target.LogicPosition;
+                    CombatAttributeBridge.QueueFacing(owner.CombatUnitHandle,
+                        targetPosition.x, targetPosition.y, targetPosition.z);
                 }
                 ChangeState<StateAttack0>(fsm);
                 break;
@@ -67,7 +73,8 @@ public class StateIdle0 : FsmState<EntityQizi>,IReference
             {
                 Vector2Int ownerIndex = HotGameEntry.HeroManager.GetIndexQizi(owner);
                 Vector2Int targetIndex = HotGameEntry.HeroManager.GetIndexQizi(target);
-                var nextPosIndex = HotGameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.NormalSkillList[checkNormalSkillList[index]].SkillRange);
+                var nextPosIndex = HotGameEntry.HeroManager.Findpath(ownerIndex, targetIndex,
+                    CombatSkillSlotBridge.GetNormalRange(owner.CombatUnitHandle, skillIndex));
                 if (nextPosIndex != new Vector2Int(-1, -1))//有路线可走
                 {
                     owner.CurAttackTarget = target;
@@ -80,7 +87,6 @@ public class StateIdle0 : FsmState<EntityQizi>,IReference
                 owner.CurAttackTarget = target;//普攻等待，但是目标要锁定
             }
         }
-        ListPool<int>.Release(checkNormalSkillList);
     }
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {

@@ -13,37 +13,6 @@ namespace SkillSystem
         public ConditionRelateItemCheckType CheckType;
         public TableParamInt ParamInt1;
         public TableParamInt ParamInt2;
-        public override bool OnCheck(OneTrigger trigger,object arg = null)
-        {
-            var targetItemID = 0;
-            switch (ItemFrom)
-            {
-                case ConditionRelateItemFrom.SkillItem:
-                    /*targetItemID = trigger.ParentTriggerList.ParentSkill.FromItemID;
-                    break;*/
-                case ConditionRelateItemFrom.ArgSkillItem:
-                    if (arg is Skill argSkill)
-                    {
-                        targetItemID = argSkill.FromItemID;
-                    }
-                    break;
-                default:
-                    targetItemID = trigger.ParentTriggerList.ParentSkill.FromItemID;
-                    break;
-            }
-
-            if (targetItemID == 0)
-            {
-                return false;
-            }
-            switch (CheckType)
-            {
-                case ConditionRelateItemCheckType.ContainItem:
-                    return CheckItemContainSubItemID(targetItemID, ParamInt1.Value);
-            }
-            return false;
-        }
-
         public override void WriteToFile(BinaryWriter writer)
         {
             base.WriteToFile(writer);
@@ -95,7 +64,7 @@ namespace SkillSystem
             // }
         }
 
-        private bool CheckItemContainSubItemID(int itemID,int subItemID)
+        internal static bool CheckItemContainSubItemID(int itemID,int subItemID)
         {
             if (itemID == 0)
             {

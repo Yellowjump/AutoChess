@@ -5,13 +5,27 @@ using GameFramework.Fsm;
 using SkillSystem;
 using UnityEngine;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace Entity
 {
     public partial class EntityQizi
     {
         private List<SfxEntity> _sfxList = new List<SfxEntity>();
+        private readonly List<CombatUnitSfxEvent> m_SfxPlayback =
+            new List<CombatUnitSfxEvent>();
         public override void AddSfx(int sfxID)
+        {
+            if (m_CombatUnitHandle != 0 && HotGameEntry.HeroManager.InBattle)
+            {
+                CombatAttributeBridge.QueueSfxEvent(m_CombatUnitHandle,
+                    CombatUnitSfxEventKind.Add, sfxID);
+                return;
+            }
+            ApplyAddSfx(sfxID);
+        }
+
+        private void ApplyAddSfx(int sfxID)
         {
             var sfxTable = GameEntry.DataTable.GetDataTable<DRSfx>("Sfx");
             if (sfxTable.HasDataRow(sfxID))
@@ -59,12 +73,23 @@ namespace Entity
                     if (oneSfx.TimePassedMs >= oneSfx.DurationMs)
                     {
                         ReferencePool.Release(oneSfx);
-                        _sfxList.Remove(oneSfx);
+                        _sfxList.RemoveAt(index);
                     }
                 }
             }
         }
         public override void RemoveSfx(int sfxID)
+        {
+            if (m_CombatUnitHandle != 0 && HotGameEntry.HeroManager.InBattle)
+            {
+                CombatAttributeBridge.QueueSfxEvent(m_CombatUnitHandle,
+                    CombatUnitSfxEventKind.Remove, sfxID);
+                return;
+            }
+            ApplyRemoveSfx(sfxID);
+        }
+
+        private void ApplyRemoveSfx(int sfxID)
         {
             if (_sfxList == null || _sfxList.Count == 0)
             {
@@ -83,8 +108,35 @@ namespace Entity
             }
         }
 
+        private void ReplaySfxEvents()
+        {
+            if (m_CombatUnitHandle == 0) return;
+            CombatAttributeBridge.DrainSfxEvents(m_CombatUnitHandle,
+                m_SfxPlayback);
+            foreach (CombatUnitSfxEvent playback in m_SfxPlayback)
+            {
+                switch (playback.Kind)
+                {
+                    case CombatUnitSfxEventKind.Add:
+                        ApplyAddSfx(playback.SfxId);
+                        break;
+                    case CombatUnitSfxEventKind.Remove:
+                        ApplyRemoveSfx(playback.SfxId);
+                        break;
+                    case CombatUnitSfxEventKind.Tick:
+                        UpdateSfxRemainTime(playback.DeltaSeconds,
+                            playback.DeltaSeconds);
+                        break;
+                }
+            }
+            m_SfxPlayback.Clear();
+        }
+
         private void RemoveAllSfx()
         {
+            if (m_CombatUnitHandle != 0)
+                CombatAttributeBridge.ClearSfxEvents(m_CombatUnitHandle);
+            m_SfxPlayback.Clear();
             if (_sfxList == null || _sfxList.Count == 0)
             {
                 return;

@@ -11,35 +11,6 @@ namespace SkillSystem
         public override ConditionType CurConditionType => ConditionType.ConditionGroup;
         public LogicOperator CurLogicOperator = LogicOperator.And;
         public List<ConditionBase> ConditionList;
-        public override bool OnCheck(OneTrigger trigger,object arg = null)
-        {
-            if (ConditionList == null || ConditionList.Count == 0)
-            {
-                return true;
-            }
-
-            bool tempResult = CurLogicOperator == LogicOperator.And ? true : false;
-            foreach (var oneCondition in ConditionList)
-            {
-                bool oneResult = oneCondition.OnCheck(trigger) == !oneCondition.ReverseResult;
-                switch (CurLogicOperator)
-                {
-                    case LogicOperator.And:
-                        tempResult = tempResult && oneResult;
-                        break;
-                    case LogicOperator.Or:
-                        tempResult = tempResult || oneResult;
-                        break;
-                }
-
-                if ((CurLogicOperator == LogicOperator.And && !tempResult) || (CurLogicOperator == LogicOperator.Or && tempResult))
-                {
-                    return tempResult; // 如果遇到false（与门）或true（或门），直接返回结果
-                }
-            }
-            return tempResult;
-        }
-
         public override void ReadFromFile(BinaryReader reader)
         {
             base.ReadFromFile(reader);
@@ -72,13 +43,37 @@ namespace SkillSystem
             base.Clone(copy);
             if (copy is ConditionGroup copyGroup)
             {
-                copyGroup.ConditionList.Clear();
-                foreach (var oneCondition in ConditionList)
+                copyGroup.CurLogicOperator = CurLogicOperator;
+                for (int i = 0; i < ConditionList.Count; i++)
                 {
-                    var copyCondition = SkillFactory.CreateCondition(oneCondition.CurConditionType);
+                    ConditionBase oneCondition = ConditionList[i];
+                    ConditionBase copyCondition;
+                    if (i < copyGroup.ConditionList.Count &&
+                        copyGroup.ConditionList[i].CurConditionType == oneCondition.CurConditionType)
+                    {
+                        copyCondition = copyGroup.ConditionList[i];
+                    }
+                    else
+                    {
+                        if (i < copyGroup.ConditionList.Count)
+                        {
+                            ReferencePool.Release(copyGroup.ConditionList[i]);
+                            copyCondition = SkillFactory.CreateCondition(oneCondition.CurConditionType);
+                            copyGroup.ConditionList[i] = copyCondition;
+                        }
+                        else
+                        {
+                            copyCondition = SkillFactory.CreateCondition(oneCondition.CurConditionType);
+                            copyGroup.ConditionList.Add(copyCondition);
+                        }
+                    }
                     copyCondition.ParentTrigger = copyGroup.ParentTrigger;
                     oneCondition.Clone(copyCondition);
-                    copyGroup.ConditionList.Add(copyCondition);
+                }
+                for (int i = copyGroup.ConditionList.Count - 1; i >= ConditionList.Count; i--)
+                {
+                    ReferencePool.Release(copyGroup.ConditionList[i]);
+                    copyGroup.ConditionList.RemoveAt(i);
                 }
             }
         }

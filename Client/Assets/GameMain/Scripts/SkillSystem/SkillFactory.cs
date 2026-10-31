@@ -182,7 +182,6 @@ namespace SkillSystem
         {
             var emptyTrigger =  ReferencePool.Acquire<OneTrigger>();
             emptyTrigger.CurCommandList ??= ListPool<CommandBase>.Get();
-            emptyTrigger.CurTargetList ??= ListPool<EntityBase>.Get();
             emptyTrigger.CurCondition = CreateCondition(ConditionType.NoCondition);
             emptyTrigger.CurTargetPicker = CreateTargetPicker(TargetPickerType.NoTarget);
             return emptyTrigger;
@@ -191,7 +190,6 @@ namespace SkillSystem
         {
             var emptyTrigger = ReferencePool.Acquire<OneTrigger>();
             emptyTrigger.CurCommandList ??= ListPool<CommandBase>.Get();
-            emptyTrigger.CurTargetList ??= ListPool<EntityBase>.Get();
             return emptyTrigger;
         }
 

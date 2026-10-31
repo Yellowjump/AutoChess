@@ -117,7 +117,7 @@ public class BattleMainCtrl : UIFormLogic
             var targetQizi = GetMousePosQizi();
             if (targetQizi != null && targetQizi.IsValid)
             {
-                if (targetQizi.BelongCamp == CampType.Friend && HotGameEntry.HeroManager.dangqianliucheng == 0)
+                if (targetQizi.BelongCamp == CampType.Friend && !HotGameEntry.HeroManager.InBattle)
                 {
                     tryDragTargetQizi = targetQizi;
                     HotGameEntry.HeroManager.ShowQige(true);
@@ -162,13 +162,20 @@ public class BattleMainCtrl : UIFormLogic
                 //获取当前鼠标是否在一个格子内
                 if (GetMousePosGezi(out var geziPos, false))
                 {
+                    Vector2Int originalCell = HotGameEntry.HeroManager.GetIndexQizi(
+                        tryDragTargetQizi);
+                    bool sameCell = geziPos == originalCell;
                     //另一个格子里有hero
                     if (HotGameEntry.HeroManager.GetQiziByQigeIndex(geziPos, out var curPosQizi))
                     {
-                        HotGameEntry.HeroManager.UpdateEntityPos(curPosQizi, new Vector2Int(tryDragTargetQizi.columnIndex, tryDragTargetQizi.rowIndex));
+                        HotGameEntry.HeroManager.SwapEntityPos(tryDragTargetQizi, curPosQizi);
+                    }
+                    else
+                    {
+                        HotGameEntry.HeroManager.UpdateEntityPos(tryDragTargetQizi, geziPos);
                     }
 
-                    if (geziPos.y == tryDragTargetQizi.rowIndex && geziPos.x == tryDragTargetQizi.columnIndex) //選中位置沒有移動
+                    if (sameCell) //選中位置沒有移動
                     {
                         tryDragTargetQizi.ShowHighlight(true);
                         qizishuxin.gameObject.SetActive(true);
@@ -176,12 +183,14 @@ public class BattleMainCtrl : UIFormLogic
                         keepCurTarget = true;
                     }
 
-                    HotGameEntry.HeroManager.UpdateEntityPos(tryDragTargetQizi, geziPos);
                 }
                 else
                 {
                     //不在格子中释放qizi
-                    tryDragTargetQizi.LogicPosition = HotGameEntry.HeroManager.GetGeziPos(tryDragTargetQizi.rowIndex, tryDragTargetQizi.columnIndex);
+                    Vector2Int originalCell = HotGameEntry.HeroManager.GetIndexQizi(
+                        tryDragTargetQizi);
+                    tryDragTargetQizi.LogicPosition = HotGameEntry.HeroManager.GetGeziPos(
+                        originalCell.y, originalCell.x);
                 }
 
                 tryDragTargetQizi.HpBar.UpdataMoveHpBar();
@@ -206,7 +215,7 @@ public class BattleMainCtrl : UIFormLogic
             }
         }
 
-        /*if (HotGameEntry.HeroManager.dangqianliucheng == 0)
+        /*if (!HotGameEntry.HeroManager.InBattle)
         {
             if (!GetOrNotGetQizi)
             {
@@ -244,14 +253,18 @@ public class BattleMainCtrl : UIFormLogic
                         //另一个格子里有hero
                         if (HotGameEntry.HeroManager.GetQiziByQigeIndex(geziPos, out var curPosQizi))
                         {
-                            HotGameEntry.HeroManager.UpdateEntityPos(curPosQizi,new Vector2Int(curTargetQizi.columnIndex,curTargetQizi.rowIndex));
+                            HotGameEntry.HeroManager.UpdateEntityPos(curPosQizi,
+                                HotGameEntry.HeroManager.GetIndexQizi(curTargetQizi));
                         }
                         HotGameEntry.HeroManager.UpdateEntityPos(curTargetQizi,geziPos);
                     }
                     else
                     {
                         //不在格子中释放qizi
-                        curTargetQizi.LogicPosition = HotGameEntry.HeroManager.GetGeziPos(curTargetQizi.rowIndex,curTargetQizi.columnIndex);
+                        Vector2Int originalCell = HotGameEntry.HeroManager.GetIndexQizi(
+                            curTargetQizi);
+                        curTargetQizi.LogicPosition = HotGameEntry.HeroManager.GetGeziPos(
+                            originalCell.y, originalCell.x);
                     }
                     curTargetQizi.HpBar.UpdataMoveHpBar();
                     curTargetQizi = null;

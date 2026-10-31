@@ -3,6 +3,7 @@ using DataTable;
 using GameFramework;
 using UnityEngine;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace Entity
 {
@@ -44,21 +45,32 @@ namespace Entity
         }
         private void UpdateAnimCommand()
         {
-            if (_animancer != null && _waitPlayAni!=null)
+            if (_animancer == null) return;
+            if (m_CombatUnitHandle != 0 &&
+                CombatAttributeBridge.TryConsumeAnimation(m_CombatUnitHandle,
+                    out int assetId, out float speed))
             {
-                var anim = HotGameEntry.HeroManager.GetAnimClipByPath(_waitPlayAni.AnimAssetPath);
-                if (anim != null)
-                {
-                    var state = _animancer.Play(anim,0.25f);
-                    state.Speed = _waitPlayAni.Speed;
-                    if (!anim.isLooping)
-                    {
-                        state.Time = 0f;
-                    }
-                }
+                var assets = GameEntry.DataTable.GetDataTable<DRAssetsPath>(
+                    "AssetsPath");
+                if (assets != null && assets.HasDataRow(assetId))
+                    PlayAnimation(assets[assetId].AssetPath, speed);
+            }
+            else if (_waitPlayAni != null)
+            {
+                PlayAnimation(_waitPlayAni.AnimAssetPath,
+                    _waitPlayAni.Speed);
                 ReferencePool.Release(_waitPlayAni);
                 _waitPlayAni = null;
             }
+        }
+
+        private void PlayAnimation(string assetPath, float speed)
+        {
+            var anim = HotGameEntry.HeroManager.GetAnimClipByPath(assetPath);
+            if (anim == null) return;
+            var state = _animancer.Play(anim, 0.25f);
+            state.Speed = speed;
+            if (!anim.isLooping) state.Time = 0f;
         }
 
         public void AddAnimCommand(int aniAssetID,float speed=1)
@@ -66,9 +78,25 @@ namespace Entity
             var assetsPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
             if (assetsPathTable.HasDataRow(aniAssetID))
             {
-                _waitPlayAni = ReferencePool.Acquire<WaitPlayAnimData>();
-                _waitPlayAni.AnimAssetPath =assetsPathTable[aniAssetID].AssetPath;
-                _waitPlayAni.Speed = speed;
+                if (HotGameEntry.HeroManager.InBattle && m_CombatUnitHandle != 0)
+                {
+                    if (_waitPlayAni != null)
+                    {
+                        ReferencePool.Release(_waitPlayAni);
+                        _waitPlayAni = null;
+                    }
+                    CombatAttributeBridge.QueueAnimation(m_CombatUnitHandle,
+                        aniAssetID, speed);
+                }
+                else
+                {
+                    if (_waitPlayAni != null)
+                        ReferencePool.Release(_waitPlayAni);
+                    _waitPlayAni = ReferencePool.Acquire<WaitPlayAnimData>();
+                    _waitPlayAni.AnimAssetPath =
+                        assetsPathTable[aniAssetID].AssetPath;
+                    _waitPlayAni.Speed = speed;
+                }
             }
         }
         public void AddAnimCommandIdle()
@@ -109,6 +137,11 @@ namespace Entity
         }
         private void ReleaseAnim()
         {
+            if (_waitPlayAni != null)
+            {
+                ReferencePool.Release(_waitPlayAni);
+                _waitPlayAni = null;
+            }
             var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
             if (tableHero.HasDataRow(HeroID))
             {

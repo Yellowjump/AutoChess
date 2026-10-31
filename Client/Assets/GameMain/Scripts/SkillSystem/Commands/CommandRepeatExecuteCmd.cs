@@ -15,34 +15,6 @@ namespace SkillSystem
         public NumberCheckType CurType;
         public TableParamInt ParamInt1;
         public List<CommandBase> CurCommandList;
-        public override void OnExecute(OneTrigger trigger, object arg = null)
-        {
-            if (CurCommandList != null && CurCommandList.Count != 0)
-            {
-                var executeNum = 0;
-                switch (CurType)
-                {
-                    case NumberCheckType.ParentSkillContainSubItemNumber:
-                        executeNum = GetNumberContainSubItem();
-                        break;
-                    case NumberCheckType.FixedNumber:
-                        executeNum = ParamInt1.Value;
-                        break;
-                }
-
-                if (executeNum <= 0)
-                {
-                    return;
-                }
-                for (int i = 0; i < executeNum; i++)
-                {
-                    foreach (var oneCommand in CurCommandList)
-                    {
-                        oneCommand.OnExecute(trigger,arg);
-                    }
-                }
-            }
-        }
 
         public override void WriteToFile(BinaryWriter writer)
         {
@@ -87,13 +59,38 @@ namespace SkillSystem
             {
                 commandRepeatExecuteCmd.CurType = CurType;
                 ParamInt1.Clone(commandRepeatExecuteCmd.ParamInt1);
-                commandRepeatExecuteCmd.CurCommandList.Clear();
-                foreach (var oneCommand in CurCommandList)
+                for (int i = 0; i < CurCommandList.Count; i++)
                 {
-                    var copyCommand = SkillFactory.CreateCommand(oneCommand.CurCommandType);
+                    CommandBase oneCommand = CurCommandList[i];
+                    CommandBase copyCommand;
+                    if (i < commandRepeatExecuteCmd.CurCommandList.Count &&
+                        commandRepeatExecuteCmd.CurCommandList[i].CurCommandType ==
+                        oneCommand.CurCommandType)
+                    {
+                        copyCommand = commandRepeatExecuteCmd.CurCommandList[i];
+                    }
+                    else
+                    {
+                        if (i < commandRepeatExecuteCmd.CurCommandList.Count)
+                        {
+                            ReferencePool.Release(commandRepeatExecuteCmd.CurCommandList[i]);
+                            copyCommand = SkillFactory.CreateCommand(oneCommand.CurCommandType);
+                            commandRepeatExecuteCmd.CurCommandList[i] = copyCommand;
+                        }
+                        else
+                        {
+                            copyCommand = SkillFactory.CreateCommand(oneCommand.CurCommandType);
+                            commandRepeatExecuteCmd.CurCommandList.Add(copyCommand);
+                        }
+                    }
                     copyCommand.ParentTrigger = commandRepeatExecuteCmd.ParentTrigger;
                     oneCommand.Clone(copyCommand);
-                    commandRepeatExecuteCmd.CurCommandList.Add(copyCommand);
+                }
+                for (int i = commandRepeatExecuteCmd.CurCommandList.Count - 1;
+                     i >= CurCommandList.Count; i--)
+                {
+                    ReferencePool.Release(commandRepeatExecuteCmd.CurCommandList[i]);
+                    commandRepeatExecuteCmd.CurCommandList.RemoveAt(i);
                 }
             }
         }
@@ -114,16 +111,15 @@ namespace SkillSystem
             }
         }
 
-        private int GetNumberContainSubItem()
+        internal static int CountSubItem(int itemID, int subItemID)
         {
-            var itemID = ParentTrigger.ParentTriggerList.ParentSkill.FromItemID;
             var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
             if (itemTable.HasDataRow(itemID))
             {
                 var itemData = itemTable[itemID];
                 foreach (var oneItemIDAndNum in itemData.CraftList)
                 {
-                    if (oneItemIDAndNum.Item1 == ParamInt1.Value)
+                    if (oneItemIDAndNum.Item1 == subItemID)
                     {
                         return oneItemIDAndNum.Item2;
                     }

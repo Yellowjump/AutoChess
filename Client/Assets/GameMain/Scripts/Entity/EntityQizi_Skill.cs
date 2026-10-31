@@ -1,25 +1,113 @@
 
+using System;
 using System.Collections.Generic;
 using DataTable;
 using GameFramework;
 using SkillSystem;
+using Unity.Profiling;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
+using Zizouqi.CombatDots;
 
 namespace Entity
 {
     public partial class EntityQizi
     {
+        private static readonly ProfilerMarker TickTriggerMarker =
+            new ProfilerMarker("Combat.Unit.TickTrigger");
+        private static readonly ProfilerMarker BuffUpdateMarker =
+            new ProfilerMarker("Combat.Unit.Buff");
+        private static readonly ProfilerMarker AutomaticSkillMarker =
+            new ProfilerMarker("Combat.Unit.AutomaticSkill");
+        private static readonly ProfilerMarker SfxUpdateMarker =
+            new ProfilerMarker("Combat.Unit.Sfx");
+
         public List<Skill> NormalSkillList = new List<Skill>();
-        public int NextCastNormalSkillIndex = 0;
-        public int CurCastNormalSkillIndex = 0;
+        private int m_NextNormalSkillIndexBeforeInit;
+        private int m_CurrentNormalSkillIndexBeforeInit;
+        private int m_AttackTargetUidBeforeInit;
+        internal int CombatUnitHandle => m_CombatUnitHandle;
+        public int NextCastNormalSkillIndex
+        {
+            get => m_CombatUnitHandle == 0 ? m_NextNormalSkillIndexBeforeInit :
+                CombatAttributeBridge.GetNextNormalSkillIndex(m_CombatUnitHandle);
+            set
+            {
+                if (m_CombatUnitHandle == 0) m_NextNormalSkillIndexBeforeInit = value;
+                else CombatAttributeBridge.SetNextNormalSkillIndex(m_CombatUnitHandle, value);
+            }
+        }
+        public int CurCastNormalSkillIndex
+        {
+            get => m_CombatUnitHandle == 0 ? m_CurrentNormalSkillIndexBeforeInit :
+                CombatAttributeBridge.GetCurrentNormalSkillIndex(m_CombatUnitHandle);
+            set
+            {
+                if (m_CombatUnitHandle == 0) m_CurrentNormalSkillIndexBeforeInit = value;
+                else CombatAttributeBridge.SetCurrentNormalSkillIndex(m_CombatUnitHandle, value);
+            }
+        }
         public List<Skill> NoAnimAtkSkillList = new List<Skill>();
         public Skill SpSkill;
         public List<Skill> PassiveSkillList = new List<Skill>();
-        public Dictionary<TriggerType, List<OneTrigger>> CurTriggerDic = new Dictionary<TriggerType, List<OneTrigger>>();
+        private readonly Dictionary<int, OneTrigger> m_TriggerByRegistrationId = new Dictionary<int, OneTrigger>();
         public List<Buff> CurBuffList = new List<Buff>();
-        public Dictionary<int, List<Buff>> AuraStack = new Dictionary<int, List<Buff>>();
-        public EntityQizi CurAttackTarget;
+        private readonly Dictionary<int, Buff> m_BuffByTimerHandle = new Dictionary<int, Buff>();
+        private Func<int, bool> m_HasBuff;
+        private Action<int> m_DestroyBuffForDamage;
+        private CombatUnitSkillPlanBatch m_UnitSkillPlans;
+        private bool m_UsePreparedSkillDecisions;
+        private bool m_UsePreparedAutomaticSkills;
+        private Func<int, int> m_GetAutomaticCooldownHandle;
+        private Action<int> m_AddAutomaticIntent;
+        private Action<int> m_CastAutomaticSkillAction;
+
+        public void PrepareSkillDecisions()
+        {
+            if (m_CombatUnitHandle == 0)
+            {
+                return;
+            }
+            m_UsePreparedSkillDecisions = false;
+            m_UsePreparedAutomaticSkills = false;
+            if (!IsValid || fsm == null ||
+                !CombatBoardBridge.FindOccupant(HeroUID, out _, out _))
+            {
+                return;
+            }
+            CombatAutomaticSkillIntentBridge.Clear(m_CombatUnitHandle);
+            if (fsm.CurrentState is StateIdle0 ||
+                fsm.CurrentState is StateMove0)
+            {
+                m_UsePreparedSkillDecisions = true;
+            }
+            CombatSkillSlotBridge.Execute(m_CombatUnitHandle,
+                CombatSkillSlotKind.Automatic,
+                m_GetAutomaticCooldownHandle ??= GetAutomaticCooldownHandle,
+                m_AddAutomaticIntent ??= AddAutomaticIntent);
+            m_UsePreparedAutomaticSkills = true;
+        }
+
+        private int GetAutomaticCooldownHandle(int index) =>
+            NoAnimAtkSkillList[index].CooldownHandle;
+
+        private void AddAutomaticIntent(int index) =>
+            CombatAutomaticSkillIntentBridge.Add(m_CombatUnitHandle, index);
+        public EntityQizi CurAttackTarget
+        {
+            get
+            {
+                int targetUid = m_CombatUnitHandle == 0 ? m_AttackTargetUidBeforeInit :
+                    CombatAttributeBridge.GetAttackTargetUid(m_CombatUnitHandle);
+                return targetUid == 0 ? null : HotGameEntry.HeroManager.GetEntityByUID(targetUid);
+            }
+            set
+            {
+                int targetUid = value == null ? 0 : value.HeroUID;
+                if (m_CombatUnitHandle == 0) m_AttackTargetUidBeforeInit = targetUid;
+                else CombatAttributeBridge.SetAttackTargetUid(m_CombatUnitHandle, targetUid);
+            }
+        }
         /// <summary>
         /// 普攻动画加速时间
         /// </summary>
@@ -73,14 +161,20 @@ namespace Entity
                     if (oneNewSkill.CurSkillType == SkillType.NormalSkill)
                     {
                         NormalSkillList.Add(oneNewSkill);
+                        RegisterCombatSkillSlot(oneNewSkill, CombatSkillSlotKind.Normal,
+                            NormalSkillList.Count - 1);
                     }
                     else if (oneNewSkill.CurSkillType == SkillType.PassiveSkill)
                     {
                         PassiveSkillList.Add(oneNewSkill);
+                        RegisterCombatSkillSlot(oneNewSkill, CombatSkillSlotKind.Passive,
+                            PassiveSkillList.Count - 1);
                     }
                     else if (oneNewSkill.CurSkillType == SkillType.NoAnimSkill)
                     {
                         NoAnimAtkSkillList.Add(oneNewSkill);
+                        RegisterCombatSkillSlot(oneNewSkill, CombatSkillSlotKind.Automatic,
+                            NoAnimAtkSkillList.Count - 1);
                     }
                 }
                 if (itemData.AttrAdd != null && itemData.AttrAdd.Count != 0)
@@ -115,6 +209,8 @@ namespace Entity
             if (passiveSkill != null && passiveSkill.CurSkillType == SkillType.PassiveSkill)
             {
                 PassiveSkillList.Add(passiveSkill);
+                RegisterCombatSkillSlot(passiveSkill, CombatSkillSlotKind.Passive,
+                    PassiveSkillList.Count - 1);
             }
 
             var spSkillID = heroTableData.SpSkillID;
@@ -122,7 +218,14 @@ namespace Entity
             if (oneSpSkill != null && oneSpSkill.CurSkillType == SkillType.SpSkill)
             {
                 SpSkill = oneSpSkill;
+                RegisterCombatSkillSlot(oneSpSkill, CombatSkillSlotKind.Special, 0);
             }
+        }
+
+        private void RegisterCombatSkillSlot(Skill skill, CombatSkillSlotKind kind, int index)
+        {
+            CombatSkillSlotBridge.Add(m_CombatUnitHandle, kind, index, skill.SkillID,
+                skill.CastPower, skill.SkillRange, (int)skill.CurSkillCastTargetType);
         }
 
         private Skill AddOneNewSkill(int skillID)
@@ -192,51 +295,69 @@ namespace Entity
         }
         public void AddTriggerListen(OneTrigger oneTrigger)
         {
-            if (oneTrigger == null||CurTriggerDic == null)
+            if (oneTrigger == null)
             {
                 return;
             }
-            var triggerType = oneTrigger.CurTriggerType;
-            if (!CurTriggerDic.ContainsKey(triggerType))
+            if (!CombatTriggerIndex.TryCreateOwner(m_CombatUnitHandle) ||
+                !CombatTriggerIndex.TryAdd(m_CombatUnitHandle, (int)oneTrigger.CurTriggerType,
+                    out int registrationId))
             {
-                CurTriggerDic.Add(triggerType,ListPool<OneTrigger>.Get());
+                throw new System.InvalidOperationException("Combat trigger registration requires a live ECS unit.");
             }
-
-            var curTypeList = CurTriggerDic[triggerType];
-            curTypeList.Add(oneTrigger);
+            m_TriggerByRegistrationId.Add(registrationId, oneTrigger);
         }
         public void RemoveTriggerListen(OneTrigger oneTrigger)
         {
-            if (oneTrigger == null||CurTriggerDic == null)
+            if (oneTrigger == null || !CombatTriggerIndex.IsOwnerValid(m_CombatUnitHandle))
             {
                 return;
             }
-            var triggerType = oneTrigger.CurTriggerType;
-            if (!CurTriggerDic.ContainsKey(triggerType))
+            var matches = ListPool<int>.Get();
+            try
             {
-                return;
+                CombatTriggerIndex.TryCollect(m_CombatUnitHandle, (int)oneTrigger.CurTriggerType, matches);
+                foreach (int registrationId in matches)
+                {
+                    if (m_TriggerByRegistrationId.TryGetValue(registrationId, out var registered) &&
+                        ReferenceEquals(registered, oneTrigger))
+                    {
+                        CombatTriggerIndex.Remove(m_CombatUnitHandle, registrationId);
+                        m_TriggerByRegistrationId.Remove(registrationId);
+                        return;
+                    }
+                }
             }
-
-            var curTypeList = CurTriggerDic[triggerType];
-            curTypeList.Remove(oneTrigger);
-            if (curTypeList.Count == 0)
+            finally
             {
-                CurTriggerDic.Remove(triggerType);
-                ListPool<OneTrigger>.Release(curTypeList);
+                ListPool<int>.Release(matches);
             }
         }
         
         public void OnTrigger(TriggerType triggerType, object arg = null)
         {
-            if (CurTriggerDic == null||!CurTriggerDic.ContainsKey(triggerType)||CurTriggerDic[triggerType]==null||CurTriggerDic[triggerType].Count==0)
+            if (m_TriggerByRegistrationId.Count == 0)
             {
                 return;
             }
-
-            var typeList = CurTriggerDic[triggerType];
-            foreach (var oneTrigger in typeList)
+            var matches = ListPool<int>.Get();
+            try
             {
-                oneTrigger.OnTrigger(arg);
+                if (!CombatTriggerIndex.TryCollect(m_CombatUnitHandle, (int)triggerType, matches))
+                {
+                    throw new System.InvalidOperationException("Combat trigger index was lost while the unit is active.");
+                }
+                foreach (int registrationId in matches)
+                {
+                    if (m_TriggerByRegistrationId.TryGetValue(registrationId, out var trigger))
+                    {
+                        trigger.OnTrigger(arg);
+                    }
+                }
+            }
+            finally
+            {
+                ListPool<int>.Release(matches);
             }
         }
 
@@ -246,198 +367,210 @@ namespace Entity
             {
                 return;
             }
+            buff.BindCombatOwner(m_CombatUnitHandle);
+            m_BuffByTimerHandle[buff.TimerHandle] = buff;
             // todo 判断是否有 免疫之类的判断
-            if (buff.MaxLayerNum != 0)//有层数限制
+            if (!CombatBuffTimerBridge.PrepareIncomingStack(buff.TimerHandle,
+                    m_HasBuff ??= HasBuff, out int removeHandle))
             {
-                if (buff.MaxLayerNum < 0)//是光环
-                {
-                    if (!AuraStack.ContainsKey(buff.BuffID))
-                    {
-                        var buffList = ListPool<Buff>.Get();
-                        buffList.Add(buff);
-                        AuraStack.Add(buff.BuffID,buffList);
-                    }
-                    else
-                    {
-                        var buffList = AuraStack[buff.BuffID];
-                        buffList.Add(buff);//之前有该光环效果只进入光环队列不触发
-                        return;
-                    }
-                }
-                else
-                {
-                    var buffCount = 0;
-                    var minRemainingTime = float.MaxValue;
-                    Buff buffToRemove = null;
-                    foreach (var b in CurBuffList)
-                    {
-                        if (b.BuffID == buff.BuffID&&b.IsValid)
-                        {
-                            buffCount++;
-                            // 如果已存在同 buffID 的 buff，且剩余时间最少的 buff 未找到或当前 buff 剩余时间更少
-                            if (b.RemainMs < minRemainingTime)
-                            {
-                                minRemainingTime = b.RemainMs;
-                                buffToRemove = b;
-                            }
-                            if (buff.FreshOtherBuffDuration)
-                            {
-                                b.RemainMs = b.DurationMs;//时间刷新重置
-                            }
-                        }
-                    }
-                    // 检查是否超过层数限制
-                    if (buffCount >= buff.MaxLayerNum && buffToRemove != null)
-                    {
-                        buffToRemove.OnDestory();
-                    }
-                }
+                return;
+            }
+            if (removeHandle != 0 && m_BuffByTimerHandle.TryGetValue(removeHandle,
+                    out Buff buffToRemove))
+            {
+                buffToRemove.OnDestory();
             }
             CurBuffList.Add(buff);
+            CombatBuffTimerBridge.SetActive(buff.TimerHandle, true);
+            buff.ActivateTimer();
             buff.OnActive();
         }
 
         public void OnAuraBuffDestroy(Buff buff)
         {
-            if (AuraStack.ContainsKey(buff.BuffID))
+            int nextHandle = CombatBuffTimerBridge.RemoveAura(buff.TimerHandle,
+                out bool wasActive);
+            if (!wasActive && !CurBuffList.Contains(buff))
             {
-                var buffList = AuraStack[buff.BuffID];
-                if (buffList.Contains(buff))
-                {
-                    var index = buffList.FindIndex((bu)=>bu==buff);
-                    if (index == 0)
-                    {
-                        buffList.Remove(buff);
-                        if (buffList.Count == 0)
-                        {
-                            AuraStack.Remove(buff.BuffID);
-                            ListPool<Buff>.Release(buffList);
-                        }
-                        else
-                        {
-                            var oneBuff = buffList[0];
-                            CurBuffList.Add(buff);
-                            oneBuff.OnActive();
-                        }
-                    }
-                    else
-                    {
-                        buffList.Remove(buff);
-                    }
-                }
+                CombatBuffTimerBridge.QueueDeferredRelease(m_CombatUnitHandle,
+                    buff.TimerHandle);
+            }
+            if (nextHandle != 0 && m_BuffByTimerHandle.TryGetValue(nextHandle, out Buff nextBuff))
+            {
+                CurBuffList.Add(nextBuff);
+                CombatBuffTimerBridge.SetActive(nextHandle, true);
+                nextBuff.ActivateTimer();
+                nextBuff.OnActive();
             }
         }
         public override void RemoveBuff(int buffID)
         {
-            foreach (var oneBuff in CurBuffList)
+            List<int> handles = ListPool<int>.Get();
+            CombatBuffTimerBridge.CollectActiveById(m_CombatUnitHandle, buffID, handles);
+            foreach (int handle in handles)
             {
-                if (oneBuff.BuffID == buffID)
-                {
-                    oneBuff.OnDestory();
-                }
-            }
-        }
-        private void CastPassiveSkill()
-        {
-            foreach (var passiveSkill in PassiveSkillList)
-            {
-                passiveSkill.Cast();
-            }
-        }
-        private void UpdateSkill(float elapseSeconds, float realElapseSeconds)
-        {
-            if (CurTriggerDic != null && CurTriggerDic.TryGetValue(TriggerType.PerTick, out var perTickList))
-            {
-                if (perTickList != null && perTickList.Count > 0)
-                {
-                    List<OneTrigger> tempList = ListPool<OneTrigger>.Get();
-                    tempList.AddRange(perTickList);
-                    foreach (var oneT in tempList)
-                    {
-                        oneT.OnTrigger();
-                    }
-                    ListPool<OneTrigger>.Release(tempList);
-                }
-            }
-            UpdateBuffTime(elapseSeconds, realElapseSeconds);
-            foreach (var oneNormalSkill in NormalSkillList)
-            {
-                oneNormalSkill.LogicUpdateCD(elapseSeconds,realElapseSeconds);
-            }
-
-            foreach (var noAnimSkill in NoAnimAtkSkillList)
-            {
-                noAnimSkill.LogicUpdateCD(elapseSeconds,realElapseSeconds);
-                if (!noAnimSkill.InCD)
-                { 
-                    noAnimSkill.OnDestory();
-                    noAnimSkill.Cast();
-                }
-            }
-
-            UpdateSfxRemainTime(elapseSeconds, realElapseSeconds);
-        }
-
-        private void UpdateBuffTime(float elapseSeconds, float realElapseSeconds)
-        {
-            List<Buff> tempBuffList = ListPool<Buff>.Get();
-            tempBuffList.AddRange(CurBuffList);
-            foreach (var buff in tempBuffList)
-            {
-                if (buff.IsValid == false)
-                {
-                    continue;
-                }
-                buff.RemainMs -= elapseSeconds*1000;
-                if (buff.DurationMs!=0&&buff.RemainMs<=0)
+                if (m_BuffByTimerHandle.TryGetValue(handle, out Buff buff))
                 {
                     buff.OnDestory();
                 }
             }
-            ListPool<Buff>.Release(tempBuffList);
+            ListPool<int>.Release(handles);
+        }
+        private void CastPassiveSkill()
+        {
+            CombatSkillSlotBridge.Execute(m_CombatUnitHandle, CombatSkillSlotKind.Passive,
+                null, index => PassiveSkillList[index].Cast());
+        }
+        private void UpdateSkill(float elapseSeconds, float realElapseSeconds)
+        {
+            using (TickTriggerMarker.Auto())
+            {
+                OnTrigger(TriggerType.PerTick);
+            }
+            using (BuffUpdateMarker.Auto())
+            {
+                UpdateBuffTime(elapseSeconds, realElapseSeconds);
+            }
+            using (AutomaticSkillMarker.Auto())
+            {
+                if (m_UsePreparedAutomaticSkills)
+                {
+                    CombatAutomaticSkillIntentBridge.Execute(m_CombatUnitHandle,
+                        m_CastAutomaticSkillAction ??= CastAutomaticSkill);
+                }
+                else
+                {
+                    CombatSkillSlotBridge.Execute(m_CombatUnitHandle,
+                        CombatSkillSlotKind.Automatic,
+                        m_GetAutomaticCooldownHandle ??= GetAutomaticCooldownHandle,
+                        m_CastAutomaticSkillAction ??= CastAutomaticSkill);
+                }
+            }
+            using (SfxUpdateMarker.Auto())
+            {
+                CombatAttributeBridge.QueueSfxTick(m_CombatUnitHandle,
+                    elapseSeconds, _sfxList.Count != 0);
+            }
+        }
+
+        private void CastAutomaticSkill(int index)
+        {
+            Skill noAnimSkill = NoAnimAtkSkillList[index];
+            noAnimSkill.OnDestory();
+            noAnimSkill.Cast();
+        }
+
+        private void UpdateBuffTime(float elapseSeconds, float realElapseSeconds)
+        {
+            List<int> dueHandles = ListPool<int>.Get();
+            try
+            {
+                CombatBuffTimerBridge.CollectDueForOwner(m_CombatUnitHandle,
+                    dueHandles);
+                foreach (int handle in dueHandles)
+                {
+                    if (!m_BuffByTimerHandle.TryGetValue(handle, out Buff buff) ||
+                        !buff.IsValid) continue;
+                    if (buff.UpdateTimer(elapseSeconds))
+                        buff.OnDestory();
+                }
+            }
+            finally
+            {
+                ListPool<int>.Release(dueHandles);
+            }
             for (var i = CurBuffList.Count - 1; i >= 0; i--)
             {
                 if (CurBuffList[i].IsValid == false)
                 {
+                    m_BuffByTimerHandle.Remove(CurBuffList[i].TimerHandle);
                     ReferencePool.Release(CurBuffList[i]);
                     CurBuffList.RemoveAt(i);
                 }
+            }
+            List<int> deferredHandles = ListPool<int>.Get();
+            try
+            {
+                CombatBuffTimerBridge.DrainDeferredReleases(m_CombatUnitHandle,
+                    deferredHandles);
+                foreach (int handle in deferredHandles)
+                {
+                    if (m_BuffByTimerHandle.TryGetValue(handle, out Buff buff))
+                    {
+                        m_BuffByTimerHandle.Remove(handle);
+                        ReferencePool.Release(buff);
+                    }
+                }
+            }
+            finally
+            {
+                ListPool<int>.Release(deferredHandles);
             }
         }
         public CheckCastSkillResult CheckCanCastSkill(out EntityQizi target,int normalSkillIndex = 0)
         {
             target = null;
+            if (normalSkillIndex < 0 || normalSkillIndex >= NormalSkillList.Count ||
+                NormalSkillList[normalSkillIndex] == null)
+                return CheckCastSkillResult.Error;
+            if (m_UsePreparedSkillDecisions &&
+                CombatUnitSkillIntentBridge.TryGet(m_CombatUnitHandle,
+                    normalSkillIndex, out CombatUnitSkillIntent intent))
+            {
+                target = intent.TargetUid == 0 ? null :
+                    HotGameEntry.HeroManager.GetEntityByUID(intent.TargetUid);
+                return target == null && intent.TargetUid != 0
+                    ? CheckCastSkillResult.NoValidTarget
+                    : (CheckCastSkillResult)intent.Result;
+            }
             Skill willCastSkill = null;
-            if (normalSkillIndex < NormalSkillList.Count)
+            if (normalSkillIndex >= 0 && normalSkillIndex < NormalSkillList.Count)
             {
                 willCastSkill = NormalSkillList[normalSkillIndex];
             }
-            if (willCastSkill == null)
+            if (willCastSkill == null || !CombatSkillSlotBridge.TryGetNormal(
+                    m_CombatUnitHandle, normalSkillIndex, out CombatSkillSlot slot))
             {
                 return CheckCastSkillResult.Error;
             }
-            var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
-            if (curPower < willCastSkill.CastPower)
+            bool hasPower = m_UnitSkillPlans == null
+                ? CombatAttributeBridge.HasNormalSkillPower(m_CombatUnitHandle,
+                    slot.CastPower)
+                : m_UnitSkillPlans.HasPower(HeroUID, slot.CastPower);
+            if (!hasPower)
             {
                 return CheckCastSkillResult.NoPower;
             }
             var inAttackRange = false;
-            if (willCastSkill.CurSkillCastTargetType != SkillCastTargetType.NoNeedTarget)
+            if (slot.TargetType != (int)SkillCastTargetType.NoNeedTarget)
             {
                 bool canUseOldTarget = false;
-                if (CurAttackTarget != null&&CurAttackTarget.IsValid)
+                EntityQizi oldTarget = m_UnitSkillPlans == null
+                    ? CurAttackTarget
+                    : HotGameEntry.HeroManager.GetEntityByUID(
+                        m_UnitSkillPlans.GetAttackTargetUid(HeroUID));
+                if (oldTarget != null && oldTarget.IsValid)
                 {
                     //如果之前存在攻击目标
                     //判断是否已死亡
                     //判断是否在范围内
-                    int hp = (int)CurAttackTarget.GetAttribute(AttributeType.Hp).GetFinalValue();
-                    canUseOldTarget = hp >= 0;
-                    //判断是否有不可选中之类
-                    canUseOldTarget = canUseOldTarget&&!(Utility.TruncateFloat(GetDistanceSquare(CurAttackTarget),4)  > (willCastSkill.SkillRange * willCastSkill.SkillRange)/1000000f);
+                    if (m_UnitSkillPlans == null)
+                    {
+                        int hp = CombatAttributeBridge.GetValue(
+                            oldTarget.CombatUnitHandle, (int)AttributeType.Hp);
+                        canUseOldTarget = hp >= 0 &&
+                            CombatTargetQueries.IsInNormalSkillRange(m_CombatUnitHandle,
+                                oldTarget.CombatUnitHandle, slot.RangeMm);
+                    }
+                    else
+                    {
+                        canUseOldTarget = m_UnitSkillPlans.IsOldTargetInRange(
+                            HeroUID, oldTarget.HeroUID, slot.RangeMm);
+                    }
                     if (canUseOldTarget)
                     {
                         inAttackRange = true;
-                        target = CurAttackTarget;
+                        target = oldTarget;
                     }
                 }
 
@@ -470,20 +603,32 @@ namespace Entity
         public bool GetSkillNewTarget(out EntityQizi target,int normalSkillIndex =0)
         {
             target = null;
-            Skill willCastSkill = null;
             //判断目标
-            if (normalSkillIndex < NormalSkillList.Count)
-            {
-                willCastSkill = NormalSkillList[normalSkillIndex];
-            }
-            if (willCastSkill == null)
+            if (normalSkillIndex < 0 || normalSkillIndex >= NormalSkillList.Count ||
+                NormalSkillList[normalSkillIndex] == null ||
+                !CombatSkillSlotBridge.TryGetNormal(m_CombatUnitHandle,
+                    normalSkillIndex, out CombatSkillSlot slot))
             {
                 return false;
             }
-            switch (willCastSkill.CurSkillCastTargetType)
+            switch ((SkillCastTargetType)slot.TargetType)
             {
                 case SkillCastTargetType.NearestEnemy:
-                    return HotGameEntry.HeroManager.GetNearestTarget(this,CampType.Enemy,out target,willCastSkill.SkillRange);
+                    int targetUid;
+                    bool withinRange = m_UnitSkillPlans == null
+                        ? CombatTargetQueries.FindNearest(m_CombatUnitHandle,
+                            (int)CampType.Enemy, slot.RangeMm, out targetUid)
+                        : m_UnitSkillPlans.FindNearest(HeroUID, slot.RangeMm,
+                            out targetUid);
+                    if (targetUid != 0)
+                    {
+                        target = HotGameEntry.HeroManager.GetEntityByUID(targetUid);
+                    }
+                    if (target != null && !target.IsValid)
+                    {
+                        target = null;
+                    }
+                    return withinRange && target != null;
                 case SkillCastTargetType.NoNeedTarget:
                     return true;
             }
@@ -492,15 +637,10 @@ namespace Entity
 
         public void CastNormalSkill(int normalSkillIndex = 0)
         {
-            if (normalSkillIndex < NormalSkillList.Count)
+            if (normalSkillIndex >= 0 && normalSkillIndex < NormalSkillList.Count)
             {
-                CurCastNormalSkillIndex = normalSkillIndex;
-                NextCastNormalSkillIndex = normalSkillIndex + 1;
-                if (NextCastNormalSkillIndex == NormalSkillList.Count)
-                {
-                    NextCastNormalSkillIndex = 0;
-                }
-                GetAttribute(AttributeType.Power).AddNum(-NormalSkillList[normalSkillIndex].CastPower);
+                CombatAttributeBridge.BeginNormalSkill(m_CombatUnitHandle,
+                    NormalSkillList.Count, normalSkillIndex);
                 NormalSkillList[normalSkillIndex].Cast();
             }
         }
@@ -511,69 +651,13 @@ namespace Entity
             {
                 return;
             }
-            //todo 计算护盾
-            var hudunAttr = GetAttribute(AttributeType.HuDun);
-            var hpAttr = GetAttribute(AttributeType.Hp);
-            var shieldValue = (int)hudunAttr.GetFinalValue();
-            if (shieldValue >= 0)
+            bool missingShield = CombatBuffTimerBridge.ResolveIncomingDamage(
+                m_CombatUnitHandle, (int)damageData.DamageValue,
+                m_HasBuff ??= HasBuff,
+                m_DestroyBuffForDamage ??= DestroyBuffForDamage);
+            if (missingShield)
             {
-                if (shieldValue<=(int)damageData.DamageValue)//护盾值小于伤害值
-                {
-                    foreach (var curbuff in CurBuffList)
-                    {
-                        if (curbuff.CheckBuffTag(BuffTag.Shield))
-                        {
-                            curbuff.paramInt = 0;
-                            curbuff.OnDestory();
-                        }
-                    }
-                    hudunAttr.AddNum(-shieldValue);
-                    hpAttr.AddNum(-(int)(damageData.DamageValue-shieldValue));
-                }
-                else 
-                {
-                    //护盾值大于伤害值，遍历buff,从剩余时间小的开始扣
-                    int curDamageValue = (int)damageData.DamageValue;
-                    var shieldList = GetAllShieldList();
-                    shieldList.Sort((a,b)=>
-                    {
-                        if (a.DurationMs != 0 && b.DurationMs != 0)
-                        {
-                            return a.RemainMs.CompareTo(b.RemainMs);
-                        }
-                        return (a.DurationMs == 0).CompareTo(b.DurationMs == 0);
-                    });
-                    while (curDamageValue > 0)
-                    {
-                        if (shieldList.Count > 0)
-                        {
-                            var nerBuff = shieldList[0];
-                            if (curDamageValue>nerBuff.paramInt)
-                            {
-                                curDamageValue -= nerBuff.paramInt;
-                                nerBuff.paramInt = 0;
-                                shieldList.Remove(nerBuff);
-                                nerBuff.OnDestory();
-                            }
-                            else
-                            {
-                                nerBuff.paramInt -= curDamageValue;
-                                curDamageValue = 0;
-                            }
-                        }
-                        else
-                        {
-                            Log.Error("No Shield But AttrShield Has Value");
-                            break;
-                        }
-                    }
-                    ListPool<Buff>.Release(shieldList);
-                    hudunAttr.AddNum(-(int)damageData.DamageValue);
-                }
-            }
-            else
-            {
-                hpAttr.AddNum(-(int)damageData.DamageValue);
+                Log.Error("No Shield But AttrShield Has Value");
             }
 
             if (damageData.TriggerDamageRelate)
@@ -581,9 +665,12 @@ namespace Entity
                 damageData.Caster.OnTrigger(TriggerType.AfterCauseDamage,damageData);
                 OnTrigger(TriggerType.AfterBeCauseDamage,damageData);
             }
-            HotGameEntry.HeroManager.ShowDamageNum(damageData);
+            UnityEngine.Vector3 damagePosition = LogicPosition +
+                UnityEngine.Vector3.up * 0.5f;
+            CombatBoardBridge.QueueDamageNumber((int)damageData.DamageValue,
+                damagePosition.x, damagePosition.y, damagePosition.z);
             
-            var curHp = (int)hpAttr.GetFinalValue();
+            int curHp = CombatAttributeBridge.GetValue(m_CombatUnitHandle, (int)AttributeType.Hp);
             if (curHp == 0)
             {
                 //death
@@ -591,33 +678,15 @@ namespace Entity
             }
         }
 
-        public List<int> GetNormalSkillCheckSort()
+        private bool HasBuff(int handle) =>
+            m_BuffByTimerHandle.ContainsKey(handle);
+
+        private void DestroyBuffForDamage(int handle)
         {
-            List<int> checkNormalSkillList = ListPool<int>.Get();
-            var nextCastIndex = NextCastNormalSkillIndex;
-            for (var index = 0; index < NormalSkillList.Count; index++)
-            {
-                var curIndex = nextCastIndex + index;
-                if (curIndex >= NormalSkillList.Count)
-                {
-                    curIndex -= NormalSkillList.Count;
-                }
-                checkNormalSkillList.Add(curIndex);
-            }
-            return checkNormalSkillList;
+            if (m_BuffByTimerHandle.TryGetValue(handle, out Buff buff))
+                buff.OnDestory();
         }
-        private List<Buff> GetAllShieldList()
-        {
-            List<Buff> shieldList = ListPool<Buff>.Get();
-            foreach (var buff in CurBuffList)
-            {
-                if (buff.IsValid && buff.CheckBuffTag(BuffTag.Shield))
-                {
-                    shieldList.Add(buff);
-                }
-            }
-            return shieldList;
-        }
+
         private void DestorySkill()
         {
             CurAttackTarget = null;
@@ -651,40 +720,14 @@ namespace Entity
                 PassiveSkillList.Clear();
             }
 
-            if (AuraStack != null)
+            foreach (Buff buff in m_BuffByTimerHandle.Values)
             {
-                foreach (var oneKeyValue in AuraStack)
-                {
-                    var list = oneKeyValue.Value;
-                    if (list != null)
-                    {
-                        if (list.Count > 1)
-                        {
-                            var buffIndex = -1;
-                            foreach (var oneBuff in list)
-                            {
-                                buffIndex++;
-                                if (buffIndex == 0)
-                                {
-                                    continue;
-                                }
-                                ReferencePool.Release(oneBuff);
-                            }
-                        }
-                        ListPool<Buff>.Release(list);
-                    }
-                }
-                AuraStack.Clear();
+                ReferencePool.Release(buff);
             }
-            if (CurBuffList != null)
-            {
-                foreach (var oneBuff in CurBuffList)
-                {
-                    ReferencePool.Release(oneBuff);
-                }
-                CurBuffList.Clear();
-            }
-            CurTriggerDic.Clear();
+            m_BuffByTimerHandle.Clear();
+            CurBuffList.Clear();
+            CombatTriggerIndex.Release(m_CombatUnitHandle);
+            m_TriggerByRegistrationId.Clear();
         }
     }
 }

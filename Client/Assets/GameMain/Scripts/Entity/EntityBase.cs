@@ -10,8 +10,18 @@ namespace Entity
     public class EntityBase
     {
         public GameObject GObj;
-        public CampType BelongCamp;
-        public bool IsValid = true;
+        protected CampType _belongCamp;
+        protected bool _isValid = true;
+        public virtual CampType BelongCamp
+        {
+            get => _belongCamp;
+            set => _belongCamp = value;
+        }
+        public virtual bool IsValid
+        {
+            get => _isValid;
+            set => _isValid = value;
+        }
         protected Vector3 _logicPosition;
         public virtual Vector3 LogicPosition
         {
