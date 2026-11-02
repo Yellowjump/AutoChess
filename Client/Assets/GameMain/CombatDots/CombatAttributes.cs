@@ -139,7 +139,8 @@ namespace Zizouqi.CombatDots
             Release(ref handle);
             Entity entity = manager.CreateEntity(typeof(CombatUnit),
                 typeof(CombatUnitAnimationRequest),
-                typeof(CombatUnitFacingRequest));
+                typeof(CombatUnitFacingRequest), typeof(CombatAttackCast),
+                typeof(CombatUnitBrainState), typeof(CombatUnitBrainPlan));
             manager.SetComponentData(entity, new CombatUnit
             {
                 HeroUid = heroUid,
@@ -153,9 +154,12 @@ namespace Zizouqi.CombatDots
             manager.AddBuffer<CombatAttribute>(entity);
             manager.AddBuffer<CombatSkillSlot>(entity);
             manager.AddBuffer<CombatUnitSkillIntent>(entity);
+            manager.AddBuffer<CombatUnitBrainCandidate>(entity);
             manager.AddBuffer<CombatAutomaticSkillIntent>(entity);
             manager.AddBuffer<CombatUnitSfxEvent>(entity);
             manager.AddBuffer<CombatUnitBuffTimer>(entity);
+            manager.AddBuffer<CombatSkillPhaseEvent>(entity);
+            manager.AddBuffer<CombatSkillTriggerInvocation>(entity);
             handle = ++s_NextHandle;
             Units.Add(handle, entity);
             HandlesByUid[heroUid] = handle;
@@ -182,6 +186,7 @@ namespace Zizouqi.CombatDots
             if (handle != 0 && s_World != null && s_World.IsCreated &&
                 Units.TryGetValue(handle, out Entity entity) && s_World.EntityManager.Exists(entity))
             {
+                CombatSkillEntityBridge.DestroyForUnit(s_World.EntityManager, entity);
                 s_World.EntityManager.DestroyEntity(entity);
             }
             Units.Remove(handle);

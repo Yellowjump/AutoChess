@@ -13,6 +13,7 @@ namespace SkillSystem
         public EntityQizi Target;
         public float DamageValue;
         public bool TriggerDamageRelate;
+        public int EventIndex = -1;
         public CauseDamageData()
         {
         }
@@ -20,6 +21,7 @@ namespace SkillSystem
         public void Clear()
         {
             TriggerDamageRelate = true;
+            EventIndex = -1;
             Caster = null;
             SourceSkill = null;
             Target = null;
@@ -53,13 +55,53 @@ namespace SkillSystem
             beforeCauseDamageData.Target = target;
             beforeCauseDamageData.DamageValue = finalDamage;
             beforeCauseDamageData.TriggerDamageRelate = triggerDamageRelate;
-            if (triggerDamageRelate)
+            int eventIndex = -1;
+            try
             {
-                caster.OnTrigger(TriggerType.BeforeCauseDamage, beforeCauseDamageData);
-                target.OnTrigger(TriggerType.BeforeBeCauseDamage, beforeCauseDamageData);
+                int casterHandle = caster?.CombatUnitHandle ?? 0;
+                CombatAttributeBridge.TryGetEntity(casterHandle,
+                    out Unity.Entities.Entity casterEntity);
+                CombatAttributeBridge.TryGetEntity(target.CombatUnitHandle,
+                    out Unity.Entities.Entity targetEntity);
+                eventIndex = CombatBoardBridge.PushDamageEvent(new CombatDamageEvent
+                {
+                    Caster = casterEntity,
+                    Target = targetEntity,
+                    SourceSkill = sourceSkill?.RuntimeDefinition ??
+                        Unity.Entities.Entity.Null,
+                    CasterHandle = casterHandle,
+                    TargetHandle = target.CombatUnitHandle,
+                    Value = finalDamage,
+                    Stage = CombatDamageStage.BeforeCause
+                });
+                beforeCauseDamageData.EventIndex = eventIndex;
+                if (triggerDamageRelate)
+                {
+                    CombatBoardBridge.SetDamageEventStage(eventIndex,
+                        CombatDamageStage.BeforeCause,
+                        beforeCauseDamageData.DamageValue);
+                    caster.OnTrigger(TriggerType.BeforeCauseDamage,
+                        beforeCauseDamageData);
+                    CombatBoardBridge.SetDamageEventStage(eventIndex,
+                        CombatDamageStage.BeforeReceive,
+                        beforeCauseDamageData.DamageValue);
+                    target.OnTrigger(TriggerType.BeforeBeCauseDamage,
+                        beforeCauseDamageData);
+                }
+                target.BeCauseDamage(beforeCauseDamageData);
             }
-            target.BeCauseDamage(beforeCauseDamageData);
-            ReferencePool.Release(beforeCauseDamageData);
+            finally
+            {
+                try
+                {
+                    if (eventIndex >= 0)
+                        CombatBoardBridge.PopDamageEvent(eventIndex);
+                }
+                finally
+                {
+                    ReferencePool.Release(beforeCauseDamageData);
+                }
+            }
         }
 
         internal EntityQizi GetDamageCaster()

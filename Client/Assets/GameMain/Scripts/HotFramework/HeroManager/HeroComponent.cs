@@ -214,6 +214,7 @@ namespace UnityGameFramework.Runtime
             SkillSystem.CombatTriggerProjectileSpawnQueue.BeginStep();
             try
             {
+            Zizouqi.CombatDots.CombatBoardBridge.EnsureGeometry(qigepos);
             Zizouqi.CombatDots.CombatFrameScheduler.AdvanceBattle(elapseSeconds,
                 uid =>
                 {

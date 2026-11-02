@@ -14,6 +14,7 @@ namespace Zizouqi.CombatDots
 
     public struct CombatSkillSlot : IBufferElementData
     {
+        public Entity Definition;
         public CombatSkillSlotKind Kind;
         public int Index;
         public int SkillId;
@@ -138,11 +139,22 @@ namespace Zizouqi.CombatDots
 
     public static class CombatSkillSlotBridge
     {
-        public static void Add(int unitHandle, CombatSkillSlotKind kind, int index,
+        public static int Count(int unitHandle, CombatSkillSlotKind kind)
+        {
+            DynamicBuffer<CombatSkillSlot> slots = GetSlots(unitHandle);
+            int count = 0;
+            for (int i = 0; i < slots.Length; i++)
+                if (slots[i].Kind == kind) count++;
+            return count;
+        }
+
+        public static void Add(int unitHandle, Entity definition,
+            CombatSkillSlotKind kind, int index,
             int skillId, int castPower, int rangeMm, int targetType)
         {
             GetSlots(unitHandle).Add(new CombatSkillSlot
             {
+                Definition = definition,
                 Kind = kind,
                 Index = index,
                 SkillId = skillId,

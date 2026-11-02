@@ -212,6 +212,25 @@ namespace SkillSystem
                 CombatTriggerGroupBridge.Collect(m_TriggerGroupHandle, (int)triggerType, slots);
                 foreach (int slot in slots)
                 {
+                    if (this is Buff buff && Owner is EntityQizi ownerUnit &&
+                        ownerUnit.CombatUnitHandle != 0 &&
+                        CombatBuffTimerBridge.TryGetEntity(buff.TimerHandle,
+                            out Unity.Entities.Entity buffEntity))
+                    {
+                        Unity.Entities.World world =
+                            Unity.Entities.World.DefaultGameObjectInjectionWorld;
+                        if (world != null && world.IsCreated &&
+                            world.EntityManager.HasBuffer<CombatBuffTriggerLink>(buffEntity))
+                        {
+                            var links = world.EntityManager
+                                .GetBuffer<CombatBuffTriggerLink>(buffEntity);
+                            if (slot < links.Length &&
+                                CombatAttributeTriggerExecutor.TryExecute(
+                                    links[slot].Trigger, ownerUnit.CombatUnitHandle,
+                                    (int)triggerType, buff.TimerHandle))
+                                continue;
+                        }
+                    }
                     CurTriggerList[slot].OnTrigger(arg);
                 }
             }

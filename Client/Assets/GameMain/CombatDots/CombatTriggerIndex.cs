@@ -9,6 +9,7 @@ namespace Zizouqi.CombatDots
     {
         public int TriggerType;
         public int RegistrationId;
+        public Entity Trigger;
     }
 
     // The buffer lives on the same ECS entity as the unit's attributes.
@@ -33,7 +34,8 @@ namespace Zizouqi.CombatDots
             return true;
         }
 
-        public static bool TryAdd(int ownerId, int triggerType, out int registrationId)
+        public static bool TryAdd(int ownerId, int triggerType, out int registrationId,
+            Entity trigger = default)
         {
             registrationId = 0;
             if (!TryGetOwner(ownerId, out EntityManager manager, out Entity entity))
@@ -45,7 +47,8 @@ namespace Zizouqi.CombatDots
             manager.GetBuffer<CombatTriggerListener>(entity).Add(new CombatTriggerListener
             {
                 TriggerType = triggerType,
-                RegistrationId = registrationId
+                RegistrationId = registrationId,
+                Trigger = trigger
             });
             return true;
         }
@@ -85,6 +88,22 @@ namespace Zizouqi.CombatDots
                     destination.Add(listeners[i].RegistrationId);
                 }
             }
+            return true;
+        }
+
+        // Copy the entity links before executing commands. A command may change
+        // the listener buffer or destroy a skill while the event is dispatched.
+        public static bool TryCollectEntries(int ownerId, int triggerType,
+            List<CombatTriggerListener> destination)
+        {
+            destination.Clear();
+            if (!TryGetOwner(ownerId, out EntityManager manager, out Entity entity))
+                return false;
+            DynamicBuffer<CombatTriggerListener> listeners =
+                manager.GetBuffer<CombatTriggerListener>(entity);
+            for (int i = 0; i < listeners.Length; i++)
+                if (listeners[i].TriggerType == triggerType)
+                    destination.Add(listeners[i]);
             return true;
         }
 
@@ -130,6 +149,315 @@ namespace Zizouqi.CombatDots
             }
             manager = world.EntityManager;
             return manager.HasBuffer<CombatTriggerListener>(entity);
+        }
+    }
+
+    // Complete data-only attribute rules execute in their original call order.
+    // Other rules retain the OneTrigger callback path.
+    public static class CombatAttributeTriggerExecutor
+    {
+        public static bool TryExecute(Entity trigger, int ownerHandle,
+            int triggerType, int buffHandle = 0, float deltaMs = 0f) =>
+            TryExecuteCore(trigger, ownerHandle, triggerType,
+                default, false, buffHandle, deltaMs);
+
+        public static bool TryExecute(Entity trigger, int ownerHandle,
+            int triggerType, CombatDamageEvent damage, int buffHandle = 0) =>
+            TryExecuteCore(trigger, ownerHandle, triggerType, damage,
+                true, buffHandle, 0f);
+
+        private static bool TryExecuteCore(Entity trigger, int ownerHandle,
+            int triggerType, CombatDamageEvent damage, bool hasDamage,
+            int buffHandle, float deltaMs)
+        {
+            if (trigger == Entity.Null || ownerHandle == 0 ||
+                (hasDamage && triggerType != (int)damage.Stage) ||
+                !CombatAttributeBridge.TryGetEntity(ownerHandle, out Entity owner))
+                return false;
+            World world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return false;
+            EntityManager manager = world.EntityManager;
+            if (!manager.Exists(trigger) ||
+                !manager.HasComponent<CombatTriggerDefinition>(trigger) ||
+                !manager.HasBuffer<CombatConditionNode>(trigger) ||
+                !manager.HasBuffer<CombatTargetPickerNode>(trigger) ||
+                !manager.HasBuffer<CombatCommandNode>(trigger))
+                return false;
+            CombatTriggerDefinition definition =
+                manager.GetComponentData<CombatTriggerDefinition>(trigger);
+            if (!definition.Enabled || definition.Owner != owner ||
+                definition.TriggerType != triggerType)
+                return false;
+            DynamicBuffer<CombatConditionNode> conditions =
+                manager.GetBuffer<CombatConditionNode>(trigger);
+            DynamicBuffer<CombatTargetPickerNode> pickers =
+                manager.GetBuffer<CombatTargetPickerNode>(trigger);
+            DynamicBuffer<CombatCommandNode> commands =
+                manager.GetBuffer<CombatCommandNode>(trigger);
+            if (conditions.Length != 1 || pickers.Length != 1 ||
+                commands.Length == 0)
+                return false;
+            CombatConditionNode condition = conditions[0];
+            bool timed = condition.Kind == CombatConditionKind.Timed &&
+                         buffHandle != 0 && deltaMs > 0f && !hasDamage &&
+                         condition.Param1 > 0 &&
+                         pickers[0].Kind == CombatTargetPickerKind.TriggerOwner;
+            bool sourceSkillType = condition.Kind ==
+                                       CombatConditionKind.RelateSkill &&
+                                   condition.Source == 0 &&
+                                   condition.CheckType == 0 &&
+                                   definition.Skill != Entity.Null &&
+                                   manager.Exists(definition.Skill) &&
+                                   manager.HasComponent<CombatSkillDefinition>(
+                                       definition.Skill);
+            bool conditionGroup = condition.Kind == CombatConditionKind.Group &&
+                                  TryValidateConditionGroup(conditions, 0,
+                                      definition.Skill, manager,
+                                      buffHandle != 0 && deltaMs > 0f &&
+                                      !hasDamage && pickers[0].Kind ==
+                                      CombatTargetPickerKind.TriggerOwner,
+                                      0);
+            if (!timed && !sourceSkillType && !conditionGroup &&
+                (condition.Kind != CombatConditionKind.Always ||
+                 condition.Reverse)) return false;
+            if (!TryCountAttributeOperations(commands, 0, commands.Length,
+                    0, buffHandle != 0, out int operationCount) ||
+                operationCount == 0)
+                return false;
+            if (buffHandle != 0 &&
+                (!CombatBuffTimerBridge.TryGetEntity(buffHandle,
+                    out Entity buffEntity) ||
+                 !manager.HasComponent<CombatBuffTimer>(buffEntity) ||
+                 manager.GetComponentData<CombatBuffTimer>(buffEntity)
+                     .OwnerHandle != ownerHandle))
+                return false;
+            if (sourceSkillType)
+            {
+                bool sameType = manager.GetComponentData<CombatSkillDefinition>(
+                    definition.Skill).SkillType == condition.Param1;
+                if (!(condition.Reverse ? !sameType : sameType)) return true;
+            }
+
+            int targetHandle;
+            Entity targetEntity;
+            switch (pickers[0].Kind)
+            {
+                case CombatTargetPickerKind.SkillCaster:
+                    if (!CombatSkillEntityBridge.TryGetCasterHandle(
+                            definition.Skill, out targetHandle) ||
+                        !CombatAttributeBridge.TryGetEntity(targetHandle,
+                            out targetEntity)) return false;
+                    break;
+                case CombatTargetPickerKind.TriggerOwner:
+                    targetHandle = ownerHandle;
+                    targetEntity = owner;
+                    break;
+                case CombatTargetPickerKind.RelatedDamageTarget:
+                    if (!hasDamage) return false;
+                    bool source = pickers[0].DamageTargetType == 0;
+                    targetHandle = source ? damage.CasterHandle : damage.TargetHandle;
+                    targetEntity = source ? damage.Caster : damage.Target;
+                    break;
+                case CombatTargetPickerKind.SkillCasterCurTarget:
+                    if (!CombatSkillEntityBridge.TryGetCasterHandle(
+                            definition.Skill, out int casterHandle)) return false;
+                    int targetUid = CombatAttributeBridge.GetAttackTargetUid(casterHandle);
+                    if (targetUid == 0 ||
+                        !CombatAttributeBridge.TryGetHandleByUid(targetUid,
+                            out targetHandle)) return false;
+                    if (!CombatAttributeBridge.TryGetEntity(targetHandle,
+                            out targetEntity)) return false;
+                    break;
+                default:
+                    return false;
+            }
+            if (targetHandle == 0 || targetEntity == Entity.Null ||
+                !CombatAttributeBridge.TryGetEntity(targetHandle,
+                    out Entity currentTarget) || currentTarget != targetEntity)
+                return false;
+            if (timed)
+            {
+                bool passed = false;
+                if (condition.Param2 == 0 ||
+                    condition.Param2 > condition.PassCount)
+                {
+                    condition.AccumulatedMs += deltaMs;
+                    passed = condition.AccumulatedMs >= condition.Param1;
+                    if (passed)
+                    {
+                        condition.AccumulatedMs -= condition.Param1;
+                        condition.PassCount++;
+                    }
+                    conditions[0] = condition;
+                }
+                if (!(condition.Reverse ? !passed : passed)) return true;
+            }
+            else if (conditionGroup)
+            {
+                int skillType = definition.Skill != Entity.Null &&
+                                manager.Exists(definition.Skill) &&
+                                manager.HasComponent<CombatSkillDefinition>(
+                                    definition.Skill)
+                    ? manager.GetComponentData<CombatSkillDefinition>(
+                        definition.Skill).SkillType : 0;
+                if (!EvaluateConditionGroup(conditions, 0, skillType,
+                        deltaMs)) return true;
+            }
+            ExecuteAttributeOperations(commands, 0, commands.Length,
+                targetHandle, buffHandle);
+            return true;
+        }
+
+        private static bool TryValidateConditionGroup(
+            DynamicBuffer<CombatConditionNode> nodes, int index,
+            Entity sourceSkill, EntityManager manager, bool allowTimed,
+            int depth)
+        {
+            if (depth > 8 || index < 0 || index >= nodes.Length)
+                return false;
+            CombatConditionNode node = nodes[index];
+            if (node.EndIndex <= index || node.EndIndex > nodes.Length)
+                return false;
+            switch (node.Kind)
+            {
+                case CombatConditionKind.Group:
+                    if (node.Logic > 1) return false;
+                    for (int child = index + 1; child < node.EndIndex;)
+                    {
+                        if (!TryValidateConditionGroup(nodes, child,
+                                sourceSkill, manager, allowTimed, depth + 1))
+                            return false;
+                        if (nodes[child].EndIndex > node.EndIndex)
+                            return false;
+                        child = nodes[child].EndIndex;
+                    }
+                    return index != 0 || node.EndIndex == nodes.Length;
+                case CombatConditionKind.Always:
+                    return node.EndIndex == index + 1;
+                case CombatConditionKind.RelateSkill:
+                    return node.EndIndex == index + 1 &&
+                           node.Source == 0 && node.CheckType == 0 &&
+                           sourceSkill != Entity.Null &&
+                           manager.Exists(sourceSkill) &&
+                           manager.HasComponent<CombatSkillDefinition>(
+                               sourceSkill);
+                case CombatConditionKind.Timed:
+                    return node.EndIndex == index + 1 && allowTimed &&
+                           node.Param1 > 0;
+                default:
+                    return false;
+            }
+        }
+
+        private static bool EvaluateConditionGroup(
+            DynamicBuffer<CombatConditionNode> nodes, int index,
+            int sourceSkillType, float deltaMs)
+        {
+            CombatConditionNode node = nodes[index];
+            bool result;
+            switch (node.Kind)
+            {
+                case CombatConditionKind.Group:
+                    result = index + 1 == node.EndIndex || node.Logic == 0;
+                    for (int child = index + 1; child < node.EndIndex;)
+                    {
+                        bool childResult = EvaluateConditionGroup(nodes, child,
+                            sourceSkillType, deltaMs);
+                        result = node.Logic == 0
+                            ? result && childResult : result || childResult;
+                        if ((node.Logic == 0 && !result) ||
+                            (node.Logic == 1 && result)) break;
+                        child = nodes[child].EndIndex;
+                    }
+                    break;
+                case CombatConditionKind.RelateSkill:
+                    result = sourceSkillType == node.Param1;
+                    break;
+                case CombatConditionKind.Timed:
+                    result = false;
+                    if (node.Param2 == 0 || node.Param2 > node.PassCount)
+                    {
+                        node.AccumulatedMs += deltaMs;
+                        result = node.AccumulatedMs >= node.Param1;
+                        if (result)
+                        {
+                            node.AccumulatedMs -= node.Param1;
+                            node.PassCount++;
+                        }
+                        nodes[index] = node;
+                    }
+                    break;
+                default:
+                    result = true;
+                    break;
+            }
+            return node.Reverse ? !result : result;
+        }
+
+        private static bool TryCountAttributeOperations(
+            DynamicBuffer<CombatCommandNode> commands, int start, int end,
+            int depth, bool allowShield, out int count)
+        {
+            count = 0;
+            if (depth > 8) return false;
+            for (int index = start; index < end;)
+            {
+                CombatCommandNode node = commands[index];
+                if (node.EndIndex <= index || node.EndIndex > end)
+                    return false;
+                switch (node.Kind)
+                {
+                    case CombatCommandKind.ChangeAttribute:
+                        if (node.EndIndex != index + 1) return false;
+                        count++;
+                        break;
+                    case CombatCommandKind.Shield:
+                        if (!allowShield || node.EndIndex != index + 1)
+                            return false;
+                        count++;
+                        break;
+                    case CombatCommandKind.Repeat:
+                        if (node.RepeatNumberType != 0 ||
+                            !TryCountAttributeOperations(commands, index + 1,
+                                node.EndIndex, depth + 1, allowShield,
+                                out int childCount)) return false;
+                        count += (int)System.Math.Min(513L,
+                            (long)System.Math.Max(0, node.RepeatParameter) *
+                            childCount);
+                        break;
+                    case CombatCommandKind.NoOp:
+                        break;
+                    default:
+                        return false;
+                }
+                if (count > 512) return false;
+                index = node.EndIndex;
+            }
+            return true;
+        }
+
+        private static void ExecuteAttributeOperations(
+            DynamicBuffer<CombatCommandNode> commands, int start, int end,
+            int targetHandle, int buffHandle)
+        {
+            for (int index = start; index < end;)
+            {
+                CombatCommandNode node = commands[index];
+                if (node.Kind == CombatCommandKind.ChangeAttribute)
+                    CombatAttributeBridge.AddNum(targetHandle,
+                        node.AttributeType, node.Delta);
+                else if (node.Kind == CombatCommandKind.Shield)
+                    CombatBuffTimerBridge.ApplyShield(buffHandle,
+                        node.RemoveShield, node.ShieldMode,
+                        node.ShieldFixedValue, node.ShieldAttributeType,
+                        node.ShieldAttributePercent);
+                else if (node.Kind == CombatCommandKind.Repeat)
+                    for (int repetition = 0; repetition < node.RepeatParameter;
+                         repetition++)
+                        ExecuteAttributeOperations(commands, index + 1,
+                            node.EndIndex, targetHandle, buffHandle);
+                index = node.EndIndex;
+            }
         }
     }
 

@@ -70,14 +70,15 @@ namespace Entity
             }
             m_UsePreparedSkillDecisions = false;
             m_UsePreparedAutomaticSkills = false;
-            if (!IsValid || fsm == null ||
+            if (!IsValid ||
                 !CombatBoardBridge.FindOccupant(HeroUID, out _, out _))
             {
                 return;
             }
             CombatAutomaticSkillIntentBridge.Clear(m_CombatUnitHandle);
-            if (fsm.CurrentState is StateIdle0 ||
-                fsm.CurrentState is StateMove0)
+            if (!CombatAttackCastBridge.IsActive(m_CombatUnitHandle) &&
+                (CombatUnitBrainBridge.GetPhase(m_CombatUnitHandle) is
+                    CombatUnitBrainPhase.Idle or CombatUnitBrainPhase.Moving))
             {
                 m_UsePreparedSkillDecisions = true;
             }
@@ -224,8 +225,25 @@ namespace Entity
 
         private void RegisterCombatSkillSlot(Skill skill, CombatSkillSlotKind kind, int index)
         {
-            CombatSkillSlotBridge.Add(m_CombatUnitHandle, kind, index, skill.SkillID,
-                skill.CastPower, skill.SkillRange, (int)skill.CurSkillCastTargetType);
+            if (!CombatAttributeBridge.TryGetEntity(m_CombatUnitHandle,
+                    out Unity.Entities.Entity unit))
+                throw new InvalidOperationException("Skill owner has no combat entity.");
+            Unity.Entities.Entity definition =
+                CombatSkillEntityCompiler.Compile(skill, unit, index);
+            try
+            {
+                CombatSkillSlotBridge.Add(m_CombatUnitHandle, definition, kind,
+                    index, skill.SkillID, skill.CastPower, skill.SkillRange,
+                    (int)skill.CurSkillCastTargetType);
+                skill.RuntimeDefinition = definition;
+            }
+            catch
+            {
+                CombatSkillEntityBridge.Destroy(
+                    Unity.Entities.World.DefaultGameObjectInjectionWorld.EntityManager,
+                    definition);
+                throw;
+            }
         }
 
         private Skill AddOneNewSkill(int skillID)
@@ -299,9 +317,43 @@ namespace Entity
             {
                 return;
             }
+            Unity.Entities.Entity triggerEntity = Unity.Entities.Entity.Null;
+            if (oneTrigger.ParentTriggerList is Skill skill &&
+                skill.RuntimeDefinition != Unity.Entities.Entity.Null &&
+                skill.CurTriggerList != null)
+            {
+                int triggerOrder = skill.CurTriggerList.IndexOf(oneTrigger);
+                Unity.Entities.World world =
+                    Unity.Entities.World.DefaultGameObjectInjectionWorld;
+                if (triggerOrder >= 0 && world != null && world.IsCreated &&
+                    world.EntityManager.Exists(skill.RuntimeDefinition))
+                {
+                    var links = world.EntityManager
+                        .GetBuffer<CombatSkillTriggerLink>(skill.RuntimeDefinition);
+                    if (triggerOrder < links.Length)
+                        triggerEntity = links[triggerOrder].Trigger;
+                }
+            }
+            else if (oneTrigger.ParentTriggerList is Buff buff &&
+                     buff.CurTriggerList != null &&
+                     CombatBuffTimerBridge.TryGetEntity(buff.TimerHandle,
+                         out Unity.Entities.Entity buffEntity))
+            {
+                int triggerOrder = buff.CurTriggerList.IndexOf(oneTrigger);
+                Unity.Entities.World world =
+                    Unity.Entities.World.DefaultGameObjectInjectionWorld;
+                if (triggerOrder >= 0 && world != null && world.IsCreated &&
+                    world.EntityManager.HasBuffer<CombatBuffTriggerLink>(buffEntity))
+                {
+                    var links = world.EntityManager
+                        .GetBuffer<CombatBuffTriggerLink>(buffEntity);
+                    if (triggerOrder < links.Length)
+                        triggerEntity = links[triggerOrder].Trigger;
+                }
+            }
             if (!CombatTriggerIndex.TryCreateOwner(m_CombatUnitHandle) ||
                 !CombatTriggerIndex.TryAdd(m_CombatUnitHandle, (int)oneTrigger.CurTriggerType,
-                    out int registrationId))
+                    out int registrationId, triggerEntity))
             {
                 throw new System.InvalidOperationException("Combat trigger registration requires a live ECS unit.");
             }
@@ -340,24 +392,51 @@ namespace Entity
             {
                 return;
             }
-            var matches = ListPool<int>.Get();
+            var matches = ListPool<CombatTriggerListener>.Get();
             try
             {
-                if (!CombatTriggerIndex.TryCollect(m_CombatUnitHandle, (int)triggerType, matches))
+                if (!CombatTriggerIndex.TryCollectEntries(m_CombatUnitHandle,
+                        (int)triggerType, matches))
                 {
                     throw new System.InvalidOperationException("Combat trigger index was lost while the unit is active.");
                 }
-                foreach (int registrationId in matches)
+                foreach (CombatTriggerListener registration in matches)
                 {
-                    if (m_TriggerByRegistrationId.TryGetValue(registrationId, out var trigger))
+                    if (m_TriggerByRegistrationId.TryGetValue(
+                            registration.RegistrationId, out var trigger))
                     {
+                        if (triggerType == TriggerType.PerTick &&
+                            trigger.ParentTriggerList is Buff &&
+                            registration.Trigger != Unity.Entities.Entity.Null &&
+                            CombatAttributeTriggerExecutor.TryExecute(
+                                registration.Trigger, m_CombatUnitHandle,
+                                (int)triggerType,
+                                ((Buff)trigger.ParentTriggerList).TimerHandle,
+                                GameEntry.CurrentLogicDeltaTime * 1000f))
+                            continue;
+                        if (registration.Trigger != Unity.Entities.Entity.Null &&
+                            arg is CauseDamageData damage && damage.EventIndex >= 0 &&
+                            CombatBoardBridge.TryGetDamageEvent(damage.EventIndex,
+                                out CombatDamageEvent damageEvent))
+                        {
+                            CombatBoardBridge.SetDamageEventStage(
+                                damage.EventIndex, damageEvent.Stage,
+                                damage.DamageValue);
+                            damageEvent.Value = damage.DamageValue;
+                            if (CombatAttributeTriggerExecutor.TryExecute(
+                                    registration.Trigger, m_CombatUnitHandle,
+                                    (int)triggerType, damageEvent,
+                                    trigger.ParentTriggerList is Buff damageBuff
+                                        ? damageBuff.TimerHandle : 0))
+                                continue;
+                        }
                         trigger.OnTrigger(arg);
                     }
                 }
             }
             finally
             {
-                ListPool<int>.Release(matches);
+                ListPool<CombatTriggerListener>.Release(matches);
             }
         }
 
@@ -383,6 +462,7 @@ namespace Entity
             CurBuffList.Add(buff);
             CombatBuffTimerBridge.SetActive(buff.TimerHandle, true);
             buff.ActivateTimer();
+            CombatSkillEntityCompiler.CompileBuff(buff, m_CombatUnitHandle);
             buff.OnActive();
         }
 
@@ -400,6 +480,7 @@ namespace Entity
                 CurBuffList.Add(nextBuff);
                 CombatBuffTimerBridge.SetActive(nextHandle, true);
                 nextBuff.ActivateTimer();
+                CombatSkillEntityCompiler.CompileBuff(nextBuff, m_CombatUnitHandle);
                 nextBuff.OnActive();
             }
         }
@@ -510,8 +591,9 @@ namespace Entity
         public CheckCastSkillResult CheckCanCastSkill(out EntityQizi target,int normalSkillIndex = 0)
         {
             target = null;
-            if (normalSkillIndex < 0 || normalSkillIndex >= NormalSkillList.Count ||
-                NormalSkillList[normalSkillIndex] == null)
+            if (m_CombatUnitHandle == 0 || normalSkillIndex < 0 ||
+                !CombatSkillSlotBridge.TryGetNormal(
+                    m_CombatUnitHandle, normalSkillIndex, out CombatSkillSlot slot))
                 return CheckCastSkillResult.Error;
             if (m_UsePreparedSkillDecisions &&
                 CombatUnitSkillIntentBridge.TryGet(m_CombatUnitHandle,
@@ -522,16 +604,6 @@ namespace Entity
                 return target == null && intent.TargetUid != 0
                     ? CheckCastSkillResult.NoValidTarget
                     : (CheckCastSkillResult)intent.Result;
-            }
-            Skill willCastSkill = null;
-            if (normalSkillIndex >= 0 && normalSkillIndex < NormalSkillList.Count)
-            {
-                willCastSkill = NormalSkillList[normalSkillIndex];
-            }
-            if (willCastSkill == null || !CombatSkillSlotBridge.TryGetNormal(
-                    m_CombatUnitHandle, normalSkillIndex, out CombatSkillSlot slot))
-            {
-                return CheckCastSkillResult.Error;
             }
             bool hasPower = m_UnitSkillPlans == null
                 ? CombatAttributeBridge.HasNormalSkillPower(m_CombatUnitHandle,
@@ -588,10 +660,6 @@ namespace Entity
                     return CheckCastSkillResult.TargetOutRange;
                 }
             }
-            /*if (willCastSkill.InCD)
-            {
-                return CheckCastSkillResult.NormalAtkWait;
-            }*/
             return CheckCastSkillResult.CanCast;
         }
         /// <summary>
@@ -604,8 +672,7 @@ namespace Entity
         {
             target = null;
             //判断目标
-            if (normalSkillIndex < 0 || normalSkillIndex >= NormalSkillList.Count ||
-                NormalSkillList[normalSkillIndex] == null ||
+            if (m_CombatUnitHandle == 0 || normalSkillIndex < 0 ||
                 !CombatSkillSlotBridge.TryGetNormal(m_CombatUnitHandle,
                     normalSkillIndex, out CombatSkillSlot slot))
             {
@@ -637,12 +704,69 @@ namespace Entity
 
         public void CastNormalSkill(int normalSkillIndex = 0)
         {
-            if (normalSkillIndex >= 0 && normalSkillIndex < NormalSkillList.Count)
+            if (normalSkillIndex >= 0 && normalSkillIndex < NormalSkillList.Count &&
+                CombatSkillSlotBridge.TryGetNormal(m_CombatUnitHandle,
+                    normalSkillIndex, out CombatSkillSlot slot))
             {
                 CombatAttributeBridge.BeginNormalSkill(m_CombatUnitHandle,
                     NormalSkillList.Count, normalSkillIndex);
-                NormalSkillList[normalSkillIndex].Cast();
+                Skill skill = NormalSkillList[normalSkillIndex];
+                skill.Cast();
+                CombatAttackCastBridge.Begin(m_CombatUnitHandle, slot.Definition,
+                    normalSkillIndex, (int)TriggerType.SkillBeforeShakeEnd,
+                    skill.CurShakeBeforeMs, skill.CurAnimationDurationMs,
+                    skill.CurCastCDMs);
             }
+        }
+
+        // The ECS attack phase is advanced in parallel before units are visited.
+        // Managed skill callbacks are committed here in the original unit order.
+        private bool CommitAttackCast()
+        {
+            if (!CombatAttackCastBridge.IsActive(m_CombatUnitHandle)) return false;
+            int index = CombatAttackCastBridge.GetNormalSkillIndex(m_CombatUnitHandle);
+            if (index < 0 || index >= NormalSkillList.Count)
+            {
+                CombatAttackCastBridge.End(m_CombatUnitHandle);
+                ChangeToIdleState();
+                return true;
+            }
+            Skill skill = NormalSkillList[index];
+            if (skill == null)
+            {
+                CombatAttackCastBridge.End(m_CombatUnitHandle);
+                ChangeToIdleState();
+                return true;
+            }
+            if (CombatAttackCastBridge.TryConsumeShake(m_CombatUnitHandle))
+            {
+                while (CombatAttackCastBridge.TryDequeueShakeTrigger(
+                           m_CombatUnitHandle, out Unity.Entities.Entity triggerEntity,
+                           out int triggerOrder))
+                {
+                    if (triggerEntity == Unity.Entities.Entity.Null ||
+                        triggerOrder < 0 ||
+                        triggerOrder >= skill.CurTriggerList.Count)
+                        continue;
+                    if (!CombatTriggerSimpleQueue.TryEnqueueCompiledAttributes(
+                            triggerEntity, m_CombatUnitHandle,
+                            (int)TriggerType.SkillBeforeShakeEnd))
+                        skill.CurTriggerList[triggerOrder].OnTrigger();
+                    if (!IsValid || !CombatAttackCastBridge.IsActive(m_CombatUnitHandle))
+                        break;
+                }
+            }
+            if (!IsValid || !CombatAttackCastBridge.IsActive(m_CombatUnitHandle))
+                return true;
+            if (CombatAttackCastBridge.TryConsumeAnimationEnd(m_CombatUnitHandle))
+                AddAnimCommandIdle();
+            if (CombatAttackCastBridge.IsComplete(m_CombatUnitHandle))
+            {
+                skill.OnDestory();
+                CombatAttackCastBridge.End(m_CombatUnitHandle);
+                ChangeToIdleState();
+            }
+            return true;
         }
 
         public void BeCauseDamage(CauseDamageData damageData)
@@ -662,7 +786,11 @@ namespace Entity
 
             if (damageData.TriggerDamageRelate)
             {
+                CombatBoardBridge.SetDamageEventStage(damageData.EventIndex,
+                    CombatDamageStage.AfterCause, damageData.DamageValue);
                 damageData.Caster.OnTrigger(TriggerType.AfterCauseDamage,damageData);
+                CombatBoardBridge.SetDamageEventStage(damageData.EventIndex,
+                    CombatDamageStage.AfterReceive, damageData.DamageValue);
                 OnTrigger(TriggerType.AfterBeCauseDamage,damageData);
             }
             UnityEngine.Vector3 damagePosition = LogicPosition +

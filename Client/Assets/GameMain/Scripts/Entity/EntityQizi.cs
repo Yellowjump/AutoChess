@@ -198,10 +198,14 @@ namespace Entity
             RemoveAllWeapon();
             InitAttribute();
             InitSkill();
+            InitState();
         }
 
         public void OnChangeEquipItem()
         {
+            CombatUnitBrainPhase previousPhase = m_CombatUnitHandle == 0
+                ? CombatUnitBrainPhase.Idle
+                : CombatUnitBrainBridge.GetPhase(m_CombatUnitHandle);
             CombatAttributeBridge.GetDeploymentCell(m_CombatUnitHandle,
                 out int deploymentRow, out int deploymentColumn);
             DestorySkill();
@@ -211,6 +215,7 @@ namespace Entity
                 deploymentRow, deploymentColumn);
             LogicPosition = _logicPosition;
             InitSkill();
+            CombatUnitBrainBridge.SetPhase(m_CombatUnitHandle, previousPhase);
         }
 
         public void RemoveGObj()
@@ -258,7 +263,8 @@ namespace Entity
             {
                 using (StateUpdateMarker.Auto())
                 {
-                    UpdateState(elapseSeconds, realElapseSeconds);
+                    if (!CommitAttackCast())
+                        UpdateState(elapseSeconds, realElapseSeconds);
                 }
                 using (SkillUpdateMarker.Auto())
                 {
@@ -328,6 +334,7 @@ namespace Entity
         }
         public void OnDead()
         {
+            CombatAttackCastBridge.End(m_CombatUnitHandle);
             CombatBuffTimerBridge.PauseActiveForOwner(m_CombatUnitHandle);
             RemoveGObj();
             IsValid = false;

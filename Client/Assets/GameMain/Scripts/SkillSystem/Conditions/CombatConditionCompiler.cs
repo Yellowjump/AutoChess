@@ -14,6 +14,13 @@ namespace SkillSystem
             CombatConditionProgramBridge.Create(ref handle, nodes);
         }
 
+        public static void CompileNodes(ConditionBase root,
+            List<CombatConditionNode> nodes)
+        {
+            nodes.Clear();
+            Append(root, nodes);
+        }
+
         public static CombatConditionContext CreateContext(OneTrigger trigger, object arg, float deltaMs)
         {
             Skill source = trigger.ParentTriggerList?.ParentSkill;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Pool;
 using Zizouqi.CombatDots;
 
 namespace SkillSystem
@@ -17,6 +18,30 @@ namespace SkillSystem
                 Append(command, nodes, buffIds, managedCommands);
             }
             CombatCommandProgramBridge.Create(ref handle, nodes, buffIds);
+        }
+
+        public static void CompileNodes(List<CommandBase> commands,
+            List<CombatCommandNode> nodes, List<int> buffIds)
+        {
+            nodes.Clear();
+            buffIds.Clear();
+            if (commands == null) return;
+            List<CommandBase> temporaryManagedCommands = ListPool<CommandBase>.Get();
+            try
+            {
+                foreach (CommandBase command in commands)
+                    Append(command, nodes, buffIds, temporaryManagedCommands);
+            }
+            finally
+            {
+                ListPool<CommandBase>.Release(temporaryManagedCommands);
+            }
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                CombatCommandNode node = nodes[i];
+                node.ManagedIndex = -1;
+                nodes[i] = node;
+            }
         }
 
         public static void CollectManagedCommands(List<CommandBase> commands,

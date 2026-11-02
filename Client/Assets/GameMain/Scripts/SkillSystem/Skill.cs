@@ -16,6 +16,7 @@ namespace SkillSystem
         public SkillType CurSkillType;
         public int SkillRange;//攻击距离mm
         public EntityQizi Caster;
+        internal Unity.Entities.Entity RuntimeDefinition;
         public int DefaultAnimationDurationMs;//默认技能动画时长
         public int DefaultSkillCDMs;//默认技能CD也是默认技能时长
         public int DefaultShakeBeforeMs;//技能前摇
@@ -128,6 +129,7 @@ namespace SkillSystem
             CurSkillType = SkillType.NormalSkill;
             SkillRange = 0;
             Caster = null;
+            RuntimeDefinition = Unity.Entities.Entity.Null;
             DefaultAnimationDurationMs = 0;
             DefaultSkillCDMs = 0;
             DefaultShakeBeforeMs =0;

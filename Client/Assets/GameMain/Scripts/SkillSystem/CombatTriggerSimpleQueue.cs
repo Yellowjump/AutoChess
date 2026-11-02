@@ -49,6 +49,9 @@ namespace SkillSystem
             public int DamageAttributeType;
             public int DamagePercent;
             public bool IsAttribute;
+            public bool CompiledAttribute;
+            public Unity.Entities.Entity CompiledTrigger;
+            public int CompiledOwnerHandle;
             public int AttributeType;
             public int AttributeDelta;
             public bool TriggerDamageRelate;
@@ -130,6 +133,108 @@ namespace SkillSystem
         {
             try { Flush(); }
             finally { s_Recording = false; }
+        }
+
+        // The authored graph is not consulted for this complete data-only rule.
+        // It joins the existing selection batch to preserve frame-end commit order.
+        public static bool TryEnqueueCompiledAttributes(
+            Unity.Entities.Entity triggerEntity, int ownerHandle, int triggerType)
+        {
+            if (!s_Recording || s_Flushing || ownerHandle == 0 ||
+                (triggerType != (int)TriggerType.OnActive &&
+                 triggerType != (int)TriggerType.PerTick &&
+                 triggerType != (int)TriggerType.SkillBeforeShakeEnd) ||
+                !CombatAttributeBridge.TryGetEntity(ownerHandle,
+                    out Unity.Entities.Entity ownerEntity))
+                return false;
+            Unity.Entities.World world = Unity.Entities.World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return false;
+            Unity.Entities.EntityManager manager = world.EntityManager;
+            if (!manager.Exists(triggerEntity) ||
+                !manager.HasComponent<CombatTriggerDefinition>(triggerEntity) ||
+                !manager.HasBuffer<CombatConditionNode>(triggerEntity) ||
+                !manager.HasBuffer<CombatTargetPickerNode>(triggerEntity) ||
+                !manager.HasBuffer<CombatCommandNode>(triggerEntity))
+                return false;
+            CombatTriggerDefinition definition =
+                manager.GetComponentData<CombatTriggerDefinition>(triggerEntity);
+            if (!definition.Enabled || definition.Owner != ownerEntity ||
+                definition.TriggerType != triggerType)
+                return false;
+            var conditions = manager.GetBuffer<CombatConditionNode>(triggerEntity);
+            var pickers = manager.GetBuffer<CombatTargetPickerNode>(triggerEntity);
+            var commands = manager.GetBuffer<CombatCommandNode>(triggerEntity);
+            if (conditions.Length != 1 ||
+                conditions[0].Kind != CombatConditionKind.Always ||
+                conditions[0].Reverse || pickers.Length != 1 ||
+                commands.Length == 0)
+                return false;
+            var input = new CombatSimpleTriggerInput();
+            switch (pickers[0].Kind)
+            {
+                case CombatTargetPickerKind.SkillCaster:
+                    if (!CombatSkillEntityBridge.TryGetCasterHandle(
+                            definition.Skill, out int skillCasterHandle)) return false;
+                    input.DirectUid = CombatAttributeBridge.GetHeroUid(skillCasterHandle);
+                    break;
+                case CombatTargetPickerKind.TriggerOwner:
+                    input.DirectUid = CombatAttributeBridge.GetHeroUid(ownerHandle);
+                    break;
+                case CombatTargetPickerKind.SkillCasterCurTarget:
+                    if (!CombatSkillEntityBridge.TryGetCasterHandle(
+                            definition.Skill, out int currentCasterHandle)) return false;
+                    input.DirectUid = CombatAttributeBridge.GetAttackTargetUid(
+                        currentCasterHandle);
+                    break;
+                case CombatTargetPickerKind.Nearest:
+                    input.Picker = CombatSimplePicker.Nearest;
+                    input.SourceCamp = CombatAttributeBridge.GetCamp(ownerHandle);
+                    input.TargetCamp = pickers[0].TargetCamp;
+                    CombatAttributeBridge.GetPosition(ownerHandle,
+                        out input.SourceX, out _, out input.SourceZ);
+                    break;
+                case CombatTargetPickerKind.OwnerDistance when
+                    !pickers[0].UseWeaponLength:
+                    input.Picker = CombatSimplePicker.OwnerDistance;
+                    input.SourceCamp = CombatAttributeBridge.GetCamp(ownerHandle);
+                    input.TargetCamp = pickers[0].TargetCamp;
+                    input.Radius = pickers[0].LengthMm / 1000f;
+                    CombatAttributeBridge.GetPosition(ownerHandle,
+                        out input.SourceX, out _, out input.SourceZ);
+                    break;
+                default:
+                    return false;
+            }
+            for (int i = 0; i < commands.Length; i++)
+            {
+                CombatCommandNode node = commands[i];
+                if (node.Kind != CombatCommandKind.ChangeAttribute ||
+                    node.EndIndex != i + 1)
+                    return false;
+            }
+            var selections = CombatBoardBridge.GetSimpleTriggerInputs();
+            int selectionIndex = selections.Length;
+            selections.Add(input);
+            SelectionConditionHandles.Add(0);
+            for (int i = 0; i < commands.Length; i++)
+            {
+                CombatCommandNode node = commands[i];
+                Events.Add(new Pending
+                {
+                    CompiledAttribute = true,
+                    CompiledTrigger = triggerEntity,
+                    CompiledOwnerHandle = ownerHandle,
+                    IsAttribute = true,
+                    AttributeType = node.AttributeType,
+                    AttributeDelta = node.Delta,
+                    SelectionIndex = selectionIndex
+                });
+            }
+            s_Queued.Value++;
+            s_CommandEvents.Value += commands.Length;
+            if (input.Picker == CombatSimplePicker.OwnerDistance)
+                s_AreaQueued.Value++;
+            return true;
         }
 
         public static bool TryEnqueue(OneTrigger trigger, object argument)
@@ -906,6 +1011,26 @@ namespace SkillSystem
 
         private static void QueueAttribute(Pending pending, int targetUid)
         {
+            if (pending.CompiledAttribute)
+            {
+                Unity.Entities.World world =
+                    Unity.Entities.World.DefaultGameObjectInjectionWorld;
+                if (world == null || !world.IsCreated ||
+                    !world.EntityManager.Exists(pending.CompiledTrigger)) return;
+                if (!CombatAttributeBridge.TryGetEntity(
+                        pending.CompiledOwnerHandle, out _) ||
+                    !CombatAttributeBridge.TryGetHandleByUid(targetUid,
+                        out int targetHandle) ||
+                    !CombatAttributeBridge.IsAlive(targetHandle)) return;
+                AttributeIntents.Add(new CombatAttributeIntent
+                {
+                    HeroUid = targetUid,
+                    UnitHandle = targetHandle,
+                    AttributeType = pending.AttributeType,
+                    Delta = pending.AttributeDelta
+                });
+                return;
+            }
             if (pending.Trigger.ParentTriggerList != pending.SourceList ||
                 pending.SourceSkill.Caster != pending.Caster)
                 return;

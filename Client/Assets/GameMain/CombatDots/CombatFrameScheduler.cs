@@ -18,6 +18,8 @@ namespace Zizouqi.CombatDots
             new ProfilerMarker("Combat.Step.UnitIntents");
         private static readonly ProfilerMarker UnitMovementMarker =
             new ProfilerMarker("Combat.Step.UnitMovement");
+        private static readonly ProfilerMarker UnitBrainMarker =
+            new ProfilerMarker("Combat.Step.UnitBrain");
         private static readonly ProfilerMarker ProjectileRosterMarker =
             new ProfilerMarker("Combat.Step.ProjectileRoster");
         private static readonly ProfilerMarker ProjectileBroadphaseMarker =
@@ -79,6 +81,10 @@ namespace Zizouqi.CombatDots
                 using (UnitMovementMarker.Auto())
                 {
                     CombatMovementBridge.AdvanceAll(deltaSeconds);
+                }
+                using (UnitBrainMarker.Auto())
+                {
+                    CombatUnitBrainBridge.AdvanceAll();
                 }
                 VisitUnits(uid => updateUnit(uid, skillPlans));
             }

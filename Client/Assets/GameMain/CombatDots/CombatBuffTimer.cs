@@ -7,6 +7,12 @@ using UnityEngine.Pool;
 
 namespace Zizouqi.CombatDots
 {
+    public struct CombatBuffTriggerLink : IBufferElementData
+    {
+        public Entity Trigger;
+        public int Order;
+    }
+
     public struct CombatBuffTimer : IComponentData
     {
         public int Handle;
@@ -793,12 +799,26 @@ namespace Zizouqi.CombatDots
         {
             if (TryGetTimer(handle, out EntityManager manager, out Entity entity))
             {
+                if (manager.HasBuffer<CombatBuffTriggerLink>(entity))
+                {
+                    int count = manager.GetBuffer<CombatBuffTriggerLink>(entity).Length;
+                    for (int i = 0; i < count; i++)
+                    {
+                        Entity trigger = manager.GetBuffer<CombatBuffTriggerLink>(entity)[i].Trigger;
+                        if (manager.Exists(trigger)) manager.DestroyEntity(trigger);
+                    }
+                }
                 RemoveFromOwner(manager.GetComponentData<CombatBuffTimer>(entity).OwnerHandle,
                     handle, manager);
                 manager.DestroyEntity(entity);
             }
             Timers.Remove(handle);
             handle = 0;
+        }
+
+        public static bool TryGetEntity(int handle, out Entity entity)
+        {
+            return TryGetTimer(handle, out _, out entity);
         }
 
         private static bool TryGetOwnerTimers(int ownerHandle, EntityManager manager,

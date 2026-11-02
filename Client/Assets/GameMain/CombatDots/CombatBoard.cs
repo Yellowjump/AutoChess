@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -60,6 +61,29 @@ namespace Zizouqi.CombatDots
         public float3 Position;
     }
 
+    public enum CombatDamageStage : byte
+    {
+        // These serialized values match SkillSystem.TriggerType.
+        BeforeCause = 6,
+        BeforeReceive = 7,
+        AfterCause = 8,
+        AfterReceive = 9
+    }
+
+    // Active damage calls form a stack: a trigger can cause another hit before
+    // the outer hit has finished its before/after callbacks.
+    [InternalBufferCapacity(4)]
+    public struct CombatDamageEvent : IBufferElementData
+    {
+        public Entity Caster;
+        public Entity Target;
+        public Entity SourceSkill;
+        public int CasterHandle;
+        public int TargetHandle;
+        public float Value;
+        public CombatDamageStage Stage;
+    }
+
     public static class CombatBoardBridge
     {
         public const int Rows = 8;
@@ -68,6 +92,64 @@ namespace Zizouqi.CombatDots
         private static Entity s_Board;
         private static readonly CombatProjectileVisualRequest[] VisualRequestBatch =
             new CombatProjectileVisualRequest[12];
+
+        public static int PushDamageEvent(CombatDamageEvent value)
+        {
+            GetCells();
+            DynamicBuffer<CombatDamageEvent> events =
+                s_World.EntityManager.GetBuffer<CombatDamageEvent>(s_Board);
+            int index = events.Length;
+            events.Add(value);
+            return index;
+        }
+
+        public static void SetDamageEventStage(int index,
+            CombatDamageStage stage, float value)
+        {
+            if (!TryGetActiveDamageEvents(out DynamicBuffer<CombatDamageEvent> events) ||
+                (uint)index >= (uint)events.Length) return;
+            CombatDamageEvent damage = events[index];
+            damage.Stage = stage;
+            damage.Value = value;
+            events[index] = damage;
+        }
+
+        public static bool TryGetDamageEvent(int index, out CombatDamageEvent value)
+        {
+            if (TryGetActiveDamageEvents(out DynamicBuffer<CombatDamageEvent> events) &&
+                (uint)index < (uint)events.Length)
+            {
+                value = events[index];
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        public static void PopDamageEvent(int index)
+        {
+            if (!TryGetActiveDamageEvents(out DynamicBuffer<CombatDamageEvent> events))
+                return;
+            if ((uint)index >= (uint)events.Length) return;
+            if (index != events.Length - 1)
+                throw new InvalidOperationException("Nested damage events must finish in stack order.");
+            events.RemoveAt(index);
+        }
+
+        private static bool TryGetActiveDamageEvents(
+            out DynamicBuffer<CombatDamageEvent> events)
+        {
+            World world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || world != s_World || !world.IsCreated ||
+                s_Board == Entity.Null || !world.EntityManager.Exists(s_Board) ||
+                !world.EntityManager.HasBuffer<CombatDamageEvent>(s_Board))
+            {
+                events = default;
+                return false;
+            }
+            events = world.EntityManager.GetBuffer<CombatDamageEvent>(s_Board);
+            return true;
+        }
 
         public static void QueueDamageNumber(int value, float x, float y, float z)
         {
@@ -466,6 +548,16 @@ namespace Zizouqi.CombatDots
             return GetCells()[Index(row, column)].HeroUid;
         }
 
+        public static NativeArray<CombatBoardCell> SnapshotCells(
+            Allocator allocator)
+        {
+            DynamicBuffer<CombatBoardCell> cells = GetCells();
+            var snapshot = new NativeArray<CombatBoardCell>(cells.Length,
+                allocator);
+            for (int i = 0; i < cells.Length; i++) snapshot[i] = cells[i];
+            return snapshot;
+        }
+
         public static bool FindFirstEmpty(out int row, out int column)
         {
             DynamicBuffer<CombatBoardCell> cells = GetCells();
@@ -767,6 +859,7 @@ namespace Zizouqi.CombatDots
                 s_Board = manager.CreateEntity(typeof(CombatBoard));
                 manager.AddBuffer<CombatProjectileVisualRequest>(s_Board);
                 manager.AddBuffer<CombatDamageNumberEvent>(s_Board);
+                manager.AddBuffer<CombatDamageEvent>(s_Board);
                 manager.AddBuffer<CombatProjectileRoster>(s_Board);
                 manager.AddBuffer<CombatSimpleTriggerInput>(s_Board);
                 manager.AddBuffer<CombatSimpleTriggerResult>(s_Board);
@@ -783,6 +876,8 @@ namespace Zizouqi.CombatDots
             }
             if (!manager.HasBuffer<CombatDamageNumberEvent>(s_Board))
                 manager.AddBuffer<CombatDamageNumberEvent>(s_Board);
+            if (!manager.HasBuffer<CombatDamageEvent>(s_Board))
+                manager.AddBuffer<CombatDamageEvent>(s_Board);
             if (!manager.HasBuffer<CombatProjectileRoster>(s_Board))
                 manager.AddBuffer<CombatProjectileRoster>(s_Board);
             if (!manager.HasBuffer<CombatSimpleTriggerInput>(s_Board))

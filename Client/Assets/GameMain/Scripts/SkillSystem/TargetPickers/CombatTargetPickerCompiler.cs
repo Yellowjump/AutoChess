@@ -13,6 +13,13 @@ namespace SkillSystem
             CombatTargetPickerProgramBridge.Create(ref handle, nodes);
         }
 
+        public static void CompileNodes(TargetPickerBase root,
+            List<CombatTargetPickerNode> nodes)
+        {
+            nodes.Clear();
+            Append(root, nodes);
+        }
+
         private static int Append(TargetPickerBase picker,
             List<CombatTargetPickerNode> nodes)
         {
