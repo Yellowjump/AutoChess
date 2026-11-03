@@ -1138,13 +1138,18 @@ namespace UnityGameFramework.Runtime
                 return;
             }
 
-#if UNITY_5_5_OR_NEWER
+#if UNITY_EDITOR
+            AsyncOperation asyncOperation = UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(
+                sceneAssetName, new LoadSceneParameters(LoadSceneMode.Additive));
+#elif UNITY_5_5_OR_NEWER
             AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(sceneAssetName, LoadSceneMode.Additive);
 #else
             AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(SceneComponent.GetSceneName(sceneAssetName), LoadSceneMode.Additive);
 #endif
             if (asyncOperation == null)
             {
+                loadSceneCallbacks.LoadSceneFailureCallback?.Invoke(sceneAssetName, LoadResourceStatus.NotReady,
+                    Utility.Text.Format("Could not start loading scene '{0}'.", sceneAssetName), userData);
                 return;
             }
 
