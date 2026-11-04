@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using DataTable;
@@ -190,6 +190,10 @@ namespace Procedure
             _dataTableFlag.Add("AreaPoint", (typeof(DRAreaPoint), false));
             _dataTableFlag.Add("RewardConfig", (typeof(DRRewardConfig), false));
             _dataTableFlag.Add("Sound", (typeof(DRSound), false));
+            _dataTableFlag.Add("OuterLocations", (typeof(DROuterLocations), false));
+            _dataTableFlag.Add("StartingCultivators", (typeof(DRStartingCultivators), false));
+            _dataTableFlag.Add("BattleMapping", (typeof(DRBattleMapping), false));
+            _dataTableFlag.Add("CultivationLevel", (typeof(DRCultivationLevel), false));
             foreach (var tableName in _dataTableFlag)
             {
                 DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(tableName.Value.Item1, tableName.Key);

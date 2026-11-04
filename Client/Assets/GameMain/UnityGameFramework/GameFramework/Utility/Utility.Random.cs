@@ -1,4 +1,4 @@
-﻿//------------------------------------------------------------
+//------------------------------------------------------------
 // Game Framework
 // Copyright © 2013-2021 Jiang Yin. All rights reserved.
 // Homepage: https://gameframework.cn/
@@ -29,6 +29,42 @@ namespace GameFramework
                 }
                 set => s_Random = value;
             }
+            // A local deterministic simulation must not advance the surrounding game's stream.
+            public static IDisposable UseSeed(int seed) => new SeedScope(seed);
+
+            public static IDisposable UseGenerator(System.Random random) => new SeedScope(random);
+
+            private sealed class SeedScope : IDisposable
+            {
+                private readonly System.Random previous;
+                private readonly int previousSeed;
+                private readonly int previousCount;
+
+                public SeedScope(int seed)
+                {
+                    previous = s_Random;
+                    previousSeed = Seed;
+                    previousCount = NextCount;
+                    SetSeed(seed);
+                }
+
+                public SeedScope(System.Random random)
+                {
+                    previous = s_Random;
+                    previousSeed = Seed;
+                    previousCount = NextCount;
+                    s_Random = random ?? throw new ArgumentNullException(nameof(random));
+                    NextCount = 0;
+                }
+
+                public void Dispose()
+                {
+                    s_Random = previous;
+                    Seed = previousSeed;
+                    NextCount = previousCount;
+                }
+            }
+
             public static int Seed;
             public static int NextCount;
             

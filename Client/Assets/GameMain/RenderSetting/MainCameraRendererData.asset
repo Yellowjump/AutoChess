@@ -340,7 +340,8 @@ MonoBehaviour:
   - {fileID: -461157857790322822}
   - {fileID: 2188271051361542100}
   - {fileID: -153580647838524286}
-  m_RendererFeatureMap: 07b8892a3ecd68306df8b6a3ad84cc68a5e6bc1044017fe06035d8c31602f8b60e6ea33d5f207a187a1707255fa399f9d4dfac60ed4c5e1e82dc35e9365fdefd
+  - {fileID: 942401001}
+  m_RendererFeatureMap: 07b8892a3ecd68306df8b6a3ad84cc68a5e6bc1044017fe06035d8c31602f8b60e6ea33d5f207a187a1707255fa399f9d4dfac60ed4c5e1e82dc35e9365fdefde9e52b3800000000
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -595,7 +596,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53d3d7a31eed462197357897d703185f, type: 3}
   m_Name: FogRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   m_Material: {fileID: 2100000, guid: 8e44dd826729c7946b8b39471002a1e7, type: 2}
   ActiveInSceneView: 0
 --- !u!114 &3488263578283784199
@@ -657,3 +658,16 @@ MonoBehaviour:
       restoreCamera: 1
       offset: {x: 0, y: 0, z: 0, w: 0}
       cameraFieldOfView: 60
+--- !u!114 &942401001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79c88d8d7f564cf69ae18d93c8f7da37, type: 3}
+  m_Name: WorldTimelineRenderFeature
+  m_EditorClassIdentifier:
+  m_Active: 1

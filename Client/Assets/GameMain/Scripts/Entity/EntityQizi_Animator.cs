@@ -32,6 +32,7 @@ namespace Entity
 
         private void InitAnimationClip()
         {
+            if (HotGameEntry.HeroManager.IsTimelineSimulation) return;
             var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
             if (tableHero.HasDataRow(HeroID))
             {
@@ -63,6 +64,7 @@ namespace Entity
 
         public void AddAnimCommand(int aniAssetID,float speed=1)
         {
+            if (HotGameEntry.HeroManager.IsTimelineSimulation) return;
             var assetsPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
             if (assetsPathTable.HasDataRow(aniAssetID))
             {
@@ -109,6 +111,7 @@ namespace Entity
         }
         private void ReleaseAnim()
         {
+            if (HotGameEntry.HeroManager.IsTimelineSimulation) return;
             var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
             if (tableHero.HasDataRow(HeroID))
             {

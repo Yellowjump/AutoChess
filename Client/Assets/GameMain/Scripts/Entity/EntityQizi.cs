@@ -157,6 +157,9 @@ namespace Entity
 
         private void ClearHpBar()
         {
+            xuetiao = null;
+            power = null;
+            hudun = null;
             if (HpBar != null)
             {
                 ReferencePool.Release(HpBar);

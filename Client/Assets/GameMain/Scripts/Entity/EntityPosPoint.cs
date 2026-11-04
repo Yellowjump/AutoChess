@@ -34,6 +34,7 @@ namespace Entity
         }
         public override void AddSfx(int sfxID)
         {
+            if (HotGameEntry.HeroManager.IsTimelineSimulation) return;
             var sfxTable = GameEntry.DataTable.GetDataTable<DRSfx>("Sfx");
             if (sfxTable.HasDataRow(sfxID))
             {

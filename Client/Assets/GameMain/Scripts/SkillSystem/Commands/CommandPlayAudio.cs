@@ -13,6 +13,7 @@ namespace SkillSystem
         public TableParamInt AudioID;
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
+            if (HotGameEntry.HeroManager.IsTimelineSimulation) return;
             if (trigger != null && trigger.CurTargetList != null && trigger.CurTargetList.Count > 0)
             {
                 foreach (var oneTarget in trigger.CurTargetList)

@@ -79,6 +79,7 @@ namespace UnityGameFramework.Runtime
 
         private Vector2Int GetEmptyFriendPos()
         {
+            // Row zero is the friendly back rank. Fill left to right, then advance one rank.
             for (int y = 0; y < qige.Length; y++)
             {
                 for (int x = 0; x < qige[y].Length; x++)

@@ -33,6 +33,8 @@ namespace UnityGameFramework.Runtime
         public List<EntityQizi> QiziCSList = new List<EntityQizi>();//保存当前己方棋子 死亡不会移除
         public List<EntityQizi> DirenList = new List<EntityQizi>();//保存当前敌方棋子 死亡不会移除
         public int dangqianliucheng = 0;//保存当前流程，0是prebattle,1是battle
+        public bool IsTimelineBattle { get; internal set; }
+        public bool IsTimelineSimulation { get; internal set; }
         public bool InBattle => dangqianliucheng == 1;
         private Vector2Int[] adjacentOffsetDoubleRow = new Vector2Int[6]
         {
@@ -434,7 +436,7 @@ namespace UnityGameFramework.Runtime
 
             qige[qizi.rowIndex][qizi.columnIndex] = -1;
             List<EntityQizi> qiziList = qizi.BelongCamp == CampType.Friend ? QiziCSList : DirenList;
-            if (qiziList.Count((entity)=>entity.IsValid) == 0)
+            if (!IsTimelineBattle && qiziList.Count((entity)=>entity.IsValid) == 0)
             {
                 GameEntry.Event.FireNow(this, BattleStopEventArgs.Create(qizi.BelongCamp == CampType.Enemy));
             }

@@ -95,7 +95,9 @@ namespace UnityGameFramework.Runtime
             public void Clear()
             {
                 Owner = null;
-                HotGameEntry.HeroManager.ReleaseGameObject(HpBarPerfabPath, HpBarObj);
+                HotGameEntry.HeroManager.WaitHpBarList.Remove(this);
+                HotGameEntry.HeroManager.PlayingHpBarList.Remove(this);
+                if (HpBarObj != null) HotGameEntry.HeroManager.ReleaseGameObject(HpBarPerfabPath, HpBarObj);
                 HpBarObj = null;
             }
 
@@ -132,7 +134,9 @@ namespace UnityGameFramework.Runtime
                 oneHpBar.HpBarObj.transform.SetParent(canvas.transform);
                 //设置pos
                 oneHpBar.HpBarObj.transform.localScale = new Vector3(0.005f, 0.01f, 1);
-                oneHpBar.HpBarObj.transform.rotation = HotGameEntry.HeroManager.CurAreaPoint.CameraRotation;
+                oneHpBar.HpBarObj.transform.rotation = IsTimelineBattle
+                    ? m_InstanceWorldCanvas.worldCamera.transform.rotation
+                    : HotGameEntry.HeroManager.CurAreaPoint.CameraRotation;
                 //oneHpBar.HpBarObj.transform.forward = Camera.main.transform.forward;
                 oneHpBar.HpBarObj.transform.position = oneHpBar.Owner.LogicPosition+Vector3.up*2;
                 //绑定棋子血条
@@ -212,6 +216,7 @@ namespace UnityGameFramework.Runtime
         private List<DamageNumber> PlayingDmgNumberList = new List<DamageNumber>();
         public void ShowDamageNum(CauseDamageData data)
         {
+            if (IsTimelineSimulation) return;
             var newDamageNumber = ReferencePool.Acquire<DamageNumber>();
             var numPerfabPath = DamageNumberPerfabPath;
             newDamageNumber.num = (int)data.DamageValue;

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -102,7 +102,7 @@ public class FogRenderFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (renderingData.cameraData.cameraType == CameraType.Game||ActiveInSceneView)
+        if (renderingData.cameraData.cameraType == CameraType.Game || ActiveInSceneView)
             renderer.EnqueuePass(m_RenderPass);
     }
 

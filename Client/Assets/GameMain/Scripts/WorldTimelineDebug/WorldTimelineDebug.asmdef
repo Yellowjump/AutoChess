@@ -1,0 +1,5 @@
+{
+  "name": "Zizouqi.WorldTimelineDebug",
+  "rootNamespace": "WorldTimelineDebug",
+  "references": ["Zizouqi.WorldTimeline", "Cinemachine"]
+}

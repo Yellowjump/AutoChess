@@ -25,6 +25,7 @@ namespace Entity.Bullet
         {
             m_GetObjCallback ??= OnGetHeroGObjCallback;
             OwnerTriggerList?.OnTrigger(TriggerType.OnActive);
+            if (HotGameEntry.HeroManager.IsTimelineSimulation) return;
             HotGameEntry.HeroManager.GetBulletObjByID(BulletID,m_GetObjCallback);
         }
         protected virtual void OnGetHeroGObjCallback(GameObject obj,string path)

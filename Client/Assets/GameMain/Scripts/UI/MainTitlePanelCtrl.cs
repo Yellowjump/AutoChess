@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using DataTable;
 using GameFramework;
@@ -8,8 +8,10 @@ using SelfEventArg;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
+using WorldTimelineDebug;
 
 public class MainTitlePanelCtrl : UIFormLogic
 {
@@ -19,8 +21,9 @@ public class MainTitlePanelCtrl : UIFormLogic
     private Button _btnStart;
     [SerializeField]
     private Button _btnSetting;
-    [SerializeField]
-    private Button _btnTestHotFixing;
+    [SerializeField, FormerlySerializedAs("_btnTestHotFixing")]
+    private Button _btnWorldTimeline;
+    private WorldTimelineDebugView worldTimeline;
     [SerializeField] private Transform mTransSetting;
     [SerializeField] private Slider mVolumeMasterSlider;
     [SerializeField] private Slider mVolumeBgmSlider;
@@ -41,7 +44,7 @@ public class MainTitlePanelCtrl : UIFormLogic
         _btnContinue.onClick.AddListener(OnClickContinueBtn);
         _btnStart.onClick.AddListener(OnClickStartBtn);
         _btnSetting.onClick.AddListener(OnClickSettingBtn);
-        _btnTestHotFixing.onClick.AddListener(OnClickHotFix);
+        _btnWorldTimeline.gameObject.SetActive(false);
         mLanguageDropDown.ClearOptions();
         var stringList = ListPool<string>.Get();
         stringList.Add(GameEntry.Localization.GetString(EnumLanguage.Language_Chinese));
@@ -112,7 +115,7 @@ public class MainTitlePanelCtrl : UIFormLogic
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
-        var hasData = HotGameEntry.HeroManager.HasSaveData();
+        var hasData = WorldTimelineDebugView.HasUnfinishedRun;
         _btnContinue.gameObject.SetActive(hasData);
         GameEntry.UI.CloseUIForm(UICtrlName.LoadingPanel);
         mTransSetting.gameObject.SetActive(false);
@@ -122,12 +125,12 @@ public class MainTitlePanelCtrl : UIFormLogic
     {
         Log.Info("OnClickContinueBtn OnClick");
         HotGameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
-        GameEntry.Event.Fire(this,MoveToContinueGameEventArgs.Create());
+        OpenWorldTimeline(true);
     }
     private void OnClickStartBtn()
     {
         HotGameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
-        GameEntry.Event.Fire(this,MoveToNewGameEventArgs.Create());
+        OpenWorldTimeline(false);
     }
     private void OnClickSettingBtn()
     {
@@ -135,9 +138,38 @@ public class MainTitlePanelCtrl : UIFormLogic
         mTransSetting.gameObject.SetActive(!mTransSetting.gameObject.activeSelf);
     }
 
-    private void OnClickHotFix()
+    private void OpenWorldTimeline(bool resume)
     {
-        Log.Info("hotfix test 1");
+        if (worldTimeline != null) return;
+        // MonoBehaviour implicitly converts to bool; name userData to select the data overload.
+        WorldTimelineDebugView.OpenMapHud = view => GameEntry.UI.OpenUIForm(UICtrlName.WorldTimelinePanel, "top", userData: view);
+        WorldTimelineDebugView.ScenarioFactory = WorldTimelineTableConfig.Create;
+        WorldTimelineDebugView.BattleResolverFactory = () => new WorldTimelineBattleResolver();
+        worldTimeline = WorldTimelineDebugView.OpenFromMenu(() =>
+        {
+            worldTimeline = null;
+            Visible = true;
+            _btnContinue.gameObject.SetActive(WorldTimelineDebugView.HasUnfinishedRun);
+        });
+        if (resume && !worldTimeline.ResumeUnfinishedRun())
+        {
+            Destroy(worldTimeline.gameObject);
+            worldTimeline = null;
+            return;
+        }
+        if (worldTimeline.IsReady) Visible = false;
+        else
+        {
+            Destroy(worldTimeline.gameObject);
+            worldTimeline = null;
+        }
+    }
+
+    public override void OnClose(bool isShutdown, object userData)
+    {
+        if (worldTimeline != null) Destroy(worldTimeline.gameObject);
+        worldTimeline = null;
+        base.OnClose(isShutdown, userData);
     }
     private void OnLanguageDropdownValueChanged(int newValue)
     {
