@@ -246,17 +246,17 @@ namespace UnityGameFramework.Runtime
                 }
             }
 
-            if (targetHero.EquipItemList == null)
+            if (targetHero == null || targetHero.EquipItemList == null)
             {
                 return false;
             }
 
-            if (targetHero.EquipItemList.Count >= 5) //todo 可能不同角色的装备上限不同
+            // Equipment count is unbounded; the same bag instance still cannot be equipped twice.
+            if (ItemBagList == null || !ItemBagList.Remove(itemData))
             {
                 return false;
             }
 
-            ItemBagList.Remove(itemData);
             itemData.UniqueID = ++ItemUniqueIndex;//重新赋值uid，用作判断 装备时间 先后
             targetHero.EquipItemList.Add(itemData);
             targetHero.EquipItemList.Sort(CompareDRItem);

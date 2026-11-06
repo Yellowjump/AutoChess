@@ -1,4 +1,3 @@
-using DataTable;
 using GameFramework.Procedure;
 using UnityGameFramework.Runtime;
 using ProcedureOwner = GameFramework.Fsm.IFsm<GameFramework.Procedure.IProcedureManager>;
@@ -13,7 +12,7 @@ namespace Procedure
             base.OnEnter(procedureOwner);
             GameEntry.UI.OpenUIForm(UICtrlName.MainTitlePanel, "middle");
             HotGameEntry.HeroManager.InitStartCamera();
-            HotGameEntry.Sound.PlayMusic((int)EnumSound.GameStartBGM);
+            HotGameEntry.Sound.PlayMusic("Assets/GameMain/Audio/Title_Ferry.wav");
         }
 
         protected override void OnLeave(ProcedureOwner procedureOwner, bool isShutdown)

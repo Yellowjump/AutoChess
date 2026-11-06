@@ -1,0 +1,11 @@
+﻿#	地图关卡配置									
+#	Id	Q	R	Name	CultivationPerYear	MonsterHealth	MonsterAttack	LootItemId	LootAttackBonus	LootName
+#	int	int	int	string	int	int	int	int	int	string
+#	编号	横坐标	纵坐标	名称	灵气	守怪生命	守怪攻击	宝物ID	宝物攻击加成	宝物名称
+	1	0	-10	Timeline_OuterLocations_1_Name	1	0	1	0	0	
+	2	1	-10	Timeline_OuterLocations_2_Name	1	0	1	0	0	
+	3	-1	-9	Timeline_OuterLocations_3_Name	1	0	1	0	0	
+	4	0	-9	Timeline_OuterLocations_4_Name	2	220	120	0	0	
+	5	-1	-8	Timeline_OuterLocations_5_Name	8	0	1	0	0	
+	6	1	-9	Timeline_OuterLocations_6_Name	3	0	1	8201	18	Timeline_OuterLocations_6_LootName
+	7	-8	0	Timeline_OuterLocations_7_Name	4	180	28	0	0	

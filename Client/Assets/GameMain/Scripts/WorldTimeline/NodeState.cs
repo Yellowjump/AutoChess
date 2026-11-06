@@ -12,6 +12,8 @@ namespace WorldTimeline
         public int MonsterHealth { get; set; }
         public int MonsterAttack { get; set; } = 1;
         public int LootAttackBonus { get; set; }
+        public bool IsCultivationSite { get; set; }
+        public bool HasExplorationGuardian { get; set; }
         public List<int> Items { get; } = new List<int>();
 
         public NodeState(int id) { Id = id; }

@@ -1,4 +1,5 @@
 using System.IO;
+using System.Collections.Generic;
 using Entity;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -27,13 +28,21 @@ namespace SkillSystem
         
         public SkillCastTargetType CurSkillCastTargetType;//释放目标类型
         public int CastPower;//释放时需消耗的蓝量，为负时是产生的蓝量
+        public bool IsBasicAttack => CurSkillType == SkillType.NormalSkill && CastPower < 0;
+        public int BasicAttackSpeedBonus { get; internal set; }
+        public bool IsActiveDamageSkill => !IsBasicAttack && CurSkillType is SkillType.NormalSkill or SkillType.SpSkill;
+        private HashSet<int> ignitedTargets;
+        public bool TryIgniteTarget(int targetId) => (ignitedTargets ??= new HashSet<int>()).Add(targetId);
         public void Cast()
         {
+            ignitedTargets?.Clear();
+            BasicAttackSpeedBonus = 0;
             Caster?.OnTrigger(TriggerType.BeforeSkillCast,this);
             var cdr =  (int)Caster.GetAttribute(AttributeType.CooldownReduce).GetFinalValue();
             var reducePercent = cdr / (cdr + 100f);
-            CurCastCDMs =Mathf.CeilToInt(DefaultSkillCDMs * (1 - reducePercent));
-            LeftSkillCD =DefaultSkillCDMs * (1 - reducePercent)/1000;
+            float cooldownMs = DefaultSkillCDMs * (1 - reducePercent) / (1f + BasicAttackSpeedBonus / 100f);
+            CurCastCDMs = Mathf.CeilToInt(cooldownMs);
+            LeftSkillCD = cooldownMs / 1000;
             CurShakeBeforeMs = DefaultShakeBeforeMs;
             CurAnimationDurationMs = DefaultAnimationDurationMs;
             if (CurCastCDMs < DefaultAnimationDurationMs)//实际CD小于动画时间了，需要动画加速
@@ -90,6 +99,7 @@ namespace SkillSystem
 
         public override void Clear()
         {
+            ignitedTargets?.Clear();
             SkillID = 0;
             TempleteID = 0;
             FromItemID = 0;

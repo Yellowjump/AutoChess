@@ -15,6 +15,7 @@ namespace WorldTimeline
         public bool PlayerKilledChosen => Outcome == RunOutcome.PlayerKilledChosen;
         public FinalRitualState Ritual { get; internal set; }
         public bool PlayerControlEnded { get; internal set; }
+        public bool StoryCombatSkillsEnabled { get; set; }
         public Dictionary<int, ActorState> Actors { get; } = new Dictionary<int, ActorState>();
         public Dictionary<int, NodeState> Nodes { get; } = new Dictionary<int, NodeState>();
         public WorldState(int playerActorId) { PlayerActorId = playerActorId; }
@@ -34,7 +35,7 @@ namespace WorldTimeline
         }
     }
 
-    public enum WorldEventKind { ActionStarted, Arrived, Cultivated, ActionCompleted, Battle, Died, Looted, Joined, Disguised, Absorbed, RitualReset, RitualCompleted, WorldCleared, RunEnded, Breakthrough }
+    public enum WorldEventKind { ActionStarted, Arrived, Cultivated, ActionCompleted, Battle, Died, Looted, Joined, Disguised, Absorbed, RitualReset, RitualCompleted, WorldCleared, RunEnded, Breakthrough, StoryResolved }
 
     public sealed class WorldEvent
     {

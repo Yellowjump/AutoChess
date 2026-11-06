@@ -51,6 +51,7 @@ namespace WorldTimeline
         private readonly IWorldBattleResolver battle;
         private ChosenActorController chosen;
         private FinalRitualSystem ritual;
+        internal Func<ActorState, int, IEnumerator> StoryResolver;
         public EncounterSystem(IWorldBattleResolver battle) { this.battle = battle ?? throw new ArgumentNullException(nameof(battle)); }
         internal void ConfigureChosen(ChosenActorController controller) => chosen = controller;
         internal void ConfigureRitual(FinalRitualSystem system) => ritual = system;
@@ -128,6 +129,8 @@ namespace WorldTimeline
                     node.Items.Clear();
                     emit(new WorldEvent(world.Year, WorldEventKind.Looted, survivor.Id, nodeId));
                 }
+                if (survivor.IsAlive && !world.IsEnded && StoryResolver != null)
+                    yield return StoryResolver(survivor, nodeId);
         }
 
         private IEnumerator FightChosen(WorldState world, ActorState leader, ActorState enemy, int nodeId, Action<WorldEvent> emit)
@@ -188,7 +191,7 @@ namespace WorldTimeline
             return party;
         }
         private static int SumHealth(List<ActorState> party) => checked(party.Sum(a => a.Health));
-        private static int SumAttack(List<ActorState> party) => checked(party.Sum(a => a.Attack));
+        private static int SumAttack(List<ActorState> party) => checked(party.Sum(a => a.CombatAttack));
         private static void ApplyPartyDamage(WorldState world, List<ActorState> party, int damage, int nodeId, Action<WorldEvent> emit)
         {
             foreach (var member in party)

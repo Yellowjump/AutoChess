@@ -24,7 +24,21 @@ namespace WorldTimelineDebug
         private bool saveDirty;
         private bool saveReadable = true;
         private string saveIssue;
-        private string SavePath => Path.Combine(Application.persistentDataPath, "WorldTimeline", "cultivator-lives.dat");
+#if UNITY_EDITOR
+        // Editor smoke checks use disposable saves without replacing the player's current run.
+        public static string EditorSaveDirectory { get; set; }
+#endif
+        private static string SaveDirectory
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (!string.IsNullOrEmpty(EditorSaveDirectory)) return EditorSaveDirectory;
+#endif
+                return Path.Combine(Application.persistentDataPath, "WorldTimeline");
+            }
+        }
+        private string SavePath => Path.Combine(SaveDirectory, "cultivator-lives.dat");
         public sealed class StartingCultivator
         {
             public string Name, Weapon;
@@ -41,6 +55,7 @@ namespace WorldTimelineDebug
             public CultivationConfig Cultivation;
             public StartingCultivator[] Cultivators;
             public LocationDefinition[] Locations;
+            public StoryConfig Stories;
         }
         public static Func<ScenarioData> ScenarioFactory { get; set; }
         private ScenarioData scenarioData;
@@ -68,7 +83,7 @@ namespace WorldTimelineDebug
         private bool archived, autoObserve;
         private float nextStepTime;
         private int yearsPerSecond = 5;
-        private string message = "选择相邻节点移动，或留在原地修炼。";
+        private string message = TimelineText("Timeline_UI_119");
         private GUIStyle title, text, muted, card, toggle, small, button;
         private Font font;
         private bool stylesReady;
@@ -123,7 +138,7 @@ namespace WorldTimelineDebug
                 catch (Exception error) when (error is IOException || error is InvalidDataException || error is UnauthorizedAccessException || error is ArgumentException)
                 {
                     saveReadable = false;
-                    saveIssue = "前世存档读取失败：" + error.Message;
+                    saveIssue = TimelineText("Timeline_UI_123") + error.Message;
                 }
             }
             if (returnToMenu == null) NewRound();
@@ -144,7 +159,7 @@ namespace WorldTimelineDebug
             {
                 Destroy(map);
                 board = null;
-                message = "未找到可用的场景地形，已打开调试地图。";
+                message = TimelineText("Timeline_UI_120");
             }
         }
 
@@ -155,7 +170,7 @@ namespace WorldTimelineDebug
                 locations.Add(HexWorldMap.Id(location.Q, location.R), location);
         }
 
-        private void ConfigureLocations(WorldState world)
+        private void ConfigureLocations(WorldState world, bool withStories = true)
         {
             foreach (var pair in locations)
             {
@@ -170,6 +185,13 @@ namespace WorldTimelineDebug
                 node.LootAttackBonus = row.LootAttackBonus;
             }
             foreach (var cultivator in roster) world.Nodes[cultivator.Birth].MonsterHealth = 0;
+            if (withStories && scenarioData?.Stories != null)
+                foreach (var story in scenarioData.Stories.Events.Values)
+                {
+                    // These nodes now award through choices, never via the old automatic loot path.
+                    world.Nodes[story.NodeId].Items.Clear();
+                    world.Nodes[story.NodeId].LootAttackBonus = 0;
+                }
         }
 
         private void AddLifeToLibrary(SavedLife entry)
@@ -177,8 +199,9 @@ namespace WorldTimelineDebug
             var character = roster.FirstOrDefault(candidate => candidate.Birth == entry.Record.BirthNodeId);
             library.Add(new HistoryEntry
             {
-                Name = (character?.Name ?? "轮回 " + entry.Round) + " · 第" + entry.Record.EndYear + "年"
-                    + (entry.Record.EndedInDeath ? "身死" : "结束"),
+                Name = TimelineText("Timeline_UI_ArchivedLife",
+                    character?.Name ?? TimelineText("Timeline_UI_RoundName", entry.Round),
+                    entry.Record.EndYear, TimelineText(entry.Record.EndedInDeath ? "Timeline_UI_116" : "Timeline_UI_118")),
                 Record = entry.Record
             });
         }
@@ -195,30 +218,74 @@ namespace WorldTimelineDebug
             }
             catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
             {
-                saveIssue = "前世存档写入失败，可点返回主菜单重试：" + error.Message;
+                saveIssue = TimelineText("Timeline_UI_124") + error.Message;
                 return false;
             }
         }
 
-        private void NewRound(IEnumerable<LifeRecord> historyOverride = null)
+        private void PopulateExploration(WorldState world, StoryConfig stories)
+        {
+            var reserved = new HashSet<int>(locations.Keys);
+            reserved.UnionWith(roster.Select(cultivator => cultivator.Birth));
+            if (stories != null)
+                reserved.UnionWith(stories.Events.Values.Select(story => story.NodeId));
+            foreach (var node in world.Nodes.Values)
+            {
+                // The ritual relay and the Chosen's route use scripted difficulty.
+                if (reserved.Contains(node.Id) || (node.Q == 0 && node.R >= 0)
+                    || (node.R == 0 && node.Q <= 0) || node.MonsterHealth > 0
+                    || node.Items.Count > 0 || node.CultivationPerYear >= 8) continue;
+
+                int depth = HexWorldMap.Radius - HexWorldMap.Distance(node.Q, node.R);
+                int roll = (node.Q * node.Q * 17 + node.R * node.R * 31 + (node.Q + 10) * 13
+                    + (node.R + 10) * 7 + (node.Q + 10) * (node.R + 10) * 11) % 10;
+                if (roll < 3)
+                {
+                    node.MonsterHealth = 55 + depth * 22;
+                    node.MonsterAttack = 7 + depth * 4;
+                    node.HasExplorationGuardian = true;
+                }
+                else if (roll < 5)
+                {
+                    node.Items.Add(node.Id);
+                    node.LootAttackBonus = 2 + depth;
+                }
+                else if (roll < 8)
+                {
+                    node.IsCultivationSite = true;
+                    node.CultivationPerYear += 2;
+                }
+            }
+        }
+
+        private void NewRound(IEnumerable<LifeRecord> historyOverride = null, bool enableStories = true,
+            IEnumerable<RecordedStoryChoice> replayChoices = null, bool expandedExploration = true,
+            bool storyCombatSkills = true, bool bleedRewardRoute = true)
         {
             battleResolver = returnToMenu == null ? null : BattleResolverFactory?.Invoke();
             simulation = HexTimelineDemoFactory.Create(playerNode: startingCultivator?.Birth,
                 cultivation: cultivation, talentSeed: round, startingItem: startingCultivator?.Item ?? 0,
                 weaponAttack: startingCultivator?.Attack ?? 0,
-                configureLocations: startingCultivator == null ? (Action<WorldState>)null : ConfigureLocations,
+                configureLocations: startingCultivator == null ? (Action<WorldState>)null : world => ConfigureLocations(world, enableStories),
                 battle: battleResolver);
+            var stories = scenarioData?.Stories;
+            // Keep pre-route checkpoints on the map and event set they originally replayed.
+            if (!bleedRewardRoute) stories = stories?.WithoutEvents(9, 10);
+            if (expandedExploration && startingCultivator != null) PopulateExploration(simulation.State, stories);
+            simulation.State.StoryCombatSkillsEnabled = storyCombatSkills && enableStories;
             inspectedActorId = 1;
             int id = 10;
             foreach (var record in historyOverride ?? library.Where(e => e.Selected).Take(10).Select(e => e.Record))
                 simulation.AddHistory(record, id++);
+            if (enableStories && stories != null)
+                simulation.ConfigureStories(stories, round, returnToMenu != null && !IsRestoringCheckpoint, replayChoices);
             archived = false;
             autoObserve = false;
             selectedNode = simulation.State.Actors[1].NodeId.Value;
             hexSize = 12f;
             mapPan = Vector2.zero;
             logScroll = Vector2.zero;
-            message = "本局已载入勾选路线。天选第100年抵达中心；初始仪式截止第35年。";
+            message = TimelineText("Timeline_UI_121");
             showGrowth = false;
             if (board != null)
             {
@@ -227,6 +294,7 @@ namespace WorldTimelineDebug
                 board.Sync(simulation.State, selectedNode);
             }
             BeginCheckpoint();
+            if (simulation.Stories != null && !UsesStoryHud && !IsRestoringCheckpoint) OpenStoryHud?.Invoke(this);
         }
 
         private void Update()
@@ -269,14 +337,14 @@ namespace WorldTimelineDebug
                             SaveLives();
                         }
                     }
-                    else message = "前世存档已满（15条）；本局仍可观察。";
+                    else message = TimelineText("Timeline_UI_122");
                 }
                 if (simulation.State.IsEnded) autoObserve = false;
             }
             catch (InvalidOperationException error)
             {
                 autoObserve = false;
-                message = "无法执行：" + error.Message;
+                message = TimelineText("Timeline_UI_125") + error.Message;
                 Debug.LogWarning(message);
             }
         }
@@ -290,7 +358,18 @@ namespace WorldTimelineDebug
             StartCoroutine(AdvanceRoutine(routine, observeAfter, action));
         }
 
-        private IEnumerator AdvanceRoutine(IEnumerator routine, bool observeAfter, WorldAction action)
+#if UNITY_EDITOR
+        public bool TryRunBattlePreview(IEnumerator routine)
+        {
+            if (advancing || preparing || simulation == null || !simulation.WaitingForPlayer ||
+                simulation.Stories?.PendingChoice != null || simulation.Stories?.PendingResult != null) return false;
+            advancing = true;
+            StartCoroutine(AdvanceRoutine(routine, false, null, true));
+            return true;
+        }
+#endif
+
+        private IEnumerator AdvanceRoutine(IEnumerator routine, bool observeAfter, WorldAction action, bool preview = false)
         {
             var stack = new Stack<IEnumerator>();
             stack.Push(routine);
@@ -306,7 +385,7 @@ namespace WorldTimelineDebug
                     if (failure != null)
                     {
                         autoObserve = false;
-                        message = "推进失败：" + failure.Message;
+                        message = TimelineText("Timeline_UI_126") + failure.Message;
                         Debug.LogException(failure);
                         yield break;
                     }
@@ -318,6 +397,7 @@ namespace WorldTimelineDebug
                     if (current.Current is IEnumerator nested) stack.Push(nested);
                     else yield return current.Current;
                 }
+                if (preview) yield break;
                 Execute(() => { });
                 if (checkpoint != null)
                 {
@@ -335,7 +415,8 @@ namespace WorldTimelineDebug
         private void OnGUI()
         {
             if (simulation == null && !preparing) return;
-            // Only the opening character/route selection still uses the legacy debug GUI.
+            // The production flow uses a native UGUI preparation prefab.
+            if (returnToMenu != null) return;
             if (!preparing) return;
             EnsureStyles();
             Matrix4x4 previous = GUI.matrix;
@@ -346,7 +427,7 @@ namespace WorldTimelineDebug
             {
                 if (advancing)
                 {
-                    GUI.Label(new Rect(35, 20, 1000, 45), "战斗进行中 · 世界时间暂停", title);
+                    GUI.Label(new Rect(35, 20, 1000, 45), TimelineText("Timeline_UI_129"), title);
                     return;
                 }
                 if (returnToMenu != null && board == null)
@@ -426,7 +507,7 @@ namespace WorldTimelineDebug
                 var rect = new Rect(260 + i % 2 * 450, 200 + i / 2 * 42, 430, 36);
                 string birth = locations.TryGetValue(character.Birth, out var location) ? location.Name : "外围 " + character.Birth;
                 GUI.enabled = !used;
-                if (GUI.Button(rect, $"{(used ? "已结算" : startingCultivator == character ? "已选" : "选择")} · {character.Name} · {birth} · {character.Weapon}（攻+{character.Attack}）", button))
+                if (GUI.Button(rect, $"{(used ? "已结算" : startingCultivator == character ? "已选" : TimelineText("Timeline_UI_63"))} · {character.Name} · {birth} · {character.Weapon}（攻+{character.Attack}）", button))
                 {
                     startingCultivator = character;
                     foreach (var entry in library.Where(entry => entry.Record.BirthNodeId == character.Birth))
@@ -447,7 +528,7 @@ namespace WorldTimelineDebug
             GUILayout.EndScrollView();
             GUILayout.EndArea();
 
-            if (GUI.Button(new Rect(260, 746, 160, 42), "返回主菜单", button) && SaveLives())
+            if (GUI.Button(new Rect(260, 746, 160, 42), TimelineText("Timeline_UI_61"), button) && SaveLives())
             {
                 returnToMenu();
                 Destroy(gameObject);
@@ -468,11 +549,11 @@ namespace WorldTimelineDebug
         private void DrawHeader()
         {
             var world = simulation.State;
-            GUI.Label(new Rect(24, 14, 850, 34), board == null ? "修仙轮回 · 世界时间线调试" : "修仙轮回", title);
+            GUI.Label(new Rect(24, 14, 850, 34), board == null ? "修仙轮回 · 世界时间线调试" : TimelineText("Timeline_UI_1"), title);
             GUI.Label(new Rect(25, 54, 1030, 28),
                 $"第 {world.Year} 年（0=元年）   /   仪式截止 {world.Ritual.DeadlineYear} 年   /   已重置 {world.Ritual.ResetCount} 次   /   {StatusText()}", text);
             GUI.Label(new Rect(1080, 18, 200, 26), "六边形大地图 · 331个节点", muted);
-            if (returnToMenu != null && GUI.Button(new Rect(1284, 14, 131, 30), "返回主菜单", button) && SaveLives())
+            if (returnToMenu != null && GUI.Button(new Rect(1284, 14, 131, 30), TimelineText("Timeline_UI_61"), button) && SaveLives())
             {
                 autoObserve = false;
                 returnToMenu();
@@ -498,9 +579,9 @@ namespace WorldTimelineDebug
             GUI.Label(new Rect(36, 103, 390, 26), "蓝棋：本世　金棋：天选　紫棋：前世", muted);
             if (GUI.Button(new Rect(438, 102, 66, 28), "缩小", button)) board.Zoom(1.22f);
             if (GUI.Button(new Rect(510, 102, 66, 28), "放大", button)) board.Zoom(.82f);
-            if (GUI.Button(new Rect(582, 102, 76, 28), "全图", button)) board.Overview();
-            if (GUI.Button(new Rect(664, 102, 86, 28), "本世", button)) FocusBoardActor(1);
-            if (GUI.Button(new Rect(756, 102, 96, 28), "天选", button)) FocusBoardActor(1000);
+            if (GUI.Button(new Rect(582, 102, 76, 28), TimelineText("Timeline_UI_12"), button)) board.Overview();
+            if (GUI.Button(new Rect(664, 102, 86, 28), TimelineText("Timeline_UI_85"), button)) FocusBoardActor(1);
+            if (GUI.Button(new Rect(756, 102, 96, 28), TimelineText("Timeline_UI_79"), button)) FocusBoardActor(1000);
 
             var e = Event.current;
             board.HoveredNode = null;
@@ -526,7 +607,7 @@ namespace WorldTimelineDebug
                 var player = world.Actors[world.PlayerActorId];
                 bool reachable = player.NodeId.HasValue && world.Nodes[player.NodeId.Value].Links.Contains(location.Id);
                 string type = locations.TryGetValue(location.Id, out var detail) ? detail.Name
-                    : world.Ritual.NodeId == location.Id ? "最终关卡"
+                    : world.Ritual.NodeId == location.Id ? TimelineText("Timeline_UI_91")
                     : location.MonsterHealth > 0 ? "怪物" : location.Items.Count > 0 ? "宝藏" : "普通地点";
                 string travel = reachable ? "移动 1 年" : "当前无法直接抵达";
                 var occupants = world.Actors.Values.Where(actor => actor.IsAlive).OrderBy(actor => actor.Id)
@@ -587,14 +668,14 @@ namespace WorldTimelineDebug
             GUI.Label(new Rect(36, 103, 390, 26), "六向相邻 · 越接近中心，灵气越浓", muted);
             if (GUI.Button(new Rect(438, 102, 66, 28), "缩小", button)) hexSize = Mathf.Max(8, hexSize / 1.3f);
             if (GUI.Button(new Rect(510, 102, 66, 28), "放大", button)) hexSize = Mathf.Min(52, hexSize * 1.3f);
-            if (GUI.Button(new Rect(582, 102, 76, 28), "全图", button)) { hexSize = 12; mapPan = Vector2.zero; }
-            if (GUI.Button(new Rect(664, 102, 86, 28), "本世", button))
+            if (GUI.Button(new Rect(582, 102, 76, 28), TimelineText("Timeline_UI_12"), button)) { hexSize = 12; mapPan = Vector2.zero; }
+            if (GUI.Button(new Rect(664, 102, 86, 28), TimelineText("Timeline_UI_85"), button))
             {
                 var actor = simulation.State.Actors[1];
                 hexSize = 28;
                 FocusNode(actor.NodeId ?? actor.TravelOriginNodeId ?? HexTimelineDemoFactory.PlayerStart);
             }
-            if (GUI.Button(new Rect(756, 102, 96, 28), "天选", button))
+            if (GUI.Button(new Rect(756, 102, 96, 28), TimelineText("Timeline_UI_79"), button))
             {
                 var actor = simulation.State.Actors[1000];
                 hexSize = 28;
@@ -686,7 +767,7 @@ namespace WorldTimelineDebug
                 GUI.color = actor.Id == 1 ? new Color(.1f, .45f, .8f) : actor.Id == 1000 ? new Color(.75f, .5f, .07f) : new Color(.48f, .22f, .64f);
                 GUI.DrawTexture(rect, Texture2D.whiteTexture);
                 GUI.color = old;
-                string name = actor.Id == 1 ? "本世" : actor.Id == 1000 ? "天选" : "#" + actor.Id;
+                string name = actor.Id == 1 ? TimelineText("Timeline_UI_85") : actor.Id == 1000 ? TimelineText("Timeline_UI_79") : "#" + actor.Id;
                 if (GUI.Button(rect, name + (outside ? "外" : point.IsMoving ? "行" : ""), hexText))
                 {
                     inspectedActorId = actor.Id;
@@ -699,12 +780,12 @@ namespace WorldTimelineDebug
 
         private string NextExperience(ActorState actor) => actor.Level >= cultivation.Levels.Count ? "满级" : cultivation.GetLevel(actor.Level).ExperienceToNext.ToString();
 
-        private static string AttributeName(GrowthAttribute attribute) => attribute == GrowthAttribute.Health ? "生命" : attribute == GrowthAttribute.Attack ? "攻击" : "寿元";
+        private static string AttributeName(GrowthAttribute attribute) => attribute == GrowthAttribute.Health ? "生命" : attribute == GrowthAttribute.Attack ? TimelineText("Timeline_UI_40") : "寿元";
 
         private void DrawGrowthWindow(int windowId)
         {
             GUI.Label(new Rect(18, 12, 920, 30), "等级经验与属性增量 · 每个属性独立资质", title);
-            if (GUI.Button(new Rect(1030, 12, 90, 30), "关闭", button)) showGrowth = false;
+            if (GUI.Button(new Rect(1030, 12, 90, 30), TimelineText("Timeline_UI_14"), button)) showGrowth = false;
             var actor = simulation.State.Actors[inspectedActorId];
             GUI.Label(new Rect(18, 48, 1100, 24), $"{ActorName(actor.Id)} Lv{actor.Level}  生命{actor.Talents.Health.Grade} 攻击{actor.Talents.Attack.Grade} 寿元{actor.Talents.Lifespan.Grade}  当前经验 {actor.LevelExperience}/{NextExperience(actor)}", text);
             GUI.Label(new Rect(18, 78, 1100, 42), "第1级为出生属性，第2级起为升入该级的增量。每次升级独立取值，历史回放保持一致。\n单次增量允许少量重叠；本表保证同等级基础属性的高档累计下限高于低档累计上限。天选吸收与物品加成另算。", small);
@@ -759,10 +840,10 @@ namespace WorldTimelineDebug
             var node = world.Nodes[selectedNode];
             bool configured = locations.TryGetValue(node.Id, out var row);
             bool final = world.Ritual.NodeId == node.Id;
-            string name = configured ? row.Name : final ? "最终祭坛" : node.MonsterHealth > 0 ? "妖兽驻地" : "荒野";
-            string kind = final ? "最终关卡" : node.MonsterHealth > 0 ? "战斗关卡"
+            string name = configured ? row.Name : final ? TimelineText("Timeline_UI_88") : node.MonsterHealth > 0 ? TimelineText("Timeline_UI_89") : "荒野";
+            string kind = final ? TimelineText("Timeline_UI_91") : node.MonsterHealth > 0 ? TimelineText("Timeline_UI_93")
                 : configured && row.MonsterHealth > 0 ? "战斗关卡 · 已清除"
-                : node.Items.Count > 0 ? "遗宝关卡" : node.CultivationPerYear >= 8 ? "修炼地点" : "探索地点";
+                : node.Items.Count > 0 ? TimelineText("Timeline_UI_96") : node.CultivationPerYear >= 8 ? "修炼地点" : TimelineText("Timeline_UI_98");
             var player = world.Actors[world.PlayerActorId];
             bool current = player.NodeId == node.Id;
             bool reachable = player.NodeId.HasValue && world.Nodes[player.NodeId.Value].Links.Contains(node.Id);
@@ -807,8 +888,8 @@ namespace WorldTimelineDebug
             GUI.enabled = !showGrowth && simulation.WaitingForPlayer && simulation.CanJoinChosen(1);
             if (GUI.Button(new Rect(36, 702, 200, 36), "加入天选 → 观察", button)) Submit(WorldAction.JoinChosen());
             GUI.enabled = !showGrowth && !simulation.WaitingForPlayer && !world.IsEnded;
-            if (GUI.Button(new Rect(246, 702, 130, 36), "观察下一年", button)) { autoObserve = false; StartAdvancing(simulation.AdvanceOneYearRoutine()); }
-            if (GUI.Button(new Rect(386, 702, 140, 36), autoObserve ? "暂停观察" : "加速观察", button)) autoObserve = !autoObserve;
+            if (GUI.Button(new Rect(246, 702, 130, 36), TimelineText("Timeline_UI_58"), button)) { autoObserve = false; StartAdvancing(simulation.AdvanceOneYearRoutine()); }
+            if (GUI.Button(new Rect(386, 702, 140, 36), autoObserve ? TimelineText("Timeline_UI_22") : TimelineText("Timeline_UI_21"), button)) autoObserve = !autoObserve;
             GUI.enabled = !showGrowth;
             if (GUI.Button(new Rect(536, 702, 105, 36), yearsPerSecond + " 年/秒", button)) yearsPerSecond = yearsPerSecond == 5 ? 20 : yearsPerSecond == 20 ? 1 : 5;
             if (returnToMenu == null)
@@ -889,10 +970,10 @@ namespace WorldTimelineDebug
         {
             switch (simulation.State.Outcome)
             {
-                case RunOutcome.Cleared: return "通关：天选击败最终 Boss";
-                case RunOutcome.WorldDestroyed: return "失败：仪式完成，世界毁灭";
-                case RunOutcome.PlayerKilledChosen: return "结束：本世角色杀死天选";
-                default: return simulation.WaitingForPlayer ? "等待选择 · 世界暂停" : "观察中";
+                case RunOutcome.Cleared: return TimelineText("Timeline_UI_130");
+                case RunOutcome.WorldDestroyed: return TimelineText("Timeline_UI_131");
+                case RunOutcome.PlayerKilledChosen: return TimelineText("Timeline_UI_132");
+                default: return simulation.WaitingForPlayer ? TimelineText("Timeline_UI_55") : TimelineText("Timeline_UI_133");
             }
         }
 
@@ -900,38 +981,73 @@ namespace WorldTimelineDebug
         {
             switch (status)
             {
-                case HistoryReplayStatus.FateChanged: return "已改命";
-                case HistoryReplayStatus.Dead: return "死亡";
-                case HistoryReplayStatus.RecordFinished: return "记录结束";
-                case HistoryReplayStatus.RouteBlocked: return "道路阻断";
-                default: return "历史回放";
+                case HistoryReplayStatus.FateChanged: return TimelineText("Timeline_UI_134");
+                case HistoryReplayStatus.Dead: return TimelineText("Timeline_UI_135");
+                case HistoryReplayStatus.RecordFinished: return TimelineText("Timeline_UI_117");
+                case HistoryReplayStatus.RouteBlocked: return TimelineText("Timeline_UI_136");
+                default: return TimelineText("Timeline_UI_137");
             }
         }
 
-        private static string ActorName(int id) => id == 1 ? "本世#1" : id == 1000 ? "天选" : "历史#" + id;
+        private static string ActorName(int id) => id == 1 ? TimelineText("Timeline_UI_138") : id == 1000 ? TimelineText("Timeline_UI_79") : TimelineText("Timeline_UI_139") + id;
+
+        private static string EventDetail(WorldEvent entry)
+        {
+            string detail = entry.Detail ?? "";
+            switch (detail)
+            {
+                case "Battle": return TimelineText("Timeline_UI_DetailBattle");
+                case "Lifespan": return TimelineText("Timeline_UI_DetailLifespan");
+                case "Ritual backlash": return TimelineText("Timeline_UI_DetailBacklash");
+                case "World destroyed": return TimelineText("Timeline_UI_DetailDestroyed");
+                case "Chosen defeated final boss": return TimelineText("Timeline_UI_DetailChosenVictory");
+                case "Player killed chosen": return TimelineText("Timeline_UI_DetailPlayerKilledChosen");
+                case "Story delay": return TimelineText("Timeline_UI_DetailStoryDelay");
+            }
+            if ((entry.Kind == WorldEventKind.ActionStarted || entry.Kind == WorldEventKind.ActionCompleted)
+                && Enum.TryParse<WorldActionKind>(detail, out var action) && Enum.IsDefined(typeof(WorldActionKind), action))
+                return TimelineText("Timeline_UI_Detail" + action);
+            if (entry.Kind == WorldEventKind.Breakthrough && detail.StartsWith("Level ", StringComparison.Ordinal))
+                return TimelineText("Timeline_UI_DetailLevel", detail.Substring("Level ".Length));
+            if (entry.Kind == WorldEventKind.RitualReset && detail.StartsWith("Deadline year ", StringComparison.Ordinal))
+                return TimelineText("Timeline_UI_DetailDeadline", detail.Substring("Deadline year ".Length));
+            if (entry.Kind == WorldEventKind.Absorbed && detail.StartsWith("Health +", StringComparison.Ordinal))
+            {
+                const string separator = ", attack +";
+                int index = detail.IndexOf(separator, StringComparison.Ordinal);
+                if (index >= 0)
+                    return TimelineText("Timeline_UI_DetailAbsorbed",
+                        detail.Substring("Health +".Length, index - "Health +".Length), detail.Substring(index + separator.Length));
+            }
+            return detail;
+        }
 
         private static string FormatEvent(WorldEvent entry)
         {
             string action;
+            string detail = EventDetail(entry);
             switch (entry.Kind)
             {
-                case WorldEventKind.Breakthrough: action = "突破升级 · " + entry.Detail; break;
-                case WorldEventKind.Arrived: action = "抵达节点 " + entry.NodeId; break;
-                case WorldEventKind.Battle: action = entry.OtherActorId.HasValue ? "与 " + ActorName(entry.OtherActorId.Value) + " 战斗" : "挑战节点 " + entry.NodeId + " 的敌人"; break;
-                case WorldEventKind.Died: action = "死亡 · " + entry.Detail; break;
-                case WorldEventKind.Joined: action = "加入天选队伍"; break;
-                case WorldEventKind.RitualReset: action = "击败最终 Boss，仪式重置 · " + entry.Detail; break;
-                case WorldEventKind.RitualCompleted: action = "灭世仪式完成"; break;
-                case WorldEventKind.WorldCleared: action = "终结最终 Boss，世界通关"; break;
-                case WorldEventKind.Absorbed: action = "吸收敌人属性 · " + entry.Detail; break;
-                case WorldEventKind.Looted: action = "取得节点 " + entry.NodeId + " 的宝物"; break;
-                case WorldEventKind.Cultivated: action = "修炼积累经验"; break;
-                case WorldEventKind.Disguised: action = "伪装关卡敌人"; break;
-                case WorldEventKind.RunEnded: action = "本局结算 · " + entry.Detail; break;
-                case WorldEventKind.ActionCompleted: action = "行动完成 · " + entry.Detail; break;
-                default: action = "开始行动 · " + entry.Detail; break;
+                case WorldEventKind.Breakthrough: action = TimelineText("Timeline_UI_140") + detail; break;
+                case WorldEventKind.StoryResolved: action = TimelineText("Timeline_UI_141") + detail; break;
+                case WorldEventKind.Arrived: action = TimelineText("Timeline_UI_EventArrived", entry.NodeId); break;
+                case WorldEventKind.Battle: action = entry.OtherActorId.HasValue
+                    ? TimelineText("Timeline_UI_EventDuel", ActorName(entry.OtherActorId.Value))
+                    : TimelineText("Timeline_UI_EventBattle", entry.NodeId); break;
+                case WorldEventKind.Died: action = TimelineText("Timeline_UI_142") + detail; break;
+                case WorldEventKind.Joined: action = TimelineText("Timeline_UI_143"); break;
+                case WorldEventKind.RitualReset: action = TimelineText("Timeline_UI_144") + detail; break;
+                case WorldEventKind.RitualCompleted: action = TimelineText("Timeline_UI_145"); break;
+                case WorldEventKind.WorldCleared: action = TimelineText("Timeline_UI_146"); break;
+                case WorldEventKind.Absorbed: action = TimelineText("Timeline_UI_147") + detail; break;
+                case WorldEventKind.Looted: action = TimelineText("Timeline_UI_EventLoot", entry.NodeId); break;
+                case WorldEventKind.Cultivated: action = TimelineText("Timeline_UI_148"); break;
+                case WorldEventKind.Disguised: action = TimelineText("Timeline_UI_149"); break;
+                case WorldEventKind.RunEnded: action = TimelineText("Timeline_UI_150") + detail; break;
+                case WorldEventKind.ActionCompleted: action = TimelineText("Timeline_UI_151") + detail; break;
+                default: action = TimelineText("Timeline_UI_152") + detail; break;
             }
-            return "[" + entry.Year + "年] " + ActorName(entry.ActorId) + " " + action;
+            return TimelineText("Timeline_UI_EventLine", entry.Year, ActorName(entry.ActorId), action);
         }
 
         private void OnDestroy()

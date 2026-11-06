@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using DataTable;
 using Entity;
 using GameMain.Scripts.UI.Items;
@@ -16,6 +17,9 @@ using UnityEngine.Serialization;
 
 public class BattleMainCtrl : UIFormLogic
 {
+    public enum OpenMode { InspectOnly }
+    private bool inspectOnly;
+
     #region ----------------棋子属性面板------------------------
 
     [SerializeField] private Image qizishuxin; //显示棋子属性面板
@@ -35,6 +39,22 @@ public class BattleMainCtrl : UIFormLogic
     public TextMeshProUGUI AttrAttackNum;
     public TextMeshProUGUI AttrHudunAddNum;
     public TextMeshProUGUI AttrCDNum;
+    [SerializeField] private TextMeshProUGUI healthLabel, powerLabel, shieldValue, equipmentLabel;
+    [SerializeField] private TextMeshProUGUI attackLabel, shieldBoostLabel, hasteLabel;
+    [SerializeField] private TextMeshProUGUI statusSummary;
+    [SerializeField] private ScrollRect equipmentScroll;
+    private static readonly (BuffTag Tag, string Chinese, string English, string Color)[] DisplayedStatuses =
+    {
+        (BuffTag.Bleeding, "流血", "Bleed", "#FFA69C"),
+        (BuffTag.Burning, "燃烧", "Burn", "#FFC07A"),
+        (BuffTag.Weakened, "虚弱", "Weakness", "#D3B8FF"),
+        (BuffTag.Exposed, "破绽", "Opening", "#F9CB91"),
+        (BuffTag.HeavyDamage, "重伤", "Wounded", "#F5B5C0"),
+        (BuffTag.Frozen, "冰冻", "Frozen", "#A6DBFF"),
+        (BuffTag.Stunned, "眩晕", "Stunned", "#E8D59A"),
+    };
+    private readonly StringBuilder statusText = new StringBuilder(160);
+    private readonly long[] statusCounts = new long[DisplayedStatuses.Length];
     private ObjectPool<BattleBagItem> _itemPool;
     private List<BattleBagItem> _curHeroEquipItemList = new();
 
@@ -82,14 +102,26 @@ public class BattleMainCtrl : UIFormLogic
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
+        inspectOnly = userData is OpenMode.InspectOnly;
         qizishuxin.gameObject.SetActive(false);
         _itemTip.gameObject.SetActive(false);
-        GameEntry.UI.OpenUIForm(UICtrlName.BattleFormationPanel, "middle");
+        healthLabel.text = GameEntry.Localization.GetString("Timeline_UI_49");
+        powerLabel.text = GameEntry.Localization.GetString("Attr_Power");
+        equipmentLabel.text = GameEntry.Localization.GetString("Timeline_UI_57");
+        attackLabel.text = GameEntry.Localization.GetString("Attr_ATK");
+        shieldBoostLabel.text = GameEntry.Localization.GetString("Attr_HuDunBoost");
+        hasteLabel.text = GameEntry.Localization.GetString("Attr_CooldownReduce");
+        if (!inspectOnly)
+            GameEntry.UI.OpenUIForm(UICtrlName.BattleFormationPanel, "middle");
     }
 
     public override void OnClose(bool isShutdown, object userData)
     {
         base.OnClose(isShutdown, userData);
+        if (curTargetQizi != null && curTargetQizi.IsValid)
+            curTargetQizi.ShowHighlight(false);
+        ClearCurHeroEquipItem();
+        tryDragTargetQizi = null;
         shuxin_qizi = null;
         GetOrNotGetQizi = false;
         curTargetQizi = null;
@@ -101,14 +133,30 @@ public class BattleMainCtrl : UIFormLogic
         if (Input.GetMouseButtonUp(1) && tryDragTargetQizi == null)
         {
             var oldTarget = curTargetQizi;
-            curTargetQizi = GetMousePosQizi();
-            if (curTargetQizi != null && curTargetQizi.IsValid)
+            var target = GetMousePosQizi();
+            if (target != null && target.IsValid)
             {
                 oldTarget?.ShowHighlight(false);
+                curTargetQizi = target;
                 qizishuxin.gameObject.SetActive(true);
                 curTargetQizi.ShowHighlight(true);
                 shuxinxianshi(curTargetQizi);
             }
+            else if (inspectOnly)
+            {
+                oldTarget?.ShowHighlight(false);
+                curTargetQizi = null;
+                qizishuxin.gameObject.SetActive(false);
+                _itemTip.gameObject.SetActive(false);
+            }
+        }
+
+        if (inspectOnly)
+        {
+            if (curTargetQizi != null && qizishuxin.gameObject.activeSelf)
+                shuxinxianshi(curTargetQizi);
+            base.OnUpdate(elapseSeconds, realElapseSeconds);
+            return;
         }
 
         if (Input.GetMouseButtonDown(0))
@@ -269,9 +317,9 @@ public class BattleMainCtrl : UIFormLogic
 
     private EntityQizi GetMousePosQizi(bool containEnemy = true)
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        EntityQizi target;
+        var camera = Camera.main;
+        if (camera == null) return null;
+        Ray ray = camera.ScreenPointToRay(Input.mousePosition);
         _plane.SetNormalAndPosition(Vector3.up, HotGameEntry.HeroManager.QigePosOffset);
         if (_plane.Raycast(ray, out var enter))
         {
@@ -290,6 +338,7 @@ public class BattleMainCtrl : UIFormLogic
             {
                 for (int i = 0; i < HotGameEntry.HeroManager.DirenList.Count; i++)
                 {
+                    hitPoint.y = HotGameEntry.HeroManager.DirenList[i].LogicPosition.y;
                     if (Vector3.Distance(HotGameEntry.HeroManager.DirenList[i].LogicPosition, hitPoint) < 0.5f)
                     {
                         return HotGameEntry.HeroManager.DirenList[i];
@@ -327,10 +376,23 @@ public class BattleMainCtrl : UIFormLogic
 
     private void shuxinxianshi(EntityQizi qz)
     {
-        heroName.text = qz.HeroUID.ToString();
+        RefreshStatuses(qz);
+        if (shuxin_qizi != qz)
+        {
+            shuxin_qizi = qz;
+            _itemTip.gameObject.SetActive(false);
+            equipmentScroll.StopMovement();
+            equipmentScroll.content.anchoredPosition = Vector2.zero;
+            bool friendly = qz.BelongCamp == CampType.Friend;
+            bool english = GameEntry.Localization.Language == GameFramework.Localization.Language.English;
+            string camp = friendly ? (english ? "Ally" : "己方") : (english ? "Enemy" : "敌方");
+            heroName.text = $"{camp}  ·  #{qz.HeroUID}";
+            heroName.color = friendly ? new Color32(182, 221, 200, 255) : new Color32(242, 179, 159, 255);
+        }
         if (qz.IsValid == false)
         {
-            xuetiaonow.text = "0";
+            xuetiaonow.text = $"0 / {xuetiaosum.text}";
+            shieldValue.text = string.Empty;
             _slderXuetiao.value = 0;
             _slderHudun.value = 0;
             return;
@@ -353,16 +415,49 @@ public class BattleMainCtrl : UIFormLogic
             _slderHudun.value = curHuDun / (float)maxHp;
         }
 
-        xuetiaonow.text = (curHp + curHuDun).ToString();
+        xuetiaonow.text = $"{curHp} / {maxHp}";
         xuetiaosum.text = maxHp.ToString();
-        pownow.text = curPower.ToString();
-        powsum.text = maxPower.ToString();
-        _slderPow.value = curPower / (float)maxPower;
+        shieldValue.text = curHuDun > 0 ? $"+{curHuDun} {GameEntry.Localization.GetString("Attr_HuDun")}" : string.Empty;
+        pownow.text = $"{curPower} / {maxPower}";
+        _slderPow.value = maxPower > 0 ? curPower / (float)maxPower : 0;
         AttrAttackNum.text = ((int)qz.GetAttribute(AttributeType.AttackDamage).GetFinalValue()).ToString();
         //AttrAtkSpeed.text = ((int)qz.GetAttribute(AttributeType.AttackSpeed).GetFinalValue()).ToString();
         AttrHudunAddNum.text = ((int)qz.GetAttribute(AttributeType.HuDunBoost).GetFinalValue()).ToString();
         AttrCDNum.text = ((int)qz.GetAttribute(AttributeType.CooldownReduce).GetFinalValue()).ToString();
         ShowHeroEquip();
+    }
+
+    private void RefreshStatuses(EntityQizi qizi)
+    {
+        if (statusSummary == null) return;
+        bool english = GameEntry.Localization.Language == GameFramework.Localization.Language.English;
+        System.Array.Clear(statusCounts, 0, statusCounts.Length);
+        if (qizi.IsValid)
+        {
+            foreach (var buff in qizi.CurBuffList)
+            {
+                if (!buff.IsValid || buff.StackCount <= 0) continue;
+                for (int i = 0; i < DisplayedStatuses.Length; i++)
+                    if (buff.CheckBuffTag(DisplayedStatuses[i].Tag)) statusCounts[i] += buff.StackCount;
+            }
+        }
+
+        statusText.Clear();
+        statusText.Append(english ? "Status  " : "状态  ");
+        bool any = false;
+        for (int i = 0; i < DisplayedStatuses.Length; i++)
+        {
+            if (statusCounts[i] == 0) continue;
+            if (any) statusText.Append("  ·  ");
+            var status = DisplayedStatuses[i];
+            statusText.Append("<color=").Append(status.Color).Append('>')
+                .Append(english ? status.English : status.Chinese).Append(" ×")
+                .Append(statusCounts[i]).Append("</color>");
+            any = true;
+        }
+        if (!any) statusText.Append('—');
+        string next = statusText.ToString();
+        if (statusSummary.text != next) statusSummary.text = next;
     }
 
     private void ShowHeroEquip()
@@ -375,7 +470,7 @@ public class BattleMainCtrl : UIFormLogic
                 foreach (var itemData in curTargetQizi.EquipItemList)
                 {
                     var oneItem = _itemPool.Get();
-                    oneItem.transform.SetParent(_equipItemParent);
+                    oneItem.transform.SetParent(_equipItemParent, false);
                     oneItem.ItemID = itemData.ItemID;
                     oneItem.ItemUniqueID = itemData.UniqueID;
                     oneItem.itemNum = 1;
@@ -404,7 +499,7 @@ public class BattleMainCtrl : UIFormLogic
                 {
                     var item = _curHeroEquipItemList[equipIndex];
                     var heroEquip = curTargetQizi.EquipItemList[equipIndex];
-                    if (item.ItemID != heroEquip.ItemID)
+                    if (item.ItemID != heroEquip.ItemID || item.ItemUniqueID != heroEquip.UniqueID)
                     {
                         return true;
                     }

@@ -7,38 +7,57 @@ namespace WorldTimelineDebug
 {
     public sealed partial class WorldTimelineDebugView
     {
+        public static System.Func<string, string> ResolveLanguageKey { private get; set; }
+
+        public static string TimelineText(string key, params object[] arguments)
+        {
+            string text = (ResolveLanguageKey?.Invoke(key) ?? key).Replace("\\n", "\n");
+            return arguments.Length == 0 ? text : string.Format(text, arguments);
+        }
         public static Action<WorldTimelineDebugView> OpenMapHud { get; set; }
+        public static Action<WorldTimelineDebugView> OpenStoryHud { get; set; }
+        public bool UsesStoryHud { get; set; }
         public event Action Closed;
         public bool UsesPrefabHud { get; set; }
         public bool IsPreparing => preparing;
         public bool IsBusy => advancing;
         public int SelectedNodeId => selectedNode;
         public NodeState SelectedLocation => simulation.State.Nodes[selectedNode];
-        public string PlayerName => startingCultivator?.Name ?? "本世修士";
-        public string WeaponName => startingCultivator?.Weapon ?? "初始武器";
+        public string PlayerName => startingCultivator?.Name ?? TimelineText("Timeline_UI_86");
+        public string WeaponName => startingCultivator?.Weapon ?? TimelineText("Timeline_UI_87");
         public string Notice => saveIssue ?? message;
         public bool AutoObserving => autoObserve;
         public int ObservationSpeed => yearsPerSecond;
         public string CurrentStatus => StatusText();
 
-        public string LocationName(NodeState node) => locations.TryGetValue(node.Id, out var row)
-            ? row.Name : node.Id == simulation.State.Ritual.NodeId ? "最终祭坛"
-            : node.MonsterHealth > 0 ? "妖兽驻地" : "山野";
+        public string LocationName(NodeState node)
+        {
+            if (simulation.Stories != null && simulation.Stories.TryGetDefinition(node.Id, out var story)) return story.Title;
+            return locations.TryGetValue(node.Id, out var row) ? row.Name : node.Id == simulation.State.Ritual.NodeId
+                ? TimelineText("Timeline_UI_88") : node.MonsterHealth > 0 ? TimelineText("Timeline_UI_89") : TimelineText("Timeline_UI_90");
+        }
 
         public string LocationKind(NodeState node)
         {
-            if (node.Id == simulation.State.Ritual.NodeId) return "最终关卡";
-            if (node.MonsterHealth > 0) return "战斗关卡";
-            if (locations.TryGetValue(node.Id, out var row) && row.MonsterHealth > 0) return "守怪已清除";
-            if (node.Items.Count > 0) return "遗宝关卡";
-            return node.CultivationPerYear >= 8 ? "修炼福地" : "探索地点";
+            if (node.Id == simulation.State.Ritual.NodeId) return TimelineText("Timeline_UI_91");
+            bool story = simulation.Stories != null && simulation.Stories.TryGetDefinition(node.Id, out _);
+            if (node.MonsterHealth > 0) return story ? TimelineText("Timeline_UI_92") : TimelineText("Timeline_UI_93");
+            if (story) return TimelineText("Timeline_UI_94");
+            if (HasClearedGuardian(node)) return TimelineText("Timeline_UI_95");
+            if (node.Items.Count > 0) return TimelineText("Timeline_UI_96");
+            return node.IsCultivationSite || node.CultivationPerYear >= 8
+                ? TimelineText("Timeline_UI_97") : TimelineText("Timeline_UI_98");
         }
+
+        public bool HasClearedGuardian(NodeState node) => node.MonsterHealth <= 0
+            && (node.HasExplorationGuardian || (locations.TryGetValue(node.Id, out var row) && row.MonsterHealth > 0));
 
         public string LocationLoot(NodeState node)
         {
             locations.TryGetValue(node.Id, out var row);
-            return node.Items.Count == 0 ? "暂无可领取宝物" : string.Join("、", node.Items.Select(item =>
-                row != null && row.LootItemId == item ? row.LootName + $"  攻击 +{node.LootAttackBonus}" : "遗物 " + item));
+            return node.Items.Count == 0 ? TimelineText("Timeline_UI_99") : string.Join("、", node.Items.Select(item =>
+                (row != null && row.LootItemId == item ? row.LootName : TimelineText("Timeline_UI_RelicId", item))
+                + (node.LootAttackBonus > 0 ? TimelineText("Timeline_UI_LootAttack", node.LootAttackBonus) : "")));
         }
 
         public bool CanMoveSelected => !advancing && simulation.WaitingForPlayer &&
@@ -50,10 +69,12 @@ namespace WorldTimelineDebug
             get
             {
                 var world = simulation.State;
-                if (selectedNode == world.Ritual.NodeId) return "击败守关者可重启灭世仪式，挑战者将承受反噬。";
-                if (SelectedLocation.MonsterHealth > 0) return "抵达后自动进入战斗。清除守怪可以改变后来者的命运。";
-                if (SelectedLocation.Items.Count > 0) return "先到者取得宝物，后来者将面对取走宝物后的地点。";
-                return "驻留修炼可以积累经验，所有角色的时间会一同流逝。";
+                if (selectedNode == world.Ritual.NodeId) return TimelineText("Timeline_UI_100");
+                if (simulation.Stories != null && simulation.Stories.TryGetDefinition(selectedNode, out var story))
+                    return story.Text + (SelectedLocation.MonsterHealth > 0 ? TimelineText("Timeline_UI_101") : TimelineText("Timeline_UI_102"));
+                if (SelectedLocation.MonsterHealth > 0) return TimelineText("Timeline_UI_103");
+                if (SelectedLocation.Items.Count > 0) return TimelineText("Timeline_UI_104");
+                return TimelineText("Timeline_UI_105");
             }
         }
 
@@ -62,16 +83,19 @@ namespace WorldTimelineDebug
             get
             {
                 var actor = simulation.State.Actors[simulation.State.PlayerActorId];
-                return $"生命资质 {actor.Talents.Health.Grade}    攻击资质 {actor.Talents.Attack.Grade}    寿元资质 {actor.Talents.Lifespan.Grade}\n"
-                    + $"初始装备  {WeaponName}\n\n"
+                return TimelineText("Timeline_UI_Talents", actor.Talents.Health.Grade, actor.Talents.Attack.Grade, actor.Talents.Lifespan.Grade)
+                    + TimelineText("Timeline_UI_StartingGear", WeaponName)
+                    + TimelineText("Timeline_UI_CurrentAttack", actor.Attack, actor.CombatAttack)
+                    + string.Join("\n", actor.Items.Where(id => simulation.Stories?.Config.Items.ContainsKey(id) == true)
+                        .Select(id => simulation.Stories.Config.Items[id].Name + "：" + simulation.Stories.Config.Items[id].Description)) + "\n\n"
                     + string.Join("\n", cultivation.Levels.OrderBy(level => level.Level)
-                        .Select(level => $"第 {level.Level} 层    突破所需经验 {level.ExperienceToNext}"));
+                        .Select(level => TimelineText("Timeline_UI_LevelExperience", level.Level, level.ExperienceToNext)));
             }
         }
 
-        public string HistoryDetails => library.Count == 0 ? "尚无前世记录。完成本局后，路线会保存供下一局选择。"
-            : string.Join("\n\n", library.Select(entry => (entry.Selected ? "本局登场  " : "未登场  ") + entry.Name));
-        public string LogDetails => simulation.Events.Count == 0 ? "山河初定，等待你的第一步。"
+        public string HistoryDetails => library.Count == 0 ? TimelineText("Timeline_UI_106")
+            : string.Join("\n\n", library.Select(entry => (entry.Selected ? TimelineText("Timeline_UI_107") : TimelineText("Timeline_UI_108")) + entry.Name));
+        public string LogDetails => simulation.Events.Count == 0 ? TimelineText("Timeline_UI_109")
             : string.Join("\n", simulation.Events.Reverse().Take(60).Select(FormatEvent));
 
         public bool SelectAtScreen(Vector2 screen)
@@ -115,6 +139,7 @@ namespace WorldTimelineDebug
             foreach (var entry in library) entry.Selected = false;
             preparing = true;
             showBoardDetails = false;
+            OpenPreparation?.Invoke(this);
         }
 
         public void ReturnToMenu()

@@ -13,16 +13,31 @@ namespace WorldTimelineDebug
         [Serializable]
         private sealed class Checkpoint
         {
-            public int version = 1, round, item, selectedNode, year, health, attack, level;
+            public int version = 5, round, item, selectedNode, year, health, attack, level;
             public bool ended;
             public string histories;
             public List<CheckpointAction> actions = new List<CheckpointAction>();
+            public List<CheckpointStoryChoice> storyChoices = new List<CheckpointStoryChoice>();
+        }
+        [Serializable] private sealed class CheckpointStoryChoice
+        {
+            public int eventId, occurrence, optionId;
+            public CheckpointStoryChoice(RecordedStoryChoice choice)
+            { eventId = choice.EventId; occurrence = choice.Occurrence; optionId = choice.OptionId; }
+            public RecordedStoryChoice ToChoice() => new RecordedStoryChoice(eventId, occurrence, optionId);
         }
 
         [Serializable]
         private sealed class CheckpointAction
         {
+            public const int GrantNativeItem = -2;
             public int kind, years, target;
+            public CheckpointAction(int itemId, int count)
+            {
+                kind = GrantNativeItem;
+                target = itemId;
+                years = count;
+            }
             public CheckpointAction(WorldAction action)
             {
                 kind = action == null ? -1 : (int)action.Kind;
@@ -43,8 +58,36 @@ namespace WorldTimelineDebug
             }
         }
 
-        private static string CheckpointPath => Path.Combine(Application.persistentDataPath, "WorldTimeline", "current-run.json");
+        private static string CheckpointPath => Path.Combine(SaveDirectory, "current-run.json");
         private Checkpoint checkpoint;
+
+#if UNITY_EDITOR
+        public bool TryGrantNativeItem(int itemId, int count)
+        {
+            if (itemId <= 0 || count < 1 || count > 99 || advancing || preparing ||
+                simulation == null || simulation.State.IsEnded || !simulation.WaitingForPlayer)
+                return false;
+
+            var player = simulation.State.Actors[simulation.State.PlayerActorId];
+            if (!player.IsAlive) return false;
+            int firstAddedIndex = player.Items.Count;
+            AddNativeItems(itemId, count);
+            if (checkpoint == null) return true;
+
+            checkpoint.actions.Add(new CheckpointAction(itemId, count));
+            if (SaveCheckpoint()) return true;
+            checkpoint.actions.RemoveAt(checkpoint.actions.Count - 1);
+            player.Items.RemoveRange(firstAddedIndex, count);
+            return false;
+        }
+#endif
+
+        private void AddNativeItems(int itemId, int count)
+        {
+            // Negative IDs keep Item-table equipment separate from timeline rewards.
+            var items = simulation.State.Actors[simulation.State.PlayerActorId].Items;
+            for (int i = 0; i < count; i++) items.Add(-itemId);
+        }
         public static bool IsRestoringCheckpoint { get; private set; }
         public static bool HasUnfinishedRun
         {
@@ -54,7 +97,7 @@ namespace WorldTimelineDebug
                 {
                     if (!File.Exists(CheckpointPath)) return false;
                     var data = JsonUtility.FromJson<Checkpoint>(File.ReadAllText(CheckpointPath));
-                    return data != null && data.version == 1 && !data.ended && !string.IsNullOrEmpty(data.histories);
+                    return data != null && data.version >= 1 && data.version <= 5 && !data.ended && !string.IsNullOrEmpty(data.histories);
                 }
                 catch (Exception error) when (error is IOException || error is ArgumentException || error is UnauthorizedAccessException)
                 { return false; }
@@ -84,6 +127,7 @@ namespace WorldTimelineDebug
                 checkpoint.attack = player.Attack;
                 checkpoint.level = player.Level;
                 checkpoint.ended = simulation.State.IsEnded;
+                checkpoint.storyChoices = simulation.RecordPlayerLife().StoryChoices.Select(choice => new CheckpointStoryChoice(choice)).ToList();
                 Directory.CreateDirectory(Path.GetDirectoryName(CheckpointPath));
                 File.WriteAllText(temporary, JsonUtility.ToJson(checkpoint));
                 if (File.Exists(CheckpointPath)) File.Replace(temporary, CheckpointPath, null);
@@ -92,7 +136,7 @@ namespace WorldTimelineDebug
             }
             catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
             {
-                saveIssue = "当前局保存失败：" + error.Message;
+                saveIssue = TimelineText("Timeline_UI_127") + error.Message;
                 Debug.LogError(saveIssue);
                 return false;
             }
@@ -110,9 +154,18 @@ namespace WorldTimelineDebug
                 startingCultivator = roster.Single(entry => entry.Item == data.item);
                 round = data.round;
                 IsRestoringCheckpoint = true;
-                NewRound(histories.Select(entry => entry.Record));
+                NewRound(histories.Select(entry => entry.Record), data.version >= 2,
+                    data.storyChoices?.Select(choice => choice.ToChoice()), expandedExploration: data.version >= 3,
+                    storyCombatSkills: data.version >= 4, bleedRewardRoute: data.version >= 5);
                 foreach (var step in data.actions)
                 {
+                    if (step.kind == CheckpointAction.GrantNativeItem)
+                    {
+                        if (step.target <= 0 || step.years < 1 || step.years > 99)
+                            throw new InvalidDataException("续玩存档的调试装备记录无效。");
+                        AddNativeItems(step.target, step.years);
+                        continue;
+                    }
                     if (step.kind < -1) throw new InvalidDataException("续玩存档行动无效。");
                     DrainRestoreRoutine(step.kind == -1 ? simulation.AdvanceOneYearRoutine()
                         : simulation.SubmitPlayerActionRoutine(step.ToAction()));
@@ -126,16 +179,18 @@ namespace WorldTimelineDebug
                 archived = savedLives.Any(entry => entry.Round == round);
                 checkpoint = data;
                 preparing = false;
+                if (simulation.Stories != null) simulation.Stories.InteractivePlayer = true;
                 InitializeBoard();
                 OpenMapHud?.Invoke(this);
-                message = "已继续上一局，第 " + simulation.State.Year + " 年。";
+                if (simulation.Stories != null && !UsesStoryHud) OpenStoryHud?.Invoke(this);
+                message = TimelineText("Timeline_UI_Resumed", simulation.State.Year);
                 return true;
             }
             catch (Exception error)
             {
                 preparing = true;
                 simulation = null;
-                saveIssue = "继续轮回失败：" + error.Message;
+                saveIssue = TimelineText("Timeline_UI_128") + error.Message;
                 Debug.LogError(saveIssue);
                 return false;
             }

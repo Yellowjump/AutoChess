@@ -31,9 +31,10 @@ namespace WorldTimeline
         public IReadOnlyList<WorldEvent> Events { get; }
         public int EndYear { get; }
         public bool EndedInDeath { get; }
+        public IReadOnlyList<RecordedStoryChoice> StoryChoices { get; }
 
         internal LifeRecord(ActorState initial, IEnumerable<int> items, IEnumerable<RecordedAction> actions,
-            IEnumerable<WorldEvent> events, int endYear, bool endedInDeath)
+            IEnumerable<WorldEvent> events, int endYear, bool endedInDeath, IEnumerable<RecordedStoryChoice> storyChoices = null)
         {
             SourceActorId = initial.Id; BirthNodeId = initial.NodeId.Value;
             InitialHealth = initial.Health; InitialAttack = initial.Attack; Lifespan = initial.Lifespan;
@@ -42,6 +43,7 @@ namespace WorldTimeline
             Actions = Array.AsReadOnly(actions.ToArray());
             Events = Array.AsReadOnly(events.ToArray());
             EndYear = endYear; EndedInDeath = endedInDeath;
+            StoryChoices = Array.AsReadOnly((storyChoices ?? Enumerable.Empty<RecordedStoryChoice>()).ToArray());
         }
 
         public ActorState CreateActor(int instanceId)

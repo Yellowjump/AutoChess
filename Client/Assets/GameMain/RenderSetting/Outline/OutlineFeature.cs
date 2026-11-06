@@ -95,7 +95,7 @@ public class OutlineFeature : ScriptableRendererFeature
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Draw Outline");
-            cmd.ClearRenderTarget(true,true,Color.black);
+            // Blit writes the outline texture. Clearing here can erase the camera color before opaque rendering.
             cmd.SetGlobalTexture("_NormalTex", m_NormalRT);
             cmd.SetGlobalTexture("_DepthTex", m_DepthRT);
             cmd.Blit(m_NormalRT,m_OutlineRt,m_OutlineMat,0);

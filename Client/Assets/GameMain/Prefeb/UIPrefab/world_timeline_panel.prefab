@@ -58,6 +58,9 @@ CanvasRenderer:
 --- !u!225 &1003
 CanvasGroup:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1001}
   m_Enabled: 1
   m_Alpha: 1
@@ -74,8 +77,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dfbfe683b8c5452b8b53d729cbb54dc2, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   AutoLanguageTmp: []
   hud: {fileID: 1003}
   headerSection: {fileID: 1010}
@@ -88,57 +91,58 @@ MonoBehaviour:
   - {fileID: 1285}
   - {fileID: 1289}
   closeLocation: {fileID: 1503}
+  equipment: {fileID: 983535636740975015}
   year: {fileID: 1021}
   deadline: {fileID: 1025}
-  ritualFill: {fileID: 1033}
-  roles: {fileID: 1038}
-  history: {fileID: 1047}
-  logs: {fileID: 1056}
-  returnMenu: {fileID: 1065}
+  status: {fileID: 1257}
+  heroName: {fileID: 1133}
+  heroLevel: {fileID: 1137}
+  health: {fileID: 1153}
+  experience: {fileID: 1169}
+  lifespan: {fileID: 1173}
   locationName: {fileID: 1077}
   locationKind: {fileID: 1081}
-  locationArt: {fileID: 1085}
   locationHealth: {fileID: 1093}
   locationAttack: {fileID: 1101}
   locationSpirit: {fileID: 1109}
   loot: {fileID: 1117}
   hint: {fileID: 1121}
-  heroName: {fileID: 1133}
-  heroLevel: {fileID: 1137}
+  notice: {fileID: 1288}
   healthFill: {fileID: 1149}
-  health: {fileID: 1153}
   experienceFill: {fileID: 1165}
-  experience: {fileID: 1169}
-  lifespan: {fileID: 1173}
+  ritualFill: {fileID: 1033}
+  locationArt: {fileID: 1085}
   move: {fileID: 1182}
   cultivate: {fileID: 1191}
-  wait: {fileID: 1200}
-  nextLife: {fileID: 1209}
   cultivateFive: {fileID: 1218}
+  wait: {fileID: 1200}
   disguise: {fileID: 1227}
   join: {fileID: 1236}
-  growth: {fileID: 1245}
-  status: {fileID: 1257}
   observeStep: {fileID: 1262}
   observeToggle: {fileID: 1271}
-  observeLabel: {fileID: 1275}
   speed: {fileID: 1280}
-  speedLabel: {fileID: 1284}
-  notice: {fileID: 1288}
+  nextLife: {fileID: 1209}
+  returnMenu: {fileID: 1065}
+  overview: {fileID: 1324}
   focusPlayer: {fileID: 1297}
   focusChosen: {fileID: 1306}
-  zoomOut: {fileID: 1315}
-  overview: {fileID: 1324}
   zoomIn: {fileID: 1333}
-  popup: {fileID: 1338}
-  popupTitle: {fileID: 1349}
+  zoomOut: {fileID: 1315}
+  roles: {fileID: 1038}
+  history: {fileID: 1047}
+  logs: {fileID: 1056}
+  growth: {fileID: 1245}
   closePopup: {fileID: 1354}
+  previousPage: {fileID: 1479}
+  nextPage: {fileID: 1492}
+  observeLabel: {fileID: 1275}
+  speedLabel: {fileID: 1284}
+  popupTitle: {fileID: 1349}
+  popupText: {fileID: 1474}
+  pageLabel: {fileID: 1487}
+  popup: {fileID: 1338}
   roleList: {fileID: 1359}
   textPage: {fileID: 1469}
-  popupText: {fileID: 1474}
-  previousPage: {fileID: 1479}
-  pageLabel: {fileID: 1487}
-  nextPage: {fileID: 1492}
   actorButtons:
   - {fileID: 1365}
   - {fileID: 1374}
@@ -206,6 +210,9 @@ RectTransform:
 --- !u!222 &1007
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1005}
   m_CullTransparentMesh: 1
 --- !u!114 &1008
@@ -248,8 +255,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0340f2fb14804964ac9b6032ff6760f5, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   owner: {fileID: 1004}
 --- !u!1 &1010
 GameObject:
@@ -299,6 +306,9 @@ RectTransform:
 --- !u!222 &1012
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1010}
   m_CullTransparentMesh: 1
 --- !u!114 &1013
@@ -371,6 +381,9 @@ RectTransform:
 --- !u!222 &1016
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1014}
   m_CullTransparentMesh: 1
 --- !u!114 &1017
@@ -393,7 +406,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修仙轮回"
+  m_text: Timeline_UI_1
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -504,6 +517,9 @@ RectTransform:
 --- !u!222 &1020
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1018}
   m_CullTransparentMesh: 1
 --- !u!114 &1021
@@ -526,7 +542,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "第十二年"
+  m_text: "\u7B2C\u5341\u4E8C\u5E74"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -637,6 +653,9 @@ RectTransform:
 --- !u!222 &1024
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1022}
   m_CullTransparentMesh: 1
 --- !u!114 &1025
@@ -659,7 +678,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "灭世仪式 · 余二十三年"
+  m_text: "\u706D\u4E16\u4EEA\u5F0F \xB7 \u4F59\u4E8C\u5341\u4E09\u5E74"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -771,6 +790,9 @@ RectTransform:
 --- !u!222 &1028
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1026}
   m_CullTransparentMesh: 1
 --- !u!114 &1029
@@ -843,6 +865,9 @@ RectTransform:
 --- !u!222 &1032
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1030}
   m_CullTransparentMesh: 1
 --- !u!114 &1033
@@ -917,6 +942,9 @@ RectTransform:
 --- !u!222 &1036
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1034}
   m_CullTransparentMesh: 1
 --- !u!114 &1037
@@ -1033,6 +1061,9 @@ RectTransform:
 --- !u!222 &1041
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1039}
   m_CullTransparentMesh: 1
 --- !u!114 &1042
@@ -1055,7 +1086,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "众生"
+  m_text: Timeline_UI_6
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -1168,6 +1199,9 @@ RectTransform:
 --- !u!222 &1045
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1043}
   m_CullTransparentMesh: 1
 --- !u!114 &1046
@@ -1284,6 +1318,9 @@ RectTransform:
 --- !u!222 &1050
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1048}
   m_CullTransparentMesh: 1
 --- !u!114 &1051
@@ -1306,7 +1343,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "前世"
+  m_text: Timeline_UI_17
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -1419,6 +1456,9 @@ RectTransform:
 --- !u!222 &1054
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1052}
   m_CullTransparentMesh: 1
 --- !u!114 &1055
@@ -1535,6 +1575,9 @@ RectTransform:
 --- !u!222 &1059
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1057}
   m_CullTransparentMesh: 1
 --- !u!114 &1060
@@ -1557,7 +1600,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "日志"
+  m_text: Timeline_UI_42
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -1670,6 +1713,9 @@ RectTransform:
 --- !u!222 &1063
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1061}
   m_CullTransparentMesh: 1
 --- !u!114 &1064
@@ -1786,6 +1832,9 @@ RectTransform:
 --- !u!222 &1068
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1066}
   m_CullTransparentMesh: 1
 --- !u!114 &1069
@@ -1808,7 +1857,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "返回"
+  m_text: Timeline_UI_60
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -1932,6 +1981,9 @@ RectTransform:
 --- !u!222 &1072
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1070}
   m_CullTransparentMesh: 1
 --- !u!114 &1073
@@ -2004,6 +2056,9 @@ RectTransform:
 --- !u!222 &1076
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1074}
   m_CullTransparentMesh: 1
 --- !u!114 &1077
@@ -2026,7 +2081,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "黑牙巢"
+  m_text: Timeline_OuterLocations_4_Name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -2137,6 +2192,9 @@ RectTransform:
 --- !u!222 &1080
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1078}
   m_CullTransparentMesh: 1
 --- !u!114 &1081
@@ -2159,7 +2217,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "战斗关卡  (0,-9)"
+  m_text: "\u6218\u6597\u5173\u5361  (0,-9)"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -2270,6 +2328,9 @@ RectTransform:
 --- !u!222 &1084
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1082}
   m_CullTransparentMesh: 1
 --- !u!114 &1085
@@ -2314,7 +2375,7 @@ GameObject:
   - component: {fileID: 1088}
   - component: {fileID: 1089}
   m_Layer: 5
-  m_Name: 守怪生命
+  m_Name: "\u5B88\u602A\u751F\u547D"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2342,6 +2403,9 @@ RectTransform:
 --- !u!222 &1088
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1086}
   m_CullTransparentMesh: 1
 --- !u!114 &1089
@@ -2364,7 +2428,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "守怪生命"
+  m_text: Timeline_UI_29
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -2475,6 +2539,9 @@ RectTransform:
 --- !u!222 &1092
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1090}
   m_CullTransparentMesh: 1
 --- !u!114 &1093
@@ -2497,7 +2564,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "220"
+  m_text: 220
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -2580,7 +2647,7 @@ GameObject:
   - component: {fileID: 1096}
   - component: {fileID: 1097}
   m_Layer: 5
-  m_Name: 守怪攻击
+  m_Name: "\u5B88\u602A\u653B\u51FB"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2608,6 +2675,9 @@ RectTransform:
 --- !u!222 &1096
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1094}
   m_CullTransparentMesh: 1
 --- !u!114 &1097
@@ -2630,7 +2700,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "守怪攻击"
+  m_text: Timeline_UI_28
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -2741,6 +2811,9 @@ RectTransform:
 --- !u!222 &1100
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1098}
   m_CullTransparentMesh: 1
 --- !u!114 &1101
@@ -2763,7 +2836,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "120"
+  m_text: 120
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -2846,7 +2919,7 @@ GameObject:
   - component: {fileID: 1104}
   - component: {fileID: 1105}
   m_Layer: 5
-  m_Name: 灵气浓度
+  m_Name: "\u7075\u6C14\u6D53\u5EA6"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2874,6 +2947,9 @@ RectTransform:
 --- !u!222 &1104
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1102}
   m_CullTransparentMesh: 1
 --- !u!114 &1105
@@ -2896,7 +2972,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "灵气浓度"
+  m_text: Timeline_UI_51
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -3007,6 +3083,9 @@ RectTransform:
 --- !u!222 &1108
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1106}
   m_CullTransparentMesh: 1
 --- !u!114 &1109
@@ -3029,7 +3108,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "2"
+  m_text: 2
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -3140,6 +3219,9 @@ RectTransform:
 --- !u!222 &1112
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1110}
   m_CullTransparentMesh: 1
 --- !u!114 &1113
@@ -3162,7 +3244,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "可获宝物"
+  m_text: Timeline_UI_25
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -3273,6 +3355,9 @@ RectTransform:
 --- !u!222 &1116
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1114}
   m_CullTransparentMesh: 1
 --- !u!114 &1117
@@ -3295,7 +3380,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "古修剑谱  攻击 +18"
+  m_text: "\u53E4\u4FEE\u5251\u8C31  \u653B\u51FB +18"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -3406,6 +3491,9 @@ RectTransform:
 --- !u!222 &1120
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1118}
   m_CullTransparentMesh: 1
 --- !u!114 &1121
@@ -3428,7 +3516,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "抵达后自动进入战斗。"
+  m_text: Timeline_UI_37
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -3549,6 +3637,9 @@ RectTransform:
 --- !u!222 &1124
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1122}
   m_CullTransparentMesh: 1
 --- !u!114 &1125
@@ -3621,6 +3712,9 @@ RectTransform:
 --- !u!222 &1128
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1126}
   m_CullTransparentMesh: 1
 --- !u!114 &1129
@@ -3693,6 +3787,9 @@ RectTransform:
 --- !u!222 &1132
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1130}
   m_CullTransparentMesh: 1
 --- !u!114 &1133
@@ -3715,7 +3812,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "青篁"
+  m_text: Timeline_StartingCultivators_1_Name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -3826,6 +3923,9 @@ RectTransform:
 --- !u!222 &1136
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1134}
   m_CullTransparentMesh: 1
 --- !u!114 &1137
@@ -3848,7 +3948,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "境界 · 第三层"
+  m_text: "\u5883\u754C \xB7 \u7B2C\u4E09\u5C42"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -3959,6 +4059,9 @@ RectTransform:
 --- !u!222 &1140
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1138}
   m_CullTransparentMesh: 1
 --- !u!114 &1141
@@ -3981,7 +4084,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "气血"
+  m_text: Timeline_UI_49
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -4093,6 +4196,9 @@ RectTransform:
 --- !u!222 &1144
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1142}
   m_CullTransparentMesh: 1
 --- !u!114 &1145
@@ -4165,6 +4271,9 @@ RectTransform:
 --- !u!222 &1148
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1146}
   m_CullTransparentMesh: 1
 --- !u!114 &1149
@@ -4237,6 +4346,9 @@ RectTransform:
 --- !u!222 &1152
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1150}
   m_CullTransparentMesh: 1
 --- !u!114 &1153
@@ -4259,7 +4371,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "420 / 420"
+  m_text: 420 / 420
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -4370,6 +4482,9 @@ RectTransform:
 --- !u!222 &1156
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1154}
   m_CullTransparentMesh: 1
 --- !u!114 &1157
@@ -4392,7 +4507,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修为"
+  m_text: Timeline_UI_8
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -4504,6 +4619,9 @@ RectTransform:
 --- !u!222 &1160
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1158}
   m_CullTransparentMesh: 1
 --- !u!114 &1161
@@ -4576,6 +4694,9 @@ RectTransform:
 --- !u!222 &1164
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1162}
   m_CullTransparentMesh: 1
 --- !u!114 &1165
@@ -4648,6 +4769,9 @@ RectTransform:
 --- !u!222 &1168
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1166}
   m_CullTransparentMesh: 1
 --- !u!114 &1169
@@ -4670,7 +4794,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "680 / 1000"
+  m_text: 680 / 1000
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -4781,6 +4905,9 @@ RectTransform:
 --- !u!222 &1172
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1170}
   m_CullTransparentMesh: 1
 --- !u!114 &1173
@@ -4803,7 +4930,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "寿元 12 / 180"
+  m_text: "\u5BFF\u5143 12 / 180"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -4912,6 +5039,7 @@ RectTransform:
   - {fileID: 1224}
   - {fileID: 1233}
   - {fileID: 1242}
+  - {fileID: 1580065450362595023}
   m_Father: {fileID: 1002}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4922,6 +5050,9 @@ RectTransform:
 --- !u!222 &1176
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1174}
   m_CullTransparentMesh: 1
 --- !u!114 &1177
@@ -4996,6 +5127,9 @@ RectTransform:
 --- !u!222 &1180
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1178}
   m_CullTransparentMesh: 1
 --- !u!114 &1181
@@ -5112,6 +5246,9 @@ RectTransform:
 --- !u!222 &1185
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1183}
   m_CullTransparentMesh: 1
 --- !u!114 &1186
@@ -5134,7 +5271,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "移动 · 前往此处"
+  m_text: Timeline_UI_53
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -5247,6 +5384,9 @@ RectTransform:
 --- !u!222 &1189
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1187}
   m_CullTransparentMesh: 1
 --- !u!114 &1190
@@ -5363,6 +5503,9 @@ RectTransform:
 --- !u!222 &1194
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1192}
   m_CullTransparentMesh: 1
 --- !u!114 &1195
@@ -5385,7 +5528,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修炼一年"
+  m_text: Timeline_UI_9
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -5498,6 +5641,9 @@ RectTransform:
 --- !u!222 &1198
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1196}
   m_CullTransparentMesh: 1
 --- !u!114 &1199
@@ -5614,6 +5760,9 @@ RectTransform:
 --- !u!222 &1203
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1201}
   m_CullTransparentMesh: 1
 --- !u!114 &1204
@@ -5636,7 +5785,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "等待一年"
+  m_text: Timeline_UI_54
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -5749,6 +5898,9 @@ RectTransform:
 --- !u!222 &1207
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1205}
   m_CullTransparentMesh: 1
 --- !u!114 &1208
@@ -5865,6 +6017,9 @@ RectTransform:
 --- !u!222 &1212
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1210}
   m_CullTransparentMesh: 1
 --- !u!114 &1213
@@ -5887,7 +6042,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "开启下一世"
+  m_text: Timeline_UI_35
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -6000,6 +6155,9 @@ RectTransform:
 --- !u!222 &1216
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1214}
   m_CullTransparentMesh: 1
 --- !u!114 &1217
@@ -6116,6 +6274,9 @@ RectTransform:
 --- !u!222 &1221
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1219}
   m_CullTransparentMesh: 1
 --- !u!114 &1222
@@ -6138,7 +6299,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "闭关五年"
+  m_text: Timeline_UI_69
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -6251,6 +6412,9 @@ RectTransform:
 --- !u!222 &1225
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1223}
   m_CullTransparentMesh: 1
 --- !u!114 &1226
@@ -6367,6 +6531,9 @@ RectTransform:
 --- !u!222 &1230
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1228}
   m_CullTransparentMesh: 1
 --- !u!114 &1231
@@ -6389,7 +6556,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "伪装守关"
+  m_text: Timeline_UI_7
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -6502,6 +6669,9 @@ RectTransform:
 --- !u!222 &1234
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1232}
   m_CullTransparentMesh: 1
 --- !u!114 &1235
@@ -6618,6 +6788,9 @@ RectTransform:
 --- !u!222 &1239
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1237}
   m_CullTransparentMesh: 1
 --- !u!114 &1240
@@ -6640,7 +6813,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "加入天选"
+  m_text: Timeline_UI_20
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -6748,11 +6921,14 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 681, y: -98}
-  m_SizeDelta: {x: 207, y: 42}
+  m_SizeDelta: {x: 98, y: 42}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &1243
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1241}
   m_CullTransparentMesh: 1
 --- !u!114 &1244
@@ -6864,11 +7040,14 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 14, y: -5}
-  m_SizeDelta: {x: 179, y: 32}
+  m_SizeDelta: {x: 82, y: 34}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &1248
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1246}
   m_CullTransparentMesh: 1
 --- !u!114 &1249
@@ -6891,7 +7070,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "查看资质"
+  m_text: Timeline_UI_10
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -7006,6 +7185,9 @@ RectTransform:
 --- !u!222 &1252
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1250}
   m_CullTransparentMesh: 1
 --- !u!114 &1253
@@ -7078,6 +7260,9 @@ RectTransform:
 --- !u!222 &1256
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1254}
   m_CullTransparentMesh: 1
 --- !u!114 &1257
@@ -7100,7 +7285,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "等待选择 · 世界暂停"
+  m_text: Timeline_UI_55
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -7213,6 +7398,9 @@ RectTransform:
 --- !u!222 &1260
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1258}
   m_CullTransparentMesh: 1
 --- !u!114 &1261
@@ -7329,6 +7517,9 @@ RectTransform:
 --- !u!222 &1265
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1263}
   m_CullTransparentMesh: 1
 --- !u!114 &1266
@@ -7351,7 +7542,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "观察下一年"
+  m_text: Timeline_UI_58
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -7464,6 +7655,9 @@ RectTransform:
 --- !u!222 &1269
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1267}
   m_CullTransparentMesh: 1
 --- !u!114 &1270
@@ -7580,6 +7774,9 @@ RectTransform:
 --- !u!222 &1274
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1272}
   m_CullTransparentMesh: 1
 --- !u!114 &1275
@@ -7602,7 +7799,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "加速观察"
+  m_text: Timeline_UI_21
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -7715,6 +7912,9 @@ RectTransform:
 --- !u!222 &1278
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1276}
   m_CullTransparentMesh: 1
 --- !u!114 &1279
@@ -7831,6 +8031,9 @@ RectTransform:
 --- !u!222 &1283
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1281}
   m_CullTransparentMesh: 1
 --- !u!114 &1284
@@ -7853,7 +8056,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "5 年 / 秒"
+  m_text: "5 \u5E74 / \u79D2"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -7964,6 +8167,9 @@ RectTransform:
 --- !u!222 &1287
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1285}
   m_CullTransparentMesh: 1
 --- !u!114 &1288
@@ -7986,7 +8192,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "选择相邻节点，修正这一世的命途。"
+  m_text: Timeline_UI_66
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -8102,6 +8308,9 @@ RectTransform:
 --- !u!222 &1291
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1289}
   m_CullTransparentMesh: 1
 --- !u!114 &1292
@@ -8176,6 +8385,9 @@ RectTransform:
 --- !u!222 &1295
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1293}
   m_CullTransparentMesh: 1
 --- !u!114 &1296
@@ -8292,6 +8504,9 @@ RectTransform:
 --- !u!222 &1300
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1298}
   m_CullTransparentMesh: 1
 --- !u!114 &1301
@@ -8314,7 +8529,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "定位本世"
+  m_text: Timeline_UI_31
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -8427,6 +8642,9 @@ RectTransform:
 --- !u!222 &1304
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1302}
   m_CullTransparentMesh: 1
 --- !u!114 &1305
@@ -8543,6 +8761,9 @@ RectTransform:
 --- !u!222 &1309
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1307}
   m_CullTransparentMesh: 1
 --- !u!114 &1310
@@ -8565,7 +8786,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "定位天选"
+  m_text: Timeline_UI_30
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -8678,6 +8899,9 @@ RectTransform:
 --- !u!222 &1313
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1311}
   m_CullTransparentMesh: 1
 --- !u!114 &1314
@@ -8794,6 +9018,9 @@ RectTransform:
 --- !u!222 &1318
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1316}
   m_CullTransparentMesh: 1
 --- !u!114 &1319
@@ -8816,7 +9043,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "−"
+  m_text: "\u2212"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -8929,6 +9156,9 @@ RectTransform:
 --- !u!222 &1322
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1320}
   m_CullTransparentMesh: 1
 --- !u!114 &1323
@@ -9045,6 +9275,9 @@ RectTransform:
 --- !u!222 &1327
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1325}
   m_CullTransparentMesh: 1
 --- !u!114 &1328
@@ -9067,7 +9300,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "全图"
+  m_text: Timeline_UI_12
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -9180,6 +9413,9 @@ RectTransform:
 --- !u!222 &1331
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1329}
   m_CullTransparentMesh: 1
 --- !u!114 &1332
@@ -9296,6 +9532,9 @@ RectTransform:
 --- !u!222 &1336
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1334}
   m_CullTransparentMesh: 1
 --- !u!114 &1337
@@ -9318,7 +9557,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "＋"
+  m_text: "\uFF0B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -9430,6 +9669,9 @@ RectTransform:
 --- !u!222 &1340
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1338}
   m_CullTransparentMesh: 1
 --- !u!114 &1341
@@ -9509,6 +9751,9 @@ RectTransform:
 --- !u!222 &1344
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1342}
   m_CullTransparentMesh: 1
 --- !u!114 &1345
@@ -9581,6 +9826,9 @@ RectTransform:
 --- !u!222 &1348
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1346}
   m_CullTransparentMesh: 1
 --- !u!114 &1349
@@ -9603,7 +9851,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "山河众生"
+  m_text: Timeline_UI_33
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -9716,6 +9964,9 @@ RectTransform:
 --- !u!222 &1352
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1350}
   m_CullTransparentMesh: 1
 --- !u!114 &1353
@@ -9832,6 +10083,9 @@ RectTransform:
 --- !u!222 &1357
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1355}
   m_CullTransparentMesh: 1
 --- !u!114 &1358
@@ -9854,7 +10108,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "关闭"
+  m_text: Timeline_UI_14
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -10014,6 +10268,9 @@ RectTransform:
 --- !u!222 &1363
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1361}
   m_CullTransparentMesh: 1
 --- !u!114 &1364
@@ -10130,6 +10387,9 @@ RectTransform:
 --- !u!222 &1368
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1366}
   m_CullTransparentMesh: 1
 --- !u!114 &1369
@@ -10152,8 +10412,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -10266,6 +10525,9 @@ RectTransform:
 --- !u!222 &1372
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1370}
   m_CullTransparentMesh: 1
 --- !u!114 &1373
@@ -10382,6 +10644,9 @@ RectTransform:
 --- !u!222 &1377
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1375}
   m_CullTransparentMesh: 1
 --- !u!114 &1378
@@ -10404,8 +10669,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -10518,6 +10782,9 @@ RectTransform:
 --- !u!222 &1381
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1379}
   m_CullTransparentMesh: 1
 --- !u!114 &1382
@@ -10634,6 +10901,9 @@ RectTransform:
 --- !u!222 &1386
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1384}
   m_CullTransparentMesh: 1
 --- !u!114 &1387
@@ -10656,8 +10926,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -10770,6 +11039,9 @@ RectTransform:
 --- !u!222 &1390
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1388}
   m_CullTransparentMesh: 1
 --- !u!114 &1391
@@ -10886,6 +11158,9 @@ RectTransform:
 --- !u!222 &1395
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1393}
   m_CullTransparentMesh: 1
 --- !u!114 &1396
@@ -10908,8 +11183,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -11022,6 +11296,9 @@ RectTransform:
 --- !u!222 &1399
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1397}
   m_CullTransparentMesh: 1
 --- !u!114 &1400
@@ -11138,6 +11415,9 @@ RectTransform:
 --- !u!222 &1404
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1402}
   m_CullTransparentMesh: 1
 --- !u!114 &1405
@@ -11160,8 +11440,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -11274,6 +11553,9 @@ RectTransform:
 --- !u!222 &1408
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1406}
   m_CullTransparentMesh: 1
 --- !u!114 &1409
@@ -11390,6 +11672,9 @@ RectTransform:
 --- !u!222 &1413
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1411}
   m_CullTransparentMesh: 1
 --- !u!114 &1414
@@ -11412,8 +11697,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -11526,6 +11810,9 @@ RectTransform:
 --- !u!222 &1417
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1415}
   m_CullTransparentMesh: 1
 --- !u!114 &1418
@@ -11642,6 +11929,9 @@ RectTransform:
 --- !u!222 &1422
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1420}
   m_CullTransparentMesh: 1
 --- !u!114 &1423
@@ -11664,8 +11954,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -11778,6 +12067,9 @@ RectTransform:
 --- !u!222 &1426
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1424}
   m_CullTransparentMesh: 1
 --- !u!114 &1427
@@ -11894,6 +12186,9 @@ RectTransform:
 --- !u!222 &1431
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1429}
   m_CullTransparentMesh: 1
 --- !u!114 &1432
@@ -11916,8 +12211,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -12030,6 +12324,9 @@ RectTransform:
 --- !u!222 &1435
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1433}
   m_CullTransparentMesh: 1
 --- !u!114 &1436
@@ -12146,6 +12443,9 @@ RectTransform:
 --- !u!222 &1440
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1438}
   m_CullTransparentMesh: 1
 --- !u!114 &1441
@@ -12168,8 +12468,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -12282,6 +12581,9 @@ RectTransform:
 --- !u!222 &1444
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1442}
   m_CullTransparentMesh: 1
 --- !u!114 &1445
@@ -12398,6 +12700,9 @@ RectTransform:
 --- !u!222 &1449
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1447}
   m_CullTransparentMesh: 1
 --- !u!114 &1450
@@ -12420,8 +12725,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -12534,6 +12838,9 @@ RectTransform:
 --- !u!222 &1453
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1451}
   m_CullTransparentMesh: 1
 --- !u!114 &1454
@@ -12650,6 +12957,9 @@ RectTransform:
 --- !u!222 &1458
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1456}
   m_CullTransparentMesh: 1
 --- !u!114 &1459
@@ -12672,8 +12982,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -12786,6 +13095,9 @@ RectTransform:
 --- !u!222 &1462
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1460}
   m_CullTransparentMesh: 1
 --- !u!114 &1463
@@ -12902,6 +13214,9 @@ RectTransform:
 --- !u!222 &1467
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1465}
   m_CullTransparentMesh: 1
 --- !u!114 &1468
@@ -12924,8 +13239,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "修士 · 第三层
-气血 220  攻击 80"
+  m_text: "\u4FEE\u58EB \xB7 \u7B2C\u4E09\u5C42 \u6C14\u8840 220  \u653B\u51FB 80"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -13072,6 +13386,9 @@ RectTransform:
 --- !u!222 &1473
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1471}
   m_CullTransparentMesh: 1
 --- !u!114 &1474
@@ -13094,7 +13411,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "记录将在这里展开。"
+  m_text: Timeline_UI_59
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -13207,6 +13524,9 @@ RectTransform:
 --- !u!222 &1477
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1475}
   m_CullTransparentMesh: 1
 --- !u!114 &1478
@@ -13323,6 +13643,9 @@ RectTransform:
 --- !u!222 &1482
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1480}
   m_CullTransparentMesh: 1
 --- !u!114 &1483
@@ -13345,7 +13668,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "上一页"
+  m_text: Timeline_UI_4
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -13456,6 +13779,9 @@ RectTransform:
 --- !u!222 &1486
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1484}
   m_CullTransparentMesh: 1
 --- !u!114 &1487
@@ -13478,7 +13804,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "1 / 1"
+  m_text: 1 / 1
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -13591,6 +13917,9 @@ RectTransform:
 --- !u!222 &1490
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1488}
   m_CullTransparentMesh: 1
 --- !u!114 &1491
@@ -13707,6 +14036,9 @@ RectTransform:
 --- !u!222 &1495
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1493}
   m_CullTransparentMesh: 1
 --- !u!114 &1496
@@ -13729,7 +14061,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "下一页"
+  m_text: Timeline_UI_5
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -13819,24 +14151,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1 &1499
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1504}
-  - component: {fileID: 1505}
-  - component: {fileID: 1506}
-  m_Layer: 5
-  m_Name: Label
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
 --- !u!224 &1500
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13860,6 +14174,9 @@ RectTransform:
 --- !u!222 &1501
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1498}
   m_CullTransparentMesh: 1
 --- !u!114 &1502
@@ -13936,6 +14253,24 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &1499
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1504}
+  - component: {fileID: 1505}
+  - component: {fileID: 1506}
+  m_Layer: 5
+  m_Name: Label
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!224 &1504
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13958,6 +14293,9 @@ RectTransform:
 --- !u!222 &1505
 CanvasRenderer:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1499}
   m_CullTransparentMesh: 1
 --- !u!114 &1506
@@ -13980,7 +14318,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "关闭"
+  m_text: Timeline_UI_14
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
   m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
@@ -14051,3 +14389,260 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &2286451777713934248
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3056475946246693718}
+  - component: {fileID: 2859004711396027569}
+  - component: {fileID: 6142389278584371875}
+  m_Layer: 5
+  m_Name: Label
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &3056475946246693718
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2286451777713934248}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1580065450362595023}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 14, y: -5}
+  m_SizeDelta: {x: 82, y: 34}
+  m_Pivot: {x: 0, y: 1}
+--- !u!222 &2859004711396027569
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2286451777713934248}
+  m_CullTransparentMesh: 1
+--- !u!114 &6142389278584371875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2286451777713934248}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.2, g: 0.23, b: 0.23, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: Timeline_UI_57
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
+  m_sharedMaterial: {fileID: -1041913513088690530, guid: cb216642070d7954b91cafbf2a79cd04, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4278190080
+  m_fontColor: {r: 0.2, g: 0.23, b: 0.23, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 19
+  m_fontSizeBase: 19
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 19
+  m_fontSizeMax: 19
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 1
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 0
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &8452873828499149878
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1580065450362595023}
+  - component: {fileID: 5975078778987414258}
+  - component: {fileID: 556305295453812254}
+  - component: {fileID: 983535636740975015}
+  m_Layer: 5
+  m_Name: Equipment
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1580065450362595023
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8452873828499149878}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3056475946246693718}
+  m_Father: {fileID: 1175}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 790, y: -98}
+  m_SizeDelta: {x: 98, y: 42}
+  m_Pivot: {x: 0, y: 1}
+--- !u!222 &5975078778987414258
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8452873828499149878}
+  m_CullTransparentMesh: 1
+--- !u!114 &556305295453812254
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8452873828499149878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: a48c606c0fba43f5a20ab00323b4e198, type: 3}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 0
+  m_FillAmount: 0.7
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 3
+--- !u!114 &983535636740975015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8452873828499149878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 0
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 556305295453812254}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []

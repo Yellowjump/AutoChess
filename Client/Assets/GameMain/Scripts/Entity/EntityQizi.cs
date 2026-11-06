@@ -166,14 +166,21 @@ namespace Entity
                 HpBar = null;
             }
         }
-        public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds)
+        public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds, bool stationaryTarget = false)
         {
             if (IsValid == false)
             {
                 return;
             }
-            UpdateState(elapseSeconds,realElapseSeconds);
-            UpdateSkill(elapseSeconds, realElapseSeconds);
+            if (stationaryTarget)
+            {
+                UpdateBuffTime(elapseSeconds, realElapseSeconds);
+            }
+            else
+            {
+                UpdateState(elapseSeconds,realElapseSeconds);
+                UpdateSkill(elapseSeconds, realElapseSeconds);
+            }
             UpdateShowSlider();
             UpdateAnimCommand();
         }
@@ -196,6 +203,7 @@ namespace Entity
         {
             RemoveGObj();
             IsValid = false;
+            CommandBurnEffect.SpreadOnDeath(this);
             HotGameEntry.HeroManager.OnEntityDead(this);
             //GObj?.SetActive(false);
         }

@@ -20,7 +20,7 @@ namespace WorldTimeline
     public static class WorldTimelineSaveStore
     {
         private const int Signature = 0x574C4946;
-        private const int Version = 1;
+        private const int Version = 2;
         public const int Capacity = 15;
         private const int MaxEntriesPerLife = 100000;
 
@@ -33,12 +33,14 @@ namespace WorldTimeline
         public static IReadOnlyList<SavedLife> Decode(byte[] data)
         {
             using var reader = new BinaryReader(new MemoryStream(data, false));
-            if (reader.ReadInt32() != Signature || reader.ReadInt32() != Version)
+            if (reader.ReadInt32() != Signature)
                 throw new InvalidDataException("无法识别前世存档版本。");
+            int version = reader.ReadInt32();
+            if (version != 1 && version != Version) throw new InvalidDataException("无法识别前世存档版本。");
 
             int count = ReadCount(reader, Capacity);
             var records = new List<SavedLife>(count);
-            for (int i = 0; i < count; i++) records.Add(ReadLife(reader));
+            for (int i = 0; i < count; i++) records.Add(ReadLife(reader, version));
             if (reader.BaseStream.Position != reader.BaseStream.Length)
                 throw new InvalidDataException("前世存档含有未识别的数据。");
             return records;
@@ -100,9 +102,12 @@ namespace WorldTimeline
                 writer.Write(step.Action.Years);
                 writer.Write(step.Action.TargetNodeId);
             }
+            writer.Write(life.StoryChoices.Count);
+            foreach (var choice in life.StoryChoices)
+            { writer.Write(choice.EventId); writer.Write(choice.Occurrence); writer.Write(choice.OptionId); }
         }
 
-        private static SavedLife ReadLife(BinaryReader reader)
+        private static SavedLife ReadLife(BinaryReader reader, int version)
         {
             int round = reader.ReadInt32();
             var actor = new ActorState(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
@@ -133,7 +138,11 @@ namespace WorldTimeline
                 }
                 actions[i] = new RecordedAction(startYear, action);
             }
-            return new SavedLife(round, new LifeRecord(actor, items, actions, Array.Empty<WorldEvent>(), year, died));
+            var choices = new List<RecordedStoryChoice>();
+            if (version >= 2)
+                for (int i = ReadCount(reader, MaxEntriesPerLife); i > 0; i--)
+                    choices.Add(new RecordedStoryChoice(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()));
+            return new SavedLife(round, new LifeRecord(actor, items, actions, Array.Empty<WorldEvent>(), year, died, choices));
         }
 
         private static int ReadCount(BinaryReader reader, int maximum)

@@ -12,6 +12,7 @@ namespace WorldTimeline
         public bool WaitingForPlayer => Player.IsAlive && !State.PlayerControlEnded && Player.CurrentAction == null && !State.IsEnded;
         public ChosenActorController Chosen { get; private set; }
         public CultivationConfig Cultivation { get; }
+        public WorldStorySystem Stories { get; private set; }
         private readonly List<WorldEvent> events = new List<WorldEvent>();
         private readonly EncounterSystem encounters;
         private readonly FinalRitualSystem ritual = new FinalRitualSystem();
@@ -33,6 +34,16 @@ namespace WorldTimeline
         }
 
         public LifeRecord RecordPlayerLife() => recorder.Snapshot(State.Year);
+        public void ConfigureStories(StoryConfig config, int seed = 1, bool interactivePlayer = false,
+            IEnumerable<RecordedStoryChoice> replayPlayerChoices = null)
+        {
+            if (State.Year != 0 || Stories != null) throw new InvalidOperationException("Configure stories once at year zero.");
+            Stories = new WorldStorySystem(State, config, Cultivation, seed, Emit, recorder.RecordStoryChoice,
+                (actor, story, occurrence) => histories.FirstOrDefault(h => h.ActorId == actor && h.Status == HistoryReplayStatus.Replaying)
+                    ?.Record.StoryChoices.FirstOrDefault(c => c.EventId == story && c.Occurrence == occurrence)?.OptionId,
+                replayPlayerChoices) { InteractivePlayer = interactivePlayer };
+            encounters.StoryResolver = Stories.ResolveRoutine;
+        }
 
         public void ConfigureFinalRitual(int bossHealth, int bossAttack, int periodYears = 100)
         {
@@ -203,6 +214,12 @@ namespace WorldTimeline
                 if (actor.RemainingYears != 0) continue;
                 Emit(new WorldEvent(State.Year, WorldEventKind.ActionCompleted, actor.Id, actor.NodeId, actor.CurrentAction.Kind.ToString()));
                 actor.CurrentAction = null;
+                if (actor.StoryDelayYears > 0)
+                {
+                    actor.CurrentAction = WorldAction.Wait(actor.StoryDelayYears);
+                    actor.RemainingYears = actor.StoryDelayYears; actor.StoryDelayYears = 0;
+                    Emit(new WorldEvent(State.Year, WorldEventKind.ActionStarted, actor.Id, actor.NodeId, "Story delay"));
+                }
             }
             foreach (var history in histories) history.UpdateStatus(State);
             if (Chosen != null && !State.Actors[Chosen.ActorId].IsAlive)

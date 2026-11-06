@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using DataTable;
 using GameFramework;
+using GameFramework.Event;
 using GameFramework.Localization;
 using Procedure;
 using SelfEventArg;
@@ -15,6 +16,21 @@ using WorldTimelineDebug;
 
 public class MainTitlePanelCtrl : UIFormLogic
 {
+    [SerializeField] private RectTransform inkBackground;
+    private float inkTime;
+
+    public override void OnUpdate(float elapseSeconds, float realElapseSeconds)
+    {
+        base.OnUpdate(elapseSeconds, realElapseSeconds);
+        if (!Visible || inkBackground == null) return;
+        inkTime = Mathf.Repeat(inkTime + realElapseSeconds, 24f);
+        float phase = inkTime * (2f * Mathf.PI / 24f);
+        Vector2 size = inkBackground.rect.size;
+        inkBackground.localScale = Vector3.one * 1.05f;
+        inkBackground.anchoredPosition = new Vector2(
+            size.x * .018f * Mathf.Sin(phase),
+            size.y * .007f * (1f - Mathf.Cos(phase)));
+    }
     [SerializeField]
     private Button _btnContinue;
     [SerializeField]
@@ -115,6 +131,8 @@ public class MainTitlePanelCtrl : UIFormLogic
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
+        GameEntry.Event.Subscribe(OpenUIFormSuccessEventArgs.EventId, OnTimelineFormOpened);
+        GameEntry.Event.Subscribe(OpenUIFormFailureEventArgs.EventId, OnTimelineFormFailed);
         var hasData = WorldTimelineDebugView.HasUnfinishedRun;
         _btnContinue.gameObject.SetActive(hasData);
         GameEntry.UI.CloseUIForm(UICtrlName.LoadingPanel);
@@ -143,6 +161,8 @@ public class MainTitlePanelCtrl : UIFormLogic
         if (worldTimeline != null) return;
         // MonoBehaviour implicitly converts to bool; name userData to select the data overload.
         WorldTimelineDebugView.OpenMapHud = view => GameEntry.UI.OpenUIForm(UICtrlName.WorldTimelinePanel, "top", userData: view);
+        WorldTimelineDebugView.OpenPreparation = view => GameEntry.UI.OpenUIForm(UICtrlName.WorldTimelinePreparation, "top", userData: view);
+        WorldTimelineDebugView.OpenStoryHud = view => GameEntry.UI.OpenUIForm(UICtrlName.WorldTimelineStory, "tips", userData: view);
         WorldTimelineDebugView.ScenarioFactory = WorldTimelineTableConfig.Create;
         WorldTimelineDebugView.BattleResolverFactory = () => new WorldTimelineBattleResolver();
         worldTimeline = WorldTimelineDebugView.OpenFromMenu(() =>
@@ -157,7 +177,10 @@ public class MainTitlePanelCtrl : UIFormLogic
             worldTimeline = null;
             return;
         }
-        if (worldTimeline.IsReady) Visible = false;
+        if (worldTimeline.IsReady)
+        {
+            if (!resume) WorldTimelineDebugView.OpenPreparation?.Invoke(worldTimeline);
+        }
         else
         {
             Destroy(worldTimeline.gameObject);
@@ -165,8 +188,25 @@ public class MainTitlePanelCtrl : UIFormLogic
         }
     }
 
+    private void OnTimelineFormOpened(object sender, GameEventArgs args)
+    {
+        var opened = (OpenUIFormSuccessEventArgs)args;
+        if (worldTimeline == null || !ReferenceEquals(opened.UserData, worldTimeline)) return;
+        if (opened.UIForm.Logic is WorldTimelinePreparationCtrl || opened.UIForm.Logic is WorldTimelinePanelCtrl)
+            Visible = false;
+    }
+
+    private void OnTimelineFormFailed(object sender, GameEventArgs args)
+    {
+        var failed = (OpenUIFormFailureEventArgs)args;
+        if (worldTimeline != null && Visible && ReferenceEquals(failed.UserData, worldTimeline))
+            Destroy(worldTimeline.gameObject);
+    }
+
     public override void OnClose(bool isShutdown, object userData)
     {
+        GameEntry.Event.Unsubscribe(OpenUIFormSuccessEventArgs.EventId, OnTimelineFormOpened);
+        GameEntry.Event.Unsubscribe(OpenUIFormFailureEventArgs.EventId, OnTimelineFormFailed);
         if (worldTimeline != null) Destroy(worldTimeline.gameObject);
         worldTimeline = null;
         base.OnClose(isShutdown, userData);

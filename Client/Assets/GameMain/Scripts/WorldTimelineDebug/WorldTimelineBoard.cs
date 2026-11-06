@@ -14,15 +14,39 @@ namespace WorldTimelineDebug
         public static bool UsesSceneCamera(Camera camera) => activeBoard != null
             && activeBoard.isActiveAndEnabled && activeBoard.boardCamera == camera;
 
+        // Presentation state is owned by map/battle lifecycle, never by a transient Brain render query.
         public static WorldTimelineBoard ForRenderingCamera(Camera camera) => UsesSceneCamera(camera)
-            && activeBoard.cameraBrain != null
-            && ReferenceEquals(activeBoard.cameraBrain.ActiveVirtualCamera, activeBoard.mapVirtualCamera)
-                ? activeBoard : null;
+            && activeBoard.mapVirtualCamera != null && activeBoard.presentationSuspensions == 0 ? activeBoard : null;
+
+        private int presentationSuspensions;
+        public static System.IDisposable SuspendMapPresentation()
+        {
+            var board = activeBoard;
+            if (board == null) return null;
+            board.presentationSuspensions++;
+            if (board.presentationSuspensions == 1) board.inkMap?.ExitMap(board);
+            return new PresentationScope(board);
+        }
+        private sealed class PresentationScope : System.IDisposable
+        {
+            private WorldTimelineBoard board;
+            public PresentationScope(WorldTimelineBoard value) { board = value; }
+            public void Dispose()
+            {
+                var previous = board;
+                board = null;
+                if (previous == null) return;
+                previous.presentationSuspensions--;
+                if (previous.presentationSuspensions == 0 && previous == activeBoard && previous.isActiveAndEnabled)
+                    previous.inkMap?.EnterMap(previous, previous.boardCamera);
+            }
+        }
         private sealed class Tile
         {
             public Vector3 Center;
             public Color Color;
             public bool Important;
+            public bool Highlighted;
 
 
         }
@@ -46,13 +70,19 @@ namespace WorldTimelineDebug
         private CinemachineVirtualCamera mapVirtualCamera;
         private CinemachineBrain cameraBrain;
         private bool originalOrthographic;
-        private Terrain terrain;
-        private Collider ground;
         private Vector3 origin;
         private Vector3 focus;
         private float unit;
-        private float zoom = 1;
+        private const float MaxMapZoom = .78f;
+        private float zoom = MaxMapZoom;
         private float boardRadius;
+        private WorldTimelineMapLayout mapLayout;
+        private WorldTimelineInkMap inkMap;
+        public WorldTimelineInkMap InkMap => inkMap;
+        private bool Ink => mapLayout != null && mapLayout.InkPalette;
+        public int OverlayDrawCount { get; private set; }
+        private Color PlayerColor => Ink ? new Color(.29f, .43f, .38f) : Blue;
+        private Color SelectedColor => Ink ? new Color(.57f, .48f, .31f) : Gold;
         private static readonly Color Gold = new Color(1f, .68f, .18f);
         private static readonly Color Blue = new Color(.18f, .67f, 1f);
         private static readonly Color Purple = new Color(.66f, .35f, .94f);
@@ -64,28 +94,14 @@ namespace WorldTimelineDebug
 
         public bool Initialize(WorldState world)
         {
-            var layout = FindFirstObjectByType<WorldTimelineMapLayout>();
-            var terrainScene = UnityEngine.SceneManagement.SceneManager.GetSceneByName("terrain");
-            var candidates = terrainScene.isLoaded
-                ? terrainScene.GetRootGameObjects().SelectMany(go => go.GetComponentsInChildren<Terrain>(true))
-                : FindObjectsByType<Terrain>(FindObjectsInactive.Include, FindObjectsSortMode.None).AsEnumerable();
-            terrain = candidates.Where(t => t.terrainData != null)
-                .OrderByDescending(t => layout != null && t.name == layout.SourceTerrainName)
-                .ThenByDescending(t => t.terrainData.size.x * t.terrainData.size.z)
-                .ThenBy(t => t.transform.position.x).ThenBy(t => t.transform.position.z).FirstOrDefault();
-            Bounds area;
-            if (terrain != null)
+            var layout = FindObjectsByType<WorldTimelineMapLayout>(FindObjectsSortMode.None)
+                .OrderByDescending(entry => entry.FlatSurface).FirstOrDefault();
+            mapLayout = layout;
+            inkMap = layout != null ? layout.GetComponent<WorldTimelineInkMap>() : null;
+            if (layout == null || layout.NodeSpacing <= .01f)
             {
-                area = terrain.terrainData.bounds;
-                area.center += terrain.GetPosition();
-            }
-            else
-            {
-                ground = FindObjectsByType<Collider>(FindObjectsSortMode.None)
-                    .Where(c => c.enabled && !c.isTrigger && c.gameObject.scene.name == "terrain")
-                    .OrderByDescending(c => c.bounds.size.x * c.bounds.size.z).FirstOrDefault();
-                if (ground == null) return false;
-                area = ground.bounds;
+                Debug.LogError("轮回地图缺少有效的 WorldTimelineMapLayout，请配置原点和节点间距。");
+                return false;
             }
 
             overlay = Resources.Load<Material>("WorldTimelineOverlay");
@@ -107,16 +123,9 @@ namespace WorldTimelineDebug
             markerMesh.vertices = vertices;
             markerMesh.triangles = indices;
             meshes.Add(markerMesh);
-            origin = area.center;
+            origin = layout.Origin;
             boardRadius = world.Nodes.Values.Max(n => Mathf.Max(Mathf.Abs(n.Q), Mathf.Abs(n.R), Mathf.Abs(n.Q + n.R)));
-            unit = Mathf.Min(area.size.x, area.size.z) * .68f / (1.73205f * (2 * boardRadius + 1));
-            if (layout != null && layout.NodeSpacing > .01f)
-            {
-                origin = layout.Origin;
-                unit = layout.NodeSpacing;
-            }
-            if (unit <= .01f) return false;
-            origin.y = SurfaceHeight(origin);
+            unit = layout.NodeSpacing;
             focus = origin;
             boardCamera = Camera.main;
             cameraBrain = boardCamera != null ? boardCamera.GetComponent<CinemachineBrain>() : null;
@@ -128,35 +137,29 @@ namespace WorldTimelineDebug
             originalOrthographic = boardCamera.orthographic;
             var cameraObject = new GameObject("轮回地图虚拟相机");
             cameraObject.transform.SetParent(transform, false);
+            // Cinemachine 2.x filters virtual cameras using the output camera's culling mask.
+            // The virtual camera must remain eligible after EnterMap isolates the map layer.
+            int cameraLayer = LayerMask.NameToLayer(WorldTimelineInkMap.LayerName);
+            if (inkMap != null && cameraLayer >= 0) cameraObject.layer = cameraLayer;
             mapVirtualCamera = cameraObject.AddComponent<CinemachineVirtualCamera>();
             mapVirtualCamera.Priority = 100;
-            mapVirtualCamera.m_Lens.ModeOverride = LensSettings.OverrideModes.Orthographic;
+            mapVirtualCamera.m_Lens.ModeOverride = LensSettings.OverrideModes.Perspective;
+            mapVirtualCamera.m_Lens.FieldOfView = layout != null ? Mathf.Clamp(layout.CameraFieldOfView, 25, 75) : 48;
             mapVirtualCamera.m_Lens.NearClipPlane = .3f;
-            mapVirtualCamera.transform.rotation = Quaternion.Euler(67, 0, 0);
+            mapVirtualCamera.transform.rotation = Quaternion.Euler(
+                layout != null ? Mathf.Clamp(layout.CameraPitch, 25, 65) : 48,
+                layout != null ? layout.CameraYaw : -20, 0);
             foreach (var node in world.Nodes.Values) CreateTile(node);
             UpdateCamera();
+            if (activeBoard != null && activeBoard != this) activeBoard.inkMap?.ExitMap(activeBoard);
             activeBoard = this;
+            inkMap?.EnterMap(this, boardCamera);
             return true;
         }
 
         private Vector3 Position(double q, double r)
         {
-            var position = origin + new Vector3(1.73205f * ((float)q + (float)r * .5f), 0, -1.5f * (float)r) * unit;
-            position.y = SurfaceHeight(position);
-            return position;
-        }
-
-        private float SurfaceHeight(Vector3 position)
-        {
-            if (terrain != null)
-            {
-                var local = position - terrain.GetPosition();
-                var data = terrain.terrainData;
-                return data.GetInterpolatedHeight(local.x / data.size.x, local.z / data.size.z) + terrain.GetPosition().y;
-            }
-            var bounds = ground.bounds;
-            var ray = new Ray(new Vector3(position.x, bounds.max.y + 10, position.z), Vector3.down);
-            return ground.Raycast(ray, out var hit, bounds.size.y + 20) ? hit.point.y : bounds.max.y;
+            return mapLayout.Project(q, r);
         }
 
         private void CreateTile(NodeState node)
@@ -178,13 +181,24 @@ namespace WorldTimelineDebug
                 var tile = tiles[node.Id];
                 bool reachable = player.NodeId.HasValue && world.Nodes[player.NodeId.Value].Links.Contains(node.Id);
                 var color = new Color(.66f, .79f, .69f);
+                if (node.IsCultivationSite) color = new Color(.32f, .58f, .51f);
                 if (node.Items.Count > 0) color = new Color(.98f, .73f, .28f);
                 if (node.MonsterHealth > 0) color = new Color(.97f, .39f, .31f);
                 if (world.Ritual.NodeId == node.Id) color = Purple;
                 if (reachable) color = Blue;
                 if (selectedNode == node.Id) color = Gold;
+                if (Ink)
+                {
+                    color = node.MonsterHealth > 0 ? new Color(.31f, .32f, .30f) : new Color(.80f, .79f, .75f);
+                    if (node.IsCultivationSite) color = new Color(.48f, .59f, .53f);
+                    if (node.Items.Count > 0) color = new Color(.61f, .59f, .53f);
+                    if (reachable) color = PlayerColor;
+                    if (selectedNode == node.Id) color = SelectedColor;
+                }
                 tile.Important = reachable || selectedNode == node.Id || world.Ritual.NodeId == node.Id
-                    || node.MonsterHealth > 0 || node.Items.Count > 0 || groups.ContainsKey((node.Q, node.R));
+                    || node.MonsterHealth > 0 || node.Items.Count > 0 || node.IsCultivationSite || groups.ContainsKey((node.Q, node.R));
+                tile.Highlighted = reachable || selectedNode == node.Id || world.Ritual.NodeId == node.Id
+                    || groups.ContainsKey((node.Q, node.R));
                 tile.Color = color;
 
             }
@@ -213,7 +227,7 @@ namespace WorldTimelineDebug
                     float angle = slot * 2 * Mathf.PI / count;
                     float offset = unit * Mathf.Max(.40f, .28f / Mathf.Sin(Mathf.PI / count));
                     position += new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * offset;
-                    position.y = SurfaceHeight(position);
+                    position.y = origin.y;
                 }
                 piece.position = position + Vector3.up * Mathf.Max(.1f, unit * .045f);
                 piece.gameObject.SetActive(true);
@@ -236,7 +250,8 @@ namespace WorldTimelineDebug
             var piece = new GameObject("棋子 #" + id).transform;
             piece.SetParent(transform, false);
             bool special = id == playerId || id == chosenId;
-            var color = id == playerId ? Blue : id == chosenId ? Gold : Purple;
+            var color = id == playerId ? PlayerColor : id == chosenId ? SelectedColor
+                : Ink ? new Color(.40f, .40f, .43f) : Purple;
             Part(piece, PrimitiveType.Cylinder, new Vector3(0, .07f, 0), new Vector3(.44f, .07f, .44f), color * .72f);
             Part(piece, PrimitiveType.Capsule, new Vector3(0, .30f, 0), new Vector3(.27f, .24f, .27f), color);
             Part(piece, special ? PrimitiveType.Cylinder : PrimitiveType.Sphere, new Vector3(0, .62f, 0),
@@ -244,14 +259,16 @@ namespace WorldTimelineDebug
             if (special)
                 Part(piece, PrimitiveType.Sphere, new Vector3(0, .77f, 0), Vector3.one * .18f, color);
             var label = new GameObject("编号").AddComponent<TextMesh>();
+            int mapLayer = LayerMask.NameToLayer(WorldTimelineInkMap.LayerName);
+            if (Ink && mapLayer >= 0) label.gameObject.layer = mapLayer;
             label.transform.SetParent(piece, false);
             label.transform.localPosition = Vector3.up * unit * .98f;
-            label.transform.rotation = boardCamera.transform.rotation;
+            label.transform.rotation = mapVirtualCamera.transform.rotation;
             label.text = id == playerId ? "P" : id == chosenId ? "K" : "#" + id;
             label.anchor = TextAnchor.MiddleCenter;
             label.characterSize = unit * .19f;
             label.fontSize = 48;
-            label.color = Color.white;
+            label.color = Ink ? new Color(.12f, .14f, .13f) : Color.white;
             return piece;
         }
 
@@ -280,16 +297,17 @@ namespace WorldTimelineDebug
             {
                 if (otherId <= node.Id) continue;
                 bool reachable = node.Id == playerNode || otherId == playerNode;
-                if (!reachable && zoom >= .65f) continue;
+                if (!Ink && !reachable && zoom >= .65f) continue;
                 Vector3 start = tiles[node.Id].Center;
                 Vector3 end = tiles[otherId].Center;
-                var side = Vector3.Cross(Vector3.up, end - start).normalized * unit * (reachable ? .032f : .016f);
-                var color = reachable ? Blue : new Color(.48f, .62f, .62f, .55f);
+                float width = Ink ? (reachable ? .023f : .008f) : (reachable ? .032f : .016f);
+                var side = Vector3.Cross(Vector3.up, end - start).normalized * unit * width;
+                var color = reachable ? PlayerColor : Ink ? new Color(.40f, .41f, .38f, .11f) : new Color(.48f, .62f, .62f, .55f);
                 int first = linkVertices.Count;
                 for (int i = 0; i <= 4; i++)
                 {
                     var point = Vector3.Lerp(start, end, i / 4f);
-                    point.y = SurfaceHeight(point) + Mathf.Max(.08f, unit * .035f);
+                    point.y = origin.y + Mathf.Max(.08f, unit * .035f);
                     linkVertices.Add(point - side);
                     linkVertices.Add(point + side);
                     linkColors.Add(color);
@@ -308,8 +326,8 @@ namespace WorldTimelineDebug
 
         public void DrawOverlay(CommandBuffer cmd, Camera camera)
         {
-            if (camera != boardCamera || state == null || cameraBrain == null
-                || !ReferenceEquals(cameraBrain.ActiveVirtualCamera, mapVirtualCamera)) return;
+            if (state == null || ForRenderingCamera(camera) != this) return;
+            OverlayDrawCount++;
             if (linkIndices.Count > 0) cmd.DrawMesh(links, Matrix4x4.identity, overlay, 0, 1);
             DrawMarkers(cmd, true);
             DrawMarkers(cmd, false);
@@ -320,11 +338,18 @@ namespace WorldTimelineDebug
                 properties.SetColor(MarkerColor, part.Color);
                 cmd.DrawMesh(part.Filter.sharedMesh, part.Filter.transform.localToWorldMatrix, overlay, 0, 0, properties);
             }
+            if (Ink)
+            foreach (var piece in pieces.Values)
+            {
+                if (!piece.gameObject.activeInHierarchy) continue;
+                var label = piece.GetComponentInChildren<TextMesh>();
+                if (label != null) cmd.DrawRenderer(label.GetComponent<Renderer>(), label.GetComponent<Renderer>().sharedMaterial);
+            }
         }
 
         public int? HoveredNode { get; set; }
 
-        private bool IsVisible(Tile tile) => tile.Important || zoom < .65f;
+        private bool IsVisible(Tile tile) => Ink || tile.Important || zoom < .65f;
 
         private void DrawMarkers(CommandBuffer cmd, bool border)
         {
@@ -333,10 +358,13 @@ namespace WorldTimelineDebug
             {
                 var tile = pair.Value;
                 if (!IsVisible(tile)) continue;
-                float radius = unit * (border ? .29f : .21f);
+                float radius = unit * (Ink ? (tile.Highlighted ? (border ? .19f : .12f)
+                    : (border ? .12f : .075f)) : (border ? .29f : .21f));
                 var matrix = Matrix4x4.TRS(tile.Center, boardCamera.transform.rotation * Quaternion.Euler(90, 0, 0),
                     Vector3.one * radius);
                 Color color = border ? (HoveredNode == pair.Key ? Color.white : new Color(.04f, .06f, .08f)) : tile.Color;
+                if (Ink && border && !tile.Highlighted && HoveredNode != pair.Key)
+                    color = new Color(.47f, .48f, .46f);
                 if (!SystemInfo.supportsInstancing)
                 {
                     properties.Clear();
@@ -367,57 +395,73 @@ namespace WorldTimelineDebug
             UpdateCamera();
         }
 
-        public void Focus(double q, double r) { focus = Position(q, r); zoom = .45f; RebuildLinks(); UpdateCamera(); }
+        public (Vector3 Focus, float Zoom) CaptureView() => (focus, zoom);
+        public void RestoreView(Vector3 position, float scale)
+        {
+            focus = position; zoom = Mathf.Clamp(scale, .17f, MaxMapZoom); RebuildLinks(); UpdateCamera();
+        }
+        public void Focus(double q, double r) { focus = Position(q, r); zoom = Ink ? mapLayout.FocusZoom : .45f; RebuildLinks(); UpdateCamera(); }
         public void FocusActor(int id)
         {
             if (!pieces.TryGetValue(id, out var piece) || !piece.gameObject.activeInHierarchy) return;
             focus = piece.position;
-            zoom = .45f;
+            zoom = Ink ? mapLayout.FocusZoom : .45f;
             RebuildLinks();
             UpdateCamera();
         }
 
-        public void Overview() { focus = origin; zoom = 1; RebuildLinks(); UpdateCamera(); }
-        public void Zoom(float factor) { bool detailed = zoom < .65f; zoom = Mathf.Clamp(zoom * factor, .17f, 1.5f); if (detailed != (zoom < .65f)) RebuildLinks(); UpdateCamera(); }
+        public void Overview() { focus = origin; zoom = MaxMapZoom; RebuildLinks(); UpdateCamera(); }
+        public void Zoom(float factor) { bool detailed = zoom < .65f; zoom = Mathf.Clamp(zoom * factor, .17f, MaxMapZoom); if (detailed != (zoom < .65f)) RebuildLinks(); UpdateCamera(); }
 
         public void Pan(Vector2 pixels)
         {
-            float scale = boardCamera.orthographicSize * 2 / Mathf.Max(1, boardCamera.pixelHeight);
-            focus += new Vector3(-pixels.x, 0, pixels.y / .92f) * scale;
+            var plane = new Plane(Vector3.up, focus);
+            var center = boardCamera.pixelRect.center;
+            var from = boardCamera.ScreenPointToRay(center);
+            var to = boardCamera.ScreenPointToRay(center + new Vector2(pixels.x, -pixels.y));
+            if (!plane.Raycast(from, out float fromDistance) || !plane.Raycast(to, out float toDistance)) return;
+            focus += from.GetPoint(fromDistance) - to.GetPoint(toDistance);
             focus.x = Mathf.Clamp(focus.x, origin.x - unit * boardRadius * 2, origin.x + unit * boardRadius * 2);
             focus.z = Mathf.Clamp(focus.z, origin.z - unit * boardRadius * 2, origin.z + unit * boardRadius * 2);
-            focus.y = SurfaceHeight(focus);
+            focus.y = origin.y;
             UpdateCamera();
         }
 
         private void UpdateCamera()
         {
-            mapVirtualCamera.m_Lens.OrthographicSize = unit * (boardRadius + 1) * Mathf.Max(1.65f, 1.95f / boardCamera.aspect) * zoom;
-
-            float distance = unit * (boardRadius + 1) * 3;
-            mapVirtualCamera.m_Lens.FarClipPlane = distance * 2 + 100;
+            float halfHeight = unit * (boardRadius + 1) * Mathf.Max(1.65f, 1.95f / boardCamera.aspect) * zoom;
+            float distance = halfHeight / Mathf.Tan(mapVirtualCamera.m_Lens.FieldOfView * Mathf.Deg2Rad * .5f);
+            mapVirtualCamera.m_Lens.FarClipPlane = distance + unit * (boardRadius + 1) * 6 + 600;
             mapVirtualCamera.transform.position = focus - mapVirtualCamera.transform.forward * distance;
         }
 
         public int? Pick(Vector2 screenPosition)
         {
             int? selected = null;
-            float radius = unit * .29f * boardCamera.pixelHeight / (2 * boardCamera.orthographicSize);
-            float distance = Mathf.Pow(radius + 5, 2);
+            float distance = float.PositiveInfinity;
             foreach (var pair in tiles)
             {
                 if (!IsVisible(pair.Value)) continue;
                 var center = boardCamera.WorldToScreenPoint(pair.Value.Center);
                 if (center.z < boardCamera.nearClipPlane || center.z > boardCamera.farClipPlane) continue;
+                var edge = boardCamera.WorldToScreenPoint(pair.Value.Center + boardCamera.transform.right * unit * .29f);
+                float radius = Vector2.Distance((Vector2)center, (Vector2)edge);
                 float candidate = (screenPosition - (Vector2)center).sqrMagnitude;
-                if (candidate >= distance) continue;
+                if (candidate > (radius + 5) * (radius + 5) || candidate >= distance) continue;
                 distance = candidate;
                 selected = pair.Key;
             }
             return selected;
         }
+        public Vector3 ProjectNode(int nodeId) => boardCamera.WorldToScreenPoint(tiles[nodeId].Center);
+        private void OnEnable()
+        {
+            if (activeBoard == this && presentationSuspensions == 0) inkMap?.EnterMap(this, boardCamera);
+        }
+        private void OnDisable() => inkMap?.ExitMap(this);
         private void OnDestroy()
         {
+            inkMap?.ExitMap(this);
             if (activeBoard == this) activeBoard = null;
             if (mapVirtualCamera != null) mapVirtualCamera.gameObject.SetActive(false);
             if (mapVirtualCamera != null && boardCamera != null) boardCamera.orthographic = originalOrthographic;

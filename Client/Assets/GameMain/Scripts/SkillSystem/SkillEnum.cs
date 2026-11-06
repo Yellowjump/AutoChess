@@ -45,6 +45,8 @@ namespace SkillSystem
         BeforeSkillCast,
         [InspectorName("技能释放后")]
         AfterSkillCast,
+        OnBurnSpread,
+        OnShieldBroken,
     }
 
     public enum ConditionType
@@ -150,6 +152,14 @@ namespace SkillSystem
         CreatePosPoint,
         [InspectorName("播放音效")]
         PlayAudio,
+        [InspectorName("持盾时调整伤害")]
+        ModifyDamageWhileShielded,
+        [InspectorName("流血套装效果")]
+        BleedEffect,
+        [InspectorName("燃烧套装效果")]
+        BurnEffect,
+        [InspectorName("虚弱与破绽效果")]
+        WeaknessEffect,
     }
 
     /// <summary>
@@ -213,7 +223,11 @@ namespace SkillSystem
         [InspectorName("不可免疫")]
         Immune = 1 << 6,        // 01000000
         [InspectorName("护盾")]
-        Shield = 1 << 7        // 01000000
+        Shield = 1 << 7,
+        [InspectorName("虚弱")]
+        Weakened = 1 << 8,
+        [InspectorName("破绽")]
+        Exposed = 1 << 9,
     }
 
     public enum CheckCastSkillResult

@@ -79,6 +79,22 @@ namespace SkillSystem
                     var commandPlayAudio = ReferencePool.Acquire<CommandPlayAudio>();
                     commandPlayAudio.AudioID ??= CreateTableParamInt();
                     return commandPlayAudio;
+                case CommandType.ModifyDamageWhileShielded:
+                    var commandShieldDamage = ReferencePool.Acquire<CommandShieldDamageModifier>();
+                    commandShieldDamage.Percent ??= CreateTableParamInt();
+                    return commandShieldDamage;
+                case CommandType.BleedEffect:
+                    var commandBleed = ReferencePool.Acquire<CommandBleedEffect>();
+                    commandBleed.Param ??= CreateTableParamInt();
+                    return commandBleed;
+                case CommandType.BurnEffect:
+                    var commandBurn = ReferencePool.Acquire<CommandBurnEffect>();
+                    commandBurn.Param ??= CreateTableParamInt();
+                    return commandBurn;
+                case CommandType.WeaknessEffect:
+                    var commandWeakness = ReferencePool.Acquire<CommandWeaknessEffect>();
+                    commandWeakness.Param ??= CreateTableParamInt();
+                    return commandWeakness;
                 default:
                     return ReferencePool.Acquire<CommandBase>();
             }

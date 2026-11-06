@@ -20,8 +20,6 @@ namespace UnityGameFramework.Runtime
 
         public static int? PlayMusic(this SoundComponent soundComponent, int musicId, object userData = null)
         {
-            soundComponent.StopMusic();
-
             IDataTable<DRSound> dtMusicAsset = GameEntry.DataTable.GetDataTable<DRSound>("Sound");
             DRSound drMusic = dtMusicAsset.GetDataRow(musicId);
             if (drMusic == null)
@@ -36,6 +34,12 @@ namespace UnityGameFramework.Runtime
                 Log.Warning("Can not load music '{0}' from asset table.", drMusic.AssetId.ToString());
                 return null;
             }
+            return soundComponent.PlayMusic(musicAssetPath, userData);
+        }
+
+        public static int? PlayMusic(this SoundComponent soundComponent, string musicAssetPath, object userData = null)
+        {
+            soundComponent.StopMusic();
             PlaySoundParams playSoundParams = PlaySoundParams.Create();
             playSoundParams.Priority = 64;
             playSoundParams.Loop = true;

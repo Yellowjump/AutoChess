@@ -6,6 +6,10 @@ namespace WorldTimeline
     public sealed class ActorState
     {
         public int Id { get; }
+        public int BirthNodeId { get; }
+        public int CombatAttackPercent { get; internal set; }
+        public int CombatAttack => checked((int)((long)Attack * (100 + CombatAttackPercent) / 100));
+        internal int StoryDelayYears { get; set; }
         // Null while travelling: an actor cannot be encountered at the departure node.
         public int? NodeId { get; internal set; }
         public int? TravelOriginNodeId { get; internal set; }
@@ -35,6 +39,7 @@ namespace WorldTimeline
         {
             if (health < 1 || attack < 1 || lifespan < 1) throw new ArgumentOutOfRangeException();
             Id = id;
+            BirthNodeId = nodeId;
             NodeId = nodeId;
             Health = health;
             MaxHealth = health;

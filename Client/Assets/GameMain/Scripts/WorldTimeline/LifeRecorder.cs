@@ -9,6 +9,8 @@ namespace WorldTimeline
         private readonly List<RecordedAction> actions = new List<RecordedAction>();
         private readonly List<WorldEvent> events = new List<WorldEvent>();
         private int? deathYear;
+        private readonly List<RecordedStoryChoice> storyChoices = new List<RecordedStoryChoice>();
+        internal void RecordStoryChoice(RecordedStoryChoice choice) => storyChoices.Add(choice);
 
         internal LifeRecorder(ActorState actor)
         {
@@ -27,6 +29,6 @@ namespace WorldTimeline
         }
 
         public LifeRecord Snapshot(int currentYear) =>
-            new LifeRecord(initial, initialItems, actions, events, deathYear ?? currentYear, deathYear.HasValue);
+            new LifeRecord(initial, initialItems, actions, events, deathYear ?? currentYear, deathYear.HasValue, storyChoices);
     }
 }

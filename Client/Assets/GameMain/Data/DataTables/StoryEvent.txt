@@ -1,0 +1,14 @@
+﻿#	关卡剧情						
+#	Id	Q	R	Title	Text	Background	Repeatable
+#	int	int	int	string	string	string	int
+#	编号	横坐标	纵坐标	标题	剧情	背景	可重访
+	1	1	-9	Timeline_StoryEvent_1_Title	Timeline_StoryEvent_1_Text	Gate	1
+	2	-1	-9	Timeline_StoryEvent_2_Title	Timeline_StoryEvent_2_Text	Well	0
+	3	-1	-8	Timeline_StoryEvent_3_Title	Timeline_StoryEvent_3_Text	Traveler	0
+	4	0	-9	Timeline_StoryEvent_4_Title	Timeline_StoryEvent_4_Text	Cave	0
+	5	0	-8	Timeline_StoryEvent_5_Title	Timeline_StoryEvent_5_Text	Bridge	1
+	6	-9	0	Timeline_StoryEvent_6_Title	Timeline_StoryEvent_6_Text	Bridge	0
+	7	4	-9	Timeline_StoryEvent_7_Title	Timeline_StoryEvent_7_Text	Bridge	0
+	8	3	-9	Timeline_StoryEvent_8_Title	Timeline_StoryEvent_8_Text	Cave	0
+	9	2	-10	Timeline_StoryEvent_9_Title	Timeline_StoryEvent_9_Text	Cave	0
+	10	2	-7	Timeline_StoryEvent_10_Title	Timeline_StoryEvent_10_Text	Traveler	0

@@ -1,0 +1,25 @@
+﻿#	剧情分支															
+#	Id	EventId	Text	Condition	Value	Flag	Hint	Weight	ItemId	CostItemId	HealthCost	Heal	Experience	TimeYears	SetFlag	Result
+#	int	int	string	string	int	string	string	int	int	int	int	int	int	int	string	string
+#	编号	事件编号	选项	条件	条件值	条件标记	条件说明	自动权重	奖励道具	消耗道具	消耗气血	恢复气血	经验	驻留年份	写入标记	结果文本
+	101	1	Timeline_StoryOption_101_Text	MaxHealthGreater	500		Timeline_StoryOption_101_Hint	4	9102	0	0	0	0	0		Timeline_StoryOption_101_Result
+	102	1	Timeline_StoryOption_102_Text	Always	0			1	0	0	0	0	0	0		Timeline_StoryOption_102_Result
+	201	2	Timeline_StoryOption_201_Text	Always	0			5	9101	0	0	0	0	0		Timeline_StoryOption_201_Result
+	202	2	Timeline_StoryOption_202_Text	Always	0			1	0	0	0	0	8	0		Timeline_StoryOption_202_Result
+	301	3	Timeline_StoryOption_301_Text	Always	0			5	9103	9101	0	0	0	0	traveler_saved	Timeline_StoryOption_301_Result
+	302	3	Timeline_StoryOption_302_Text	Always	0			1	9103	0	15	0	0	0		Timeline_StoryOption_302_Result
+	303	3	Timeline_StoryOption_303_Text	Always	0			2	0	0	0	0	5	0		Timeline_StoryOption_303_Result
+	401	4	Timeline_StoryOption_401_Text	Always	0			5	9101	0	0	0	0	0		Timeline_StoryOption_401_Result
+	402	4	Timeline_StoryOption_402_Text	Always	0			1	0	0	0	0	20	0		Timeline_StoryOption_402_Result
+	501	5	Timeline_StoryOption_501_Text	FlagUnset	0	bridge_repaired	Timeline_StoryOption_501_Hint	4	0	0	10	0	12	1	bridge_repaired	Timeline_StoryOption_501_Result
+	502	5	Timeline_StoryOption_502_Text	FlagSet	0	bridge_repaired	Timeline_StoryOption_502_Hint	6	0	0	0	0	0	0		Timeline_StoryOption_502_Result
+	503	5	Timeline_StoryOption_503_Text	Always	0			1	0	0	0	0	0	2		Timeline_StoryOption_503_Result
+	601	6	Timeline_StoryOption_601_Text	Always	0			1	0	0	0	0	0	0		Timeline_StoryOption_601_Result
+	701	7	Timeline_StoryOption_701_Text	Always	0			1	0	0	0	0	0	0		Timeline_StoryOption_701_Result
+	801	8	Timeline_StoryOption_801_Text	Always	0			4	9104	0	0	0	0	1		Timeline_StoryOption_801_Result
+	802	8	Timeline_StoryOption_802_Text	Always	0			1	0	0	0	0	0	0		Timeline_StoryOption_802_Result
+	901	9	Timeline_StoryOption_901_Text	Always	0			10	9122	0	0	0	0	0		Timeline_StoryOption_901_Result
+	902	9	Timeline_StoryOption_902_Text	Always	0			1	0	0	0	0	0	0		Timeline_StoryOption_902_Result
+	1001	10	Timeline_StoryOption_1001_Text	Always	0			5	9121	0	0	0	0	0		Timeline_StoryOption_1001_Result
+	1002	10	Timeline_StoryOption_1002_Text	Always	0			5	9124	0	0	0	0	0		Timeline_StoryOption_1002_Result
+	1003	10	Timeline_StoryOption_1003_Text	Always	0			1	0	0	0	0	0	0		Timeline_StoryOption_1003_Result

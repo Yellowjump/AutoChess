@@ -194,7 +194,7 @@ namespace DataTable.Editor.DataTableTools
         {
             get
             {
-                return m_RawValues.Length > 0 ? m_RawValues[0].Length : 0;
+                return m_NameRow.Length;
             }
         }
 

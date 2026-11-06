@@ -1,0 +1,11 @@
+﻿#	剧情道具与被动					
+#	Id	Name	Description	AttackBonus	HealthBonus	CombatAttackPercent
+#	int	string	string	int	int	int
+#	编号	名称	效果	攻击加成	生命加成	战斗攻击百分比
+	9101	Timeline_StoryItem_9101_Name	Timeline_StoryItem_9101_Description	0	80	0
+	9102	Timeline_StoryItem_9102_Name	Timeline_StoryItem_9102_Description	12	0	0
+	9103	Timeline_StoryItem_9103_Name	Timeline_StoryItem_9103_Description	0	0	15
+	9104	Timeline_StoryItem_9104_Name	Timeline_StoryItem_9104_Description	0	0	0
+	9121	ItemName_9121	ItemDesc_9121	0	0	0
+	9122	ItemName_9122	ItemDesc_9122	0	0	0
+	9124	ItemName_9124	ItemDesc_9124	0	0	0

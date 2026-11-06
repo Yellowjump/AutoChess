@@ -1,3 +1,4 @@
+using static WorldTimelineDebug.WorldTimelineDebugView;
 ﻿using System;
 using System.Linq;
 using TMPro;
@@ -14,6 +15,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     [SerializeField] private GameObject headerSection, locationSection;
     [SerializeField] private GameObject[] mapSections;
     [SerializeField] private Button closeLocation;
+    [SerializeField] private Button equipment;
     [SerializeField] private TMP_Text year, deadline, status, heroName, heroLevel, health, experience, lifespan;
     [SerializeField] private TMP_Text locationName, locationKind, locationHealth, locationAttack, locationSpirit, loot, hint, notice;
     [SerializeField] private Image healthFill, experienceFill, ritualFill, locationArt;
@@ -31,13 +33,17 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     private DisplayState displayState;
     private bool locationOpen;
     public DisplayState CurrentDisplayState => displayState;
+    public void RefreshDisplay() => SetDisplayState(ReadDisplayState());
 
     public bool CanInteractWithMap => view != null && displayState == DisplayState.Map
-        && !view.IsBusy && !view.IsPreparing && !popup.activeSelf;
+        && !view.IsBusy && !view.IsPreparing && !view.InventoryOpen && !popup.activeSelf;
 
     public override void OnInit(object userData)
     {
         base.OnInit(userData);
+        foreach (var label in GetComponentsInChildren<TMP_Text>(true))
+            if (label.text.StartsWith("Timeline_", System.StringComparison.Ordinal)) label.text = TimelineText(label.text);
+        equipment?.onClick.AddListener(OpenEquipment);
         closeLocation.onClick.AddListener(CloseLocationDetails);
         move.onClick.AddListener(() => view.MoveSelected());
         cultivate.onClick.AddListener(() => view.CultivateYears(1));
@@ -98,6 +104,13 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     }
 
     private void OnSessionClosed() => GameEntry.UI.CloseUIForm(UIForm);
+    public void OpenEquipment()
+    {
+        if (view == null || view.IsPreparing || view.IsBusy || view.InventoryOpen) return;
+        if (GameEntry.UI.HasUIForm(UICtrlName.WorldTimelineInventory) || GameEntry.UI.IsLoadingUIForm(UICtrlName.WorldTimelineInventory)) return;
+        ClearHover();
+        GameEntry.UI.OpenUIForm(UICtrlName.WorldTimelineInventory, "tips", userData: view);
+    }
 
     private DisplayState ReadDisplayState() => view.IsPreparing ? DisplayState.Preparation
         : view.IsBusy ? DisplayState.Battle : DisplayState.Map;
@@ -111,9 +124,10 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
             ClearHover();
         }
         displayState = state;
-        headerSection.SetActive(true);
-        foreach (var section in mapSections) section.SetActive(state == DisplayState.Map);
-        locationSection.SetActive(state == DisplayState.Map && locationOpen);
+        headerSection.SetActive(view == null || !view.InventoryOpen);
+        bool showMap = state == DisplayState.Map && (view == null || !view.InventoryOpen);
+        foreach (var section in mapSections) section.SetActive(showMap);
+        locationSection.SetActive(showMap && locationOpen);
     }
 
     public void CloseLocationDetails()
@@ -145,26 +159,29 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         var player = world.Actors[world.PlayerActorId];
         var node = view.SelectedLocation;
         int remaining = Math.Max(0, world.Ritual.DeadlineYear - world.Year);
-        year.text = world.Year == 0 ? "元年" : $"第 {world.Year} 年";
-        deadline.text = $"灭世仪式 · 余 {remaining} 年";
+        year.text = world.Year == 0 ? TimelineText("Timeline_UI_74") : TimelineText("Timeline_UI_Year", world.Year);
+        bool showingBattle = HotGameEntry.HeroManager.IsTimelineBattle && !HotGameEntry.HeroManager.IsTimelineSimulation;
+        deadline.text = showingBattle ? TimelineText("Timeline_UI_129") : TimelineText("Timeline_UI_Deadline", remaining);
+        ritualFill.transform.parent.gameObject.SetActive(!showingBattle);
         ritualFill.fillAmount = Mathf.Clamp01(remaining / (float)world.Ritual.PeriodYears);
         status.text = view.CurrentStatus;
         returnMenu.interactable = !view.IsBusy;
+        roles.interactable = history.interactable = logs.interactable = !view.InventoryOpen && !view.IsBusy;
         heroName.text = view.PlayerName;
-        heroLevel.text = $"境界 · 第 {player.Level} 层";
+        heroLevel.text = TimelineText("Timeline_UI_Realm", player.Level);
         health.text = $"{Math.Max(0, player.Health)} / {player.MaxHealth}";
         healthFill.fillAmount = Mathf.Clamp01(player.Health / (float)player.MaxHealth);
         var levels = view.Simulation.Cultivation;
         long required = levels.GetLevel(player.Level).ExperienceToNext;
-        experience.text = required == 0 ? "境界已满" : $"{player.LevelExperience} / {required}";
+        experience.text = required == 0 ? TimelineText("Timeline_UI_75") : $"{player.LevelExperience} / {required}";
         experienceFill.fillAmount = required == 0 ? 1 : Mathf.Clamp01(player.LevelExperience / (float)required);
-        lifespan.text = $"寿元 {player.Age} / {player.Lifespan}";
+        lifespan.text = TimelineText("Timeline_UI_Lifespan", player.Age, player.Lifespan);
         locationName.text = view.LocationName(node);
         locationKind.text = $"{view.LocationKind(node)}   ({node.Q}, {node.R})";
-        locationHealth.text = node.MonsterHealth > 0 ? node.MonsterHealth.ToString() : "无";
+        locationHealth.text = node.MonsterHealth > 0 ? node.MonsterHealth.ToString() : TimelineText("Timeline_UI_76");
         locationAttack.text = node.MonsterHealth > 0 ? node.MonsterAttack.ToString() : "—";
         locationSpirit.text = node.CultivationPerYear.ToString();
-        locationArt.enabled = node.MonsterHealth > 0 || view.LocationKind(node) == "守怪已清除";
+        locationArt.enabled = node.MonsterHealth > 0 || view.HasClearedGuardian(node);
         loot.text = view.LocationLoot(node);
         hint.text = view.LocationHint;
         notice.text = view.Notice;
@@ -177,8 +194,8 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         bool observing = !waiting && !world.IsEnded;
         observeStep.interactable = observeToggle.interactable = observing;
         nextLife.interactable = world.IsEnded;
-        observeLabel.text = view.AutoObserving ? "暂停观察" : "加速观察";
-        speedLabel.text = view.ObservationSpeed + " 年 / 秒";
+        observeLabel.text = view.AutoObserving ? TimelineText("Timeline_UI_22") : TimelineText("Timeline_UI_21");
+        speedLabel.text = TimelineText("Timeline_UI_ObservationSpeed", view.ObservationSpeed);
         if (popup.activeSelf) RefreshPopup();
     }
 
@@ -198,7 +215,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         previousPage.gameObject.SetActive(popupTab != 0);
         nextPage.gameObject.SetActive(popupTab != 0);
         pageLabel.gameObject.SetActive(popupTab != 0);
-        popupTitle.text = new[] { "山河众生", "前世命途", "世界日志", "修行与资质" }[popupTab];
+        popupTitle.text = new[] { TimelineText("Timeline_UI_33"), TimelineText("Timeline_UI_18"), TimelineText("Timeline_UI_77"), TimelineText("Timeline_UI_78") }[popupTab];
         if (popupTab == 0)
         {
             var actors = view.Simulation.State.Actors.Values.Where(actor => actor.IsAlive).OrderBy(actor => actor.Id).ToArray();
@@ -210,8 +227,8 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
                 var actor = actors[i];
                 var point = ActorMapProjection.Position(view.Simulation.State, actor);
                 string name = actor.Id == view.Simulation.State.PlayerActorId ? view.PlayerName
-                    : actor.Id == view.Simulation.State.ChosenActorId ? "天选" : "前世 #" + actor.Id;
-                actorLabels[i].text = $"{name} · 第 {actor.Level} 层\n气血 {actor.Health}  攻击 {actor.Attack}    ({point.Q:0.#}, {point.R:0.#})";
+                    : actor.Id == view.Simulation.State.ChosenActorId ? TimelineText("Timeline_UI_79") : TimelineText("Timeline_UI_PastLife", actor.Id);
+                actorLabels[i].text = TimelineText("Timeline_UI_ActorSummary", name, actor.Level, actor.Health, actor.Attack, point.Q, point.R);
                 button.onClick.RemoveAllListeners();
                 int id = actor.Id;
                 button.onClick.AddListener(() =>

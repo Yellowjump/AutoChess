@@ -18,3 +18,20 @@
 #	2001	两把斧头	ItemName_TwoAxes		2	4001	1,1	1450,1714	1,2;7,1		1	200
 #	2002	三把斧头	ItemName_ThreeAxes		2	4001	1,1,1	2307,2571	1,3;7,2		1001	300
 #												
+	9102	古修残剑	Timeline_StoryItem_9102_Name	ItemDesc_FlySword	1	4505					9102	0
+	9103	敛息诀	Timeline_StoryItem_9103_Name	ItemDesc_MoreFast	1	4508					9103	0
+	9104	镇水铃	Timeline_StoryItem_9104_Name	ItemDesc_Shield	1	4504					9104	0
+	9111	照壁剑印	ItemName_9111	ItemDesc_9111	2	4505					9111	0
+	9112	叠甲符	ItemName_9112	ItemDesc_9112	2	4504					9112	0
+	9121	疾风诀	ItemName_9121	ItemDesc_9121	2	4508					9121	0
+	9122	割脉刃	ItemName_9122	ItemDesc_9122	2	4505					9122	0
+	9123	追血诀	ItemName_9123	ItemDesc_9123	2	4506					9123	0
+	9124	饮血佩	ItemName_9124	ItemDesc_9124	2	4504					9124	0
+	9131	引火符	ItemName_9131	ItemDesc_9131	2	4505					9131	0
+	9132	添薪诀	ItemName_9132	ItemDesc_9132	2	4508					9132	0
+	9133	焚心印	ItemName_9133	ItemDesc_9133	2	4506					9133	0
+	9134	余烬灯	ItemName_9134	ItemDesc_9134	2	4504					9134	0
+	9141	断势符	ItemName_9141	ItemDesc_9141	2	4508					9141	0
+	9142	探隙诀	ItemName_9142	ItemDesc_9142	2	4505					9142	0
+	9143	截脉剑	ItemName_9143	ItemDesc_9143	2	4506					9143	0
+	9144	碎壁符	ItemName_9144	ItemDesc_9144	2	4504					9144	0

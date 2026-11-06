@@ -379,7 +379,7 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         /// <param name="elapseSeconds">逻辑流逝时间，以秒为单位。</param>
         /// <param name="realElapseSeconds">真实流逝时间，以秒为单位。</param>
-        public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds)
+        public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds, bool stationaryEnemies = false)
         {
             List<EntityQizi> tempEntityList = ListPool<EntityQizi>.Get();
             //先轮询己方棋子，后续联机的话需要判断 玩家uid来确定先后
@@ -395,7 +395,7 @@ namespace UnityGameFramework.Runtime
             tempEntityList.Sort((a, b) => a.HeroUID.CompareTo(b.HeroUID));
             foreach (var oneEntity in tempEntityList)
             {
-                oneEntity.OnLogicUpdate(elapseSeconds, realElapseSeconds);
+                oneEntity.OnLogicUpdate(elapseSeconds, realElapseSeconds, stationaryEnemies);
             }
 
             ListPool<EntityQizi>.Release(tempEntityList);

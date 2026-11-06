@@ -12,6 +12,11 @@ namespace SkillSystem
         public EntityQizi Target;
         public float DamageValue;
         public bool TriggerDamageRelate;
+        public int HealthLost;
+        public int BrokenShieldValue;
+        public bool TargetWasBleeding;
+        public int BurnStacksBeforeHit;
+        public bool BurnDetonated;
         public CauseDamageData()
         {
         }
@@ -23,11 +28,30 @@ namespace SkillSystem
             SourceSkill = null;
             Target = null;
             DamageValue = 0;
+            HealthLost = 0;
+            BrokenShieldValue = 0;
+            TargetWasBleeding = false;
+            BurnStacksBeforeHit = 0;
+            BurnDetonated = false;
         }
     }
 
     public class CommandCauseDamage : CommandBase
     {
+        internal static void DealSecondaryDamage(EntityQizi target, long damage)
+        {
+            if (damage <= 0) return;
+            var hit = ReferencePool.Acquire<CauseDamageData>();
+            try
+            {
+                hit.Target = target;
+                hit.DamageValue = System.Math.Min(damage, 1000000000L);
+                hit.TriggerDamageRelate = false;
+                target.BeCauseDamage(hit);
+            }
+            finally { ReferencePool.Release(hit); }
+        }
+
         public override CommandType CurCommandType => CommandType.CauseDamage;
         public DamageComputeType CurDamageComputeType = DamageComputeType.NormalDamage;
         public bool TriggerDamageRelate = true;

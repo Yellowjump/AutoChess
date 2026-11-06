@@ -5,6 +5,58 @@ using UnityEngine;
 
 namespace Editor.SkillSystem.Commands
 {
+    [SkillDrawer(typeof(CommandWeaknessEffect))]
+    public class CommandWeaknessEffectEditor
+    {
+        public void OnGUIDraw(CommandWeaknessEffect command)
+        {
+            command.Mode = (CommandWeaknessEffect.Effect)EditorGUILayout.EnumPopup("效果", command.Mode);
+            if (command.Mode is CommandWeaknessEffect.Effect.Strike or CommandWeaknessEffect.Effect.Retaliate)
+            {
+                EditorGUILayout.LabelField("伤害百分比");
+                SkillSystemDrawerCenter.DrawOneInstance(command.Param);
+            }
+        }
+    }
+
+    [SkillDrawer(typeof(CommandBurnEffect))]
+    public class CommandBurnEffectEditor
+    {
+        public void OnGUIDraw(CommandBurnEffect command)
+        {
+            command.Mode = (CommandBurnEffect.Effect)EditorGUILayout.EnumPopup("燃烧套装效果", command.Mode);
+            string label = command.Mode switch
+            {
+                CommandBurnEffect.Effect.Feed => "触发间隔（毫秒）",
+                CommandBurnEffect.Effect.Detonate => "每层伤害（攻击力百分比）",
+                _ => "施加层数"
+            };
+            EditorGUILayout.LabelField(label);
+            SkillSystemDrawerCenter.DrawOneInstance(command.Param);
+        }
+    }
+
+    [SkillDrawer(typeof(CommandBleedEffect))]
+    public class CommandBleedEffectEditor
+    {
+        public void OnGUIDraw(CommandBleedEffect command)
+        {
+            command.Mode = (CommandBleedEffect.Effect)EditorGUILayout.EnumPopup("流血套装效果", command.Mode);
+            EditorGUILayout.LabelField(command.Mode == CommandBleedEffect.Effect.ApplyBleed ? "Buff ID" : "百分比");
+            SkillSystemDrawerCenter.DrawOneInstance(command.Param);
+        }
+    }
+
+    [SkillDrawer(typeof(CommandShieldDamageModifier))]
+    public class CommandShieldDamageModifierEditor
+    {
+        public void OnGUIDraw(CommandShieldDamageModifier command)
+        {
+            EditorGUILayout.LabelField("伤害调整百分比（负数减伤）");
+            SkillSystemDrawerCenter.DrawOneInstance(command.Percent);
+        }
+    }
+
     [SkillDrawer(typeof(CommandPlayAudio))]
     public class CommandPlayAudioEditor
     {

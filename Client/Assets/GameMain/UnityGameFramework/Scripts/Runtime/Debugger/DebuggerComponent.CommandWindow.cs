@@ -26,10 +26,16 @@ namespace UnityGameFramework.Runtime
             private IDataTable<DRItem> _itemTablel;
             private List<int> _itemIDList = new List<int>();
             private int _changeCoinNum = 0;
+#if UNITY_EDITOR
+            private readonly List<int> _previewItems = new List<int>();
+            private bool _threePreviewTargets;
+            private bool _seedPreviewBurn;
+#endif
             public override void OnEnter()
             {
                 base.OnEnter();
                 _itemTablel = GameEntry.DataTable.GetDataTable<DRItem>("Item");
+                _itemIDList.Clear();
                 foreach (var oneItem in _itemTablel)
                 {
                     _itemIDList.Add(oneItem.Id);
@@ -74,10 +80,63 @@ namespace UnityGameFramework.Runtime
                     string newText = GUILayout.TextField(itemNum.ToString(), GUILayout.Width(200));
                     // 只保留整数字符（包括负号）
                     itemNum = RemoveNonIntegerCharactersAndConvertToInt(newText);
-                    if (GUILayout.Button("添加道具"))
+#if UNITY_EDITOR
+                    var timeline = UnityEngine.Object.FindFirstObjectByType<WorldTimelineDebug.WorldTimelineDebugView>();
+                    if (timeline != null)
                     {
-                        GameEntry.Event.Fire(this,CMDGetItemEventArgs.Create(_itemIDList[_curSelectIndex],itemNum));
+                        if (GUILayout.Button("添加道具到轮回背包"))
+                        {
+                            if (!int.TryParse(itemIDStr, out int grantId) || !_itemTablel.HasDataRow(grantId))
+                                Debug.LogWarning("发放失败。请输入 Item 表中存在的道具 ID。");
+                            else if (timeline.TryGrantNativeItem(grantId, itemNum))
+                            {
+                                Debug.Log($"已发放 {itemNum} 件 {GameEntry.Localization.GetString(_itemTablel[grantId].Name)} 到本世轮回背包。");
+                                WorldTimelineInventoryCtrl.ShowGrantedItem(timeline, grantId);
+                                HotGameEntry.Debugger.ShowFullWindow = false;
+                            }
+                            else
+                                Debug.LogWarning("发放失败。请在轮回地图等待选择时输入 1～99 件，并检查存档是否可写。");
+                        }
                     }
+                    else
+#endif
+                    if (GUILayout.Button("添加道具"))
+                        GameEntry.Event.Fire(this,CMDGetItemEventArgs.Create(_itemIDList[_curSelectIndex],itemNum));
+#if UNITY_EDITOR
+                    if (timeline != null)
+                    {
+                        int selected = _itemIDList[_curSelectIndex];
+                        GUILayout.Label($"试招装备（{_previewItems.Count} 件）");
+                        if (GUILayout.Button("把当前道具加入试招") && !_previewItems.Contains(selected))
+                            _previewItems.Add(selected);
+                        int removeAt = -1;
+                        for (int i = 0; i < _previewItems.Count; i++)
+                        {
+                            int id = _previewItems[i];
+                            GUILayout.BeginHorizontal();
+                            GUILayout.Label($"{GameEntry.Localization.GetString(_itemTablel[id].Name)} ({id})");
+                            if (GUILayout.Button("移除", GUILayout.Width(80))) removeAt = i;
+                            GUILayout.EndHorizontal();
+                        }
+                        if (removeAt >= 0) _previewItems.RemoveAt(removeAt);
+                        if (_previewItems.Count > 0 && GUILayout.Button("清空试招装备")) _previewItems.Clear();
+                        bool guiEnabled = GUI.enabled;
+                        GUI.enabled = guiEnabled && !timeline.IsBusy;
+                        _threePreviewTargets = GUILayout.Toggle(_threePreviewTargets, "三固定靶（两个相邻，一个远处）");
+                        if (_threePreviewTargets)
+                            _seedPreviewBurn = GUILayout.Toggle(_seedPreviewBurn, "主靶首次被主动技能命中前补满燃烧");
+                        if (GUILayout.Button(_previewItems.Count == 0 ? "试招：使用当前道具" : "试招：使用整套装备"))
+                        {
+                            IReadOnlyList<int> items = _previewItems.Count == 0 ? new[] { selected } : _previewItems;
+                            if (WorldTimelineBattleResolver.TryPreview(timeline, items, _threePreviewTargets,
+                                    _threePreviewTargets && _seedPreviewBurn))
+                                HotGameEntry.Debugger.ShowFullWindow = false;
+                            else
+                                Debug.LogWarning("请在轮回地图等待选择、且没有剧情弹窗时开始试招。");
+                        }
+                        GUI.enabled = guiEnabled;
+                    }
+#endif
                     if (GUILayout.Button("添加道具合成测试"))
                     {
                         GameEntry.Event.Fire(this,CMDGetItemEventArgs.Create(1,5));

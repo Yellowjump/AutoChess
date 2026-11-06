@@ -1,0 +1,17 @@
+﻿#	轮回战斗映射				
+#	Id	Kind	TimelineItemId	HeroId	NativeItemId
+#	int	string	int	int	int
+#	编号	Kind	TimelineItem	HeroId	NativeItemId
+	1	Chosen	0	1	0
+	2	Monster	0	2	0
+	3	Item	8101	2	1
+	4	Item	8102	2	1
+	5	Item	8103	5	9
+	6	Item	8104	2	2
+	7	Item	8105	2	1
+	8	Item	8106	3	1001
+	9	Item	8107	5	9
+	10	Item	8108	2	1
+	11	Item	8109	2	1
+	12	Item	8110	5	9
+	13	Item	8201	0	8

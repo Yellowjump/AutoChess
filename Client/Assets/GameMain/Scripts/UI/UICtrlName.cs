@@ -1,5 +1,8 @@
 public class UICtrlName
 {
+    public const string WorldTimelineInventory = "Assets/GameMain/Prefeb/UIPrefab/world_timeline_inventory.prefab";
+    public const string WorldTimelineStory = "Assets/GameMain/Prefeb/UIPrefab/world_timeline_story.prefab";
+    public const string WorldTimelinePreparation = "Assets/GameMain/Prefeb/UIPrefab/world_timeline_preparation.prefab";
     public const string WorldTimelinePanel = "Assets/GameMain/Prefeb/UIPrefab/world_timeline_panel.prefab";
     public const string MainTitlePanel = "Assets/GameMain/Prefeb/UIPrefab/main_title_panel.prefab";
     public const string AreaPointList = "Assets/GameMain/Prefeb/UIPrefab/area_list3d/area_list_panel3d.prefab";

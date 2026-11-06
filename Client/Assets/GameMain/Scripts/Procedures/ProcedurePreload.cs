@@ -192,6 +192,9 @@ namespace Procedure
             _dataTableFlag.Add("Sound", (typeof(DRSound), false));
             _dataTableFlag.Add("OuterLocations", (typeof(DROuterLocations), false));
             _dataTableFlag.Add("StartingCultivators", (typeof(DRStartingCultivators), false));
+            _dataTableFlag.Add("StoryEvent", (typeof(DRStoryEvent), false));
+            _dataTableFlag.Add("StoryOption", (typeof(DRStoryOption), false));
+            _dataTableFlag.Add("StoryItem", (typeof(DRStoryItem), false));
             _dataTableFlag.Add("BattleMapping", (typeof(DRBattleMapping), false));
             _dataTableFlag.Add("CultivationLevel", (typeof(DRCultivationLevel), false));
             foreach (var tableName in _dataTableFlag)

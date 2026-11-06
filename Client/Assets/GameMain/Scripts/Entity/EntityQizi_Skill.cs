@@ -246,6 +246,16 @@ namespace Entity
             {
                 return;
             }
+            if (buff.CanMergeStacks)
+            {
+                foreach (var activeBuff in CurBuffList)
+                {
+                    if (!activeBuff.IsValid || activeBuff.BuffID != buff.BuffID || !activeBuff.CanMergeStacks) continue;
+                    activeBuff.AddMarkLayer();
+                    ReferencePool.Release(buff);
+                    return;
+                }
+            }
             // todo 判断是否有 免疫之类的判断
             if (buff.MaxLayerNum != 0)//有层数限制
             {
@@ -388,11 +398,9 @@ namespace Entity
                 {
                     continue;
                 }
-                buff.RemainMs -= elapseSeconds*1000;
-                if (buff.DurationMs!=0&&buff.RemainMs<=0)
-                {
-                    buff.OnDestory();
-                }
+                if (buff.HasDamageLayers) buff.TickDamageLayers(elapseSeconds * 1000f);
+                else buff.AdvanceDuration(elapseSeconds * 1000f);
+                if (!IsValid) break;
             }
             ListPool<Buff>.Release(tempBuffList);
             for (var i = CurBuffList.Count - 1; i >= 0; i--)
@@ -514,6 +522,18 @@ namespace Entity
             //todo 计算护盾
             var hudunAttr = GetAttribute(AttributeType.HuDun);
             var hpAttr = GetAttribute(AttributeType.Hp);
+            if (damageData.TriggerDamageRelate && damageData.Caster != null)
+            {
+                var weakness = damageData.Caster.FindStatusBuff(BuffTag.Weakened, CommandWeaknessEffect.WeaknessBuffId);
+                if (weakness != null) damageData.DamageValue *= 1f - weakness.paramInt / 100f;
+            }
+            int healthBefore = damageData.TriggerDamageRelate ? (int)hpAttr.GetFinalValue() : 0;
+            damageData.TargetWasBleeding = damageData.TriggerDamageRelate && HasBleeding;
+#if UNITY_EDITOR
+            if (damageData.TriggerDamageRelate)
+                HotGameEntry.HeroManager.SeedPreviewBurnBeforeHit(this, damageData);
+#endif
+            damageData.BurnStacksBeforeHit = damageData.TriggerDamageRelate ? FindStatusBuff(BuffTag.Burning, CommandBurnEffect.BurnBuffId)?.StackCount ?? 0 : 0;
             var shieldValue = (int)hudunAttr.GetFinalValue();
             if (shieldValue >= 0)
             {
@@ -578,17 +598,33 @@ namespace Entity
 
             if (damageData.TriggerDamageRelate)
             {
+                damageData.HealthLost = System.Math.Max(0, healthBefore - (int)hpAttr.GetFinalValue());
+                damageData.BrokenShieldValue = shieldValue > 0 && (int)hudunAttr.GetFinalValue() <= 0 ? shieldValue : 0;
                 damageData.Caster.OnTrigger(TriggerType.AfterCauseDamage,damageData);
                 OnTrigger(TriggerType.AfterBeCauseDamage,damageData);
+                if (damageData.BrokenShieldValue > 0 && IsValid)
+                    OnTrigger(TriggerType.OnShieldBroken, damageData);
             }
             HotGameEntry.HeroManager.ShowDamageNum(damageData);
             
             var curHp = (int)hpAttr.GetFinalValue();
-            if (curHp == 0)
+            if (curHp == 0 && IsValid)
             {
                 //death
                 OnDead();
             }
+        }
+
+        public bool HasBleeding => FindBleedingBuff() != null;
+
+        internal Buff FindBleedingBuff(int id = 0) => FindStatusBuff(BuffTag.Bleeding, id);
+
+        internal Buff FindStatusBuff(BuffTag tag, int id)
+        {
+            foreach (var buff in CurBuffList)
+                if (buff.IsValid && (id == 0 || buff.BuffID == id) && buff.CheckBuffTag(tag))
+                    return buff;
+            return null;
         }
 
         public List<int> GetNormalSkillCheckSort()
