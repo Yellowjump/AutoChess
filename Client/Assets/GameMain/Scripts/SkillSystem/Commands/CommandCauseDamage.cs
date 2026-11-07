@@ -38,16 +38,18 @@ namespace SkillSystem
 
     public class CommandCauseDamage : CommandBase
     {
-        internal static void DealSecondaryDamage(EntityQizi target, long damage)
+        internal static int DealSecondaryDamage(EntityQizi target, long damage, Skill source = null)
         {
-            if (damage <= 0) return;
+            if (damage <= 0) return 0;
             var hit = ReferencePool.Acquire<CauseDamageData>();
             try
             {
                 hit.Target = target;
                 hit.DamageValue = System.Math.Min(damage, 1000000000L);
                 hit.TriggerDamageRelate = false;
-                target.BeCauseDamage(hit);
+                int effective = target.BeCauseDamage(hit);
+                EntityQizi.RecordBattleOutput(source, damage: effective);
+                return effective;
             }
             finally { ReferencePool.Release(hit); }
         }

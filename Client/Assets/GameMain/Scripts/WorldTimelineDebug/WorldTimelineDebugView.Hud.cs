@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 using WorldTimeline;
@@ -17,6 +18,23 @@ namespace WorldTimelineDebug
         public static Action<WorldTimelineDebugView> OpenMapHud { get; set; }
         public static Action<WorldTimelineDebugView> OpenStoryHud { get; set; }
         public bool UsesStoryHud { get; set; }
+        public BattleSettlement PendingBattleSettlement { get; private set; }
+
+        public void ContinueBattleSettlement() => PendingBattleSettlement = null;
+
+        private IEnumerator PresentBattleSettlement(BattleSettlement result)
+        {
+            if (IsRestoringCheckpoint || !UsesStoryHud) yield break;
+            PendingBattleSettlement = result;
+            try
+            {
+                while (PendingBattleSettlement == result && UsesStoryHud) yield return null;
+            }
+            finally { PendingBattleSettlement = null; }
+        }
+
+        public string BattleDropName(int nodeId, int itemId)
+            => DescribeMapLoot(itemId, nodeId).Name;
         public event Action Closed;
         public bool UsesPrefabHud { get; set; }
         public bool IsPreparing => preparing;
@@ -24,14 +42,41 @@ namespace WorldTimelineDebug
         public int SelectedNodeId => selectedNode;
         public NodeState SelectedLocation => simulation.State.Nodes[selectedNode];
         public string PlayerName => startingCultivator?.Name ?? TimelineText("Timeline_UI_86");
-        public string WeaponName => startingCultivator?.Weapon ?? TimelineText("Timeline_UI_87");
-        public string Notice => saveIssue ?? message;
+        public string Notice => saveIssue ?? (LightningNextStop ?? message);
+        private string LightningNextStop
+        {
+            get
+            {
+                var world = simulation?.State;
+                if (world == null || world.IsEnded || world.PlayerControlEnded || simulation.Stories == null) return null;
+                var actor = world.Actors[world.PlayerActorId];
+                if (!actor.IsAlive || actor.Items.Contains(9153)) return null;
+                int optionId = actor.Items.Contains(9152) ? 602 : actor.Items.Contains(9151) ? 702 : 0;
+                var stories = simulation.Stories;
+                if (!stories.Config.Options.TryGetValue(optionId, out var option) ||
+                    stories.ClaimedItems.Contains(option.ItemId) ||
+                    !stories.Config.Events.TryGetValue(option.EventId, out var destination) ||
+                    !world.Nodes.TryGetValue(destination.NodeId, out var node) ||
+                    node.StoryTrialItemId != option.ItemId) return null;
+                return TimelineText("Timeline_LightningNextStop", destination.Title, node.Q, node.R);
+            }
+        }
         public bool AutoObserving => autoObserve;
         public int ObservationSpeed => yearsPerSecond;
         public string CurrentStatus => StatusText();
+        public bool TryGetLearnedTechnique(int id, out TechniqueDefinition definition, out TechniqueProgress progress)
+        {
+            definition = null;
+            progress = null;
+            var state = simulation?.State;
+            return state != null && state.Actors.TryGetValue(state.PlayerActorId, out var actor) &&
+                actor.Techniques.TryGetValue(id, out progress) &&
+                scenarioData?.Techniques?.TryGetValue(id, out definition) == true;
+        }
 
         public string LocationName(NodeState node)
         {
+            if (node.Id == SwordTrialNode && node.IsGuardianGroup) return TimelineText("Timeline_SwordTrial_Name");
             if (simulation.Stories != null && simulation.Stories.TryGetDefinition(node.Id, out var story)) return story.Title;
             return locations.TryGetValue(node.Id, out var row) ? row.Name : node.Id == simulation.State.Ritual.NodeId
                 ? TimelineText("Timeline_UI_88") : node.MonsterHealth > 0 ? TimelineText("Timeline_UI_89") : TimelineText("Timeline_UI_90");
@@ -39,6 +84,9 @@ namespace WorldTimelineDebug
 
         public string LocationKind(NodeState node)
         {
+            if (node.IsMerchant) return TimelineText("Timeline_MerchantKind");
+            if (node.IsGuardianGroup && node.GuardianCount > 0)
+                return TimelineText("Timeline_SwordTrial_Guardians", node.GuardianCount);
             if (node.Id == simulation.State.Ritual.NodeId) return TimelineText("Timeline_UI_91");
             bool story = simulation.Stories != null && simulation.Stories.TryGetDefinition(node.Id, out _);
             if (node.MonsterHealth > 0) return story ? TimelineText("Timeline_UI_92") : TimelineText("Timeline_UI_93");
@@ -50,13 +98,38 @@ namespace WorldTimelineDebug
         }
 
         public bool HasClearedGuardian(NodeState node) => node.MonsterHealth <= 0
-            && (node.HasExplorationGuardian || (locations.TryGetValue(node.Id, out var row) && row.MonsterHealth > 0));
+            && (node.HasExplorationGuardian || node.StoryRequiresGuardianDefeat ||
+                (locations.TryGetValue(node.Id, out var row) && row.MonsterHealth > 0));
+
+        public static string TechniqueName(int id) => id == 1 ? TimelineText("Timeline_Technique_SwordArt")
+            : TimelineText("Timeline_Technique_Number", id);
+
+        public static string DetailFlavor(int skillId, int itemId = 0)
+        {
+            if (itemId != 0)
+            {
+                string key = $"Timeline_Flavor_Item_{itemId}";
+                string text = TimelineText(key);
+                if (text != key) return text;
+            }
+            if (skillId == 0) return "";
+            string skillKey = $"Timeline_Flavor_Skill_{skillId}";
+            string skillText = TimelineText(skillKey);
+            return skillText == skillKey ? "" : skillText;
+        }
+
+        public static string TechniqueSkillName(int id) => id switch
+        {
+            1 => TimelineText("Timeline_Technique_Slash"),
+            1001 => TimelineText("Timeline_Technique_LongReach"),
+            8 => TimelineText("ItemName_FlySwordAnim"),
+            _ => TimelineText("Timeline_Technique_SkillNumber", id)
+        };
 
         public string LocationLoot(NodeState node)
         {
-            locations.TryGetValue(node.Id, out var row);
             return node.Items.Count == 0 ? TimelineText("Timeline_UI_99") : string.Join("、", node.Items.Select(item =>
-                (row != null && row.LootItemId == item ? row.LootName : TimelineText("Timeline_UI_RelicId", item))
+                DescribeMapLoot(item, node.Id).Name
                 + (node.LootAttackBonus > 0 ? TimelineText("Timeline_UI_LootAttack", node.LootAttackBonus) : "")));
         }
 
@@ -69,6 +142,7 @@ namespace WorldTimelineDebug
             get
             {
                 var world = simulation.State;
+                if (SelectedLocation.IsMerchant) return TimelineText("Timeline_MerchantHint");
                 if (selectedNode == world.Ritual.NodeId) return TimelineText("Timeline_UI_100");
                 if (simulation.Stories != null && simulation.Stories.TryGetDefinition(selectedNode, out var story))
                     return story.Text + (SelectedLocation.MonsterHealth > 0 ? TimelineText("Timeline_UI_101") : TimelineText("Timeline_UI_102"));
@@ -83,8 +157,7 @@ namespace WorldTimelineDebug
             get
             {
                 var actor = simulation.State.Actors[simulation.State.PlayerActorId];
-                return TimelineText("Timeline_UI_Talents", actor.Talents.Health.Grade, actor.Talents.Attack.Grade, actor.Talents.Lifespan.Grade)
-                    + TimelineText("Timeline_UI_StartingGear", WeaponName)
+                return $"{TimelineText("Attr_MaxHp")} [{actor.Talents.Health.Grade}]    {TimelineText("Attr_ATK")} [{actor.Talents.Attack.Grade}]\n"
                     + TimelineText("Timeline_UI_CurrentAttack", actor.Attack, actor.CombatAttack)
                     + string.Join("\n", actor.Items.Where(id => simulation.Stories?.Config.Items.ContainsKey(id) == true)
                         .Select(id => simulation.Stories.Config.Items[id].Name + "：" + simulation.Stories.Config.Items[id].Description)) + "\n\n"
@@ -95,8 +168,16 @@ namespace WorldTimelineDebug
 
         public string HistoryDetails => library.Count == 0 ? TimelineText("Timeline_UI_106")
             : string.Join("\n\n", library.Select(entry => (entry.Selected ? TimelineText("Timeline_UI_107") : TimelineText("Timeline_UI_108")) + entry.Name));
-        public string LogDetails => simulation.Events.Count == 0 ? TimelineText("Timeline_UI_109")
-            : string.Join("\n", simulation.Events.Reverse().Take(60).Select(FormatEvent));
+        public string LogDetails
+        {
+            get
+            {
+                string log = simulation.Events.Count == 0 ? TimelineText("Timeline_UI_109")
+                    : string.Join("\n", simulation.Events.Reverse().Take(60).Select(FormatEvent));
+                string next = LightningNextStop;
+                return next == null ? log : next + "\n\n" + log;
+            }
+        }
 
         public bool SelectAtScreen(Vector2 screen)
         {

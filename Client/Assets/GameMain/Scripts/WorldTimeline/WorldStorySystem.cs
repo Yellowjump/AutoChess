@@ -11,11 +11,13 @@ namespace WorldTimeline
         public int Id, NodeId;
         public string Title, Text, Background;
         public bool Repeatable;
+        public bool IsMerchant;
     }
     public sealed class StoryOption
     {
         public int Id, EventId, Value, Weight = 1, ItemId, CostItemId, HealthCost, Heal, Experience, TimeYears;
         public StoryCondition Condition;
+        public int LegacyPrice;
         public string Flag, SetFlag, Text, Result, Hint;
     }
     public sealed class StoryItem
@@ -41,12 +43,12 @@ namespace WorldTimeline
             if (Events.Values.Select(x => x.NodeId).Distinct().Count() != Events.Count) throw new ArgumentException("Duplicate story nodes.");
             foreach (var row in Options.Values)
                 if (row.Id < 1 || !Enum.IsDefined(typeof(StoryCondition), row.Condition) || !Events.ContainsKey(row.EventId)
-                    || row.Weight < 0 || row.HealthCost < 0 || row.TimeYears < 0 || row.Experience < 0 || row.Heal < 0
+                    || row.Weight < 0 || row.HealthCost < 0 || row.TimeYears < 0 || row.Experience < 0 || row.Heal < 0 || row.LegacyPrice < 0
                     || row.ItemId != 0 && !Items.ContainsKey(row.ItemId) || row.CostItemId != 0 && !Items.ContainsKey(row.CostItemId))
                     throw new ArgumentException("Invalid story option " + row.Id);
             foreach (var row in Events.Values)
-                if (Options.Values.Count(o => o.EventId == row.Id) > 4 || !Options.Values.Any(o => o.EventId == row.Id && o.Condition == StoryCondition.Always && o.ItemId == 0
-                    && o.CostItemId == 0 && o.HealthCost == 0 && o.Weight > 0))
+                if ((!row.IsMerchant && Options.Values.Count(o => o.EventId == row.Id) > 4) || !Options.Values.Any(o => o.EventId == row.Id && o.Condition == StoryCondition.Always && o.ItemId == 0
+                    && o.CostItemId == 0 && o.HealthCost == 0 && o.LegacyPrice == 0 && o.Weight > 0))
                     throw new ArgumentException("Story needs an unconditional fallback: " + row.Id);
         }
 
@@ -60,6 +62,9 @@ namespace WorldTimeline
         public StoryConfig WithoutEvents(params int[] eventIds) => new StoryConfig(
             Events.Values.Where(row => !eventIds.Contains(row.Id)),
             Options.Values.Where(row => !eventIds.Contains(row.EventId)), Items.Values, localize);
+
+        public StoryConfig WithoutOptions(params int[] optionIds) => new StoryConfig(
+            Events.Values, Options.Values.Where(row => !optionIds.Contains(row.Id)), Items.Values, localize);
     }
     public sealed class RecordedStoryChoice
     {
@@ -99,25 +104,30 @@ namespace WorldTimeline
         private readonly int seed;
         private readonly Action<WorldEvent> emit;
         private readonly Action<RecordedStoryChoice> record;
-        private readonly Func<int, int, int, int?> historicalChoice;
+        private readonly Func<int, int, int, IEnumerable<RecordedStoryChoice>> historicalChoices;
         private readonly Dictionary<int, StoryDefinition> byNode;
         private readonly Dictionary<long, int> visits = new Dictionary<long, int>();
+        private readonly HashSet<(int ActorId, int MerchantId)> merchantClaims = new HashSet<(int, int)>();
         private readonly RecordedStoryChoice[] playerReplay;
         private int? decision;
 
         internal WorldStorySystem(WorldState world, StoryConfig config, CultivationConfig growth, int seed,
-            Action<WorldEvent> emit, Action<RecordedStoryChoice> record, Func<int, int, int, int?> historicalChoice,
+            Action<WorldEvent> emit, Action<RecordedStoryChoice> record, Func<int, int, int, IEnumerable<RecordedStoryChoice>> historicalChoices,
             IEnumerable<RecordedStoryChoice> playerReplay)
         {
             this.world = world; Config = config; this.growth = growth; this.seed = seed;
-            this.emit = emit; this.record = record; this.historicalChoice = historicalChoice;
+            this.emit = emit; this.record = record; this.historicalChoices = historicalChoices;
             byNode = config.Events.Values.ToDictionary(x => x.NodeId);
             this.playerReplay = playerReplay?.ToArray() ?? Array.Empty<RecordedStoryChoice>();
         }
         public bool TryGetDefinition(int nodeId, out StoryDefinition definition) => byNode.TryGetValue(nodeId, out definition);
+        private readonly HashSet<int> revisitOptions = new HashSet<int>();
+        public void AllowOptionsOnRevisit(params int[] optionIds) => revisitOptions.UnionWith(optionIds);
         public string UnavailableReason(ActorState actor, StoryOption option)
         {
             if (option.ItemId != 0 && ClaimedItems.Contains(option.ItemId)) return Config.Format("Timeline_UI_StoryClaimed", "遗物已被先行者取走");
+            if (world.Year <= world.LegacyTradeThroughYear && option.LegacyPrice > actor.LegacySpiritStones)
+                return Config.Format("Timeline_MerchantInsufficient", "灵石不足");
             if (option.CostItemId != 0 && !actor.Items.Contains(option.CostItemId))
                 return Config.Format("Timeline_UI_StoryMissingItem", "缺少 {0}", Config.Items[option.CostItemId].Name);
             int healthAfterItem = option.CostItemId == 0 ? actor.Health : Math.Max(1, actor.Health - Config.Items[option.CostItemId].HealthBonus);
@@ -148,14 +158,23 @@ namespace WorldTimeline
             if (!actor.IsAlive || actor.LeaderId.HasValue || actor.HasJoinedChosen || world.IsEnded || !byNode.TryGetValue(nodeId, out var definition)) yield break;
             long key = ((long)(uint)actor.Id << 32) | (uint)definition.Id;
             visits.TryGetValue(key, out int occurrence);
-            if (occurrence > 0 && !definition.Repeatable) yield break;
+            var options = Config.Options.Values.Where(x => x.EventId == definition.Id);
+            if (occurrence > 0 && !definition.Repeatable)
+                options = options.Where(option => revisitOptions.Contains(option.Id) && UnavailableReason(actor, option) == null);
+            var availableOptions = options.OrderBy(x => x.Id).ToArray();
+            if (availableOptions.Length == 0) yield break;
             occurrence++; visits[key] = occurrence;
             var context = new StoryEncounter { Definition = definition, Actor = actor, Occurrence = occurrence,
-                Options = Config.Options.Values.Where(x => x.EventId == definition.Id).OrderBy(x => x.Id).ToArray() };
+                Options = availableOptions };
             bool interactive = actor.Id == world.PlayerActorId && InteractivePlayer && !world.PlayerControlEnded;
-            int? remembered = actor.Id == world.PlayerActorId
-                ? playerReplay.FirstOrDefault(x => x.EventId == definition.Id && x.Occurrence == occurrence)?.OptionId
-                : historicalChoice(actor.Id, definition.Id, occurrence);
+            var remembered = actor.Id == world.PlayerActorId
+                ? playerReplay.Where(x => x.EventId == definition.Id && x.Occurrence == occurrence)
+                : historicalChoices(actor.Id, definition.Id, occurrence);
+            if (definition.IsMerchant)
+            {
+                yield return ResolveMerchant(context, interactive, remembered);
+                yield break;
+            }
             StoryOption chosen = null;
             if (interactive)
             {
@@ -166,7 +185,8 @@ namespace WorldTimeline
             }
             else
             {
-                chosen = context.Options.FirstOrDefault(x => x.Id == remembered && UnavailableReason(actor, x) == null);
+                int? optionId = remembered?.FirstOrDefault()?.OptionId;
+                chosen = context.Options.FirstOrDefault(x => x.Id == optionId && UnavailableReason(actor, x) == null);
                 if (chosen == null) chosen = Automatic(context);
             }
             var result = Apply(context, chosen);
@@ -177,6 +197,55 @@ namespace WorldTimeline
             {
                 PendingResult = result;
                 while (PendingResult != null) yield return null;
+            }
+        }
+
+        private IEnumerator ResolveMerchant(StoryEncounter context, bool interactive, IEnumerable<RecordedStoryChoice> remembered)
+        {
+            var actor = context.Actor;
+            var claim = (actor.Id, context.Definition.Id);
+            bool legacyTrade = world.Year <= world.LegacyTradeThroughYear;
+            if (!legacyTrade && merchantClaims.Contains(claim)) yield break;
+            if (!interactive)
+            {
+                foreach (var choice in remembered ?? Enumerable.Empty<RecordedStoryChoice>())
+                {
+                    var option = context.Options.FirstOrDefault(x => x.Id == choice.OptionId);
+                    if (option == null) continue;
+                    if (option.ItemId == 0) break;
+                    if (UnavailableReason(actor, option) == null) CommitPurchase(option);
+                    if (!legacyTrade) break;
+                }
+                yield break;
+            }
+            while (true)
+            {
+                decision = null;
+                PendingChoice = context;
+                while (!decision.HasValue) yield return null;
+                var option = context.Options.Single(x => x.Id == decision.Value);
+                if (option.ItemId == 0)
+                {
+                    record(new RecordedStoryChoice(context.Definition.Id, context.Occurrence, option.Id));
+                    PendingChoice = null;
+                    yield break;
+                }
+                CommitPurchase(option);
+                if (!legacyTrade)
+                {
+                    PendingChoice = null;
+                    yield break;
+                }
+            }
+
+            void CommitPurchase(StoryOption option)
+            {
+                var result = Apply(context, option);
+                merchantClaims.Add(claim);
+                if (actor.Id == world.PlayerActorId)
+                    record(new RecordedStoryChoice(context.Definition.Id, context.Occurrence, option.Id));
+                emit(new WorldEvent(world.Year, WorldEventKind.StoryResolved, actor.Id, context.Definition.NodeId,
+                    context.Definition.Title + " · " + result.Text.Trim()));
             }
         }
 
@@ -197,6 +266,8 @@ namespace WorldTimeline
         {
             var actor = context.Actor;
             if (UnavailableReason(actor, option) != null) throw new InvalidOperationException("Story conditions changed before resolution.");
+            if (world.Year <= world.LegacyTradeThroughYear && !actor.TrySpendLegacySpiritStones(option.LegacyPrice))
+                throw new InvalidOperationException("Story purchase could not be paid.");
             var rewards = new List<string>();
             if (option.CostItemId != 0)
             {
@@ -208,6 +279,7 @@ namespace WorldTimeline
             if (option.ItemId != 0)
             {
                 var item = Config.Items[option.ItemId]; ClaimedItems.Add(item.Id); actor.Items.Add(item.Id); ApplyItem(actor, item, 1);
+                actor.CheckTechniqueItems();
                 rewards.Add(Config.Format("Timeline_UI_StoryObtained", "获得 {0}：{1}", item.Name, item.Description));
             }
             if (option.Heal > 0)

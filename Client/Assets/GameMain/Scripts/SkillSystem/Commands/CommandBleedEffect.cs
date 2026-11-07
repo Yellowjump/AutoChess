@@ -24,11 +24,12 @@ namespace SkillSystem
             }
 
             if (arg is not CauseDamageData hit || hit.DamageValue <= 0) return;
+            var source = trigger.ParentTriggerList.ParentSkill;
             switch (Mode)
             {
                 case Effect.ApplyBleed:
                     if (hit.SourceSkill?.IsBasicAttack == true && (int)hit.Target.GetAttribute(AttributeType.Hp).GetFinalValue() > 0)
-                        ApplyBleed(hit);
+                        ApplyBleed(hit, source);
                     break;
                 case Effect.Amplify:
                     if (hit.Target.HasBleeding)
@@ -36,12 +37,17 @@ namespace SkillSystem
                     break;
                 case Effect.Heal:
                     if (hit.TargetWasBleeding && hit.HealthLost > 0 && hit.Caster.IsValid)
-                        hit.Caster.GetAttribute(AttributeType.Hp).AddNum((int)(hit.HealthLost * (long)Param.Value / 100));
+                    {
+                        var health = hit.Caster.GetAttribute(AttributeType.Hp);
+                        int before = (int)health.GetFinalValue();
+                        health.AddNum((int)(hit.HealthLost * (long)Param.Value / 100));
+                        EntityQizi.RecordBattleOutput(source, healing: (int)health.GetFinalValue() - before);
+                    }
                     break;
             }
         }
 
-        private void ApplyBleed(CauseDamageData hit)
+        private void ApplyBleed(CauseDamageData hit, Skill source)
         {
             var rows = GameEntry.DataTable.GetDataTable<DRBuff>("Buff");
             var templates = GameEntry.DataTable.GetDataTable<DRBuffTemplate>("BuffTemplate");
@@ -57,7 +63,7 @@ namespace SkillSystem
                 bleed.Owner = hit.Target;
             }
             int attack = (int)hit.Caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
-            bleed.AddDamageLayer(Math.Max(1, (int)(attack * (long)row.IntParam1 / 100)));
+            bleed.AddDamageLayer(Math.Max(1, (int)(attack * (long)row.IntParam1 / 100)), source);
             if (isNew) hit.Target.AddBuff(bleed);
         }
 

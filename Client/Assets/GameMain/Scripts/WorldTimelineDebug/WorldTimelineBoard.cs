@@ -79,6 +79,8 @@ namespace WorldTimelineDebug
         private WorldTimelineMapLayout mapLayout;
         private WorldTimelineInkMap inkMap;
         public WorldTimelineInkMap InkMap => inkMap;
+        internal Vector4 WeatherField => new Vector4(origin.x, origin.z, 1f / unit, 1f);
+        internal float PlayerDusk { get; private set; }
         private bool Ink => mapLayout != null && mapLayout.InkPalette;
         public int OverlayDrawCount { get; private set; }
         private Color PlayerColor => Ink ? new Color(.29f, .43f, .38f) : Blue;
@@ -125,6 +127,7 @@ namespace WorldTimelineDebug
             meshes.Add(markerMesh);
             origin = layout.Origin;
             boardRadius = world.Nodes.Values.Max(n => Mathf.Max(Mathf.Abs(n.Q), Mathf.Abs(n.R), Mathf.Abs(n.Q + n.R)));
+            UpdatePlayerWeather(world);
             unit = layout.NodeSpacing;
             focus = origin;
             boardCamera = Camera.main;
@@ -171,6 +174,7 @@ namespace WorldTimelineDebug
         public void Sync(WorldState world, int selectedNode)
         {
             state = world;
+            UpdatePlayerWeather(world);
             var player = world.Actors[1];
             var groups = world.Actors.Values.Where(actor => actor.IsAlive)
                 .Select(actor => ActorMapProjection.Position(world, actor))
@@ -182,6 +186,7 @@ namespace WorldTimelineDebug
                 bool reachable = player.NodeId.HasValue && world.Nodes[player.NodeId.Value].Links.Contains(node.Id);
                 var color = new Color(.66f, .79f, .69f);
                 if (node.IsCultivationSite) color = new Color(.32f, .58f, .51f);
+                if (node.IsMerchant) color = new Color(.81f, .60f, .26f);
                 if (node.Items.Count > 0) color = new Color(.98f, .73f, .28f);
                 if (node.MonsterHealth > 0) color = new Color(.97f, .39f, .31f);
                 if (world.Ritual.NodeId == node.Id) color = Purple;
@@ -191,12 +196,13 @@ namespace WorldTimelineDebug
                 {
                     color = node.MonsterHealth > 0 ? new Color(.31f, .32f, .30f) : new Color(.80f, .79f, .75f);
                     if (node.IsCultivationSite) color = new Color(.48f, .59f, .53f);
+                    if (node.IsMerchant) color = new Color(.69f, .51f, .27f);
                     if (node.Items.Count > 0) color = new Color(.61f, .59f, .53f);
                     if (reachable) color = PlayerColor;
                     if (selectedNode == node.Id) color = SelectedColor;
                 }
                 tile.Important = reachable || selectedNode == node.Id || world.Ritual.NodeId == node.Id
-                    || node.MonsterHealth > 0 || node.Items.Count > 0 || node.IsCultivationSite || groups.ContainsKey((node.Q, node.R));
+                    || node.MonsterHealth > 0 || node.Items.Count > 0 || node.IsCultivationSite || node.IsMerchant || groups.ContainsKey((node.Q, node.R));
                 tile.Highlighted = reachable || selectedNode == node.Id || world.Ritual.NodeId == node.Id
                     || groups.ContainsKey((node.Q, node.R));
                 tile.Color = color;
@@ -354,6 +360,7 @@ namespace WorldTimelineDebug
         private void DrawMarkers(CommandBuffer cmd, bool border)
         {
             int count = 0;
+            float dusk = Ink && inkMap != null ? inkMap.Dusk : 0f;
             foreach (var pair in tiles)
             {
                 var tile = pair.Value;
@@ -364,7 +371,9 @@ namespace WorldTimelineDebug
                     Vector3.one * radius);
                 Color color = border ? (HoveredNode == pair.Key ? Color.white : new Color(.04f, .06f, .08f)) : tile.Color;
                 if (Ink && border && !tile.Highlighted && HoveredNode != pair.Key)
-                    color = new Color(.47f, .48f, .46f);
+                    color = Color.Lerp(new Color(.47f, .48f, .46f), new Color(.15f, .18f, .23f), dusk);
+                if (!border && dusk > 0f)
+                    color = Color.Lerp(color, new Color(.79f, .85f, .88f), .48f * dusk);
                 if (!SystemInfo.supportsInstancing)
                 {
                     properties.Clear();
@@ -388,6 +397,17 @@ namespace WorldTimelineDebug
             properties.Clear();
             properties.SetVectorArray(MarkerColor, markerColors);
             cmd.DrawMeshInstanced(markerMesh, 0, overlay, 0, markerMatrices, count, properties);
+        }
+
+        private void UpdatePlayerWeather(WorldState world)
+        {
+            // Retain the last observed weather after the player dies.
+            if (!world.Actors.TryGetValue(world.PlayerActorId, out var player) || !player.IsAlive) return;
+            var point = ActorMapProjection.Position(world, player);
+            float q = (float)point.Q;
+            float r = (float)point.R;
+            float distance = Mathf.Max(Mathf.Abs(q), Mathf.Max(Mathf.Abs(r), Mathf.Abs(q + r)));
+            PlayerDusk = Mathf.SmoothStep(1f, 0f, Mathf.InverseLerp(.12f, .88f, distance / Mathf.Max(1f, boardRadius)));
         }
         public void SetViewport(Rect screenRect)
         {

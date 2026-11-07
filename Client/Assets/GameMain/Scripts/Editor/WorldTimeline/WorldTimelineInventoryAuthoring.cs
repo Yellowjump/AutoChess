@@ -30,6 +30,9 @@ public static class WorldTimelineInventoryAuthoring
 #pragma warning restore 0618
         importer.SaveAndReimport();
         var icons=AssetDatabase.LoadAllAssetsAtPath(Icons).OfType<Sprite>().OrderBy(x=>x.name).ToArray();
+        var techniqueIcons = new[] { "technique_icons", "technique_blood_icons", "technique_fire_icons", "technique_opening_icons", "technique_thunder_ward_icons" }
+            .SelectMany(atlas => AssetDatabase.LoadAllAssetsAtPath($"Assets/GameMain/Image/WorldTimeline/{atlas}.png").OfType<Sprite>())
+            .ToDictionary(sprite => sprite.name);
         var portraits=AssetDatabase.LoadAllAssetsAtPath("Assets/GameMain/Image/WorldTimeline/Selection/cultivator_portraits.png").OfType<Sprite>().OrderBy(x=>x.name).ToArray();
         var theme=AssetDatabase.LoadAllAssetsAtPath("Assets/GameMain/Image/WorldTimeline/cultivation_ui_atlas.png").OfType<Sprite>().ToArray();
         paper=theme.Single(x=>x.name=="Paper");slate=theme.Single(x=>x.name=="Slate");
@@ -47,7 +50,7 @@ public static class WorldTimelineInventoryAuthoring
             var fitter=new SerializedObject(root.AddComponent<WorldTimelinePreparationLayout>());
             fitter.FindProperty("content").objectReferenceValue=content;fitter.ApplyModifiedPropertiesWithoutUndo();
             Label(content,"题签","本 世 行 囊",50,105,380,32,21,Ink);
-            Label(content,"Title","随 身 装 备",580,98,760,46,38,Ink,TextAlignmentOptions.Center);
+            Label(content,"Title","BtnBag",580,98,760,46,38,Ink,TextAlignmentOptions.Center);
             Bind(binding,"close",Button(content,"返回山河",1640,100,230,42,"返回山河",22));
             var left=Image(content,"本世修士",paper,36,150,400,840).transform;
             Bind(binding,"portrait",Image(left,"Portrait",portraits[0],30,28,340,420,false));
@@ -59,20 +62,31 @@ public static class WorldTimelineInventoryAuthoring
                 Label(left,"Label"+i,statLabels[i],32,590+i*54,155,35,23,Ink);
                 Bind(binding,statFields[i],Label(left,"Value"+i,"—",190,590+i*54,175,35,24,Ink,TextAlignmentOptions.Right));
             }
-            Label(left,"Rule","持有即生效",35,766,330,32,22,Ink,TextAlignmentOptions.Center);
             var middle=Image(content,"物品目录",paper,454,150,900,840).transform;
-            var filters=binding.FindProperty("filters");var fills=binding.FindProperty("filterFills");filters.arraySize=fills.arraySize=4;
-            string[] labels={"全部","兵器","遗物","功法"};
-            for(int i=0;i<4;i++)
+            var filters=binding.FindProperty("filters");var fills=binding.FindProperty("filterFills");filters.arraySize=fills.arraySize=3;
+            string[] labels={"全部","遗物","功法"};
+            for(int i=0;i<labels.Length;i++)
             {
-                var button=Button(middle,"分类_"+labels[i],30+i*213,24,198,58,labels[i],25);
+                var button=Button(middle,"分类_"+labels[i],30+i*280,24,270,58,labels[i],25);
                 filters.GetArrayElementAtIndex(i).objectReferenceValue=button;fills.GetArrayElementAtIndex(i).objectReferenceValue=button.targetGraphic;
             }
             Bind(binding,"quantity",Label(middle,"持有数量","随身 1 件 · 数量不限",35,105,830,40,26,Ink,TextAlignmentOptions.Center));
+            var viewport = Image(middle, "Inventory Scroll", null, 20, 152, 860, 665);
+            viewport.color = Color.clear;
+            viewport.raycastTarget = true;
+            viewport.gameObject.AddComponent<RectMask2D>();
+            var items = Rect(viewport.transform, "Items", 0, 0, 860, 665);
+            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport = viewport.rectTransform;
+            scroll.content = items;
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 56;
+            Bind(binding, "itemScroll", scroll);
             var slots=binding.FindProperty("slots");slots.arraySize=12;
             for(int i=0;i<12;i++)
             {
-                var card=Image(middle,"物品卡_"+i,paper,28+i%4*212,160+i/4*197,198,186);
+                var card=Image(items,"物品卡_"+i,paper,8+i%4*212,8+i/4*197,198,186);
                 var button=card.gameObject.AddComponent<Button>();button.targetGraphic=card;card.raycastTarget=true;
                 var outline=card.gameObject.AddComponent<Outline>();outline.effectColor=Jade;outline.effectDistance=new Vector2(3,-3);outline.enabled=i==0;
                 var icon=Image(card.transform,"Icon",icons[i],15,12,168,130,false);
@@ -82,9 +96,6 @@ public static class WorldTimelineInventoryAuthoring
             }
             var empty=Rect(middle,"Empty",70,295,760,220);Bind(binding,"empty",empty.gameObject);
             Bind(binding,"emptyText",Label(empty,"Text","此类物品尚未获得",0,75,760,60,29,Ink,TextAlignmentOptions.Center));empty.gameObject.SetActive(false);
-            Bind(binding,"previousPage",Button(middle,"上一页",190,765,160,48,"上一页",22));
-            Bind(binding,"pageLabel",Label(middle,"Page","1 / 1",365,773,170,35,24,Ink,TextAlignmentOptions.Center));
-            Bind(binding,"nextPage",Button(middle,"下一页",550,765,160,48,"下一页",22));
             var right=Image(content,"物品详情面板",slate,1374,150,510,840).transform;
             Label(right,"EmptyHint","选择一件物品\n查看详细记载",55,325,400,120,27,Ivory,TextAlignmentOptions.Center);
             var detail=Image(right,"详情内容",slate,0,0,510,840);Bind(binding,"detail",detail.gameObject);
@@ -93,9 +104,17 @@ public static class WorldTimelineInventoryAuthoring
             Bind(binding,"itemKind",Label(detail.transform,"Kind","兵器",45,432,420,32,23,Ivory,TextAlignmentOptions.Center));
             Bind(binding,"description",Label(detail.transform,"Description","随身兵器。",45,495,420,180,24,Ivory));
             Bind(binding,"origin",Label(detail.transform,"Origin","初始随身",45,703,420,55,21,Ivory));
-            Bind(binding,"ownership",Label(detail.transform,"State","随身持有",45,771,420,30,21,Ivory));
-            Label(content,"Footer","兵器、遗物与功法均在此查看。",350,1014,1220,35,23,Ink,TextAlignmentOptions.Center);
-            Array(binding,"itemIcons",icons);Array(binding,"portraits",portraits);
+            var relicIcons = AssetDatabase.LoadAllAssetsAtPath("Assets/GameMain/Image/WorldTimeline/exploration_treasure_atlas.png")
+                .OfType<Sprite>().Where(sprite => sprite.name.StartsWith("Relic", StringComparison.Ordinal))
+                .OrderBy(sprite => sprite.name);
+            Array(binding,"itemIcons",icons.Concat(relicIcons).ToArray());Array(binding,"portraits",portraits);
+            var iconNames = new[] { "Slash", "LongReach", "Flight", "TideBell",
+                "Skill9121", "Skill9122", "Skill9123", "Skill9124",
+                "Skill9131", "Skill9132", "Skill9133", "Skill9134",
+                "Skill9141", "Skill9142", "Skill9143", "Skill9144",
+                "Skill9112", "Skill9111", "Skill3", "Skill4", "Skill9103",
+                "Skill9151", "Skill9152", "Skill9153", "Skill9102" };
+            Array(binding, "techniqueIcons", iconNames.Select(name => techniqueIcons[name]).ToArray());
             binding.ApplyModifiedPropertiesWithoutUndo();PrefabUtility.SaveAsPrefabAsset(root,PrefabPath);AssetDatabase.SaveAssets();
         }
         finally{Object.DestroyImmediate(root);}
@@ -114,7 +133,7 @@ public static class WorldTimelineInventoryAuthoring
             var rect=(RectTransform)growth.transform;rect.sizeDelta=new Vector2(98,42);
             var growthLabel=growth.GetComponentInChildren<TMP_Text>();growthLabel.text="修行";growthLabel.rectTransform.sizeDelta=new Vector2(82,34);
             var equipRect=(RectTransform)equipment.transform;equipRect.anchoredPosition=rect.anchoredPosition+new Vector2(109,0);equipRect.sizeDelta=new Vector2(98,42);
-            var label=equipment.GetComponentInChildren<TMP_Text>();label.text="装备";label.rectTransform.sizeDelta=new Vector2(82,34);
+            var label=equipment.GetComponentInChildren<TMP_Text>();label.text="BtnBag";label.rectTransform.sizeDelta=new Vector2(82,34);
             Bind(bind,"equipment",equipment);bind.ApplyModifiedPropertiesWithoutUndo();PrefabUtility.SaveAsPrefabAsset(contents,path);
         }
         finally{PrefabUtility.UnloadPrefabContents(contents);}

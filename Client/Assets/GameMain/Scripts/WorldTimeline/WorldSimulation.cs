@@ -29,18 +29,20 @@ namespace WorldTimeline
             foreach (var actor in state.Actors.Values)
                 if (!actor.NodeId.HasValue || !state.Nodes.ContainsKey(actor.NodeId.Value))
                     throw new ArgumentException("Initial actor node missing.");
-            encounters = new EncounterSystem(battle ?? new SimpleWorldBattleResolver());
+            encounters = new EncounterSystem(battle ?? new SimpleWorldBattleResolver()) { Growth = cultivation };
             recorder = new LifeRecorder(Player);
         }
 
         public LifeRecord RecordPlayerLife() => recorder.Snapshot(State.Year);
+        public void SetBattleSettlementPresenter(Func<BattleSettlement, IEnumerator> presenter)
+            => encounters.PresentSettlement = presenter;
         public void ConfigureStories(StoryConfig config, int seed = 1, bool interactivePlayer = false,
             IEnumerable<RecordedStoryChoice> replayPlayerChoices = null)
         {
             if (State.Year != 0 || Stories != null) throw new InvalidOperationException("Configure stories once at year zero.");
             Stories = new WorldStorySystem(State, config, Cultivation, seed, Emit, recorder.RecordStoryChoice,
                 (actor, story, occurrence) => histories.FirstOrDefault(h => h.ActorId == actor && h.Status == HistoryReplayStatus.Replaying)
-                    ?.Record.StoryChoices.FirstOrDefault(c => c.EventId == story && c.Occurrence == occurrence)?.OptionId,
+                    ?.Record.StoryChoices.Where(c => c.EventId == story && c.Occurrence == occurrence),
                 replayPlayerChoices) { InteractivePlayer = interactivePlayer };
             encounters.StoryResolver = Stories.ResolveRoutine;
         }
@@ -165,11 +167,11 @@ namespace WorldTimeline
             var actors = State.Actors.Values.OrderBy(a => a.Id).ToList();
             var arrivals = new List<int>();
 
-            // Lifespan expires before actions complete in this year.
+            bool replayLegacyLifespan = State.Year <= State.LegacyLifespanDeathThroughYear;
             foreach (var actor in actors.Where(a => a.IsAlive))
             {
                 actor.Age++;
-                if (actor.Age < actor.Lifespan) continue;
+                if (!replayLegacyLifespan || actor.Age < actor.Lifespan) continue;
                 int? node = actor.NodeId;
                 if (actor.Id == State.ChosenActorId && !node.HasValue && actor.CurrentAction != null)
                 {

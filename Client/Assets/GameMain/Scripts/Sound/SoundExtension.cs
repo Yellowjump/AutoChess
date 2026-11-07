@@ -5,6 +5,7 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using System;
 using DataTable;
 using GameFramework;
 using GameFramework.DataTable;
@@ -17,11 +18,18 @@ namespace UnityGameFramework.Runtime
     {
         private const float FadeVolumeDuration = 1f;
         private static int? s_MusicSerialId = null;
+        private static string s_MusicAssetPath;
 
         public static int? PlayMusic(this SoundComponent soundComponent, int musicId, object userData = null)
         {
+            string musicAssetPath = GetMusicAssetPath(musicId);
+            return musicAssetPath == null ? null : soundComponent.PlayMusic(musicAssetPath, userData);
+        }
+
+        private static string GetMusicAssetPath(int musicId)
+        {
             IDataTable<DRSound> dtMusicAsset = GameEntry.DataTable.GetDataTable<DRSound>("Sound");
-            DRSound drMusic = dtMusicAsset.GetDataRow(musicId);
+            DRSound drMusic = dtMusicAsset?.GetDataRow(musicId);
             if (drMusic == null)
             {
                 Log.Warning("Can not load music '{0}' from sound table.", musicId.ToString());
@@ -34,7 +42,7 @@ namespace UnityGameFramework.Runtime
                 Log.Warning("Can not load music '{0}' from asset table.", drMusic.AssetId.ToString());
                 return null;
             }
-            return soundComponent.PlayMusic(musicAssetPath, userData);
+            return musicAssetPath;
         }
 
         public static int? PlayMusic(this SoundComponent soundComponent, string musicAssetPath, object userData = null)
@@ -48,7 +56,38 @@ namespace UnityGameFramework.Runtime
             playSoundParams.FadeInSeconds = FadeVolumeDuration;
             playSoundParams.SpatialBlend = 0f;
             s_MusicSerialId = soundComponent.PlaySound(musicAssetPath, "BGM", ConstValue.AssetPriority.MusicAsset, playSoundParams, null, userData);
+            s_MusicAssetPath = s_MusicSerialId.HasValue ? musicAssetPath : null;
             return s_MusicSerialId;
+        }
+
+        internal static IDisposable PlayTemporaryMusic(this SoundComponent soundComponent, int musicId)
+        {
+            string musicAssetPath = GetMusicAssetPath(musicId);
+            if (musicAssetPath == null) return null;
+            string previousMusic = s_MusicAssetPath;
+            int? serialId = soundComponent.PlayMusic(musicAssetPath);
+            return new TemporaryMusic(soundComponent, serialId, previousMusic);
+        }
+
+        private sealed class TemporaryMusic : IDisposable
+        {
+            private readonly SoundComponent sound;
+            private readonly int? serialId;
+            private readonly string previousMusic;
+
+            public TemporaryMusic(SoundComponent sound, int? serialId, string previousMusic)
+            {
+                this.sound = sound;
+                this.serialId = serialId;
+                this.previousMusic = previousMusic;
+            }
+
+            public void Dispose()
+            {
+                if (sound == null || s_MusicSerialId != serialId) return;
+                if (previousMusic == null) sound.StopMusic();
+                else sound.PlayMusic(previousMusic);
+            }
         }
 
         public static void StopMusic(this SoundComponent soundComponent)
@@ -60,6 +99,7 @@ namespace UnityGameFramework.Runtime
 
             soundComponent.StopSound(s_MusicSerialId.Value, FadeVolumeDuration);
             s_MusicSerialId = null;
+            s_MusicAssetPath = null;
         }
 
         public static int? PlaySfxSound(this SoundComponent soundComponent, int soundId, Vector3 worldPos, object userData = null)

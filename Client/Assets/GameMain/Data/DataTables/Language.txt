@@ -415,3 +415,113 @@
 	22152	流血路线	Timeline_StoryOption_1002_Result	血玉入手微温。	The bloodstone feels warm in your hand.
 	22153	流血路线	Timeline_StoryOption_1003_Text	谢过药师，继续赶路	Thank the apothecary and leave
 	22154	流血路线	Timeline_StoryOption_1003_Result	你道别后继续前行。	You say farewell and continue on your way.
+	22161	怪物普攻	ItemName_9190	守怪扑击	Guardian Lunge
+	22162	怪物普攻	ItemDesc_9190	守怪向近处的敌人扑击。	The guardian lunges at nearby enemies.
+	22163	怪物普攻	ItemName_9191	逆潮咬	Undertow Bite
+	22164	怪物普攻	ItemDesc_9191	沉舟水妖缩身蓄力，扑咬近处的敌人。	The wreck beast coils and bites nearby enemies.
+	22165	怪物普攻	ItemName_9192	断碑重砸	Stele Slam
+	22166	怪物普攻	ItemDesc_9192	守隘石傀举起双臂，砸击近处的敌人。	The gate golem raises both arms and smashes nearby enemies.
+	22167	怪物普攻	ItemName_9193	碎印冲击	Seal Shatter
+	22168	怪物普攻	ItemDesc_9193	归墟阵灵收拢阵片，撞击近处的敌人。	The ritual wraith gathers its shards and charges nearby enemies.
+	22169	飞剑归鞘	Timeline_SwordRecall_Description	飞剑归鞘：自动飞剑和持续飞剑穿过目标后原路折返。每柄剑去程和回程各能命中同一敌人一次。	Sword Recall: Auto Flying Sword and Sustained Flying Sword pierce their targets and retrace their paths. Each sword can hit the same enemy once in each direction.
+	22170	功法界面	Timeline_Technique_Title	功法进阶	Technique Progression
+	22171	功法界面	Timeline_Technique_SwordArt	御剑诀	Sword Art
+	22172	功法界面	Timeline_Technique_Number	功法 #{0}	Technique #{0}
+	22173	功法界面	Timeline_Technique_Unlearned	尚未习得	Not Learned
+	22174	功法界面	Timeline_Technique_Complete	已达最高阶	Maximum Rank
+	22175	功法界面	Timeline_Technique_Stage	第 {0} 阶  ·  {1}	Rank {0}  ·  {1}
+	22176	功法界面	Timeline_Technique_Current	当前	Current
+	22177	功法界面	Timeline_Technique_Unlocked	已解锁	Unlocked
+	22178	功法界面	Timeline_Technique_Experience	功法经验 {0} / {1}	Technique XP {0} / {1}
+	22179	功法界面	Timeline_Technique_Kills	本阶技能击杀 {0} / {1}	Kills with current skill {0} / {1}
+	22180	功法界面	Timeline_Technique_Item	所需道具：{0}	Required item: {0}
+	22181	功法界面	Timeline_Technique_Starting	习得功法时解锁	Unlocked when learned
+	22182	功法界面	Timeline_Technique_Slash	挥砍	Slash
+	22183	功法界面	Timeline_Technique_LongReach	长兵挥斩	Long-Reach Slash
+	22184	功法界面	Timeline_Technique_SkillNumber	技能 #{0}	Skill #{0}
+	22185	功法界面	Timeline_Technique_ItemHeld	已持有	Owned
+	22186	功法界面	Timeline_Technique_ItemMissing	未持有	Missing
+	22187	试剑坡	Timeline_SwordTrial_Name	临溪试剑坡	Linxi Sword Trial
+	22188	试剑坡	Timeline_SwordTrial_Guardians	战斗关卡 · 守怪 {0} 只	Battle · {0} guardians
+	22189	试剑坡	Timeline_SwordTrial_Experience	御剑诀经验 +{0}（{1} / {2}）	Sword Art XP +{0} ({1} / {2})
+	22190	试剑坡	Timeline_SwordTrial_Kills	御剑诀本阶击杀 +{0}（{1} / {2}）	Sword Art skill kills +{0} ({1} / {2})
+	22191	试剑坡	Timeline_SwordTrial_RankUp	御剑诀进阶至第 {0} 阶，下场使用「{1}」	Sword Art reached Rank {0}. Next battle: {1}.
+	22192	功法界面	Timeline_Technique_SlashDescription	朝最近的敌人挥砍。\n基础伤害：{0} = [20 + 100%Attr_ATK]	Slash at the nearest enemy.\nBase damage: {0} = [20 + 100%Attr_ATK]
+	22193	闲话	Timeline_Flavor_Skill_1	莽夫必备。讲究的人管这叫起手式。	A brawler’s essential. The refined call it an opening move.
+	22194	闲话	Timeline_Flavor_Skill_1001	兵器长一寸，胆子就大一寸。	An inch more reach, an inch more courage.
+	22195	闲话	Timeline_Flavor_Skill_8	师父只教了怎么放剑。收剑这事，是弟子后来自己悟的。	The master only taught them how to send the swords flying. Calling them home took some figuring out.
+	22196	闲话	Timeline_Flavor_Item_9104	临溪的船家说，夜里听见铃响，就知道还有船没靠岸。	The Linxi boatfolk say that if you hear a bell after dark, a boat is still out on the water.
+	22197	功法详情	Timeline_Technique_LongReachDescription	朝当前目标方向横扫，命中前方扇形内的敌人。\n每名目标的基础伤害：{0} = [{1}%Attr_ATK]	Sweep toward the current target, hitting enemies in a cone.\nBase damage per enemy: {0} = [{1}%Attr_ATK]
+	22198	功法详情	Timeline_Technique_FlightDescription	施法期间每 0.2 秒放出一柄飞剑，瞄准攻击范围内的敌人，并穿过沿途目标。收招时在敌人最密集处引爆剑气。\n每次命中的基础伤害：{0} = [100%Attr_ATK]	Release a sword every 0.2s while casting. Each sword aims at an enemy in range and pierces enemies along its path. The cast ends with a burst where enemies are most clustered.\nBase damage per hit: {0} = [100%Attr_ATK]
+	22199	功法详情	Timeline_Technique_BellShieldDescription	摇铃护身，生成持续 4 秒的护盾，同类护盾不可叠加。\n基础护盾值：{0} = [10%Attr_MaxHp]	Ring the bell to gain a 4-second shield. Shields of this kind do not stack.\nBase shield: {0} = [10%Attr_MaxHp]
+	22200	闲话	Timeline_Flavor_Item_9121	疾风门教人先练步。脚下乱了，手上再快也追不回来。	Gale disciples practice footwork first. Once your steps falter, quick hands cannot catch up.
+	22201	闲话	Timeline_Flavor_Item_9122	断刃石台上的血痕一层盖一层，最早那道早已看不清了。	Bloodstains overlap on the Broken Blade Altar. The oldest is long since lost beneath the rest.
+	22202	闲话	Timeline_Flavor_Item_9123	前一刀留下记号，后一刀才知道往哪儿落。	The first cut leaves a mark. The next knows where to fall.
+	22203	闲话	Timeline_Flavor_Item_9124	药师把佩递过来，只嘱咐一句：这东西只能救急。	The apothecary handed over the pendant with one warning: use it only when you must.
+	22204	闲话	Timeline_Flavor_Item_9131	符纸只借你一星火，能不能烧旺就看后手了。	The talisman lends you a spark. Keeping the fire alive is up to you.
+	22205	闲话	Timeline_Flavor_Item_9132	添柴要趁火还活着。守炉人就教了这一句。	Feed the fire while it still lives. That was all the furnace keeper taught.
+	22206	闲话	Timeline_Flavor_Item_9133	炼印的人在匣盖上刻了两个字：等够。	The seal maker carved two words on the case: wait longer.
+	22207	闲话	Timeline_Flavor_Item_9134	旧灯走到哪儿，灰里就有一星红跟到哪儿。	Wherever the old lantern goes, a red spark follows through the ash.
+	22208	闲话	Timeline_Flavor_Item_9141	练这道符的第一课，是等对方那口气先泄了。	The first lesson is to wait until your opponent loses their breath.
+	22209	闲话	Timeline_Flavor_Item_9142	师父说，架势再稳，换气时也有一线空门。	The master said even a perfect stance leaves a gap when you draw breath.
+	22210	闲话	Timeline_Flavor_Item_9143	看准了再出剑。磨锋可以花一夜，落剑只要一瞬。	Take your time to find the opening. You can sharpen the blade all night; the strike takes an instant.
+	22211	闲话	Timeline_Flavor_Item_9144	老阵师补了三回护壁，第四回干脆把反击画在裂缝上。	The old ward-maker patched the barrier three times. On the fourth, he drew the counterstrike into the crack.
+	22220	雷印	ItemName_9151	引雷针	Lightning Needle
+	22221	雷印	ItemDesc_9151	主修招式命中仍存活的敌人时，为其叠加一层雷印。每次出招对同一目标最多叠一层，雷印上限三层。	When your primary technique hits a surviving enemy, apply one Lightning Mark, up to three. Each cast can mark a target only once.
+	22222	雷印	ItemName_9152	传雷符	Storm Relay
+	22223	雷印	ItemDesc_9152	带有你雷印的敌人倒下时，给最近的另一名敌人添一层雷印。传递本身不会引发落雷。	When an enemy bearing your mark falls, give the nearest other enemy one Lightning Mark. Transferring a mark does not call down lightning.
+	22224	雷印	ItemName_9153	惊蛰印	Awakening Thunder Seal
+	22225	雷印	ItemDesc_9153	主修招式命中带有三层雷印的敌人时，消耗其雷印，造成120%攻击力的伤害。落雷最多跳两次，每跳寻找2.5单位内最近的未命中敌人，伤害降至上次的三分之二。	When your primary technique hits an enemy with three marks, consume the marks and strike for 120% Attack. The bolt jumps up to twice to the nearest unhit enemy within 2.5 units, each jump dealing two thirds of the previous hit.
+	22226	雷印	Timeline_StoryOption_504_Text	取出桥阵中的铜针	Lift the needle from the bridge ward
+	22227	雷印	Timeline_StoryOption_504_Hint	须先修复桥阵，再回来察看。	Repair the bridge ward and return.
+	22228	雷印	Timeline_StoryOption_504_Result	铜针仍在发颤，针尾刻着临溪渡口的旧记号。	The needle still quivers. An old Linxi Ferry mark is etched into its tail.
+	22229	雷印	Timeline_StoryOption_702_Text	向渡人出示铜针	Show the needle to the ferryman
+	22230	雷印	Timeline_StoryOption_702_Hint	需持有引雷针。	Requires the Lightning Needle.
+	22231	雷印	Timeline_StoryOption_702_Result	渡人以符纸裹住铜针，嘱你去青禾旧簿查雷阵的最后一笔。	The ferryman wraps the needle in a talisman and sends you to the Qinghe Ledger for the final stroke of the ward.
+	22232	雷印	Timeline_StoryOption_602_Text	循符纹查阅旧簿	Trace the talisman against the ledger
+	22233	雷印	Timeline_StoryOption_602_Hint	需持有传雷符。	Requires Storm Relay.
+	22234	雷印	Timeline_StoryOption_602_Result	簿页上的断线一一接起，汇成一枚惊蛰印。	The broken lines on the page join into the Awakening Thunder Seal.
+	22240	战后结算	Timeline_BattleVictory	战斗胜利	Victory
+	22241	战后结算	Timeline_BattleDefeat	战斗失败	Defeat
+	22242	战后结算	Timeline_BattleSettlement	战后结算	Battle Results
+	22243	战后结算	Timeline_BattleBreakthrough	境界突破 · 第 {0} 层 → 第 {1} 层	Breakthrough · Level {0} → Level {1}
+	22244	战后结算	Timeline_BattleTechniqueRank	{0}进阶 · 第 {1} 阶 · {2}	{0} advanced · Rank {1} · {2}
+	22245	战后结算	Timeline_BattleTechniqueKills	{0} · 本阶击杀 +{1}	{0} · Stage kills +{1}
+	22246	战后结算	Timeline_BattleTechniqueXP	{0} · 功法经验 +{1}	{0} · Technique XP +{1}
+	22247	战后结算	Timeline_BattleDrops	获得道具 · {0}	Loot · {0}
+	22248	战后结算	Timeline_BattleNoDrops	本场无道具掉落	No item drops
+	22249	战后结算	Timeline_BattleBacklash	仪式已重启。挑战者在反噬中身死。	The ritual restarted. Its backlash claimed the challenger.
+	22250	雷印	Timeline_LightningNextStop	雷印下一站 · {0}（{1}, {2}）	Lightning route · Next stop: {0} ({1}, {2})
+	22251	雷印	Timeline_BattleLightningCounts	叠印 {0} 次 · 传印 {1} 次 · 跳雷 {2} 次	Marks {0} · Transfers {1} · Jumps {2}
+	22260	战斗统计	Timeline_BattleStats	战斗统计	Combat Stats
+	22261	战斗统计	Timeline_BattleStatsSkill	角色 / 技能	Combatant / Skill
+	22262	战斗统计	Timeline_BattleStatsDamage	伤害	Damage
+	22263	战斗统计	Timeline_BattleStatsHealing	治疗	Healing
+	22264	战斗统计	Timeline_BattleAllied	我方	Ally
+	22265	战斗统计	Timeline_BattleEnemy	敌方	Enemy
+	22266	战斗统计	Timeline_BattleGuardian	守怪 {0}	Guardian {0}
+	22267	战斗统计	Timeline_BattleStatsNote	伤害计实际扣除的气血与护盾，治疗不含溢出，护盾计生成量。	Damage includes HP and shields removed. Healing excludes overheal. Shields count when granted.
+	22268	灵石	Timeline_SpiritStonesReward	灵石 +{0:N0}	Spirit Stones +{0:N0}
+	22269	灵石	Timeline_SpiritStonesBalance	灵石 {0:N0}	Spirit Stones {0:N0}
+	22270	山野寻宝	Timeline_ExplorerRelic_0	云纹玉片	Cloud-carved Jade
+	22271	山野寻宝	Timeline_ExplorerRelic_1	古铜断锋	Bronze Blade Shard
+	22272	山野寻宝	Timeline_ExplorerRelic_2	琥珀灵珠	Amber Spirit Bead
+	22273	山野寻宝	Timeline_ExplorerRelic_Description_0	残玉上的云纹仍有微光。	A faint light lingers in the jade carving.
+	22274	山野寻宝	Timeline_ExplorerRelic_Description_1	刃口已残，铜上仍留着旧日锋意。	The edge is broken, but its old cutting intent lingers.
+	22275	山野寻宝	Timeline_ExplorerRelic_Description_2	浑圆的旧珠，握在掌心微微发暖。	The old bead feels faintly warm in the palm.
+	22276	山野寻宝	Timeline_ExplorerRelic_Keepsake	此物无额外战斗加成。	Grants no combat bonus.
+	22277	山野寻宝	Timeline_ExplorerRelic_Origin	寻得于山野（{0}, {1}）	Found in the wilds ({0}, {1})
+	22278	山野寻宝	Timeline_TreasureKicker	山野寻宝	Discovery
+	22279	山野寻宝	Timeline_TreasureOpened	宝箱开启	Treasure Opened
+	22280	山野寻宝	Timeline_TreasureLoot	获得宝物	Treasure Found
+	22290	商人	Timeline_Merchant_11_Name	行脚商摊	Wayfarer’s Stall
+	22291	商人	Timeline_Merchant_11_Intro	行脚商在古道旁支起了摊。符纸与小石各剩一件，愿送你一件。	A peddler waits beside the old road. One talisman and one stone remain. Choose one as a gift.
+	22292	商人	Timeline_MerchantKind	商人	Merchant
+	22293	商人	Timeline_MerchantHint	抵达后可从行脚商的赠礼中选一件。每名修士限领一件。	Choose a gift when you visit. Each cultivator may claim one item.
+	22294	商人	Timeline_MerchantLeave	离开商摊	Leave Stall
+	22295	商人	Timeline_MerchantBuy	收下	Take Gift
+	22296	商人	Timeline_MerchantSold	已被取走	Already Taken
+	22297	商人	Timeline_MerchantInsufficient	灵石不足	Insufficient Stones
+	22298	商人	Timeline_MerchantStock	行脚商赠礼	Wayfarer’s Gifts
+	22299	商人	Timeline_Item_9161_Name	护心石	Heartguard Stone
+	22300	商人	Timeline_Item_9161_Description	最大气血 +60，获得时同时恢复 60 点气血。	Max HP +60. Restores 60 HP when obtained.

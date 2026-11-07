@@ -10,7 +10,6 @@ namespace GameMain.Scripts.UI.Items
     {
         [SerializeField] private TextMeshProUGUI _itemTipName;
         [SerializeField] private TextMeshProUGUI _itemTipRarity;
-        [SerializeField] private TextMeshProUGUI _itemTipCast;
         [SerializeField] private TextMeshProUGUI _itemTipType;
         [SerializeField] private TextMeshProUGUI _itemTipCDNum;
         [SerializeField] private TextMeshProUGUI _itemTipDec;
@@ -41,7 +40,6 @@ namespace GameMain.Scripts.UI.Items
             _itemTipType.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
             _itemTipAtkDistance.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
             _itemTipCDNum.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
-            _itemTipCast.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
             if (skillTable.HasDataRow(itemTable[ItemID].SkillID))
             {
                 var skillData = skillTable[itemTable[ItemID].SkillID];
@@ -50,21 +48,6 @@ namespace GameMain.Scripts.UI.Items
                     _itemTipAtkDistance.text = Mathf.FloorToInt(skillData.SkillRange/1000f).ToString();
                 }
                 _itemTipAtkDistance.gameObject.SetActive(skillData.SkillRange != 0);
-                //_itemTipCast.gameObject.SetActive(skillData.SkillType != (int)SkillType.PassiveSkill);
-                string castOrGet = string.Empty;
-                if (skillData.CastPower == 0)
-                {
-                    castOrGet = GameEntry.Localization.GetString(EnumLanguage.NoCastPower) ;
-                }
-                else if (skillData.CastPower > 0)
-                {
-                    castOrGet = string.Format(GameEntry.Localization.GetString(EnumLanguage.CastPowerNum),skillData.CastPower);
-                }
-                else
-                {
-                    castOrGet = string.Format(GameEntry.Localization.GetString(EnumLanguage.GetPowerNum),-skillData.CastPower);
-                }
-                _itemTipCast.text = castOrGet;
                 var key = EnumLanguage.SkillType_Active;
                 switch (skillData.SkillType)
                 {

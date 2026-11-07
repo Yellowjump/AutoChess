@@ -18,16 +18,45 @@ namespace Entity
     }
     public partial class EntityQizi
     {
+        private const int StoryIdleAnimationId = 6011;
+        private const int StoryRunAnimationId = 6012;
+        private int idleAnimationId;
+        private int runAnimationId;
         private WaitPlayAnimData _waitPlayAni = null;
         private AnimancerComponent _animancer;
+        private TimelineMonsterAnimation monsterAnimation;
         private void InitAnimation()
         {
+            monsterAnimation = GObj.GetComponent<TimelineMonsterAnimation>();
+            if (monsterAnimation != null)
+            {
+                _animancer = null;
+                if (_waitPlayAni != null)
+                {
+                    ReferencePool.Release(_waitPlayAni);
+                    _waitPlayAni = null;
+                }
+                monsterAnimation.Play(monsterAnimation.Idle);
+                return;
+            }
             _animancer = GObj.GetComponent<AnimancerComponent>();
             if (_animancer == null)
             {
                 _animancer = GObj.AddComponent<AnimancerComponent>();
                 _animancer.Animator = GObj.GetComponent<Animator>();
             }
+        }
+
+        public void PlayMonsterWindup(int durationMs)
+        {
+            if (monsterAnimation != null && durationMs > 0)
+                monsterAnimation.Play(monsterAnimation.Windup, durationMs);
+        }
+
+        public void PlayMonsterStrike(int recoveryMs)
+        {
+            if (monsterAnimation != null)
+                monsterAnimation.Play(monsterAnimation.Strike, Mathf.Max(1, recoveryMs));
         }
 
         private void InitAnimationClip()
@@ -37,8 +66,11 @@ namespace Entity
             if (tableHero.HasDataRow(HeroID))
             {
                 var heroData = tableHero[HeroID];
-                HotGameEntry.HeroManager.LoadAnimationClip(heroData.IdleAnimID);
-                HotGameEntry.HeroManager.LoadAnimationClip(heroData.RunAnimID);
+                bool storyRig = !string.IsNullOrEmpty(TimelineAppearance);
+                idleAnimationId = storyRig ? StoryIdleAnimationId : heroData.IdleAnimID;
+                runAnimationId = storyRig ? StoryRunAnimationId : heroData.RunAnimID;
+                HotGameEntry.HeroManager.LoadAnimationClip(idleAnimationId);
+                HotGameEntry.HeroManager.LoadAnimationClip(runAnimationId);
                 HotGameEntry.HeroManager.LoadAnimationClip(heroData.WinAnimID);
                 HotGameEntry.HeroManager.LoadAnimationClip(heroData.LoseAnimID);
             }
@@ -47,6 +79,7 @@ namespace Entity
         {
             if (_animancer != null && _waitPlayAni!=null)
             {
+                if (HotGameEntry.HeroManager.IsAnimationClipLoading(_waitPlayAni.AnimAssetPath)) return;
                 var anim = HotGameEntry.HeroManager.GetAnimClipByPath(_waitPlayAni.AnimAssetPath);
                 if (anim != null)
                 {
@@ -64,31 +97,41 @@ namespace Entity
 
         public void AddAnimCommand(int aniAssetID,float speed=1)
         {
-            if (HotGameEntry.HeroManager.IsTimelineSimulation) return;
+            if (HotGameEntry.HeroManager.IsTimelineSimulation || monsterAnimation != null) return;
             var assetsPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
             if (assetsPathTable.HasDataRow(aniAssetID))
             {
-                _waitPlayAni = ReferencePool.Acquire<WaitPlayAnimData>();
+                _waitPlayAni ??= ReferencePool.Acquire<WaitPlayAnimData>();
                 _waitPlayAni.AnimAssetPath =assetsPathTable[aniAssetID].AssetPath;
                 _waitPlayAni.Speed = speed;
             }
         }
         public void AddAnimCommandIdle()
         {
+            if (monsterAnimation != null)
+            {
+                monsterAnimation.Play(monsterAnimation.Idle);
+                return;
+            }
             var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
             if (tableHero.HasDataRow(HeroID))
             {
                 var heroData = tableHero[HeroID];
-                AddAnimCommand(heroData.IdleAnimID);
+                AddAnimCommand(idleAnimationId);
             }
         }
         public void AddAnimCommandRun()
         {
+            if (monsterAnimation != null)
+            {
+                monsterAnimation.Play(monsterAnimation.Move);
+                return;
+            }
             var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
             if (tableHero.HasDataRow(HeroID))
             {
                 var heroData = tableHero[HeroID];
-                AddAnimCommand(heroData.RunAnimID);
+                AddAnimCommand(runAnimationId);
             }
         }
         public void AddAnimCommandWin()
@@ -111,13 +154,19 @@ namespace Entity
         }
         private void ReleaseAnim()
         {
+            monsterAnimation = null;
             if (HotGameEntry.HeroManager.IsTimelineSimulation) return;
+            if (_waitPlayAni != null)
+            {
+                ReferencePool.Release(_waitPlayAni);
+                _waitPlayAni = null;
+            }
             var tableHero = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
             if (tableHero.HasDataRow(HeroID))
             {
                 var heroData = tableHero[HeroID];
-                HotGameEntry.HeroManager.ReleaseAnimNeed(heroData.IdleAnimID);
-                HotGameEntry.HeroManager.ReleaseAnimNeed(heroData.RunAnimID);
+                HotGameEntry.HeroManager.ReleaseAnimNeed(idleAnimationId);
+                HotGameEntry.HeroManager.ReleaseAnimNeed(runAnimationId);
                 HotGameEntry.HeroManager.ReleaseAnimNeed(heroData.WinAnimID);
                 HotGameEntry.HeroManager.ReleaseAnimNeed(heroData.LoseAnimID);
             }

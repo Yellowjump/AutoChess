@@ -29,9 +29,7 @@ public class BattleMainCtrl : UIFormLogic
     [SerializeField] private TextMeshProUGUI xuetiaosum;
     [SerializeField] public Slider _slderXuetiao; //显示血条
     [SerializeField] public Slider _slderHudun; //显示护盾
-    [SerializeField] private TextMeshProUGUI pownow; //显示蓝量
     [SerializeField] private TextMeshProUGUI powsum;
-    [SerializeField] public Slider _slderPow; //显示蓝条
     [SerializeField] public Image qiziImage; //显示棋子image
     public BattleBagItem itemTemp;
     [SerializeField] private Transform _equipItemParent;
@@ -39,22 +37,12 @@ public class BattleMainCtrl : UIFormLogic
     public TextMeshProUGUI AttrAttackNum;
     public TextMeshProUGUI AttrHudunAddNum;
     public TextMeshProUGUI AttrCDNum;
-    [SerializeField] private TextMeshProUGUI healthLabel, powerLabel, shieldValue, equipmentLabel;
+    [SerializeField] private TextMeshProUGUI healthLabel, shieldValue, equipmentLabel;
     [SerializeField] private TextMeshProUGUI attackLabel, shieldBoostLabel, hasteLabel;
     [SerializeField] private TextMeshProUGUI statusSummary;
     [SerializeField] private ScrollRect equipmentScroll;
-    private static readonly (BuffTag Tag, string Chinese, string English, string Color)[] DisplayedStatuses =
-    {
-        (BuffTag.Bleeding, "流血", "Bleed", "#FFA69C"),
-        (BuffTag.Burning, "燃烧", "Burn", "#FFC07A"),
-        (BuffTag.Weakened, "虚弱", "Weakness", "#D3B8FF"),
-        (BuffTag.Exposed, "破绽", "Opening", "#F9CB91"),
-        (BuffTag.HeavyDamage, "重伤", "Wounded", "#F5B5C0"),
-        (BuffTag.Frozen, "冰冻", "Frozen", "#A6DBFF"),
-        (BuffTag.Stunned, "眩晕", "Stunned", "#E8D59A"),
-    };
     private readonly StringBuilder statusText = new StringBuilder(160);
-    private readonly long[] statusCounts = new long[DisplayedStatuses.Length];
+    private readonly long[] statusCounts = new long[BattleStatuses.Display.Length];
     private ObjectPool<BattleBagItem> _itemPool;
     private List<BattleBagItem> _curHeroEquipItemList = new();
 
@@ -106,7 +94,6 @@ public class BattleMainCtrl : UIFormLogic
         qizishuxin.gameObject.SetActive(false);
         _itemTip.gameObject.SetActive(false);
         healthLabel.text = GameEntry.Localization.GetString("Timeline_UI_49");
-        powerLabel.text = GameEntry.Localization.GetString("Attr_Power");
         equipmentLabel.text = GameEntry.Localization.GetString("Timeline_UI_57");
         attackLabel.text = GameEntry.Localization.GetString("Attr_ATK");
         shieldBoostLabel.text = GameEntry.Localization.GetString("Attr_HuDunBoost");
@@ -401,8 +388,6 @@ public class BattleMainCtrl : UIFormLogic
         var maxHp = (int)qz.GetAttribute(AttributeType.MaxHp).GetFinalValue();
         var curHp = (int)qz.GetAttribute(AttributeType.Hp).GetFinalValue();
         var curHuDun = (int)qz.GetAttribute(AttributeType.HuDun).GetFinalValue();
-        var maxPower = (int)qz.GetAttribute(AttributeType.MaxPower).GetFinalValue();
-        var curPower = (int)qz.GetAttribute(AttributeType.Power).GetFinalValue();
         if (curHp + curHuDun > maxHp)
         {
             float curSum = curHp + curHuDun;
@@ -418,8 +403,6 @@ public class BattleMainCtrl : UIFormLogic
         xuetiaonow.text = $"{curHp} / {maxHp}";
         xuetiaosum.text = maxHp.ToString();
         shieldValue.text = curHuDun > 0 ? $"+{curHuDun} {GameEntry.Localization.GetString("Attr_HuDun")}" : string.Empty;
-        pownow.text = $"{curPower} / {maxPower}";
-        _slderPow.value = maxPower > 0 ? curPower / (float)maxPower : 0;
         AttrAttackNum.text = ((int)qz.GetAttribute(AttributeType.AttackDamage).GetFinalValue()).ToString();
         //AttrAtkSpeed.text = ((int)qz.GetAttribute(AttributeType.AttackSpeed).GetFinalValue()).ToString();
         AttrHudunAddNum.text = ((int)qz.GetAttribute(AttributeType.HuDunBoost).GetFinalValue()).ToString();
@@ -431,25 +414,16 @@ public class BattleMainCtrl : UIFormLogic
     {
         if (statusSummary == null) return;
         bool english = GameEntry.Localization.Language == GameFramework.Localization.Language.English;
-        System.Array.Clear(statusCounts, 0, statusCounts.Length);
-        if (qizi.IsValid)
-        {
-            foreach (var buff in qizi.CurBuffList)
-            {
-                if (!buff.IsValid || buff.StackCount <= 0) continue;
-                for (int i = 0; i < DisplayedStatuses.Length; i++)
-                    if (buff.CheckBuffTag(DisplayedStatuses[i].Tag)) statusCounts[i] += buff.StackCount;
-            }
-        }
+        BattleStatuses.Read(qizi, statusCounts);
 
         statusText.Clear();
         statusText.Append(english ? "Status  " : "状态  ");
         bool any = false;
-        for (int i = 0; i < DisplayedStatuses.Length; i++)
+        for (int i = 0; i < BattleStatuses.Display.Length; i++)
         {
             if (statusCounts[i] == 0) continue;
             if (any) statusText.Append("  ·  ");
-            var status = DisplayedStatuses[i];
+            var status = BattleStatuses.Display[i];
             statusText.Append("<color=").Append(status.Color).Append('>')
                 .Append(english ? status.English : status.Chinese).Append(" ×")
                 .Append(statusCounts[i]).Append("</color>");

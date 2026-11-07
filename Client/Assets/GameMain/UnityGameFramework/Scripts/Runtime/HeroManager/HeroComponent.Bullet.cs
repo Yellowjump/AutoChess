@@ -19,14 +19,16 @@ namespace UnityGameFramework.Runtime
     {
         public List<BulletBase> BulletList = new List<BulletBase>();
         public List<EntityPosPoint> PosPointList = new List<EntityPosPoint>();
-        public BulletBase CreateBullet(int bulletID)
+        public BulletBase CreateBullet(int bulletID, bool recallSword = false)
         {
             var bullet = GameEntry.DataTable.GetDataTable<DRBullet>("Bullet");
             if (bullet != null && bullet.HasDataRow(bulletID))
             {
                 var bulletData = bullet[bulletID];
                 BulletBase ret;
-                switch ((BulletType)bulletData.BulletType)
+                if (recallSword)
+                    ret = ReferencePool.Acquire<BulletReturningSword>();
+                else switch ((BulletType)bulletData.BulletType)
                 {
                     case BulletType.TrackingBullet:
                         ret = ReferencePool.Acquire<BulletTracking>();

@@ -1,0 +1,6 @@
+#	商人货单					
+#	Id	MerchantId	Q	R	ItemId	LegacyPrice
+#	int	int	int	int	int	int
+#	购买选项编号	商人编号	横坐标	纵坐标	StoryItem 道具	旧档回放专用
+	1101	11	2	-8	9131	8
+	1102	11	2	-8	9161	6

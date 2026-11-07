@@ -132,7 +132,7 @@ public sealed class WorldTimelinePreparationCtrl : UIFormLogic
             slot.button.gameObject.SetActive(i < view.PreparationCharacterCount);
             if (i >= view.PreparationCharacterCount) continue;
             var data = view.GetPreparationCharacter(i);
-            slot.name.text = data.Name; slot.weapon.text = data.Weapon;
+            slot.name.text = data.Name; slot.weapon.text = data.Technique;
             slot.button.interactable = !data.Used;
             slot.appearance.alpha = data.Used ? .42f : 1;
             slot.selected.SetActive(data.Selected);
@@ -146,7 +146,7 @@ public sealed class WorldTimelinePreparationCtrl : UIFormLogic
             var data = view.GetPreparationCharacter(selected);
             selectedName.text = data.Name;
             birthplace.text = TimelineText("Timeline_UI_Birthplace", data.Birthplace, data.Q, data.R);
-            weapon.text = TimelineText("Timeline_UI_StartingItem", data.Weapon);
+            weapon.text = data.Technique;
             bonus.text = data.AttackBonus == 0 ? TimelineText("Timeline_UI_41") : TimelineText("Timeline_UI_StartingAttack", data.AttackBonus);
             selectedPortrait.sprite = characters[selected].portrait.sprite;
         }

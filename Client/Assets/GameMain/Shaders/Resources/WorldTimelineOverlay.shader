@@ -47,6 +47,7 @@ Shader "WorldTimeline/Overlay"
             #pragma vertex Vert
             #pragma fragment Frag
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            float _TimelineWeatherDusk;
 
             struct Varyings
             {
@@ -60,7 +61,13 @@ Shader "WorldTimeline/Overlay"
                 output.color = color;
                 return output;
             }
-            float4 Frag(Varyings input) : SV_Target { return input.color; }
+            float4 Frag(Varyings input) : SV_Target
+            {
+                float4 color = input.color;
+                color.rgb = lerp(color.rgb, float3(.75, .82, .85), .55 * _TimelineWeatherDusk);
+                color.a += .13 * _TimelineWeatherDusk * (1 - color.a);
+                return color;
+            }
             ENDHLSL
         }
     }

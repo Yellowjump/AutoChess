@@ -30,7 +30,10 @@ namespace UnityGameFramework.Runtime
         public IEnumerator RunTimelineBattle(IReadOnlyList<ActorState> first, IReadOnlyList<ActorState> second,
             Func<ActorState, int> heroId, Func<ActorState, List<int>> items, int seed, bool visible,
             Action<int[]> completed, int regionDistance = 0, bool unlimitedDuration = false,
-            bool seedPreviewBurn = false)
+            bool seedPreviewBurn = false, Func<ActorState, string> appearance = null, bool enableUndertow = false,
+            bool enableSwordRecall = false, Func<ActorState, int> techniqueSkill = null,
+            Action<ActorState, int> settleTechnique = null, bool lightningFormation = false,
+            ActorState reportOwner = null)
         {
             if (unlimitedDuration && !visible)
                 throw new ArgumentException("无时间限制的战斗必须在前台运行。", nameof(unlimitedDuration));
@@ -119,7 +122,9 @@ namespace UnityGameFramework.Runtime
                         int slot = friend ? i : i - first.Count;
                         var position = friend ? GetEmptyFriendPos() : new Vector2Int(slot % 7, 7 - slot / 7);
                         // Keep the primary target closest to the player's starting cell.
-                        if (!friend && stationaryEnemies)
+                        if (!friend && lightningFormation)
+                            position = new Vector2Int(slot * 2, stationaryEnemies ? 3 : 5);
+                        else if (!friend && stationaryEnemies)
                             position = new Vector2Int(slot == 2 ? 6 : slot, 3 + (slot == 1 ? 1 : 0));
                         int row = position.y;
                         int column = position.x;
@@ -129,7 +134,17 @@ namespace UnityGameFramework.Runtime
                         entity.NextCastNormalSkillIndex = 0;
                         entity.CurCastNormalSkillIndex = 0;
                         entity.CurAttackTarget = null;
-                        entity.Init(heroes[i], equipment[i]);
+                        entity.TimelineAppearance = appearance?.Invoke(participants[i]);
+                        entity.UsesUndertow = enableUndertow && entity.TimelineAppearance == "WreckBeast";
+                        entity.HasSwordRecall = enableSwordRecall &&
+                            (equipment[i].Contains(9104) || participants[i].Items.Contains(9104));
+                        entity.TechniqueSkillId = techniqueSkill?.Invoke(participants[i]) ?? 0;
+                        entity.Init(heroes[i], equipment[i], recordBattleOutput: reportOwner != null);
+                        if (reportOwner != null)
+                        {
+                            foreach (var skill in entity.NormalSkillList.Concat(entity.NoAnimAtkSkillList).Concat(entity.PassiveSkillList))
+                                entity.BattleOutput.TryAdd(skill.SkillID, new SkillBattleOutput(skill.SkillID, skill.FromItemID, 0, 0, 0));
+                        }
                         entity.rowIndex = row;
                         entity.columnIndex = column;
                         entity.SavePos = new Vector2Int(column, row);
@@ -206,6 +221,26 @@ namespace UnityGameFramework.Runtime
                         UpdateNoBattle(Time.deltaTime, Time.unscaledDeltaTime);
                         yield return null;
                     }
+                }
+                for (int i = 0; settleTechnique != null && i < participants.Length; i++)
+                    if (health[i] > 0 && entities[i].TechniqueSkillId != 0)
+                        settleTechnique(participants[i], entities[i].TechniqueKills);
+                if (visible && !unlimitedDuration)
+                    for (int i = 0; i < participants.Length; i++)
+                    {
+                        var entity = entities[i];
+                        participants[i].LastLightningBattle =
+                            (entity.LightningApplications, entity.LightningTransfers, entity.LightningJumps);
+                    }
+                if (reportOwner != null)
+                {
+                    bool playerAttacks = first.Contains(reportOwner);
+                    reportOwner.LastBattleOutput = participants.Select((actor, i) => new ActorBattleOutput
+                    {
+                        ActorId = actor.Id,
+                        Allied = (i < first.Count) == playerAttacks,
+                        Skills = entities[i].BattleOutput.Values.OrderBy(row => row.SkillId).ToArray()
+                    }).ToArray();
                 }
                 completed(health);
             }

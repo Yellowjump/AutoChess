@@ -92,8 +92,10 @@ public static class WorldTimelineInventoryValidation
                     for(int i=0;i<40;i++)session.Simulation.State.Actors[1].Items.Add(8101);
                     ClickArray(Inventory,"filters",0);
                     Check(Inventory.VisibleItemCount==43,"四十三种物品不受六格限制");
-                    Click(Inventory,"nextPage");Click(Inventory,"nextPage");Click(Inventory,"nextPage");
-                    Check(Inventory.Page==3,"多页目录可到达最后一页");ClickSlot(Inventory,6);
+                    var scroll=(ScrollRect)new SerializedObject(Inventory).FindProperty("itemScroll").objectReferenceValue;
+                    scroll.verticalNormalizedPosition=0;
+                    Check(scroll.content.rect.height>scroll.viewport.rect.height,"多行目录可滚动");
+                    scroll.content.GetChild(42).GetComponent<Button>().onClick.Invoke();
                     Check(Text(Inventory,"itemName")=="遗物 #90040","最后一件也能查看详情");break;
                 case 12:
                     ClickArray(Inventory,"filters",1);

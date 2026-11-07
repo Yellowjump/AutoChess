@@ -47,6 +47,8 @@ namespace SkillSystem
         AfterSkillCast,
         OnBurnSpread,
         OnShieldBroken,
+        OnLightningMarked,
+        OnLightningSpread,
     }
 
     public enum ConditionType
@@ -160,6 +162,8 @@ namespace SkillSystem
         BurnEffect,
         [InspectorName("虚弱与破绽效果")]
         WeaknessEffect,
+        [InspectorName("雷印套装效果")]
+        LightningEffect,
     }
 
     /// <summary>
@@ -241,10 +245,6 @@ namespace SkillSystem
         /// </summary>
         CanCast,
         /// <summary>
-        /// 没有能量
-        /// </summary>
-        NoPower,
-        /// <summary>
         /// 目标在范围外
         /// </summary>
         TargetOutRange,
@@ -280,10 +280,7 @@ namespace SkillSystem
         Hp = 1,
         [InspectorName("最大血量")]
         MaxHp = 2,
-        [InspectorName("当前蓝量")]
-        Power = 3,
-        [InspectorName("最大蓝量")]
-        MaxPower = 4,
+        // IDs 3 and 4 were used by the retired energy attributes.
         [InspectorName("护盾")]
         HuDun = 5,
         [InspectorName("护盾增益")]

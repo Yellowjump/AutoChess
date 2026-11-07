@@ -123,6 +123,37 @@ namespace UnityGameFramework.Runtime
                         bool guiEnabled = GUI.enabled;
                         GUI.enabled = guiEnabled && !timeline.IsBusy;
                         _threePreviewTargets = GUILayout.Toggle(_threePreviewTargets, "三固定靶（两个相邻，一个远处）");
+                        if (GUILayout.Button("试招：使用本世角色和背包"))
+                        {
+                            if (WorldTimelineBattleResolver.TryPreviewCurrentCharacter(timeline, _threePreviewTargets))
+                                HotGameEntry.Debugger.ShowFullWindow = false;
+                            else
+                                Debug.LogWarning("请在轮回地图等待选择、且没有剧情弹窗时开始试招。");
+                        }
+                        if (GUILayout.Button("试招：雷印连锁") &&
+                            WorldTimelineBattleResolver.TryPreview(timeline, new[] { 1, 9151, 9152, 9153 },
+                                threeTargets: true, lightningFormation: true))
+                            HotGameEntry.Debugger.ShowFullWindow = false;
+                        if (GUILayout.Button("试招：飞剑归鞘") &&
+                            WorldTimelineBattleResolver.TryPreview(timeline, new[] { 9, 10, 9104 }, threeTargets: true))
+                            HotGameEntry.Debugger.ShowFullWindow = false;
+                        if (GUILayout.Button("查看四位剧情角色（试招）"))
+                        {
+                            if (WorldTimelineBattleResolver.TryPreview(timeline, new[] { selected }, previewCast: true))
+                                HotGameEntry.Debugger.ShowFullWindow = false;
+                        }
+                        GUILayout.BeginHorizontal();
+                        PreviewMonster("试招：沉舟水妖", "WreckBeast");
+                        PreviewMonster("试招：守隘石傀", "GateGolem");
+                        PreviewMonster("试招：归墟阵灵", "RitualWraith");
+                        GUILayout.EndHorizontal();
+
+                        void PreviewMonster(string label, string appearance)
+                        {
+                            if (GUILayout.Button(label) &&
+                                WorldTimelineBattleResolver.TryPreview(timeline, new[] { selected }, previewMonster: appearance))
+                                HotGameEntry.Debugger.ShowFullWindow = false;
+                        }
                         if (_threePreviewTargets)
                             _seedPreviewBurn = GUILayout.Toggle(_seedPreviewBurn, "主靶首次被主动技能命中前补满燃烧");
                         if (GUILayout.Button(_previewItems.Count == 0 ? "试招：使用当前道具" : "试招：使用整套装备"))

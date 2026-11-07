@@ -26,6 +26,7 @@ namespace Entity
         public void AddOneWeapon(int itemID,WeaponHandleType handleType,Skill skill)
         {
             if (HotGameEntry.HeroManager.IsTimelineSimulation) return;
+            if (!string.IsNullOrEmpty(TimelineAppearance)) return;
             var oneWeapon = ReferencePool.Acquire<WeaponEntity>();
             if (!_weaponDic.ContainsKey(skill))
             {

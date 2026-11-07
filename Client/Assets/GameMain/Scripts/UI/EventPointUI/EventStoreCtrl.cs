@@ -51,7 +51,8 @@ public class EventStoreCtrl : UIFormLogic
         var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
         //从所有Item中随机选择12个
         List<DRItem> itemList = ListPool<DRItem>.Get();
-        itemList.AddRange(itemTable.GetAllDataRows());
+        foreach (var item in itemTable.GetAllDataRows())
+            if (item.StoreCoin >= 0) itemList.Add(item);
         Utility.Shuffle(itemList);
         for (int i = 0; i < Mathf.Min(itemList.Count,ConstValue.StoreItemNum); i++)
         {

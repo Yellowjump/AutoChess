@@ -90,14 +90,36 @@ namespace UnityGameFramework.Runtime
 
         public class HpBar : IReference
         {
+            private const string StatusRowName = "Status Badges";
+            private const int BadgesPerRow = 4;
+            private static readonly Color AllyHealth = new Color(.30f, .66f, .52f);
+            private static readonly Color EnemyHealth = new Color(.78f, .32f, .25f);
+            private static Sprite[] statusSprites;
+            private readonly long[] counts = new long[BattleStatuses.Display.Length];
+            private readonly long[] displayedCounts = new long[BattleStatuses.Display.Length];
+            private RectTransform statusRow;
+            private float nextStatusRefresh;
+            private Image healthFill;
+            private int activeBadgeCount;
+            internal GetGObjSuccessCallback LoadCallback;
             public GameObject HpBarObj;
             public EntityQizi Owner;
             public void Clear()
             {
                 Owner = null;
-                HotGameEntry.HeroManager.WaitHpBarList.Remove(this);
+                LoadCallback = null;
                 HotGameEntry.HeroManager.PlayingHpBarList.Remove(this);
-                if (HpBarObj != null) HotGameEntry.HeroManager.ReleaseGameObject(HpBarPerfabPath, HpBarObj);
+                if (statusRow != null) statusRow.gameObject.SetActive(false);
+                statusRow = null;
+                healthFill = null;
+                nextStatusRefresh = 0f;
+                activeBadgeCount = 0;
+                System.Array.Clear(displayedCounts, 0, displayedCounts.Length);
+                if (HpBarObj != null)
+                {
+                    HpBarObj.SetActive(false);
+                    HotGameEntry.HeroManager.ReleaseGameObject(HpBarPerfabPath, HpBarObj);
+                }
                 HpBarObj = null;
             }
 
@@ -109,57 +131,205 @@ namespace UnityGameFramework.Runtime
                 }
                 HpBarObj.transform.position = Owner.LogicPosition+Vector3.up*2;
             }
+
+            internal void BindHealthFill()
+            {
+                healthFill = Owner.xuetiao.fillRect.GetComponent<Image>();
+                RefreshHealthColor();
+            }
+
+            private void RefreshHealthColor()
+            {
+                if (healthFill == null) return;
+                var color = Owner.BelongCamp == CampType.Friend ? AllyHealth : EnemyHealth;
+                if (healthFill.color != color) healthFill.color = color;
+            }
+
+            internal void RefreshStatusBadges()
+            {
+                if (HpBarObj == null || Time.unscaledTime < nextStatusRefresh) return;
+                nextStatusRefresh = Time.unscaledTime + .10f;
+                RefreshHealthColor();
+                BattleStatuses.Read(Owner, counts);
+                int shown = 0;
+                bool changed = false;
+                for (int i = 0; i < counts.Length; i++)
+                {
+                    if (counts[i] > 0) shown++;
+                    if (counts[i] != displayedCounts[i]) changed = true;
+                }
+                if (!changed) return;
+                if (shown == 0)
+                {
+                    statusRow.gameObject.SetActive(false);
+                    activeBadgeCount = 0;
+                    System.Array.Clear(displayedCounts, 0, displayedCounts.Length);
+                    return;
+                }
+                if (statusRow == null)
+                    statusRow = HpBarObj.transform.Find(StatusRowName) as RectTransform ?? CreateStatusRow();
+                if (statusRow == null) return;
+                statusRow.gameObject.SetActive(true);
+                activeBadgeCount = shown;
+                int slot = 0;
+                for (int i = 0; i < counts.Length; i++)
+                {
+                    var badge = (RectTransform)statusRow.GetChild(i);
+                    badge.gameObject.SetActive(counts[i] > 0);
+                    displayedCounts[i] = counts[i];
+                    if (counts[i] <= 0) continue;
+                    int row = slot / BadgesPerRow;
+                    int rowCount = Mathf.Min(shown - row * BadgesPerRow, BadgesPerRow);
+                    badge.anchoredPosition = new Vector2((slot % BadgesPerRow - (rowCount - 1) * .5f) * 47f, row * 24f);
+                    slot++;
+                    badge.GetChild(0).GetComponent<Text>().text = counts[i] > 99 ? "99+" : counts[i].ToString();
+                }
+            }
+
+            internal void SeparateOnScreen(Camera camera, List<Rect> occupied)
+            {
+                if (HpBarObj == null) return;
+                var bar = (RectTransform)HpBarObj.transform;
+                var screen = camera.WorldToScreenPoint(bar.position);
+                if (screen.z <= 0f) return;
+                bar.rotation = camera.transform.rotation;
+                Rect local = bar.rect;
+                if (activeBadgeCount > 0)
+                {
+                    float badgeHalfWidth = (Mathf.Min(activeBadgeCount, BadgesPerRow) - 1) * 23.5f + 22f;
+                    local.xMin = Mathf.Min(local.xMin, -badgeHalfWidth);
+                    local.xMax = Mathf.Max(local.xMax, badgeHalfWidth);
+                    local.yMax = 36f + (activeBadgeCount - 1) / BadgesPerRow * 24f;
+                }
+                Vector3 min = camera.WorldToScreenPoint(bar.TransformPoint(local.min));
+                Vector3 max = camera.WorldToScreenPoint(bar.TransformPoint(local.max));
+                var bounds = Rect.MinMaxRect(min.x - 2f, min.y - 2f, max.x + 2f, max.y + 2f);
+                float lift = 0f;
+                for (int i = 0; i < occupied.Count; i++)
+                {
+                    if (!bounds.Overlaps(occupied[i])) continue;
+                    float step = occupied[i].yMax - bounds.yMin + .25f;
+                    lift += step;
+                    bounds.y += step;
+                    i = -1;
+                }
+                if (lift > 0f)
+                {
+                    screen.y += lift;
+                    bar.position = camera.ScreenToWorldPoint(screen);
+                }
+                occupied.Add(bounds);
+            }
+
+            private RectTransform CreateStatusRow()
+            {
+                if (statusSprites == null)
+                {
+                    var atlas = Resources.Load<Texture2D>("BattleStatusBadges");
+                    if (atlas == null) return null;
+                    int size = atlas.width / counts.Length;
+                    statusSprites = new Sprite[counts.Length];
+                    for (int i = 0; i < statusSprites.Length; i++)
+                        statusSprites[i] = Sprite.Create(atlas, new Rect(i * size, 0, size, atlas.height), new Vector2(.5f, .5f));
+                }
+                var row = NewRect(StatusRowName, HpBarObj.transform);
+                row.anchoredPosition = new Vector2(0f, 25f);
+                var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                for (int i = 0; i < statusSprites.Length; i++)
+                {
+                    var badge = NewRect(BattleStatuses.Display[i].English, row);
+                    badge.sizeDelta = new Vector2(44f, 22f);
+                    var image = badge.gameObject.AddComponent<Image>();
+                    image.sprite = statusSprites[i];
+                    image.raycastTarget = false;
+                    var number = NewRect("Stacks", badge);
+                    number.sizeDelta = new Vector2(24f, 11f);
+                    number.localScale = new Vector3(2f, 1f, 1f);
+                    number.anchoredPosition = new Vector2(0f, -4.5f);
+                    var label = number.gameObject.AddComponent<Text>();
+                    label.font = font;
+                    label.fontSize = 10;
+                    label.fontStyle = FontStyle.Bold;
+                    label.alignment = TextAnchor.MiddleCenter;
+                    label.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    label.verticalOverflow = VerticalWrapMode.Overflow;
+                    label.raycastTarget = false;
+                    label.color = new Color(.98f, .94f, .84f);
+                }
+                return row;
+            }
+
+            private static RectTransform NewRect(string name, Transform parent)
+            {
+                var obj = new GameObject(name, typeof(RectTransform));
+                obj.layer = parent.gameObject.layer;
+                var rect = (RectTransform)obj.transform;
+                rect.SetParent(parent, false);
+                rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
+                return rect;
+            }
         }
         public const string HpBarPerfabPath = "Assets/GameMain/Prefeb/UIPrefab/xuetiao_qizi.prefab";
-        public List<HpBar> WaitHpBarList = new List<HpBar>();
         public List<HpBar> PlayingHpBarList = new List<HpBar>();
         
         public void AddHpBar(EntityQizi qizi)
         {
+            if (qizi.HpBar != null) return;
             var newHpBar = ReferencePool.Acquire<HpBar>();
-            var hpBarPerfabPath = HpBarPerfabPath;
             newHpBar.Owner = qizi;
             qizi.HpBar = newHpBar;
-            WaitHpBarList.Add(newHpBar);
-            GetNewObjFromPool(hpBarPerfabPath, OnLoadOneNewHpBarPrefab);
+            GetGObjSuccessCallback load = null;
+            load = (obj, path) =>
+            {
+                // The same pooled HpBar can already belong to a new request when this load returns.
+                if (!ReferenceEquals(newHpBar.LoadCallback, load))
+                {
+                    obj.SetActive(false);
+                    ReleaseGameObject(path, obj);
+                    return;
+                }
+                newHpBar.LoadCallback = null;
+                OnLoadOneNewHpBarPrefab(newHpBar, obj);
+            };
+            newHpBar.LoadCallback = load;
+            GetNewObjFromPool(HpBarPerfabPath, load);
         }
-        private void OnLoadOneNewHpBarPrefab(GameObject obj,string path)
+        private void OnLoadOneNewHpBarPrefab(HpBar oneHpBar, GameObject obj)
         {
-            if (HotGameEntry.HeroManager.WaitHpBarList != null && HotGameEntry.HeroManager.WaitHpBarList.Count > 0)
-            {
-                var oneHpBar = HotGameEntry.HeroManager.WaitHpBarList[0];
-                oneHpBar.HpBarObj = obj;
-                //设置canvas
-                Canvas canvas = m_InstanceWorldCanvas.GetComponent<Canvas>();
-                oneHpBar.HpBarObj.transform.SetParent(canvas.transform);
-                //设置pos
-                oneHpBar.HpBarObj.transform.localScale = new Vector3(0.005f, 0.01f, 1);
-                oneHpBar.HpBarObj.transform.rotation = IsTimelineBattle
-                    ? m_InstanceWorldCanvas.worldCamera.transform.rotation
-                    : HotGameEntry.HeroManager.CurAreaPoint.CameraRotation;
-                //oneHpBar.HpBarObj.transform.forward = Camera.main.transform.forward;
-                oneHpBar.HpBarObj.transform.position = oneHpBar.Owner.LogicPosition+Vector3.up*2;
-                //绑定棋子血条
-                oneHpBar.Owner.xuetiao=obj.transform.Find("xuetiao").GetComponent<Slider>();
-                oneHpBar.Owner.power= obj.transform.Find("pow").GetComponent<Slider>();
-                oneHpBar.Owner.hudun=obj.transform.GetChild(1).GetChild(1).GetChild(0).Find("hudun").GetComponent<Slider>();
-                //设置动画回调
-                WaitHpBarList.Remove(oneHpBar);
-                PlayingHpBarList.Add(oneHpBar);
-            }
-            else
-            {
-                ReleaseGameObject(HpBarPerfabPath,obj);
-            }
+            oneHpBar.HpBarObj = obj;
+            //设置canvas
+            Canvas canvas = m_InstanceWorldCanvas.GetComponent<Canvas>();
+            oneHpBar.HpBarObj.transform.SetParent(canvas.transform);
+            //设置pos
+            oneHpBar.HpBarObj.transform.localScale = new Vector3(0.005f, 0.01f, 1);
+            oneHpBar.HpBarObj.transform.rotation = IsTimelineBattle
+                ? m_InstanceWorldCanvas.worldCamera.transform.rotation
+                : HotGameEntry.HeroManager.CurAreaPoint.CameraRotation;
+            //oneHpBar.HpBarObj.transform.forward = Camera.main.transform.forward;
+            oneHpBar.HpBarObj.transform.position = oneHpBar.Owner.LogicPosition+Vector3.up*2;
+            //绑定棋子血条
+            oneHpBar.Owner.xuetiao=obj.transform.Find("xuetiao").GetComponent<Slider>();
+            oneHpBar.Owner.WindupProgress = obj.transform.Find("WindupProgress").GetComponent<Slider>();
+            oneHpBar.Owner.ShowWindupProgress(-1f);
+            oneHpBar.Owner.hudun=obj.transform.GetChild(1).GetChild(1).GetChild(0).Find("hudun").GetComponent<Slider>();
+            oneHpBar.BindHealthFill();
+            //设置动画回调
+            PlayingHpBarList.Add(oneHpBar);
+            obj.SetActive(true);
         }
         private void UpdateHpBar()
         {
             var runList = ListPool<HpBar>.Get();
             runList.AddRange(PlayingHpBarList);
+            var camera = IsTimelineBattle && !IsTimelineSimulation ? m_InstanceWorldCanvas.worldCamera : null;
+            var occupied = camera != null ? ListPool<Rect>.Get() : null;
             foreach (var oneHpBar in runList)
             {
                 oneHpBar.UpdataMoveHpBar();
+                oneHpBar.RefreshStatusBadges();
+                if (occupied != null) oneHpBar.SeparateOnScreen(camera, occupied);
             }
+            if (occupied != null) ListPool<Rect>.Release(occupied);
             ListPool<HpBar>.Release(runList);
         }
         

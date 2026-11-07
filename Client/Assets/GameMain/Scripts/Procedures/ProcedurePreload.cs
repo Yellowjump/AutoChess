@@ -195,8 +195,10 @@ namespace Procedure
             _dataTableFlag.Add("StoryEvent", (typeof(DRStoryEvent), false));
             _dataTableFlag.Add("StoryOption", (typeof(DRStoryOption), false));
             _dataTableFlag.Add("StoryItem", (typeof(DRStoryItem), false));
+            _dataTableFlag.Add("MerchantOffer", (typeof(DRMerchantOffer), false));
             _dataTableFlag.Add("BattleMapping", (typeof(DRBattleMapping), false));
             _dataTableFlag.Add("CultivationLevel", (typeof(DRCultivationLevel), false));
+            _dataTableFlag.Add("TechniqueStage", (typeof(DRTechniqueStage), false));
             foreach (var tableName in _dataTableFlag)
             {
                 DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(tableName.Value.Item1, tableName.Key);

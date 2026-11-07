@@ -11,13 +11,32 @@ namespace Entity
     public partial class EntityQizi : EntityBase
     {
         public int HeroID;//hero表中ID
+        public string TimelineAppearance;
+        internal bool UsesUndertow;
+        internal bool HasSwordRecall;
+        internal int TechniqueSkillId;
+        internal int TechniqueKills;
+        internal Dictionary<int, int> LightningMarks;
+        internal int LightningApplications, LightningTransfers, LightningJumps;
+        internal Dictionary<int, WorldTimeline.SkillBattleOutput> BattleOutput;
+
+        internal static void RecordBattleOutput(Skill skill, long damage = 0, long shield = 0, long healing = 0)
+        {
+            var output = skill?.Caster?.BattleOutput;
+            if (output == null || (damage <= 0 && shield <= 0 && healing <= 0)) return;
+            output.TryGetValue(skill.SkillID, out var previous);
+            output[skill.SkillID] = new WorldTimeline.SkillBattleOutput(skill.SkillID, skill.FromItemID,
+                previous.Damage + damage, previous.Shield + shield, previous.Healing + healing);
+        }
+        internal int UndertowAttackCount;
+        private bool ownsTimelineModel;
         public int HeroUID;//qizi唯一id
         public int rowIndex;
         public int columnIndex;//在棋盘上的位置下标,左下角是0，0,如果在备战棋格，rowIndex = -1，columnIndex是第几个
         public Vector2Int SavePos;//进入战斗时的位置
         public HeroComponent.HpBar HpBar;
         public Slider xuetiao;
-        public Slider power;
+        internal Slider WindupProgress;
         public Slider hudun;
         public List<OneItemData> EquipItemList = new List<OneItemData>();
 
@@ -36,9 +55,14 @@ namespace Entity
 
         public override Vector3 LogicHitPosition => LogicPosition + Vector3.up * ConstValue.EntityQiziHeight;
 
-        public void Init(int i,List<int> equipItem = null)
+        public void Init(int i,List<int> equipItem = null, bool recordBattleOutput = false)
         {
             IsValid = true;
+            TechniqueKills = 0;
+            LightningMarks?.Clear();
+            LightningApplications = LightningTransfers = LightningJumps = 0;
+            BattleOutput = recordBattleOutput ? new Dictionary<int, WorldTimeline.SkillBattleOutput>() : null;
+            UndertowAttackCount = 0;
             HeroID = i;
             HeroUID = ++HotGameEntry.HeroManager.QiziCurUniqueIndex;
             if (equipItem == null)
@@ -59,7 +83,16 @@ namespace Entity
         {
             //添加血条预制体到worldcanvas
             HotGameEntry.HeroManager.AddHpBar(this);
-            
+            if (!string.IsNullOrEmpty(TimelineAppearance))
+            {
+                var prefab = Resources.Load<GameObject>("StoryCharacters/" + TimelineAppearance);
+                if (prefab != null)
+                {
+                    ownsTimelineModel = true;
+                    OnGetHeroGObjCallback(UnityEngine.Object.Instantiate(prefab, HotGameEntry.HeroManager.InstanceRoot), null);
+                    return;
+                }
+            }
             HotGameEntry.HeroManager.GetHeroObjByID(HeroID,OnGetHeroGObjCallback);
         }
 
@@ -68,7 +101,7 @@ namespace Entity
             GObj = obj;
             GObj.SetActive(true);
             GObj.transform.position = HotGameEntry.HeroManager.GetTerrainMatchHeight(LogicPosition);
-            GObj.transform.localScale = Vector3.one;
+            if (!ownsTimelineModel) GObj.transform.localScale = Vector3.one;
             GObj.transform.rotation = BelongCamp== CampType.Friend?Quaternion.identity : Quaternion.Euler(new Vector3(0, -180, 0));
             InitAnimation();
             InitObjWeaponHandle();
@@ -133,7 +166,19 @@ namespace Entity
 
         public void RemoveGObj()
         {
-            HotGameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
+            if (ownsTimelineModel)
+            {
+                if (GObj != null)
+                {
+                    GObj.SetActive(false);
+                    UnityEngine.Object.Destroy(GObj);
+                }
+            }
+            else HotGameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
+            ownsTimelineModel = false;
+            TimelineAppearance = null;
+            UsesUndertow = false;
+            HasSwordRecall = false;
             ClearHpBar();
             GObj = null;
         }
@@ -146,19 +191,21 @@ namespace Entity
             DestoryState();
             DestorySkill();
             RemoveAllWeapon();
+            TechniqueSkillId = 0;
             DestoryAttribute();
             foreach (var oneItem in EquipItemList)
             {
                 ReferencePool.Release(oneItem);
             }
             EquipItemList.Clear();
+            BattleOutput = null;
             HotGameEntry.HeroManager.ReleaseEntityQizi(this);
         }
 
         private void ClearHpBar()
         {
             xuetiao = null;
-            power = null;
+            WindupProgress = null;
             hudun = null;
             if (HpBar != null)
             {
@@ -172,6 +219,7 @@ namespace Entity
             {
                 return;
             }
+            if (monsterAnimation != null) monsterAnimation.Advance(elapseSeconds);
             if (stationaryTarget)
             {
                 UpdateBuffTime(elapseSeconds, realElapseSeconds);
@@ -187,6 +235,7 @@ namespace Entity
 
         public void UpdateNoBattle(float elapseSeconds, float realElapseSeconds)
         {
+            if (monsterAnimation != null) monsterAnimation.Advance(elapseSeconds);
             UpdateShowSlider();
             UpdateAnimCommand();
         }
@@ -204,6 +253,7 @@ namespace Entity
             RemoveGObj();
             IsValid = false;
             CommandBurnEffect.SpreadOnDeath(this);
+            CommandLightningEffect.SpreadOnDeath(this);
             HotGameEntry.HeroManager.OnEntityDead(this);
             //GObj?.SetActive(false);
         }

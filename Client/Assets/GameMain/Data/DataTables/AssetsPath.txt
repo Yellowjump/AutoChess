@@ -69,6 +69,9 @@
 	10003	提示界面出场音效	Assets/GameMain/Audio/SFX_UI_Click_Designed_Liquid_Negative_Close_1.wav
 	10004	战斗音乐	Assets/GameMain/Audio/Action 3 (Loop).wav
 	10005	战斗胜利	Assets/GameMain/Audio/Victory.wav
+	10006	轮回普通战斗音乐	Assets/GameMain/Audio/Battle_Ford.wav
+	10007	轮回精英战斗音乐	Assets/GameMain/Audio/Battle_BrokenGate.wav
+	10008	轮回Boss战斗音乐	Assets/GameMain/Audio/Battle_LastRite.wav
 	12001	飞剑生成音效	Assets/GameMain/Audio/SFX_UI_Click_Designed_Plastic_Metallic_Negative_Close_1.wav
 	12002	飞剑飞行音效	Assets/GameMain/Audio/electronic_01.wav
 	12003	飞剑命中音效	Assets/GameMain/Audio/cutting_with_a_katana.wav

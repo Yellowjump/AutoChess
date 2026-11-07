@@ -38,6 +38,10 @@ public static class WorldTimelineStoryAuthoring
         var root = new GameObject("world_timeline_story", typeof(RectTransform), typeof(CanvasGroup)); root.layer = 5;
         var rt = (RectTransform)root.transform; rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.sizeDelta = Vector2.zero;
         var ctrl = root.AddComponent<WorldTimelineStoryCtrl>(); var bind = new SerializedObject(ctrl);
+        Bind(bind, "battleReportPrefab", AssetDatabase.LoadAssetAtPath<GameObject>(WorldTimelineBattleReport.PrefabPath)
+            .GetComponent<WorldTimelineBattleReport>());
+        Bind(bind, "merchantPrefab", AssetDatabase.LoadAssetAtPath<GameObject>(WorldTimelineMerchantCtrl.PrefabPath)
+            .GetComponent<WorldTimelineMerchantCtrl>());
         try
         {
             var content = Rect(root.transform, "Layout_1920x1080", 0, 0, 1920, 1080);

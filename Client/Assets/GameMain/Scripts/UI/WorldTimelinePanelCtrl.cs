@@ -16,7 +16,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     [SerializeField] private GameObject[] mapSections;
     [SerializeField] private Button closeLocation;
     [SerializeField] private Button equipment;
-    [SerializeField] private TMP_Text year, deadline, status, heroName, heroLevel, health, experience, lifespan;
+    [SerializeField] private TMP_Text year, deadline, status, heroName, heroLevel, health, experience;
     [SerializeField] private TMP_Text locationName, locationKind, locationHealth, locationAttack, locationSpirit, loot, hint, notice;
     [SerializeField] private Image healthFill, experienceFill, ritualFill, locationArt;
     [SerializeField] private Button move, cultivate, cultivateFive, wait, disguise, join;
@@ -25,11 +25,15 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     [SerializeField] private Button roles, history, logs, growth, closePopup, previousPage, nextPage;
     [SerializeField] private TMP_Text observeLabel, speedLabel, popupTitle, popupText, pageLabel;
     [SerializeField] private GameObject popup, roleList, textPage;
+    [SerializeField] private WorldTimelineTechniqueRoute techniqueRoute;
     [SerializeField] private Button[] actorButtons;
     [SerializeField] private TMP_Text[] actorLabels;
     private WorldTimelineDebugView view;
     private float nextRefresh;
     private int popupTab, page;
+    private const int TechniqueTab = 4;
+    private int selectedTechnique;
+    private bool resumeTechniqueObservation;
     private DisplayState displayState;
     private bool locationOpen;
     public DisplayState CurrentDisplayState => displayState;
@@ -42,7 +46,8 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     {
         base.OnInit(userData);
         foreach (var label in GetComponentsInChildren<TMP_Text>(true))
-            if (label.text.StartsWith("Timeline_", System.StringComparison.Ordinal)) label.text = TimelineText(label.text);
+            if (label.text == "BtnBag" || label.text.StartsWith("Timeline_", System.StringComparison.Ordinal))
+                label.text = TimelineText(label.text);
         equipment?.onClick.AddListener(OpenEquipment);
         closeLocation.onClick.AddListener(CloseLocationDetails);
         move.onClick.AddListener(() => view.MoveSelected());
@@ -68,7 +73,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         history.onClick.AddListener(() => OpenPopup(1));
         logs.onClick.AddListener(() => OpenPopup(2));
         growth.onClick.AddListener(() => OpenPopup(3));
-        closePopup.onClick.AddListener(() => popup.SetActive(false));
+        closePopup.onClick.AddListener(ClosePopup);
         previousPage.onClick.AddListener(() => { page = Math.Max(0, page - 1); RefreshPopup(); });
         nextPage.onClick.AddListener(() => { page++; RefreshPopup(); });
     }
@@ -86,6 +91,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         view.UsesPrefabHud = true;
         view.Closed += OnSessionClosed;
         locationOpen = false;
+        selectedTechnique = 0;
         SetHudVisible(true, true);
         SetDisplayState(ReadDisplayState());
         popup.SetActive(false);
@@ -112,6 +118,25 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         GameEntry.UI.OpenUIForm(UICtrlName.WorldTimelineInventory, "tips", userData: view);
     }
 
+    internal bool OpenTechnique(WorldTimelineDebugView session, int techniqueId, bool resumeObservation)
+    {
+        if (view == null || view != session || view.IsPreparing || view.IsBusy || techniqueRoute == null ||
+            !view.TryGetLearnedTechnique(techniqueId, out _, out _)) return false;
+        selectedTechnique = techniqueId;
+        resumeTechniqueObservation = resumeObservation;
+        OpenPopup(TechniqueTab);
+        return true;
+    }
+
+    private void ClosePopup()
+    {
+        popup.SetActive(false);
+        if (popupTab != TechniqueTab || selectedTechnique == 0) return;
+        int id = selectedTechnique;
+        selectedTechnique = 0;
+        WorldTimelineInventoryCtrl.ReturnFromTechnique(view, id, resumeTechniqueObservation);
+    }
+
     private DisplayState ReadDisplayState() => view.IsPreparing ? DisplayState.Preparation
         : view.IsBusy ? DisplayState.Battle : DisplayState.Map;
 
@@ -121,6 +146,11 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         {
             locationOpen = false;
             popup.SetActive(false);
+            if (selectedTechnique != 0)
+            {
+                selectedTechnique = 0;
+                view?.ResumeInventoryObservation(resumeTechniqueObservation);
+            }
             ClearHover();
         }
         displayState = state;
@@ -175,7 +205,6 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         long required = levels.GetLevel(player.Level).ExperienceToNext;
         experience.text = required == 0 ? TimelineText("Timeline_UI_75") : $"{player.LevelExperience} / {required}";
         experienceFill.fillAmount = required == 0 ? 1 : Mathf.Clamp01(player.LevelExperience / (float)required);
-        lifespan.text = TimelineText("Timeline_UI_Lifespan", player.Age, player.Lifespan);
         locationName.text = view.LocationName(node);
         locationKind.text = $"{view.LocationKind(node)}   ({node.Q}, {node.R})";
         locationHealth.text = node.MonsterHealth > 0 ? node.MonsterHealth.ToString() : TimelineText("Timeline_UI_76");
@@ -212,12 +241,20 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     {
         roleList.SetActive(popupTab == 0);
         textPage.SetActive(popupTab != 0);
-        previousPage.gameObject.SetActive(popupTab != 0);
-        nextPage.gameObject.SetActive(popupTab != 0);
-        pageLabel.gameObject.SetActive(popupTab != 0);
-        popupTitle.text = new[] { TimelineText("Timeline_UI_33"), TimelineText("Timeline_UI_18"), TimelineText("Timeline_UI_77"), TimelineText("Timeline_UI_78") }[popupTab];
+        if (popupTab == 0 && techniqueRoute != null) techniqueRoute.gameObject.SetActive(false);
+        popupTitle.text = TimelineText(popupTab switch
+        {
+            0 => "Timeline_UI_33",
+            1 => "Timeline_UI_18",
+            2 => "Timeline_UI_77",
+            TechniqueTab => "Timeline_Technique_Title",
+            _ => "Timeline_UI_78"
+        });
         if (popupTab == 0)
         {
+            previousPage.gameObject.SetActive(false);
+            nextPage.gameObject.SetActive(false);
+            pageLabel.gameObject.SetActive(false);
             var actors = view.Simulation.State.Actors.Values.Where(actor => actor.IsAlive).OrderBy(actor => actor.Id).ToArray();
             for (int i = 0; i < actorButtons.Length; i++)
             {
@@ -239,14 +276,60 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
             }
             return;
         }
-        string content = popupTab == 1 ? view.HistoryDetails : popupTab == 2 ? view.LogDetails : view.CultivationDetails;
-        var lines = content.Split('\n');
-        int count = Math.Max(1, (lines.Length + 11) / 12);
-        page = Math.Min(page, count - 1);
-        popupText.text = string.Join("\n", lines.Skip(page * 12).Take(12));
+        bool showingTechnique = popupTab == TechniqueTab;
+        if (techniqueRoute != null) techniqueRoute.gameObject.SetActive(showingTechnique);
+        popupText.gameObject.SetActive(!showingTechnique);
+        int count;
+        if (showingTechnique)
+        {
+            if (!view.TryGetLearnedTechnique(selectedTechnique, out var art, out var progress))
+            {
+                ClosePopup();
+                return;
+            }
+            const int stride = WorldTimelineTechniqueRoute.VisibleStages - 1;
+            count = Math.Max(1, (art.Stages.Count - 2 + stride) / stride);
+            page = Math.Min(page, count - 1);
+            var state = view.Simulation.State;
+            var player = state.Actors[state.PlayerActorId];
+            techniqueRoute.Show(art, page * stride, progress, player, FormatTechniqueRequirement);
+        }
+        else
+        {
+            string content = popupTab == 1 ? view.HistoryDetails : popupTab == 2 ? view.LogDetails : view.CultivationDetails;
+            var lines = content.Split('\n');
+            count = Math.Max(1, (lines.Length + 11) / 12);
+            page = Math.Min(page, count - 1);
+            popupText.text = string.Join("\n", lines.Skip(page * 12).Take(12));
+        }
+        bool showPagination = !showingTechnique || count > 1;
+        previousPage.gameObject.SetActive(showPagination);
+        nextPage.gameObject.SetActive(showPagination);
+        pageLabel.gameObject.SetActive(showPagination);
         pageLabel.text = $"{page + 1} / {count}";
         previousPage.interactable = page > 0;
         nextPage.interactable = page + 1 < count;
+    }
+
+    private string FormatTechniqueRequirement(TechniqueStage stage, int progress)
+    {
+        switch (stage.Requirement)
+        {
+            case TechniqueRequirement.BattleExperience:
+                return TimelineText("Timeline_Technique_Experience", progress, stage.Value);
+            case TechniqueRequirement.SkillKills:
+                return TimelineText("Timeline_Technique_Kills", progress, stage.Value);
+            case TechniqueRequirement.Item:
+                var story = view.Simulation.Stories;
+                string item = story != null && story.Config.Items.TryGetValue(stage.Value, out var definition)
+                    ? definition.Name : TimelineText("Timeline_UI_RelicId", stage.Value);
+                var world = view.Simulation.State;
+                bool held = world.Actors[world.PlayerActorId].Items.Contains(stage.Value);
+                return TimelineText("Timeline_Technique_Item", item) + "  ·  " +
+                    TimelineText(held ? "Timeline_Technique_ItemHeld" : "Timeline_Technique_ItemMissing");
+            default:
+                return TimelineText("Timeline_Technique_Starting");
+        }
     }
 
     public void SelectNode(Vector2 screen)

@@ -23,7 +23,10 @@ namespace SkillSystem
                 foreach (var oneTarget in trigger.CurTargetList)
                 {
                     EntityQizi target = oneTarget as EntityQizi;
-                    var targetAttr = target.GetAttribute((AttributeType)TargetAttrType.Value);
+                    var type = (AttributeType)TargetAttrType.Value;
+                    var targetAttr = target.GetAttribute(type);
+                    bool track = type is AttributeType.Hp or AttributeType.HuDun;
+                    int before = track ? (int)targetAttr.GetFinalValue() : 0;
                     if (AddOrReduce)
                     {
                         targetAttr.AddNum(ParamInt1.Value);
@@ -31,6 +34,14 @@ namespace SkillSystem
                     else
                     {
                         targetAttr.AddNum(-ParamInt1.Value);
+                    }
+                    if (track)
+                    {
+                        long gain = (long)(int)targetAttr.GetFinalValue() - before;
+                        EntityQizi.RecordBattleOutput(trigger.ParentTriggerList.ParentSkill,
+                            damage: type == AttributeType.Hp ? System.Math.Max(0, -gain) : 0,
+                            shield: type == AttributeType.HuDun ? System.Math.Max(0, gain) : 0,
+                            healing: type == AttributeType.Hp ? System.Math.Max(0, gain) : 0);
                     }
                 }
             }

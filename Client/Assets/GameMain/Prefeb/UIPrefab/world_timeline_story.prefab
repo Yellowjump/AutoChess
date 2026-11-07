@@ -1854,6 +1854,8 @@ MonoBehaviour:
   - {fileID: 702597826272165819}
   - {fileID: 6657034464698268119}
   proceed: {fileID: 4706522455775673877}
+  battleReportPrefab: {fileID: 40132, guid: 28ef3f1aa73a426fb1cd99f4b8d54f75, type: 3}
+  merchantPrefab: {fileID: 54093, guid: 41064ba53fa043128cbd8b70f95272ab, type: 3}
   backgrounds:
   - key: Gate
     sprite: {fileID: 8269601435183421993, guid: 96cb9551696913d45a8f9d400c708ef8, type: 3}

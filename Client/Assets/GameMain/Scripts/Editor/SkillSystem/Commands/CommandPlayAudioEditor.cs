@@ -5,6 +5,17 @@ using UnityEngine;
 
 namespace Editor.SkillSystem.Commands
 {
+    [SkillDrawer(typeof(CommandLightningEffect))]
+    public class CommandLightningEffectEditor
+    {
+        public void OnGUIDraw(CommandLightningEffect command)
+        {
+            command.Mode = (CommandLightningEffect.Effect)EditorGUILayout.EnumPopup("雷印效果", command.Mode);
+            EditorGUILayout.LabelField(command.Mode == CommandLightningEffect.Effect.Discharge ? "伤害（攻击力百分比）" : "施加层数");
+            SkillSystemDrawerCenter.DrawOneInstance(command.Param);
+        }
+    }
+
     [SkillDrawer(typeof(CommandWeaknessEffect))]
     public class CommandWeaknessEffectEditor
     {

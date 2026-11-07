@@ -41,7 +41,7 @@ namespace WorldTimelineDebug
         private string SavePath => Path.Combine(SaveDirectory, "cultivator-lives.dat");
         public sealed class StartingCultivator
         {
-            public string Name, Weapon;
+            public string Name;
             public int Birth, Item, Attack;
         }
 
@@ -56,6 +56,7 @@ namespace WorldTimelineDebug
             public StartingCultivator[] Cultivators;
             public LocationDefinition[] Locations;
             public StoryConfig Stories;
+            public IReadOnlyDictionary<int, TechniqueDefinition> Techniques;
         }
         public static Func<ScenarioData> ScenarioFactory { get; set; }
         private ScenarioData scenarioData;
@@ -188,6 +189,7 @@ namespace WorldTimelineDebug
             if (withStories && scenarioData?.Stories != null)
                 foreach (var story in scenarioData.Stories.Events.Values)
                 {
+                    if (story.IsMerchant) continue;
                     // These nodes now award through choices, never via the old automatic loot path.
                     world.Nodes[story.NodeId].Items.Clear();
                     world.Nodes[story.NodeId].LootAttackBonus = 0;
@@ -258,9 +260,13 @@ namespace WorldTimelineDebug
             }
         }
 
+        private static readonly int SwordTrialNode = HexWorldMap.Id(2, -9);
+
         private void NewRound(IEnumerable<LifeRecord> historyOverride = null, bool enableStories = true,
             IEnumerable<RecordedStoryChoice> replayChoices = null, bool expandedExploration = true,
-            bool storyCombatSkills = true, bool bleedRewardRoute = true)
+            bool storyCombatSkills = true, bool bleedRewardRoute = true, bool wreckBeastEncounter = true,
+            bool swordRecall = true, bool techniqueCombat = true, bool swordTrial = true, bool lightningRoute = true,
+            bool battleExperience = true, bool lightningTrials = true, bool balancedLightningTrials = true, bool merchants = true)
         {
             battleResolver = returnToMenu == null ? null : BattleResolverFactory?.Invoke();
             simulation = HexTimelineDemoFactory.Create(playerNode: startingCultivator?.Birth,
@@ -269,16 +275,63 @@ namespace WorldTimelineDebug
                 configureLocations: startingCultivator == null ? (Action<WorldState>)null : world => ConfigureLocations(world, enableStories),
                 battle: battleResolver);
             var stories = scenarioData?.Stories;
+            if (!merchants && stories != null)
+                stories = stories.WithoutEvents(stories.Events.Values.Where(story => story.IsMerchant).Select(story => story.Id).ToArray());
             // Keep pre-route checkpoints on the map and event set they originally replayed.
             if (!bleedRewardRoute) stories = stories?.WithoutEvents(9, 10);
+            if (!lightningRoute) stories = stories?.WithoutOptions(504, 602, 702);
+            if (enableStories && stories != null)
+                foreach (var shop in stories.Events.Values.Where(story => story.IsMerchant))
+                {
+                    var node = simulation.State.Nodes[shop.NodeId];
+                    node.IsMerchant = true;
+                    node.MonsterHealth = 0;
+                    node.Items.Clear();
+                    node.LootAttackBonus = 0;
+                }
             if (expandedExploration && startingCultivator != null) PopulateExploration(simulation.State, stories);
             simulation.State.StoryCombatSkillsEnabled = storyCombatSkills && enableStories;
+            simulation.State.WreckBeastEncounterEnabled = wreckBeastEncounter && enableStories;
+            simulation.State.SwordRecallEnabled = swordRecall && enableStories;
+            simulation.State.TechniqueCombatEnabled = techniqueCombat && enableStories;
+            simulation.State.BattleExperienceEnabled = battleExperience;
+            simulation.State.BattleRewardsFromYear = 1;
+            simulation.State.BalancedLightningTrials = balancedLightningTrials;
+            simulation.SetBattleSettlementPresenter(PresentBattleSettlement);
+            if (swordTrial && enableStories && startingCultivator != null &&
+                simulation.State.Nodes.TryGetValue(SwordTrialNode, out var trial))
+            {
+                trial.SetGuardianGroup(3, 42, 7);
+                trial.HasExplorationGuardian = true;
+                trial.Items.Clear();
+                trial.LootAttackBonus = 0;
+            }
+            if (simulation.State.WreckBeastEncounterEnabled && stories != null &&
+                stories.Events.TryGetValue(8, out var wreckStory) &&
+                simulation.State.Nodes.TryGetValue(wreckStory.NodeId, out var wreckNode))
+            {
+                wreckNode.MonsterHealth = 135;
+                wreckNode.MonsterAttack = 10;
+                wreckNode.StoryRequiresGuardianDefeat = true;
+            }
             inspectedActorId = 1;
             int id = 10;
             foreach (var record in historyOverride ?? library.Where(e => e.Selected).Take(10).Select(e => e.Record))
                 simulation.AddHistory(record, id++);
+            if (scenarioData?.Techniques?.TryGetValue(1, out var swordArt) == true)
+                foreach (var actor in simulation.State.Actors.Values.Where(actor => actor.Items.Contains(8104)))
+                    actor.LearnTechnique(swordArt);
             if (enableStories && stories != null)
+            {
                 simulation.ConfigureStories(stories, round, returnToMenu != null && !IsRestoringCheckpoint, replayChoices);
+                if (lightningRoute && lightningTrials)
+                {
+                    simulation.Stories.AllowOptionsOnRevisit(702, 602);
+                    ConfigureLightningTrial(stories, 504, 1);
+                    ConfigureLightningTrial(stories, 702, 2);
+                    ConfigureLightningTrial(stories, 602, 3);
+                }
+            }
             archived = false;
             autoObserve = false;
             selectedNode = simulation.State.Actors[1].NodeId.Value;
@@ -295,6 +348,17 @@ namespace WorldTimelineDebug
             }
             BeginCheckpoint();
             if (simulation.Stories != null && !UsesStoryHud && !IsRestoringCheckpoint) OpenStoryHud?.Invoke(this);
+        }
+
+        private void ConfigureLightningTrial(StoryConfig stories, int optionId, int stage)
+        {
+            if (stories.Options.TryGetValue(optionId, out var option) && option.ItemId != 0 &&
+                stories.Events.TryGetValue(option.EventId, out var story) &&
+                simulation.State.Nodes.TryGetValue(story.NodeId, out var node))
+            {
+                node.StoryTrialItemId = option.ItemId;
+                node.StoryTrialStage = stage;
+            }
         }
 
         private void Update()
@@ -371,6 +435,11 @@ namespace WorldTimelineDebug
 
         private IEnumerator AdvanceRoutine(IEnumerator routine, bool observeAfter, WorldAction action, bool preview = false)
         {
+            var player = simulation.State.Actors[simulation.State.PlayerActorId];
+            player.Techniques.TryGetValue(1, out var swordArt);
+            int startingRank = swordArt?.Rank ?? 0;
+            int startingProgress = swordArt?.Progress ?? 0;
+            var requirement = swordArt?.NextStage?.Requirement;
             var stack = new Stack<IEnumerator>();
             stack.Push(routine);
             try
@@ -399,6 +468,12 @@ namespace WorldTimelineDebug
                 }
                 if (preview) yield break;
                 Execute(() => { });
+                if (swordArt != null && swordArt.Rank > startingRank)
+                    message = TimelineText("Timeline_SwordTrial_RankUp", swordArt.Rank, TechniqueSkillName(swordArt.SkillId));
+                else if (swordArt != null && swordArt.Progress > startingProgress)
+                    message = TimelineText(requirement == TechniqueRequirement.SkillKills
+                        ? "Timeline_SwordTrial_Kills" : "Timeline_SwordTrial_Experience",
+                        swordArt.Progress - startingProgress, swordArt.Progress, swordArt.NextStage.Value.Value);
                 if (checkpoint != null)
                 {
                     checkpoint.actions.Add(new CheckpointAction(action));
@@ -507,7 +582,7 @@ namespace WorldTimelineDebug
                 var rect = new Rect(260 + i % 2 * 450, 200 + i / 2 * 42, 430, 36);
                 string birth = locations.TryGetValue(character.Birth, out var location) ? location.Name : "外围 " + character.Birth;
                 GUI.enabled = !used;
-                if (GUI.Button(rect, $"{(used ? "已结算" : startingCultivator == character ? "已选" : TimelineText("Timeline_UI_63"))} · {character.Name} · {birth} · {character.Weapon}（攻+{character.Attack}）", button))
+                if (GUI.Button(rect, $"{(used ? "已结算" : startingCultivator == character ? "已选" : TimelineText("Timeline_UI_63"))} · {character.Name} · {birth}（攻+{character.Attack}）", button))
                 {
                     startingCultivator = character;
                     foreach (var entry in library.Where(entry => entry.Record.BirthNodeId == character.Birth))
@@ -780,14 +855,14 @@ namespace WorldTimelineDebug
 
         private string NextExperience(ActorState actor) => actor.Level >= cultivation.Levels.Count ? "满级" : cultivation.GetLevel(actor.Level).ExperienceToNext.ToString();
 
-        private static string AttributeName(GrowthAttribute attribute) => attribute == GrowthAttribute.Health ? "生命" : attribute == GrowthAttribute.Attack ? TimelineText("Timeline_UI_40") : "寿元";
+        private static string AttributeName(GrowthAttribute attribute) => attribute == GrowthAttribute.Health ? "生命" : TimelineText("Timeline_UI_40");
 
         private void DrawGrowthWindow(int windowId)
         {
             GUI.Label(new Rect(18, 12, 920, 30), "等级经验与属性增量 · 每个属性独立资质", title);
             if (GUI.Button(new Rect(1030, 12, 90, 30), TimelineText("Timeline_UI_14"), button)) showGrowth = false;
             var actor = simulation.State.Actors[inspectedActorId];
-            GUI.Label(new Rect(18, 48, 1100, 24), $"{ActorName(actor.Id)} Lv{actor.Level}  生命{actor.Talents.Health.Grade} 攻击{actor.Talents.Attack.Grade} 寿元{actor.Talents.Lifespan.Grade}  当前经验 {actor.LevelExperience}/{NextExperience(actor)}", text);
+            GUI.Label(new Rect(18, 48, 1100, 24), $"{ActorName(actor.Id)} Lv{actor.Level}  生命{actor.Talents.Health.Grade} 攻击{actor.Talents.Attack.Grade}  当前经验 {actor.LevelExperience}/{NextExperience(actor)}", text);
             GUI.Label(new Rect(18, 78, 1100, 42), "第1级为出生属性，第2级起为升入该级的增量。每次升级独立取值，历史回放保持一致。\n单次增量允许少量重叠；本表保证同等级基础属性的高档累计下限高于低档累计上限。天选吸收与物品加成另算。", small);
             GUI.Label(new Rect(18, 124, 1100, 26), "配置文件：Config/CultivationLevel.xlsx（导出后重新进入 Play）", muted);
             GUILayout.BeginArea(new Rect(18, 160, 1100, 550));
@@ -800,7 +875,7 @@ namespace WorldTimelineDebug
             foreach (var level in cultivation.Levels)
             {
                 GUILayout.Label($"Lv{level.Level}  ·  {(level.Level == 1 ? "出生值" : "升入本级时增加")}  ·  升下一级所需经验：{(level.ExperienceToNext == 0 ? "满级" : level.ExperienceToNext.ToString())}", muted);
-                foreach (GrowthAttribute attribute in Enum.GetValues(typeof(GrowthAttribute)))
+                foreach (GrowthAttribute attribute in new[] { GrowthAttribute.Health, GrowthAttribute.Attack })
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label("单次 / 累计基础范围", small, GUILayout.Width(200));
@@ -876,7 +951,7 @@ namespace WorldTimelineDebug
             var node = world.Nodes[selectedNode];
             GUI.Box(new Rect(20, 572, 850, board == null ? 308 : 160), GUIContent.none, card);
             GUI.Label(new Rect(36, 582, 815, 26), $"{(locations.TryGetValue(node.Id, out var details) ? details.Name : "节点")} ({node.Q},{node.R})  |  灵气 {node.CultivationPerYear}  |  怪物生命 {node.MonsterHealth} / 攻击 {node.MonsterAttack}  |  宝物 {string.Join(",", node.Items.Select(item => details != null && details.LootItemId == item ? details.LootName + $"（攻+{node.LootAttackBonus}）" : item.ToString()))}", text);
-            GUI.Label(new Rect(36, 614, 815, 34), $"本世 Lv{player.Level}  生命 {player.Health}/{player.MaxHealth} [{player.Talents.Health.Grade}]  攻击 {player.Attack} [{player.Talents.Attack.Grade}]  寿元 {player.Age}/{player.Lifespan} [{player.Talents.Lifespan.Grade}]  经验 {player.LevelExperience}/{NextExperience(player)}", text);
+            GUI.Label(new Rect(36, 614, 815, 34), $"本世 Lv{player.Level}  生命 {player.Health}/{player.MaxHealth} [{player.Talents.Health.Grade}]  攻击 {player.Attack} [{player.Talents.Attack.Grade}]  经验 {player.LevelExperience}/{NextExperience(player)}", text);
             GUI.enabled = !showGrowth && simulation.WaitingForPlayer && player.NodeId.HasValue && world.Nodes[player.NodeId.Value].Links.Contains(selectedNode);
             if (GUI.Button(new Rect(36, 654, 150, 36), "移动至 " + selectedNode + " · 1年", button)) Submit(WorldAction.Move(selectedNode));
             GUI.enabled = !showGrowth && simulation.WaitingForPlayer;
@@ -919,7 +994,7 @@ namespace WorldTimelineDebug
             {
                 var point = ActorMapProjection.Position(simulation.State, actor);
                 string position = $"({point.Q:0.#},{point.R:0.#})" + (point.IsMoving ? " 移动中" : "") + (actor.LeaderId.HasValue ? " 队友" : "");
-                string label = $"{ActorName(actor.Id)} Lv{actor.Level} 生{actor.Talents.Health.Grade} 攻{actor.Talents.Attack.Grade} 寿{actor.Talents.Lifespan.Grade}  HP{actor.Health} ATK{actor.Attack}  {position}";
+                string label = $"{ActorName(actor.Id)} Lv{actor.Level} 生{actor.Talents.Health.Grade} 攻{actor.Talents.Attack.Grade}  HP{actor.Health} ATK{actor.Attack}  {position}";
                 if (GUI.Button(new Rect(900, 133 + row * 24, 506, 23), label, small))
                 {
                     inspectedActorId = actor.Id;

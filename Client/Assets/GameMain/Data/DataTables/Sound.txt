@@ -6,6 +6,9 @@
 	1	初始界面BGM	GameStartBGM	10001	BGM		1	1
 	2	战斗音乐	GameBattleBGM	10004	BGM		1	1
 	3	战斗胜利	BattleWin	10005	UI	10	0	1
+	4	轮回普通战斗音乐	TimelineNormalBattleBgm	10006	BGM	64	1	1
+	5	轮回精英战斗音乐	TimelineEliteBattleBgm	10007	BGM	64	1	1
+	6	轮回Boss战斗音乐	TimelineBossBattleBgm	10008	BGM	64	1	1
 #1000开始是UI音效								
 	1001	按钮音效	BtnSfx	10002	UI	10	0	1
 	1002	提示界面出场音效	ConfirmTipShow	10003	UI	20	0	1

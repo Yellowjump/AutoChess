@@ -27,15 +27,17 @@ namespace SkillSystem
         public bool InCD => LeftSkillCD > 0;// 技能还没冷却好，只对自动技能有效，主动技能在attack状态中 每帧计算
         
         public SkillCastTargetType CurSkillCastTargetType;//释放目标类型
-        public int CastPower;//释放时需消耗的蓝量，为负时是产生的蓝量
-        public bool IsBasicAttack => CurSkillType == SkillType.NormalSkill && CastPower < 0;
+        public bool IsBasicAttack { get; internal set; }
         public int BasicAttackSpeedBonus { get; internal set; }
         public bool IsActiveDamageSkill => !IsBasicAttack && CurSkillType is SkillType.NormalSkill or SkillType.SpSkill;
         private HashSet<int> ignitedTargets;
+        private HashSet<int> lightningTargets;
+        internal bool TryMarkLightningTarget(int targetId) => (lightningTargets ??= new HashSet<int>()).Add(targetId);
         public bool TryIgniteTarget(int targetId) => (ignitedTargets ??= new HashSet<int>()).Add(targetId);
         public void Cast()
         {
             ignitedTargets?.Clear();
+            lightningTargets?.Clear();
             BasicAttackSpeedBonus = 0;
             Caster?.OnTrigger(TriggerType.BeforeSkillCast,this);
             var cdr =  (int)Caster.GetAttribute(AttributeType.CooldownReduce).GetFinalValue();
@@ -100,12 +102,14 @@ namespace SkillSystem
         public override void Clear()
         {
             ignitedTargets?.Clear();
+            lightningTargets?.Clear();
             SkillID = 0;
             TempleteID = 0;
             FromItemID = 0;
             FromItemUID = 0;
             CurSkillType = SkillType.NormalSkill;
             SkillRange = 0;
+            IsBasicAttack = false;
             Caster = null;
             DefaultAnimationDurationMs = 0;
             DefaultSkillCDMs = 0;

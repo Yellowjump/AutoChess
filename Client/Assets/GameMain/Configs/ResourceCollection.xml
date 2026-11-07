@@ -323,6 +323,10 @@
       <Asset Guid="fe8889fe456fd14499b2ea473074e761" ResourceName="UIPrefabs" />
       <Asset Guid="ff09529534122f54fb0a40524e07e275" ResourceName="sceneDelay" />
       <Asset Guid="ff6cf1a2b51b1704caf33e4d7a786f8a" ResourceName="sceneDelay" />
+      <Asset Guid="57d24f8b192c4b98ab6a8304f10243ba" ResourceName="Sound" />
+      <Asset Guid="8686af515ba54c41a410bc423942c709" ResourceName="Sound" />
+      <Asset Guid="2673136a68024e1dbb327d53afb1c8e7" ResourceName="Sound" />
+      <Asset Guid="1e7d00f101a34dd8a1db110faa00594b" ResourceName="Sound" />
     </Assets>
   </ResourceCollection>
 </UnityGameFramework>

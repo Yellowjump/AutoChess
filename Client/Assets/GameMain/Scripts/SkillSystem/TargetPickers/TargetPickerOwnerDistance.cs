@@ -25,6 +25,8 @@ namespace SkillSystem
                 if (LengthUseWeapon)
                 {
                     var skill = trigger.ParentTriggerList.ParentSkill;
+                    if (owner is EntityQizi entity && entity.IsTechniqueSkill(skill))
+                        weaponLength = skill.SkillRange;
                     if (skill != null&&skill.FromItemID!=0)
                     {
                         var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");

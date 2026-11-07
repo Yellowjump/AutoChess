@@ -29,6 +29,7 @@ namespace SkillSystem
             public float ElapsedMs;
             public int PaidTicks;
             public int DamagePerTick;
+            public Skill Source;
         }
 
         private List<DamageLayer> damageLayers;
@@ -36,11 +37,14 @@ namespace SkillSystem
         public float BurnFeedCooldownMs { get; set; }
         public int BurnSourceId { get; set; }
 
-        public void AddDamageLayer(int damagePerTick)
+        public void AddDamageLayer(int damagePerTick, Skill source = null)
         {
             damageLayers ??= ListPool<DamageLayer>.Get();
             if (MaxLayerNum > 0 && damageLayers.Count >= MaxLayerNum) return;
-            damageLayers.Add(new DamageLayer { DamagePerTick = damagePerTick });
+            damageLayers.Add(new DamageLayer
+            {
+                DamagePerTick = damagePerTick, Source = source?.Caster?.BattleOutput != null ? source : null
+            });
             StackCount = damageLayers.Count;
         }
 
@@ -48,20 +52,35 @@ namespace SkillSystem
         {
             BurnFeedCooldownMs = Math.Max(0, BurnFeedCooldownMs - elapsedMs);
             long damage = 0;
+            List<(Skill Source, long Amount)> contributions = null;
             int retained = 0;
             for (int i = 0; i < damageLayers.Count; i++)
             {
                 var layer = damageLayers[i];
                 layer.ElapsedMs = Math.Min(DurationMs, layer.ElapsedMs + elapsedMs);
                 int dueTicks = (int)(layer.ElapsedMs / 1000f);
-                damage += (long)(dueTicks - layer.PaidTicks) * layer.DamagePerTick;
+                long amount = (long)(dueTicks - layer.PaidTicks) * layer.DamagePerTick;
+                damage += amount;
+                if (amount > 0 && layer.Source?.Caster?.BattleOutput != null)
+                    (contributions ??= ListPool<(Skill, long)>.Get()).Add((layer.Source, amount));
                 layer.PaidTicks = dueTicks;
                 if (layer.ElapsedMs < DurationMs) damageLayers[retained++] = layer;
             }
             damageLayers.RemoveRange(retained, damageLayers.Count - retained);
             StackCount = retained;
-            if (damage > 0 && Owner is EntityQizi target && target.IsValid)
-                CommandCauseDamage.DealSecondaryDamage(target, damage);
+            int effective = damage > 0 && Owner is EntityQizi target && target.IsValid
+                ? CommandCauseDamage.DealSecondaryDamage(target, damage) : 0;
+            if (contributions != null)
+            {
+                // Preserve a single tick hit. Allocate its effective damage in application order.
+                foreach (var contribution in contributions)
+                {
+                    int credited = (int)Math.Min(effective, contribution.Amount);
+                    EntityQizi.RecordBattleOutput(contribution.Source, damage: credited);
+                    effective -= credited;
+                }
+                ListPool<(Skill, long)>.Release(contributions);
+            }
             if (retained == 0) OnDestory();
         }
 

@@ -27,6 +27,21 @@ namespace DataTable
         BattleWin = 3,
 
         /// <summary>
+        /// 轮回普通战斗音乐
+        /// </summary>
+        TimelineNormalBattleBgm = 4,
+
+        /// <summary>
+        /// 轮回精英战斗音乐
+        /// </summary>
+        TimelineEliteBattleBgm = 5,
+
+        /// <summary>
+        /// 轮回Boss战斗音乐
+        /// </summary>
+        TimelineBossBattleBgm = 6,
+
+        /// <summary>
         /// 按钮音效
         /// </summary>
         BtnSfx = 1001,

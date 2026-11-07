@@ -18,9 +18,14 @@ public sealed class WorldTimelineStoryCtrl : UIFormLogic
     [SerializeField] private TMP_Text[] optionLabels;
     [SerializeField] private Button proceed;
     [SerializeField] private Background[] backgrounds;
+    [SerializeField] private WorldTimelineBattleReport battleReportPrefab;
+    [SerializeField] private WorldTimelineMerchantCtrl merchantPrefab;
+    private WorldTimelineBattleReport battleReport;
+    private WorldTimelineMerchantCtrl merchant;
     private WorldTimelineDebugView view;
     private StoryEncounter shown;
     private StoryResolution shownResult;
+    private BattleSettlement shownBattle;
 
     public override void OnInit(object userData)
     {
@@ -46,11 +51,13 @@ public sealed class WorldTimelineStoryCtrl : UIFormLogic
         view = userData as WorldTimelineDebugView;
         if (view == null) { GameEntry.UI.CloseUIForm(UIForm); return; }
         view.UsesStoryHud = true; view.Closed += Close;
-        shown = null; shownResult = null; presentation.SetActive(false); Refresh();
+        shown = null; shownResult = null; shownBattle = null; presentation.SetActive(false); Refresh();
     }
     public override void OnClose(bool isShutdown, object userData)
     {
         if (view != null) { view.UsesStoryHud = false; view.Closed -= Close; }
+        if (battleReport != null) battleReport.gameObject.SetActive(false);
+        if (merchant != null) merchant.gameObject.SetActive(false);
         view = null; base.OnClose(isShutdown, userData);
     }
     private void Close() => GameEntry.UI.CloseUIForm(UIForm);
@@ -58,9 +65,31 @@ public sealed class WorldTimelineStoryCtrl : UIFormLogic
     { base.OnUpdate(elapseSeconds, realElapseSeconds); Refresh(); }
     private void Refresh()
     {
+        var battle = view?.PendingBattleSettlement;
+        if (battle != null)
+        {
+            if (battle == shownBattle) return;
+            shownBattle = battle;
+            shown = null;
+            shownResult = null;
+            presentation.SetActive(false);
+            if (battleReport == null) battleReport = Instantiate(battleReportPrefab, transform, false);
+            battleReport.Show(view, battle);
+            return;
+        }
+        if (battleReport != null && battleReport.gameObject.activeSelf) battleReport.gameObject.SetActive(false);
+        shownBattle = null;
         var story = view?.Simulation?.Stories;
         var context = story?.PendingChoice ?? story?.PendingResult?.Encounter;
         var result = story?.PendingResult;
+        if (context?.Definition.IsMerchant == true)
+        {
+            presentation.SetActive(false);
+            if (merchant == null) merchant = Instantiate(merchantPrefab, transform, false);
+            merchant.Refresh(view, context);
+            return;
+        }
+        if (merchant != null && merchant.gameObject.activeSelf) merchant.gameObject.SetActive(false);
         presentation.SetActive(context != null);
         if (context == null) { shown = null; shownResult = null; return; }
         if (context == shown && result == shownResult) return;

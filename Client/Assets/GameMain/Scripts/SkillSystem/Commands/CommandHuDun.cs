@@ -52,7 +52,10 @@ namespace SkillSystem
                             }
                             var huDunBoost = (int)curqizi.GetAttribute(AttributeType.HuDunBoost).GetFinalValue();
                             curBuff.paramInt = Mathf.FloorToInt(finalShieldValue * (1+huDunBoost/100f));
+                            int before = (int)hudunAttr.GetFinalValue();
                             hudunAttr.AddNum(curBuff.paramInt);
+                            EntityQizi.RecordBattleOutput(curBuff.ParentSkill,
+                                shield: (long)(int)hudunAttr.GetFinalValue() - before);
                         }
                     }
                 }

@@ -13,8 +13,14 @@ namespace WorldTimelineDebug
         [Serializable]
         private sealed class Checkpoint
         {
-            public int version = 5, round, item, selectedNode, year, health, attack, level;
+            public int version = 15, round, item, selectedNode, year, health, attack, level;
             public bool ended;
+            public bool hasLifespanCutoff;
+            public int lifespanThroughYear;
+            public int battleRewardsFromYear;
+            public long spiritStones;
+            public bool hasLegacyTradeCutoff;
+            public int legacyTradeThroughYear;
             public string histories;
             public List<CheckpointAction> actions = new List<CheckpointAction>();
             public List<CheckpointStoryChoice> storyChoices = new List<CheckpointStoryChoice>();
@@ -97,7 +103,7 @@ namespace WorldTimelineDebug
                 {
                     if (!File.Exists(CheckpointPath)) return false;
                     var data = JsonUtility.FromJson<Checkpoint>(File.ReadAllText(CheckpointPath));
-                    return data != null && data.version >= 1 && data.version <= 5 && !data.ended && !string.IsNullOrEmpty(data.histories);
+                    return data != null && data.version >= 1 && data.version <= 15 && !data.ended && !string.IsNullOrEmpty(data.histories);
                 }
                 catch (Exception error) when (error is IOException || error is ArgumentException || error is UnauthorizedAccessException)
                 { return false; }
@@ -110,6 +116,8 @@ namespace WorldTimelineDebug
             var histories = library.Where(entry => entry.Selected).Take(10)
                 .Select(entry => new SavedLife(1, entry.Record)).ToArray();
             checkpoint = new Checkpoint { round = round, item = startingCultivator.Item,
+                battleRewardsFromYear = simulation.State.BattleRewardsFromYear,
+                hasLifespanCutoff = true,
                 histories = Convert.ToBase64String(WorldTimelineSaveStore.Encode(histories)) };
             SaveCheckpoint();
         }
@@ -126,6 +134,7 @@ namespace WorldTimelineDebug
                 checkpoint.health = player.Health;
                 checkpoint.attack = player.Attack;
                 checkpoint.level = player.Level;
+                checkpoint.spiritStones = player.LegacySpiritStones;
                 checkpoint.ended = simulation.State.IsEnded;
                 checkpoint.storyChoices = simulation.RecordPlayerLife().StoryChoices.Select(choice => new CheckpointStoryChoice(choice)).ToList();
                 Directory.CreateDirectory(Path.GetDirectoryName(CheckpointPath));
@@ -156,7 +165,24 @@ namespace WorldTimelineDebug
                 IsRestoringCheckpoint = true;
                 NewRound(histories.Select(entry => entry.Record), data.version >= 2,
                     data.storyChoices?.Select(choice => choice.ToChoice()), expandedExploration: data.version >= 3,
-                    storyCombatSkills: data.version >= 4, bleedRewardRoute: data.version >= 5);
+                    storyCombatSkills: data.version >= 4, bleedRewardRoute: data.version >= 5,
+                    wreckBeastEncounter: data.version >= 6, swordRecall: data.version >= 7,
+                    techniqueCombat: data.version >= 8, swordTrial: data.version >= 9, lightningRoute: data.version >= 10, battleExperience: data.version >= 11, lightningTrials: data.version >= 12, balancedLightningTrials: data.version >= 13, merchants: data.version >= 14);
+                int cutoff = data.hasLifespanCutoff ? data.lifespanThroughYear : data.year;
+                if (cutoff < 0 || cutoff > data.year)
+                    throw new InvalidDataException("续玩存档的旧寿元结算截止年份无效。");
+                simulation.State.LegacyLifespanDeathThroughYear = cutoff;
+                simulation.State.BattleRewardsFromYear = data.battleRewardsFromYear > 0
+                    ? data.battleRewardsFromYear : int.MaxValue;
+                int tradeCutoff = data.hasLegacyTradeCutoff ? data.legacyTradeThroughYear
+                    : data.version < 15 ? data.year : -1;
+                if (tradeCutoff < -1 || tradeCutoff > data.year)
+                    throw new InvalidDataException("续玩存档的旧交易结算截止年份无效。");
+                simulation.State.LegacyTradeThroughYear = tradeCutoff;
+                data.hasLegacyTradeCutoff = true;
+                data.legacyTradeThroughYear = tradeCutoff;
+                data.hasLifespanCutoff = true;
+                data.lifespanThroughYear = cutoff;
                 foreach (var step in data.actions)
                 {
                     if (step.kind == CheckpointAction.GrantNativeItem)
@@ -172,8 +198,15 @@ namespace WorldTimelineDebug
                 }
                 var player = simulation.State.Actors[simulation.State.PlayerActorId];
                 if (simulation.State.Year != data.year || player.Health != data.health
-                    || player.Attack != data.attack || player.Level != data.level || simulation.State.IsEnded)
+                    || player.Attack != data.attack || player.Level != data.level
+                    || player.LegacySpiritStones != data.spiritStones || simulation.State.IsEnded)
                     throw new InvalidDataException("存档演算结果不一致，可能是配置或战斗规则已变化。");
+                if (data.battleRewardsFromYear <= 0)
+                {
+                    // Old battles replay with their original rules. Future battles pay the new rewards.
+                    data.battleRewardsFromYear = checked(data.year + 1);
+                    simulation.State.BattleRewardsFromYear = data.battleRewardsFromYear;
+                }
                 selectedNode = data.selectedNode;
                 if (!simulation.State.Nodes.ContainsKey(selectedNode)) throw new InvalidDataException("存档节点无效。");
                 archived = savedLives.Any(entry => entry.Round == round);

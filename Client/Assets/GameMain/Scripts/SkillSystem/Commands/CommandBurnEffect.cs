@@ -17,11 +17,12 @@ namespace SkillSystem
 
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
-            var caster = trigger.ParentTriggerList.ParentSkill.Caster;
+            var source = trigger.ParentTriggerList.ParentSkill;
+            var caster = source.Caster;
             if (caster == null || !caster.IsValid) return;
             if (Mode == Effect.Spread)
             {
-                if (arg is EntityQizi origin) Spread(caster, origin);
+                if (arg is EntityQizi origin) Spread(caster, origin, source);
                 return;
             }
             if (arg is not CauseDamageData hit || hit.DamageValue <= 0 || hit.BurnDetonated ||
@@ -34,13 +35,13 @@ namespace SkillSystem
             switch (Mode)
             {
                 case Effect.Ignite:
-                    if (active && hit.SourceSkill.TryIgniteTarget(target.HeroUID)) Apply(caster, target, Param.Value);
+                    if (active && hit.SourceSkill.TryIgniteTarget(target.HeroUID)) Apply(caster, target, Param.Value, source);
                     break;
                 case Effect.Feed:
                     if (hit.BurnStacksBeforeHit > 0 && burn != null && burn.BurnFeedCooldownMs <= 0)
                     {
                         burn.BurnFeedCooldownMs = Param.Value;
-                        Apply(caster, target, 1);
+                        Apply(caster, target, 1, source);
                     }
                     break;
                 case Effect.Detonate:
@@ -55,7 +56,7 @@ namespace SkillSystem
                             if (enemy.IsValid && (enemy.LogicPosition - target.LogicPosition).sqrMagnitude <=
                                 DetonationRadius * DetonationRadius)
                             {
-                                CommandCauseDamage.DealSecondaryDamage(enemy, damage);
+                                CommandCauseDamage.DealSecondaryDamage(enemy, damage, source);
 #if UNITY_EDITOR
                                 if (HotGameEntry.HeroManager.IsStationaryTargetPreview)
                                     Debug.Log($"[燃烧试招] #{target.HeroUID} 引爆 {hit.BurnStacksBeforeHit} 层，命中 #{enemy.HeroUID}，结算前伤害 {damage}");
@@ -67,7 +68,7 @@ namespace SkillSystem
             }
         }
 
-        private void Spread(EntityQizi caster, EntityQizi origin)
+        private void Spread(EntityQizi caster, EntityQizi origin, Skill source)
         {
             EntityQizi nearest = null;
             float best = float.PositiveInfinity;
@@ -80,7 +81,7 @@ namespace SkillSystem
                 best = distance;
             }
             if (nearest == null) return;
-            Apply(caster, nearest, Param.Value);
+            Apply(caster, nearest, Param.Value, source);
             HotGameEntry.HeroManager.BurnVisuals?.Spread(origin.LogicPosition, nearest.LogicPosition);
 #if UNITY_EDITOR
             if (HotGameEntry.HeroManager.IsStationaryTargetPreview)
@@ -113,7 +114,7 @@ namespace SkillSystem
         }
 #endif
 
-        private static void Apply(EntityQizi caster, EntityQizi target, int layers)
+        private static void Apply(EntityQizi caster, EntityQizi target, int layers, Skill source = null)
         {
             if (layers <= 0) return;
             var row = GameEntry.DataTable.GetDataTable<DRBuff>("Buff")[BurnBuffId];
@@ -131,7 +132,7 @@ namespace SkillSystem
             }
             int attack = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
             int tick = Mathf.Max(1, (int)((long)attack * row.IntParam1 / 100));
-            for (int i = 0; i < layers; i++) burn.AddDamageLayer(tick);
+            for (int i = 0; i < layers; i++) burn.AddDamageLayer(tick, source);
             if (isNew) target.AddBuff(burn);
         }
 

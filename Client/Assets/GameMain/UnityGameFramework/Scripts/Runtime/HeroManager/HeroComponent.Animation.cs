@@ -60,6 +60,9 @@ namespace UnityGameFramework.Runtime
             return null;
         }
 
+        internal bool IsAnimationClipLoading(string path) =>
+            _waitLoadAnimList.ContainsKey(path) && !_curAnimationList.ContainsKey(path);
+
         public void ReleaseAnimNeed(int assetID)
         {
             var assetsPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");

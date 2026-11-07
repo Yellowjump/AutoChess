@@ -26,8 +26,11 @@ namespace SkillSystem
                     {
                         continue;
                     }
-                    var newBullet = HotGameEntry.HeroManager.CreateBullet(CurBulletID.Value);
-                    newBullet.Caster = trigger.ParentTriggerList.ParentSkill.Caster;
+                    var caster = trigger.ParentTriggerList.ParentSkill.Caster;
+                    int bulletId = CurBulletID.Value;
+                    var newBullet = HotGameEntry.HeroManager.CreateBullet(bulletId,
+                        caster.HasSwordRecall && bulletId is 6 or 7);
+                    newBullet.Caster = caster;
                     newBullet.BelongCamp = newBullet.Caster.BelongCamp;
                     newBullet.Target = oneTarget as EntityQizi;
                     newBullet.Owner = trigger.ParentTriggerList.Owner;

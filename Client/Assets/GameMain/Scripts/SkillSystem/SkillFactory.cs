@@ -95,6 +95,10 @@ namespace SkillSystem
                     var commandWeakness = ReferencePool.Acquire<CommandWeaknessEffect>();
                     commandWeakness.Param ??= CreateTableParamInt();
                     return commandWeakness;
+                case CommandType.LightningEffect:
+                    var commandLightning = ReferencePool.Acquire<CommandLightningEffect>();
+                    commandLightning.Param ??= CreateTableParamInt();
+                    return commandLightning;
                 default:
                     return ReferencePool.Acquire<CommandBase>();
             }

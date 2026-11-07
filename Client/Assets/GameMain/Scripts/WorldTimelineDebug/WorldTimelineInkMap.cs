@@ -8,6 +8,12 @@ namespace WorldTimelineDebug
     public sealed class WorldTimelineInkMap : MonoBehaviour
     {
         public const string LayerName = "WorldTimelineMap";
+        private static readonly int WeatherField = Shader.PropertyToID("_TimelineWeatherField");
+        private static readonly int WeatherDusk = Shader.PropertyToID("_TimelineWeatherDusk");
+        private static readonly Color DayBackground = new Color(.94f, .92f, .85f);
+        private static readonly Color NightBackground = new Color(.44f, .47f, .54f);
+        private float duskVelocity;
+        public float Dusk { get; private set; }
         private Camera sceneCamera;
         private int previousMask;
         private CameraClearFlags previousFlags;
@@ -46,6 +52,18 @@ namespace WorldTimelineDebug
         private void LateUpdate()
         {
             if (!applied || sceneCamera == null) return;
+            float target = owner.PlayerDusk;
+            if (Dusk != target)
+            {
+                float next = Mathf.SmoothDamp(Dusk, target, ref duskVelocity, .28f,
+                    Mathf.Infinity, Time.unscaledDeltaTime);
+                if (Mathf.Abs(next - target) < .001f)
+                {
+                    next = target;
+                    duskVelocity = 0f;
+                }
+                ApplyDusk(next);
+            }
             foreach (var standee in standees)
             {
                 if (!standee.gameObject.activeInHierarchy) continue;
@@ -82,9 +100,18 @@ namespace WorldTimelineDebug
             previousBackground = camera.backgroundColor;
             camera.cullingMask = 1 << layer;
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(.94f, .93f, .90f);
+            Shader.SetGlobalVector(WeatherField, requester.WeatherField);
+            duskVelocity = 0f;
+            ApplyDusk(requester.PlayerDusk);
             SetSceneryVisible(true);
             applied = true;
+        }
+
+        private void ApplyDusk(float value)
+        {
+            Dusk = value;
+            Shader.SetGlobalFloat(WeatherDusk, value);
+            sceneCamera.backgroundColor = Color.Lerp(DayBackground, NightBackground, value);
         }
         internal void ExitMap(WorldTimelineBoard requester)
         {
@@ -95,6 +122,8 @@ namespace WorldTimelineDebug
         {
             SetSceneryVisible(false);
             if (!applied) return;
+            Shader.SetGlobalVector(WeatherField, Vector4.zero);
+            Shader.SetGlobalFloat(WeatherDusk, 0f);
             if (sceneCamera != null)
             {
                 sceneCamera.cullingMask = previousMask;

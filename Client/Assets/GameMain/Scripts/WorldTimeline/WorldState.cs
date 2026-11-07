@@ -16,6 +16,15 @@ namespace WorldTimeline
         public FinalRitualState Ritual { get; internal set; }
         public bool PlayerControlEnded { get; internal set; }
         public bool StoryCombatSkillsEnabled { get; set; }
+        public bool WreckBeastEncounterEnabled { get; set; }
+        public bool SwordRecallEnabled { get; set; }
+        public bool TechniqueCombatEnabled { get; set; }
+        public bool BattleExperienceEnabled { get; set; }
+        public int BattleRewardsFromYear { get; set; } = int.MaxValue;
+        public int LegacyTradeThroughYear { get; set; } = -1;
+        public bool BalancedLightningTrials { get; set; } = true;
+        // Compatibility for the portion of a checkpoint originally played with lifespan deaths.
+        public int LegacyLifespanDeathThroughYear { get; set; }
         public Dictionary<int, ActorState> Actors { get; } = new Dictionary<int, ActorState>();
         public Dictionary<int, NodeState> Nodes { get; } = new Dictionary<int, NodeState>();
         public WorldState(int playerActorId) { PlayerActorId = playerActorId; }

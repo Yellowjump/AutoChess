@@ -16,6 +16,7 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
     private float durationAccumulate = 0f;
     private bool m_HasEnterShakeBefore = false;
     private bool m_HasAnimEndCheckToIdle = false;
+    private TimelineUndertow undertow;
     protected override void OnInit(IFsm<EntityQizi> fsm)
     {
         base.OnInit(fsm);
@@ -29,6 +30,9 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         }
         var owner = fsm.Owner;
         curNormalIndex = owner.CurCastNormalSkillIndex;
+        undertow = TimelineUndertow.Begin(owner);
+        owner.PlayMonsterWindup(undertow != null
+            ? TimelineUndertow.WindupMs : owner.NormalSkillList[curNormalIndex].CurShakeBeforeMs);
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
@@ -62,10 +66,23 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         var curCDMs = curSkill.CurCastCDMs;
         var curAnimEndMs = curSkill.CurAnimationDurationMs;
         var curShakeBeforeMs = curSkill.CurShakeBeforeMs;
+        if (undertow != null)
+        {
+            curShakeBeforeMs = TimelineUndertow.WindupMs;
+            curAnimEndMs = Mathf.Max(curAnimEndMs, curShakeBeforeMs + 450);
+            curCDMs = Mathf.Max(curCDMs, curAnimEndMs);
+        }
+        if (!m_HasEnterShakeBefore && curShakeBeforeMs > 0 && (undertow != null || curSkill.IsActiveDamageSkill))
+        {
+            float progress = durationAccumulate * 1000f / curShakeBeforeMs;
+            owner.ShowWindupProgress(progress < 1f ? progress : -1f);
+        }
         if (m_HasEnterShakeBefore==false&& durationAccumulate * 1000 >= curShakeBeforeMs)
         {
             m_HasEnterShakeBefore = true;
-            curSkill.OnSkillBeforeShakeEnd();
+            owner.PlayMonsterStrike(curAnimEndMs - curShakeBeforeMs);
+            if (undertow != null) undertow.Strike(owner, curSkill);
+            else curSkill.OnSkillBeforeShakeEnd();
         }
         if (m_HasAnimEndCheckToIdle==false&& durationAccumulate * 1000 >= curAnimEndMs)
         {
@@ -83,6 +100,9 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {
         base.OnLeave(fsm, isShutdown);
+        fsm.Owner?.ShowWindupProgress(-1f);
+        undertow?.Clear();
+        undertow = null;
         durationAccumulate = 0;
         curNormalIndex = 0;
         m_HasEnterShakeBefore = false;

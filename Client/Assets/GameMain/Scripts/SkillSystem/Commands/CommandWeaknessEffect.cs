@@ -18,13 +18,14 @@ namespace SkillSystem
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
             if (arg is not CauseDamageData hit || hit.DamageValue <= 0) return;
-            var caster = trigger.ParentTriggerList.ParentSkill.Caster;
+            var source = trigger.ParentTriggerList.ParentSkill;
+            var caster = source.Caster;
             if (caster == null || !caster.IsValid) return;
             if (Mode == Effect.Retaliate)
             {
                 if (hit.Target == caster && hit.Caster != null && hit.Caster.IsValid &&
                     hit.Caster.BelongCamp != caster.BelongCamp)
-                    CommandCauseDamage.DealSecondaryDamage(hit.Caster, (long)hit.BrokenShieldValue * Param.Value / 100);
+                    CommandCauseDamage.DealSecondaryDamage(hit.Caster, (long)hit.BrokenShieldValue * Param.Value / 100, source);
                 return;
             }
 
@@ -49,7 +50,7 @@ namespace SkillSystem
                     {
                         opening.OnDestory();
                         int attack = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
-                        CommandCauseDamage.DealSecondaryDamage(target, (long)attack * Param.Value / 100);
+                        CommandCauseDamage.DealSecondaryDamage(target, (long)attack * Param.Value / 100, source);
                     }
                     break;
             }

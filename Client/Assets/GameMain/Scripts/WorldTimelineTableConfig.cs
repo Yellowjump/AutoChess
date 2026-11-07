@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using DataTable;
+using SkillSystem;
 using UnityGameFramework.Runtime;
 using WorldTimeline;
 using WorldTimelineDebug;
@@ -23,18 +24,57 @@ public static class WorldTimelineTableConfig
         var stories = GameEntry.DataTable.GetDataTable<DRStoryEvent>("StoryEvent");
         var options = GameEntry.DataTable.GetDataTable<DRStoryOption>("StoryOption");
         var items = GameEntry.DataTable.GetDataTable<DRStoryItem>("StoryItem");
-        if (growth == null || cultivators == null || locations == null || stories == null || options == null || items == null)
+        var offers = GameEntry.DataTable.GetDataTable<DRMerchantOffer>("MerchantOffer");
+        var techniques = GameEntry.DataTable.GetDataTable<DRTechniqueStage>("TechniqueStage");
+        var skills = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
+        if (growth == null || cultivators == null || locations == null || stories == null ||
+            options == null || items == null || offers == null || techniques == null || skills == null)
             throw new InvalidOperationException("轮回配置表尚未完成预加载。");
+        var merchants = offers.GetAllDataRows().GroupBy(row => row.MerchantId).ToArray();
+        foreach (var merchant in merchants)
+            if (merchant.Key <= 0 || merchant.Any(row => row.Q != merchant.First().Q || row.R != merchant.First().R ||
+                row.LegacyPrice < 0 || row.ItemId <= 0 || !items.HasDataRow(row.ItemId)) ||
+                merchant.Select(row => row.ItemId).Distinct().Count() != merchant.Count() ||
+                HexWorldMap.Distance(merchant.First().Q, merchant.First().R) > HexWorldMap.Radius)
+                throw new InvalidOperationException($"商人 {merchant.Key} 的商品配置无效。");
         return new WorldTimelineDebugView.ScenarioData
         {
+            Techniques = techniques.GetAllDataRows().GroupBy(row => row.TechniqueId).ToDictionary(
+                group => group.Key, group => new TechniqueDefinition(group.Key, group.OrderBy(row => row.Rank)
+                    .Select((row, index) =>
+                    {
+                        if (row.Rank != index + 1 || !skills.HasDataRow(row.SkillId) ||
+                            (SkillType)skills[row.SkillId].SkillType != SkillType.NormalSkill ||
+                            !Enum.TryParse(row.Requirement, out TechniqueRequirement requirement) ||
+                            requirement.ToString() != row.Requirement ||
+                            (requirement == TechniqueRequirement.Item && !items.HasDataRow(row.Value)))
+                            throw new InvalidOperationException($"功法进阶表第 {row.Id} 条配置无效。");
+                        return new TechniqueStage(row.SkillId, requirement, row.Value);
+                    }))),
             Stories = new StoryConfig(stories.GetAllDataRows().Select(row => new StoryDefinition {
                 Id = row.Id, NodeId = HexWorldMap.Id(row.Q, row.R), Title = Localize(row.Title), Text = Localize(row.Text),
-                Background = row.Background, Repeatable = row.Repeatable != 0 }),
+                Background = row.Background, Repeatable = row.Repeatable != 0 }).Concat(merchants.Select(group =>
+                    new StoryDefinition
+                    {
+                        Id = group.Key, NodeId = HexWorldMap.Id(group.First().Q, group.First().R),
+                        Title = Localize($"Timeline_Merchant_{group.Key}_Name"),
+                        Text = Localize($"Timeline_Merchant_{group.Key}_Intro"),
+                        Repeatable = true, IsMerchant = true
+                    })),
                 options.GetAllDataRows().Select(row => new StoryOption { Id = row.Id, EventId = row.EventId,
                     Text = Localize(row.Text), Result = Localize(row.Result), Condition = (StoryCondition)Enum.Parse(typeof(StoryCondition), row.Condition),
                     Value = row.Value, Flag = row.Flag, Hint = Localize(row.Hint), Weight = row.Weight, ItemId = row.ItemId,
                     CostItemId = row.CostItemId, HealthCost = row.HealthCost, Heal = row.Heal, Experience = row.Experience,
-                    TimeYears = row.TimeYears, SetFlag = row.SetFlag }),
+                    TimeYears = row.TimeYears, SetFlag = row.SetFlag })
+                    .Concat(offers.GetAllDataRows().Select(row => new StoryOption
+                    {
+                        Id = row.Id, EventId = row.MerchantId, ItemId = row.ItemId, LegacyPrice = row.LegacyPrice,
+                        Text = Localize(items[row.ItemId].Name), Result = "", Weight = 0
+                    }))
+                    .Concat(merchants.Select(group => new StoryOption
+                    {
+                        Id = checked(group.Key * 100), EventId = group.Key, Text = Localize("Timeline_MerchantLeave"), Weight = 1
+                    })),
                 items.GetAllDataRows().Select(row => new StoryItem { Id = row.Id, Name = Localize(row.Name),
                     Description = Localize(row.Description), AttackBonus = row.AttackBonus, HealthBonus = row.HealthBonus,
                     CombatAttackPercent = row.CombatAttackPercent }), Localize),
@@ -47,7 +87,7 @@ public static class WorldTimelineTableConfig
                 new WorldTimelineDebugView.StartingCultivator
                 {
                     Name = Localize(row.Name), Birth = HexWorldMap.Id(row.Q, row.R), Item = row.ItemId,
-                    Weapon = Localize(row.WeaponName), Attack = row.AttackBonus
+                    Attack = row.AttackBonus
                 }).ToArray(),
             Locations = locations.GetAllDataRows().OrderBy(row => row.Id).Select(row =>
                 new WorldTimelineDebugView.LocationDefinition

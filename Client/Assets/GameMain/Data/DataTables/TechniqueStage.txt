@@ -1,0 +1,10 @@
+#	功法进阶路线					
+#	Id	TechniqueId	Rank	SkillId	Requirement	Value
+#	int	int	int	int	string	int
+#	记录编号	功法编号	阶数	技能表ID	进阶条件	条件参数
+	101	1	1	1	None	0
+	102	1	2	1001	BattleExperience	30
+	103	1	3	8	SkillKills	3
+#	第一阶填 None / 0。后续行填的是进入该阶所需的条件。					
+#	BattleExperience 填功法经验；SkillKills 填击杀数；Item 填 StoryItem 表的道具 ID。					
+#	功法 1 为御剑诀样例，技能暂用现有技能 ID。					

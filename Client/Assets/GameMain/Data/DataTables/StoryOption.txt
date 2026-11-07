@@ -23,3 +23,6 @@
 	1001	10	Timeline_StoryOption_1001_Text	Always	0			5	9121	0	0	0	0	0		Timeline_StoryOption_1001_Result
 	1002	10	Timeline_StoryOption_1002_Text	Always	0			5	9124	0	0	0	0	0		Timeline_StoryOption_1002_Result
 	1003	10	Timeline_StoryOption_1003_Text	Always	0			1	0	0	0	0	0	0		Timeline_StoryOption_1003_Result
+	504	5	Timeline_StoryOption_504_Text	FlagSet	0	bridge_repaired	Timeline_StoryOption_504_Hint	8	9151	0	0	0	0	0		Timeline_StoryOption_504_Result
+	702	7	Timeline_StoryOption_702_Text	HasItem	9151		Timeline_StoryOption_702_Hint	8	9152	0	0	0	0	0		Timeline_StoryOption_702_Result
+	602	6	Timeline_StoryOption_602_Text	HasItem	9152		Timeline_StoryOption_602_Hint	8	9153	0	0	0	0	0		Timeline_StoryOption_602_Result

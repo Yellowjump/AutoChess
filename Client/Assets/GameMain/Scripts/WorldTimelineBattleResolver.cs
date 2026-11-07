@@ -10,6 +10,8 @@ using WorldTimeline;
 // Lives in the main game assembly so the pure timeline assembly does not depend on Unity's combat code.
 public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
 {
+    private const int SwordArtId = 1;
+    private const int TechniqueExperiencePerBattle = 10;
     private readonly Dictionary<int, int> heroByItem = new Dictionary<int, int>();
     private readonly Dictionary<int, int> nativeItems = new Dictionary<int, int>();
     private readonly int chosenHero;
@@ -25,17 +27,36 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
 
     public static int StorySkillItem(int timelineItem) => timelineItem switch
     {
-        9121 or 9122 or 9124 => timelineItem,
+        9121 or 9122 or 9124 or 9131 or 9151 or 9152 or 9153 => timelineItem,
         _ => EquivalentLegacyItem(timelineItem) > 0 ? timelineItem : 0
     };
 
+    public static int InventorySkillItem(int itemId, bool storyCombatSkills)
+    {
+        if (itemId < 0) return -itemId;
+        if (storyCombatSkills)
+        {
+            int storySkill = StorySkillItem(itemId);
+            if (storySkill != 0) return storySkill;
+        }
+        var mappings = GameEntry.DataTable.GetDataTable<DRBattleMapping>("BattleMapping");
+        return mappings?.GetAllDataRows().FirstOrDefault(row => row.Kind == "Item" &&
+            row.TimelineItemId == itemId)?.NativeItemId ?? 0;
+    }
+
 #if UNITY_EDITOR
+    public static bool TryPreviewCurrentCharacter(WorldTimelineDebug.WorldTimelineDebugView view, bool threeTargets)
+        => TryPreview(view, null, threeTargets);
+
     public static bool TryPreview(WorldTimelineDebug.WorldTimelineDebugView view, IReadOnlyList<int> itemIds,
-        bool threeTargets = false, bool seedBurn = false)
+        bool threeTargets = false, bool seedBurn = false, bool previewCast = false, string previewMonster = null,
+        bool lightningFormation = false)
     {
         var world = view.Simulation?.State;
         var table = GameEntry.DataTable.GetDataTable<DRItem>("Item");
-        if (world == null || table == null || itemIds.Count == 0 || itemIds.Any(id => !table.HasDataRow(id)) ||
+        bool currentLoadout = itemIds == null;
+        if (world == null || table == null ||
+            (!currentLoadout && (itemIds.Count == 0 || itemIds.Any(id => !table.HasDataRow(id)))) ||
             !world.Actors.TryGetValue(world.PlayerActorId, out var player) ||
             !player.IsAlive || !player.NodeId.HasValue) return false;
 
@@ -44,21 +65,32 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
         const int healthMultiplier = 50;
         var tester = new ActorState(player.Id, node,
             (int)Math.Min(int.MaxValue, (long)player.MaxHealth * healthMultiplier), player.CombatAttack);
-        // Keep the character model and basic weapon; only add the selected test loadout.
+        // Presets copy only the starting identity. The current-character preview copies the whole loadout.
         foreach (int item in player.Items)
-            if (resolver.heroByItem.ContainsKey(item)) tester.Items.Add(item);
+            if (currentLoadout || resolver.heroByItem.ContainsKey(item)) tester.Items.Add(item);
+        int previewTechnique = currentLoadout && world.TechniqueCombatEnabled &&
+            player.Techniques.TryGetValue(SwordArtId, out var progress) ? progress.SkillId : 0;
         int dummyHealth = (int)Math.Min(int.MaxValue, Math.Max(600L, player.MaxHealth * 4L) * healthMultiplier);
         int dummyAttack = Mathf.Max(1, player.Attack / 8);
-        var opponents = new ActorState[threeTargets ? 3 : 1];
+        var opponents = new ActorState[threeTargets || previewCast ? 3 : 1];
         for (int i = 0, id = -1; i < opponents.Length; i++, id--)
         {
             if (id == player.Id) id--;
-            opponents[i] = new ActorState(id, node, dummyHealth, dummyAttack);
+            int targetHealth = lightningFormation
+                ? (int)Math.Min(int.MaxValue, (i == 0 ? 6L : 10L) * player.CombatAttack + 100)
+                : dummyHealth;
+            opponents[i] = new ActorState(id, node, targetHealth, dummyAttack);
         }
-        var sandbox = new WorldState(player.Id);
+        var sandbox = new WorldState(player.Id)
+        {
+            StoryCombatSkillsEnabled = currentLoadout && world.StoryCombatSkillsEnabled,
+            SwordRecallEnabled = currentLoadout && world.SwordRecallEnabled,
+            WreckBeastEncounterEnabled = currentLoadout && world.WreckBeastEncounterEnabled
+        };
         if (world.Nodes.TryGetValue(node, out var location)) sandbox.Nodes.Add(node, location);
         return view.TryRunBattlePreview(resolver.Run(sandbox, node,
-            new[] { tester }, opponents, true, _ => { }, itemIds.ToArray(), seedBurn));
+            new[] { tester }, opponents, true, _ => { }, itemIds?.ToArray() ?? Array.Empty<int>(),
+            seedBurn, previewCast, previewMonster, lightningFormation, previewTechnique));
     }
 #endif
 
@@ -108,13 +140,17 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
         bool playerParticipates = first.Concat(second).Any(actor => actor.Id == world.PlayerActorId);
         bool visible = playerParticipates && !world.PlayerControlEnded
             && !WorldTimelineDebug.WorldTimelineDebugView.IsRestoringCheckpoint;
-        return Run(world, nodeId, first, second, visible, completed);
+        bool trialFormation = world.Nodes.TryGetValue(nodeId, out var node) &&
+            node.StoryTrialStarted && second[0].Id <= -nodeId && !world.Actors.ContainsKey(second[0].Id);
+        return Run(world, nodeId, first, second, visible, completed, lightningFormation: trialFormation);
     }
 
     private IEnumerator Run(WorldState world, int nodeId, IReadOnlyList<ActorState> first,
         IReadOnlyList<ActorState> second, bool visible, Action<int[]> completed, IReadOnlyList<int> previewItems = null,
-        bool seedBurn = false)
-    {        int Hero(ActorState actor)
+        bool seedBurn = false, bool previewCast = false, string previewMonster = null, bool lightningFormation = false,
+        int previewTechnique = 0)
+    {
+        int Hero(ActorState actor)
         {
             if (actor.Id == world.ChosenActorId) return chosenHero;
             foreach (int item in actor.Items)
@@ -127,7 +163,18 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
             var result = new List<int>();
             foreach (int item in actor.Items)
                 if (nativeItems.TryGetValue(item, out int native) && native > 0) result.Add(native);
-            // The default axe supplies a basic attack for unarmed monsters and legacy lives.
+            if (IsGuardian(actor) || (previewItems != null && !previewCast && second.Contains(actor)))
+            {
+                result.Add(Appearance(actor) switch
+                {
+                    "WreckBeast" => 9191,
+                    "GateGolem" => 9192,
+                    "RitualWraith" => 9193,
+                    _ => 9190
+                });
+                return result;
+            }
+            // The default axe still supplies a basic attack for legacy cultivator lives.
             if (result.Count == 0 ||
                 (world.StoryCombatSkillsEnabled && actor.Items.Contains(9122) &&
                     !result.Contains(1) && !result.Contains(2) && !result.Contains(1001)))
@@ -161,8 +208,61 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
             seed = unchecked(seed * 31 + actor.Health * 7 + actor.Attack);
         int regionDistance = world.Nodes.TryGetValue(nodeId, out var node)
             ? HexWorldMap.Distance(node.Q, node.R) : 0;
+        string Appearance(ActorState actor)
+        {
+            if (previewCast)
+            {
+                if (actor == first[0]) return "Chongshan";
+                int index = 0;
+                while (index < second.Count && second[index] != actor) index++;
+                return new[] { "ShenYan", "LuYing", "Zhuxing" }[index];
+            }
+            if (previewMonster != null && actor == second[0]) return previewMonster;
+            // A node guardian is a temporary combatant, never a saved timeline actor.
+            if (IsGuardian(actor))
+            {
+                if (world.Ritual?.NodeId == nodeId) return "RitualWraith";
+                if (nodeId == HexWorldMap.Id(3, -9) || nodeId == HexWorldMap.Id(-8, 0)) return "WreckBeast";
+                if (regionDistance <= 6) return "GateGolem";
+            }
+            if (actor.Items.Contains(8106)) return "Chongshan";
+            if (actor.Items.Contains(8110)) return "Zhuxing";
+            return null;
+        }
+        bool IsGuardian(ActorState actor) => previewItems == null && actor.Id <= -nodeId
+            && !world.Actors.ContainsKey(actor.Id);
+        var swordArts = new Dictionary<ActorState, (int Rank, int SkillId)>();
+        if (world.TechniqueCombatEnabled && previewItems == null)
+            foreach (var actor in first.Concat(second))
+                if (actor.Techniques.TryGetValue(SwordArtId, out var progress))
+                    swordArts.Add(actor, (progress.Rank, progress.SkillId));
+        int BattleMusicId()
+        {
+            if (previewMonster == "RitualWraith") return (int)EnumSound.TimelineBossBattleBgm;
+            if (previewMonster is "WreckBeast" or "GateGolem" || lightningFormation)
+                return (int)EnumSound.TimelineEliteBattleBgm;
+
+            var guardian = first.Concat(second).FirstOrDefault(IsGuardian);
+            if (guardian == null) return (int)EnumSound.TimelineNormalBattleBgm;
+            if (world.Ritual?.NodeId == nodeId) return (int)EnumSound.TimelineBossBattleBgm;
+            return node.IsGuardianGroup || Appearance(guardian) is "WreckBeast" or "GateGolem"
+                ? (int)EnumSound.TimelineEliteBattleBgm : (int)EnumSound.TimelineNormalBattleBgm;
+        }
+
+        using (visible ? HotGameEntry.Sound?.PlayTemporaryMusic(BattleMusicId()) : null)
         using (visible ? WorldTimelineDebug.WorldTimelineBoard.SuspendMapPresentation() : null)
             yield return HotGameEntry.HeroManager.RunTimelineBattle(first, second, Hero, Items, seed, visible,
-                completed, regionDistance, unlimitedDuration: previewItems != null, seedPreviewBurn: seedBurn);
+                completed, regionDistance, unlimitedDuration: previewItems != null, seedPreviewBurn: seedBurn,
+                appearance: Appearance, enableUndertow: world.WreckBeastEncounterEnabled || previewMonster != null,
+                enableSwordRecall: world.SwordRecallEnabled || (previewItems != null && previewItems.Count > 0),
+                lightningFormation: lightningFormation,
+                reportOwner: visible && previewItems == null ? world.Actors[world.PlayerActorId] : null,
+                techniqueSkill: actor => swordArts.TryGetValue(actor, out var art) ? art.SkillId
+                    : previewItems != null && actor.Id == world.PlayerActorId ? previewTechnique : 0,
+                settleTechnique: (actor, kills) =>
+                {
+                    if (swordArts.TryGetValue(actor, out var art))
+                        actor.SettleTechniqueBattle(SwordArtId, art.Rank, TechniqueExperiencePerBattle, kills);
+                });
     }
 }

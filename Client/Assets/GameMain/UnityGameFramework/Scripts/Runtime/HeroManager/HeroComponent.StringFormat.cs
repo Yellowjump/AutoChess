@@ -1,80 +1,63 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using DataTable;
 using SkillSystem;
 using UnityEngine;
+using WorldTimeline;
 
 namespace UnityGameFramework.Runtime
 {
     public partial class HeroComponent
     {
+        internal const string TimelineSlashDescriptionKey = "Timeline_Technique_SlashDescription";
         private Dictionary<string, AttributeType> attributeTypeMap;
         private Dictionary<AttributeType, Color> attrHighlightColor;
         private Color whiteColor = new Color(0.93f, 0.93f, 0.93f);
-        public string FormatItemDesc(string desc, int heroUID)
+        public string FormatItemDesc(string desc, int heroUID) =>
+            FormatItemDesc(desc, heroUID == 0 ? null : type => GetHeroAttrValue(heroUID, type));
+
+        public string FormatTimelineItemDesc(string desc, ActorState actor) =>
+            FormatItemDesc(desc, type => type switch
+            {
+                AttributeType.Hp => actor.Health,
+                AttributeType.MaxHp => actor.MaxHealth,
+                AttributeType.AttackDamage => actor.CombatAttack,
+                _ => (int?)null
+            });
+
+        private string FormatItemDesc(string desc, Func<AttributeType, int?> getAttribute)
         {
             if (string.IsNullOrEmpty(desc))
             {
                 return string.Empty;
             }
-            currentHeroUID = heroUID;
-            return Regex.Replace(desc, @"\{0\} = \[(.*?)\]", MatchSkillDescription);
-        }
-        private string MatchSkillDescription(Match match)
-        {
-            return FormatSkillDescription(match.Value, currentHeroUID);
-        }
-
-        private int currentHeroUID; // 临时存储 heroUID
-        private string FormatSkillDescription(string template, int heroUID)
-        {
-            
-            string formula = ExtractFormula(template); // 获取 [20 + 10%最大生命值]
-            if (heroUID!=0)
+            return Regex.Replace(desc, @"\{0\} = \[(.*?)\]", match =>
             {
-                float result = EvaluateFormula(formula,heroUID); // 计算最终数值
-                string formattedResult = $"<color=#FF5500>{result:0}</color>"; // 橙色最终值
-                string formattedFormula = HighlightFormula(formula); // 让公式变色
-
-                return template.Replace("{0}", formattedResult).Replace($"[{formula}]", formattedFormula);
-            }
-            else
-            {
-                // 仅高亮公式，不计算最终值
-                return template.Replace("{0} = ", "").Replace($"[{formula}]", HighlightFormula(formula));
-            }
+                string formula = match.Groups[1].Value;
+                string formattedFormula = HighlightFormula(formula);
+                if (getAttribute != null && TryEvaluateFormula(formula, getAttribute, out float result))
+                    return $"<color=#FF5500>{result:0}</color> = {formattedFormula}";
+                return formattedFormula;
+            });
         }
-        private string ExtractFormula(string template)
+        private bool TryEvaluateFormula(string formula, Func<AttributeType, int?> getAttribute, out float result)
         {
-            Match match = Regex.Match(template, @"\[(.*?)\]"); // 匹配 [ ] 之间的内容
-            return match.Success ? match.Groups[1].Value : "";
-        }
-        private float EvaluateFormula(string formula,int heroUID)
-        {
-            float result = 0;
-
-            // 解析百分比属性，例如 "10%最大生命值"
+            bool available = true;
             string processedFormula = Regex.Replace(formula, @"(\d+)%(\w+)", match =>
             {
-                float percent = float.Parse(match.Groups[1].Value) / 100f;
-                string attr = match.Groups[2].Value;
-                var localizedAttr = GameEntry.Localization.GetString(attr);
-                if (attributeTypeMap.TryGetValue(attr, out AttributeType attrType))
+                if (attributeTypeMap.TryGetValue(match.Groups[2].Value, out var type) &&
+                    getAttribute(type) is int value)
                 {
-                    return (percent * GetHeroAttrValue(heroUID,attrType)).ToString();
+                    float percent = float.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture) / 100f;
+                    return (percent * value).ToString(CultureInfo.InvariantCulture);
                 }
+                available = false;
                 return match.Value;
             });
-            try
-            {
-                result = Evaluate(processedFormula);
-            }
-            catch
-            {
-                Console.WriteLine("计算失败: " + processedFormula);
-            }
-            return result;
+            result = available ? Evaluate(processedFormula) : 0;
+            return available;
         }
 
         private string HighlightFormula(string formula)
@@ -106,23 +89,18 @@ namespace UnityGameFramework.Runtime
             {
                 { EnumLanguage.Attr_Hp.ToString(), AttributeType.Hp },
                 { EnumLanguage.Attr_MaxHp.ToString(), AttributeType.MaxHp },
-                { EnumLanguage.Attr_Power.ToString(), AttributeType.Power },
-                { EnumLanguage.Attr_MaxPower.ToString(), AttributeType.MaxPower },
                 { EnumLanguage.Attr_HuDun.ToString(), AttributeType.HuDun },
                 { EnumLanguage.Attr_HuDunBoost.ToString(), AttributeType.HuDunBoost },
                 { EnumLanguage.Attr_CooldownReduce.ToString(), AttributeType.CooldownReduce },
                 { EnumLanguage.Attr_ATK.ToString(), AttributeType.AttackDamage },
             };
             var hpColor = new Color(0, 0.4f, 0);
-            var mpColor = new Color(0, 0.4f, 0.8f);
             var shieldColor = new Color(0.6f, 0.6f, 0.1f);
             var atkColor = new Color(0.8f, 0.5f, 0.1f);
             attrHighlightColor = new Dictionary<AttributeType, Color>()
             {
                 { AttributeType.Hp, hpColor },
                 { AttributeType.MaxHp, hpColor },
-                { AttributeType.Power, mpColor },
-                { AttributeType.MaxPower, mpColor },
                 { AttributeType.HuDunBoost, shieldColor },
                 { AttributeType.AttackDamage, atkColor },
                 { AttributeType.CooldownReduce, whiteColor },
@@ -138,7 +116,7 @@ namespace UnityGameFramework.Runtime
                 float sum = 0;
                 foreach (Match match in matches)
                 {
-                    sum += float.Parse(match.Value);
+                    sum += float.Parse(match.Value, CultureInfo.InvariantCulture);
                 }
 
                 return sum;

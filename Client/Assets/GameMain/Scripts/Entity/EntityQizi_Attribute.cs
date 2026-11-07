@@ -49,8 +49,6 @@ namespace Entity
             var attributeData = heroAttributeTable[attributeID];
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MaxHp,attributeData.Hp,0,int.MaxValue));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.Hp,ReferencePool.Acquire<FixedModifyAttribute>().Initialize(attributeData.Hp,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<DynamicLimitAttribute<int>>().Initialize(AttributeType.MaxHp,this))));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MaxPower,attributeData.Power,0,int.MaxValue));
-            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.Power,ReferencePool.Acquire<FixedModifyAttribute>().Initialize(0,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<DynamicLimitAttribute<int>>().Initialize(AttributeType.MaxPower,this))));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.HuDun,0,0));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.AttackDamage,attributeData.AttackDamage,isFixModify:false));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.HuDunBoost,attributeData.HudunBoost,0,int.MaxValue));//todo
@@ -81,13 +79,14 @@ namespace Entity
                     hudun.value = curHuDun / (float)maxHp;
                 }
             }
+        }
 
-            if (power != null)
-            {
-                var maxPower = (int)GetAttribute(AttributeType.MaxPower).GetFinalValue();
-                var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
-                power.value = curPower / (float)maxPower;
-            }
+        internal void ShowWindupProgress(float progress)
+        {
+            if (WindupProgress == null) return;
+            bool visible = progress >= 0f;
+            if (visible) WindupProgress.SetValueWithoutNotify(progress);
+            if (WindupProgress.gameObject.activeSelf != visible) WindupProgress.gameObject.SetActive(visible);
         }
 
         private void DestoryAttribute()

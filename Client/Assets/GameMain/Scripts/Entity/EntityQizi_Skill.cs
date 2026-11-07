@@ -8,6 +8,36 @@ using UnityGameFramework.Runtime;
 
 namespace Entity
 {
+    internal static class BattleStatuses
+    {
+        internal static readonly (BuffTag Tag, string Chinese, string English, string Color)[] Display =
+        {
+            (BuffTag.Bleeding, "流血", "Bleed", "#FFA69C"),
+            (BuffTag.Burning, "燃烧", "Burn", "#FFC07A"),
+            (BuffTag.Weakened, "虚弱", "Weakness", "#D3B8FF"),
+            (BuffTag.Exposed, "破绽", "Opening", "#F9CB91"),
+            (BuffTag.HeavyDamage, "重伤", "Wounded", "#F5B5C0"),
+            (BuffTag.Frozen, "冰冻", "Frozen", "#A6DBFF"),
+            (BuffTag.Stunned, "眩晕", "Stunned", "#E8D59A"),
+            (default, "雷印", "Lightning Mark", "#C8C5FF")
+        };
+
+        internal static void Read(EntityQizi owner, long[] counts)
+        {
+            System.Array.Clear(counts, 0, counts.Length);
+            if (!owner.IsValid) return;
+            foreach (var buff in owner.CurBuffList)
+            {
+                if (!buff.IsValid || buff.StackCount <= 0) continue;
+                for (int i = 0; i < Display.Length - 1; i++)
+                    if (buff.CheckBuffTag(Display[i].Tag)) counts[i] += buff.StackCount;
+            }
+            if (owner.LightningMarks != null)
+                foreach (int count in owner.LightningMarks.Values)
+                    counts[Display.Length - 1] += count;
+        }
+    }
+
     public partial class EntityQizi
     {
         public List<Skill> NormalSkillList = new List<Skill>();
@@ -39,7 +69,32 @@ namespace Entity
         {
             InitItemSkillAndAttr();
             InitHeroTableSkill();
+            if (TechniqueSkillId != 0)
+                InitTechniqueSkill();
             CastPassiveSkill();
+        }
+
+        private Skill techniqueSkill;
+        internal bool IsTechniqueSkill(Skill skill) => skill != null && ReferenceEquals(skill, techniqueSkill);
+
+        private void InitTechniqueSkill()
+        {
+            var skill = AddOneNewSkill(TechniqueSkillId);
+            if (skill == null)
+                throw new System.InvalidOperationException($"Invalid technique combat skill {TechniqueSkillId}.");
+            if (skill.CurSkillType != SkillType.NormalSkill)
+            {
+                ReferencePool.Release(skill);
+                throw new System.InvalidOperationException($"Technique skill {TechniqueSkillId} is not a normal skill.");
+            }
+            techniqueSkill = skill;
+
+            // Some skill templates use the source item for reach, weapon visuals or cast parameters.
+            foreach (var item in GameEntry.DataTable.GetDataTable<DRItem>("Item").GetAllDataRows())
+                if (item.SkillID == TechniqueSkillId &&
+                    (techniqueSkill.FromItemID == 0 || item.Id < techniqueSkill.FromItemID))
+                    techniqueSkill.FromItemID = item.Id;
+            NormalSkillList.Add(techniqueSkill);
         }
 
         private void InitItemSkillAndAttr()
@@ -51,6 +106,7 @@ namespace Entity
                 return;
             }
             var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
+            var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
             foreach (var oneItem in EquipItemList)
             {
                 if (!itemTable.HasDataRow(oneItem.ItemID))
@@ -60,7 +116,9 @@ namespace Entity
                 }
 
                 var itemData = itemTable[oneItem.ItemID];
-                if (itemData.SkillID != 0)
+                bool replacesSkill = TechniqueSkillId != 0 && skillTable.HasDataRow(itemData.SkillID) &&
+                    (SkillType)skillTable[itemData.SkillID].SkillType == SkillType.NormalSkill;
+                if (itemData.SkillID != 0 && !replacesSkill)
                 {
                     var skillID = itemData.SkillID;
                     var oneNewSkill = AddOneNewSkill(skillID);
@@ -154,7 +212,8 @@ namespace Entity
                 oneSkill.DefaultShakeBeforeMs = skillTableData.BeforeShakeEndMs;
                 oneSkill.CurSkillCastTargetType = (SkillCastTargetType)skillTableData.TargetType;
                 oneSkill.DefaultSkillCDMs = skillTableData.CDMs;
-                oneSkill.CastPower = skillTableData.CastPower;
+                // Legacy table rows use a negative value to identify basic attacks.
+                oneSkill.IsBasicAttack = oneSkill.CurSkillType == SkillType.NormalSkill && skillTableData.CastPower < 0;
                 var temp = skillTemplates[skillTableData.TemplateID].SkillTemplate;
                 temp.Clone(oneSkill);
                 oneSkill.Owner = this;
@@ -424,11 +483,6 @@ namespace Entity
             {
                 return CheckCastSkillResult.Error;
             }
-            var curPower = (int)GetAttribute(AttributeType.Power).GetFinalValue();
-            if (curPower < willCastSkill.CastPower)
-            {
-                return CheckCastSkillResult.NoPower;
-            }
             var inAttackRange = false;
             if (willCastSkill.CurSkillCastTargetType != SkillCastTargetType.NoNeedTarget)
             {
@@ -508,16 +562,15 @@ namespace Entity
                 {
                     NextCastNormalSkillIndex = 0;
                 }
-                GetAttribute(AttributeType.Power).AddNum(-NormalSkillList[normalSkillIndex].CastPower);
                 NormalSkillList[normalSkillIndex].Cast();
             }
         }
 
-        public void BeCauseDamage(CauseDamageData damageData)
+        public int BeCauseDamage(CauseDamageData damageData)
         {
             if (damageData == null)
             {
-                return;
+                return 0;
             }
             //todo 计算护盾
             var hudunAttr = GetAttribute(AttributeType.HuDun);
@@ -527,7 +580,10 @@ namespace Entity
                 var weakness = damageData.Caster.FindStatusBuff(BuffTag.Weakened, CommandWeaknessEffect.WeaknessBuffId);
                 if (weakness != null) damageData.DamageValue *= 1f - weakness.paramInt / 100f;
             }
-            int healthBefore = damageData.TriggerDamageRelate ? (int)hpAttr.GetFinalValue() : 0;
+            var caster = damageData.Caster;
+            bool techniqueHit = IsValid && caster != null && caster.BelongCamp != BelongCamp &&
+                caster.IsTechniqueSkill(damageData.SourceSkill);
+            int healthBefore = (int)hpAttr.GetFinalValue();
             damageData.TargetWasBleeding = damageData.TriggerDamageRelate && HasBleeding;
 #if UNITY_EDITOR
             if (damageData.TriggerDamageRelate)
@@ -596,10 +652,19 @@ namespace Entity
                 hpAttr.AddNum(-(int)damageData.DamageValue);
             }
 
+            int healthAfter = (int)hpAttr.GetFinalValue();
+            int shieldAfter = (int)hudunAttr.GetFinalValue();
+            int healthLost = System.Math.Max(0, healthBefore - healthAfter);
+            int shieldLost = System.Math.Max(0, shieldValue - shieldAfter);
+            int effectiveDamage = (int)System.Math.Min(int.MaxValue, (long)healthLost + shieldLost);
+            RecordBattleOutput(damageData.SourceSkill, damage: effectiveDamage);
+            if (techniqueHit && healthBefore > 0 && healthAfter <= 0)
+                caster.TechniqueKills++;
+
             if (damageData.TriggerDamageRelate)
             {
-                damageData.HealthLost = System.Math.Max(0, healthBefore - (int)hpAttr.GetFinalValue());
-                damageData.BrokenShieldValue = shieldValue > 0 && (int)hudunAttr.GetFinalValue() <= 0 ? shieldValue : 0;
+                damageData.HealthLost = healthLost;
+                damageData.BrokenShieldValue = shieldValue > 0 && shieldAfter <= 0 ? shieldValue : 0;
                 damageData.Caster.OnTrigger(TriggerType.AfterCauseDamage,damageData);
                 OnTrigger(TriggerType.AfterBeCauseDamage,damageData);
                 if (damageData.BrokenShieldValue > 0 && IsValid)
@@ -613,6 +678,7 @@ namespace Entity
                 //death
                 OnDead();
             }
+            return effectiveDamage;
         }
 
         public bool HasBleeding => FindBleedingBuff() != null;
@@ -665,6 +731,7 @@ namespace Entity
                 }
                 NormalSkillList.Clear();
             }
+            techniqueSkill = null;
             if (NoAnimAtkSkillList != null)
             {
                 foreach (var oneSkill in NoAnimAtkSkillList)

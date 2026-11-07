@@ -8,7 +8,7 @@ namespace WorldTimelineDebug
     {
         public struct PreparationCharacter
         {
-            public string Name, Weapon, Birthplace;
+            public string Name, Technique, Birthplace;
             public int Q, R, AttackBonus;
             public bool Used, Selected;
         }
@@ -39,7 +39,9 @@ namespace WorldTimelineDebug
         {
             var character = roster[index];
             locations.TryGetValue(character.Birth, out var place);
-            return new PreparationCharacter { Name = character.Name, Weapon = character.Weapon,
+            return new PreparationCharacter { Name = character.Name,
+                Technique = character.Item == 8104 && scenarioData?.Techniques?.ContainsKey(1) == true
+                    ? TechniqueName(1) : "",
                 Birthplace = place?.Name ?? TimelineText("Timeline_UI_115"),
                 Q = place?.Q ?? 0, R = place?.R ?? 0, AttackBonus = character.Attack,
                 Used = CharacterUsed(character), Selected = character == startingCultivator };
