@@ -31,10 +31,12 @@ namespace WorldTimeline
         public IReadOnlyList<WorldEvent> Events { get; }
         public int EndYear { get; }
         public bool EndedInDeath { get; }
+        internal int? GuardianDeathNodeId { get; }
         public IReadOnlyList<RecordedStoryChoice> StoryChoices { get; }
 
         internal LifeRecord(ActorState initial, IEnumerable<int> items, IEnumerable<RecordedAction> actions,
-            IEnumerable<WorldEvent> events, int endYear, bool endedInDeath, IEnumerable<RecordedStoryChoice> storyChoices = null)
+            IEnumerable<WorldEvent> events, int endYear, bool endedInDeath,
+            IEnumerable<RecordedStoryChoice> storyChoices = null, int? guardianDeathNodeId = null)
         {
             SourceActorId = initial.Id; BirthNodeId = initial.NodeId.Value;
             InitialHealth = initial.Health; InitialAttack = initial.Attack; Lifespan = initial.Lifespan;
@@ -44,6 +46,15 @@ namespace WorldTimeline
             Events = Array.AsReadOnly(events.ToArray());
             EndYear = endYear; EndedInDeath = endedInDeath;
             StoryChoices = Array.AsReadOnly((storyChoices ?? Enumerable.Empty<RecordedStoryChoice>()).ToArray());
+            if (endedInDeath)
+            {
+                GuardianDeathNodeId = guardianDeathNodeId;
+                var death = Events.LastOrDefault(entry => entry.Kind == WorldEventKind.Died && entry.ActorId == SourceActorId);
+                var lastBattle = Events.LastOrDefault(entry => entry.Kind == WorldEventKind.Battle && entry.ActorId == SourceActorId);
+                if (death?.Detail == "Battle" && lastBattle?.Detail == "Node monster" &&
+                    lastBattle.Year == death.Year && lastBattle.NodeId == death.NodeId)
+                    GuardianDeathNodeId = death.NodeId;
+            }
         }
 
         public ActorState CreateActor(int instanceId)

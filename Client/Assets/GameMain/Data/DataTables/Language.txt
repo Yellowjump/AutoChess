@@ -525,3 +525,110 @@
 	22298	商人	Timeline_MerchantStock	行脚商赠礼	Wayfarer’s Gifts
 	22299	商人	Timeline_Item_9161_Name	护心石	Heartguard Stone
 	22300	商人	Timeline_Item_9161_Description	最大气血 +60，获得时同时恢复 60 点气血。	Max HP +60. Restores 60 HP when obtained.
+	22301	临溪路线	Timeline_Linxi_Watch	临溪旧哨	Linxi Watchpost
+	22302	临溪路线	Timeline_Linxi_Shoal	碎石浅滩	Shale Shoal
+	22303	临溪路线	Timeline_Linxi_Steps	回水石阶	Backwater Steps
+	22304	临溪路线	Timeline_Linxi_Spring	洗剑泉	Swordwash Spring
+	22305	临溪路线	Timeline_Linxi_Gate	镇潮关	Tideward Gate
+	22306	临溪路线	Timeline_Linxi_Intro	巡哨傀儡倒地后，石壁露出几行刀痕。哨亭下还有一坛清水，坛口用旧布封着。	The watch puppet falls, revealing blade marks on the wall. Beneath the shelter sits a jar of clean water, sealed with old cloth.
+	22307	临溪路线	Timeline_Linxi_Study	临摹石壁上的刀痕（修为 +8）	Trace the cuts on the wall (+8 Cultivation)
+	22308	临溪路线	Timeline_Linxi_StudyResult	刀痕前深后浅。你照着走了一遍，才摸清换手的时机。	The cuts start deep and end shallow. Following them, you discover when to shift your grip.
+	22309	临溪路线	Timeline_Linxi_Rest	用坛水清洗伤口（恢复气血 40）	Wash your wounds (restore 40 HP)
+	22310	临溪路线	Timeline_Linxi_RestResult	坛水很凉，连伤口里残留的木屑也被冲了出来。	The cold water flushes the last splinters from your wounds.
+	22311	改命	Timeline_Linxi_FateRescued	已改命。{0} 提前击败了原本杀死他的守怪。	Fate changed. {0} defeated the guardian that originally killed this cultivator.
+	22312	战斗统计	Timeline_BattleStatsShieldNote	伤害计实际扣除的气血与护盾。护盾列为生成量 / 吸收量，治疗不含溢出。	Damage includes HP and shields removed. Shields show granted / absorbed. Healing excludes overheal.
+	22401	东岸引潮	Timeline_East_Beacon	晒盐旧埠	Old Salt Wharf
+	22402	东岸引潮	Timeline_East_Reef	裂潮礁	Riftwash Reef
+	22403	东岸引潮	Timeline_East_Shrine	引潮祠	Tideguide Shrine
+	22404	东岸引潮	Timeline_East_Pool	白盐泉	White Salt Spring
+	22405	东岸引潮	Timeline_East_Relic	听潮石	Tidelistening Stone
+	22406	东岸引潮	Timeline_East_BeaconText	退潮后，晒盐埠只剩一排倒伏的木桩。最靠海的一根挂着铜铃，盐壳已经堵死了铃舌。桩底刻着引潮祠的方向。	At low tide, only a row of toppled posts marks the old salt wharf. A crust of salt jams the bell on the seaward post. An arrow carved at its foot points to the Tideguide Shrine.
+	22407	东岸引潮	Timeline_East_ShrineText	祠里没有神像，只有一方石槽，槽底的石子随潮水微微滚动。守祠人的留言还在：岸上的铜铃一响，便可伸手。	There is no idol in the shrine, only a stone trough where a pebble rolls with the tide. The keeper left a note: reach in when the bell on the shore rings.
+	22408	东岸引潮	Timeline_East_PoolText	白色盐花覆着泉沿。越过那层咸水，泉眼冒出的却是淡水。有人在石面上刻了两个字：少饮。	Salt crystals line the spring. Beneath the brine, fresh water wells up. Someone carved a warning into the stone: drink sparingly.
+	22409	东岸引潮	Timeline_East_RelicDesc	最大气血 +36，攻击 +6。贴耳细听，能听见退潮时石子滚过滩涂的声音。	Max HP +36, Attack +6. Hold it to your ear and hear pebbles rolling over the flats as the tide recedes.
+	22410	东岸引潮	Timeline_East_BellAlready	铜铃已经响过。	The bell has already been rung.
+	22411	东岸引潮	Timeline_East_Option1301	剔去盐壳，敲响铜铃（消耗 10 气血，修为 +8）	Free the bell and ring it (costs 10 HP, +8 Cultivation)
+	22412	东岸引潮	Timeline_East_Result1301	盐壳划破了指尖。铃声沿水面传开，对岸的祠门随之一颤。	The salt cuts your fingertip. The bell rings across the water, and the shrine door shudders in reply.
+	22413	东岸引潮	Timeline_East_Option1302	记下祠堂的方向	Note the direction of the shrine
+	22414	东岸引潮	Timeline_East_Result1302	你记下木桩所指的方向，沿岸继续前行。	You note where the post points and continue along the shore.
+	22415	东岸引潮	Timeline_East_BellNeeded	需要先敲响晒盐旧埠的铜铃。	Ring the bell at the Old Salt Wharf first.
+	22416	东岸引潮	Timeline_East_Option1401	伸手取出听潮石	Retrieve the Tidelistening Stone
+	22417	东岸引潮	Timeline_East_Result1401	铃声在石槽里回荡，水面退去。石子滚到掌心，凉意顺着手腕沉了下去。	The bell echoes in the trough and the water retreats. The pebble rolls into your palm, sending a chill down your wrist.
+	22418	东岸引潮	Timeline_East_Option1402	退回祠外	Step back outside
+	22419	东岸引潮	Timeline_East_Result1402	你收回手。潮水一涨一落，祠里的石槽仍轻轻作响。	You draw back your hand. The trough murmurs as the tide rises and falls.
+	22420	东岸引潮	Timeline_East_Option1501	以泉水冲洗伤口（恢复 30 气血）	Rinse your wounds (restore 30 HP)
+	22421	东岸引潮	Timeline_East_Result1501	泉水带走伤口上的盐粒，刺痛慢慢平息。	The water washes the salt from your wounds and the sting slowly fades.
+	22422	东岸引潮	Timeline_East_Option1502	观察泉眼的吐纳（修为 +8）	Study the spring’s rhythm (+8 Cultivation)
+	22423	东岸引潮	Timeline_East_Result1502	泉水先涌后缓。你循着它的节奏调整呼吸，气息也沉了下来。	The spring surges, then slows. You match your breathing to its rhythm and feel your breath settle.
+	22431	北岭松径	Timeline_North_Pine	抱碑松	Stelegrip Pine
+	22432	北岭松径	Timeline_North_Pass	断索隘	Broken Rope Pass
+	22433	北岭松径	Timeline_North_Shelter	背风石窟	Lee-Side Grotto
+	22434	北岭松径	Timeline_North_Relic	裂霜楔	Frostsplit Wedge
+	22435	北岭松径	Timeline_North_RelicDesc	攻击 +9。楔上刻着一排深浅不一的指痕，最后一道最浅。	Attack +9. Finger marks line the wedge, each cut to a different depth. The last is the shallowest.
+	22436	北岭松径	Timeline_North_PineText	松根裹住一块倒碑，碑下卡着一枚铁楔。伸手进去，霜气便顺着指节往上爬。碑背还留着几行字，站在外面也能读清。	Pine roots cradle a fallen stele, with an iron wedge caught underneath. Reach in and frost creeps up your knuckles. A few lines on the back can still be read from outside.
+	22437	北岭松径	Timeline_North_PineTake	探手拔楔（消耗 45 气血）	Reach in and pull the wedge (costs 45 HP)
+	22438	北岭松径	Timeline_North_PineTakeResult	楔子落入掌中，手指却一时张不开。等血色回来，山风已经吹干了碑上的霜。	The wedge drops into your palm, but your fingers will not open. By the time color returns to them, the wind has dried the frost on the stele.
+	22439	北岭松径	Timeline_North_PineStudy	抄下碑背的吐纳法（修为 +12）	Copy the breathing verse (+12 Cultivation)
+	22440	北岭松径	Timeline_North_PineStudyResult	碑文只教人一件事：风最急的时候，把一口气留到最后。	The verse teaches one thing: when the wind is strongest, save one breath for last.
+	22441	北岭松径	Timeline_North_ShelterText	洞口外的索桥已经断了。石窟里还有一罐松脂膏，洞壁的风蚀纹里也藏着一套慢功。	The rope bridge outside has snapped. Inside the grotto stands a jar of pine salve, and the wind-worn wall holds the pattern of a slow breathing practice.
+	22442	北岭松径	Timeline_North_ShelterHeal	用松脂膏包扎（恢复 32 气血）	Dress your wounds with pine salve (restore 32 HP)
+	22443	北岭松径	Timeline_North_ShelterHealResult	松脂膏很黏。你缠紧布条，活动了一下手指。	The salve is sticky. You tighten the bandage and flex your fingers.
+	22444	北岭松径	Timeline_North_ShelterTrain	留在洞中参悟（耗时 1 年，修为 +22）	Stay and study (1 year, +22 Cultivation)
+	22445	北岭松径	Timeline_North_ShelterTrainResult	你看着风雪封住洞口，又看着积雪化开，终于能在风声里数清自己的呼吸。	You watch snow seal the entrance and then melt. At last you can count your breaths through the wind.
+	22461	西岭余火	Timeline_West_Foundry	余火炉	Last Ember Kiln
+	22462	西岭余火	Timeline_West_Hermit	守灰棚	Ashkeeper's Hut
+	22463	西岭余火	Timeline_West_Pass	灰脊口	Ashridge Pass
+	22464	西岭余火	Timeline_West_Coal	余火炭	Live Ember
+	22465	西岭余火	Timeline_West_CoalDesc	攻击 +10。炉灰早冷了，这块炭却还暖着。	Attack +10. The ash has long gone cold, but this ember is still warm.
+	22466	西岭余火	Timeline_West_Stone	养息石	Breathstone
+	22467	西岭余火	Timeline_West_StoneDesc	最大气血 +42，获得时同时增加 42 点当前气血。石心有一点炉火，每隔几息才亮一下。	Max HP +42. Also gain 42 current HP when acquired. A spark at its heart glows once every few breaths.
+	22468	西岭余火	Timeline_West_FoundryText	炉门倒在灰里。你刚想转身，就听见炉膛深处轻轻爆了一声。有人在炉砖上留了几行字，教后来的人怎么从灰里找火。	The kiln door lies in the ashes. As you turn to leave, something crackles inside. A few lines scratched into the brick explain how to find fire in ash.
+	22469	西岭余火	Timeline_West_Take	拨开冷灰，取走余火炭	Rake aside the ash and take the ember
+	22470	西岭余火	Timeline_West_TakeResult	你用一块瓦片托出红炭。它只暖手，连衣角都烧不着。	You lift the ember on a roof tile. It warms your hand without even singeing your sleeve.
+	22471	西岭余火	Timeline_West_Copy	读一遍炉砖上的字（修为 +7）	Read the writing on the brick (+7 Cultivation)
+	22472	西岭余火	Timeline_West_CopyResult	字迹歪斜，最后几笔刻在烟熏不到的地方。你用指腹摸过一遍，把顺序记了下来。	The strokes are crooked. The last few sit beyond the reach of soot. You trace them with a fingertip and memorize their order.
+	22473	西岭余火	Timeline_West_HermitText	棚主守着一只没有烟的火盆。她指了指盆边的石头：若你手上还有炉里的火，我能把它封进石里，赶夜路时也能护住一口气。	The keeper tends a smokeless brazier. She points to a stone beside it. If you still have fire from the kiln, she can seal it inside and help you keep your breath on the road at night.
+	22474	西岭余火	Timeline_West_Trade	交出余火炭，换取养息石	Trade the Live Ember for a Breathstone
+	22475	西岭余火	Timeline_West_TradeResult	炭一进火盆就碎了，红光却顺着盆底爬进石心。你把石头握在手里，长长吐出一口气。	The ember crumbles in the brazier, but its glow creeps into the heart of the stone. You hold it in your palm and let out a long breath.
+	22476	西岭余火	Timeline_West_Keep	暂不交换，继续赶路	Leave without trading
+	22477	西岭余火	Timeline_West_KeepResult	棚主把石头推回盆边。岭口的风越过棚顶，吹得灰一阵一阵往下落。	The keeper pushes the stone back beside the brazier. Wind sweeps over the roof and shakes down a fresh dusting of ash.
+	22491	雪线残灯	Timeline_Snow_Post	雪线旧哨	Snowline Watch
+	22492	雪线残灯	Timeline_Snow_Pavilion	背雪灯亭	Snowward Lantern Pavilion
+	22493	雪线残灯	Timeline_Snow_Gully	长雪沟	Longsnow Gully
+	22494	雪线残灯	Timeline_Snow_Token	巡灯牌	Lantern Watch Token
+	22495	雪线残灯	Timeline_Snow_TokenDesc	从雪线旧哨的守怪身上找到的铜牌。背雪灯亭认这枚牌，可以用它换取《引火符》。	A bronze token taken from the guardian of Snowline Watch. Present it at the Snowward Lantern Pavilion to learn Kindling Sigil.
+	22496	雪线残灯	Timeline_Snow_PavilionText	亭里的灯已经灭了。守灯人把手拢在灯罩上，说旧哨的人若回不来，就请持牌的人学会点灯。她抬手指了指长雪沟，雪已经压到了路牌的顶端。	The lantern has gone out. The keeper cups her hands around its shade. If the watch does not return, whoever brings their token must learn to light it. She points toward Longsnow Gully, where snow has nearly buried the signpost.
+	22497	雪线残灯	Timeline_Snow_Study	交还巡灯牌，习得引火符	Return the token and learn Kindling Sigil
+	22498	雪线残灯	Timeline_Snow_StudyResult	她把铜牌挂回灯架，让你用两指护住符纸。第一簇火只亮了一瞬，足够照见雪沟里的脚印。	She hangs the token on the lantern rack and shows you how to shield the paper with two fingers. Your first flame lasts only a moment, long enough to see the footprints in the gully.
+	22499	雪线残灯	Timeline_Snow_Leave	先出亭看看	Step outside for now
+	22500	雪线残灯	Timeline_Snow_LeaveResult	守灯人给你让开亭口。风一进来，灯架上的空钩轻轻碰了一下。	The keeper steps aside. Wind enters the pavilion and rattles the empty hook on the lantern rack.
+	22511	落石峡	Timeline_Gorge_Camp	避石棚	Stonebreak Shelter
+	22512	落石峡	Timeline_Gorge_Gate	落石隘	Falling Rock Pass
+	22513	落石峡	Timeline_Gorge_Shelf	听风台	Windlistening Ledge
+	22514	落石峡	Timeline_Gorge_Charm	镇峡扣	Gorgewarden Clasp
+	22515	落石峡	Timeline_Gorge_CharmDesc	战斗攻击提高 8%。旧巡山人把铜扣系在刀柄上，峡风再大，刀也不响。	Battle Attack +8%. The old patrol tied this clasp to a blade's grip so it would stay quiet in the strongest gorge winds.
+	22516	落石峡	Timeline_Gorge_CampText	避石棚贴在山壁下。棚里搁着半罐伤药，梁上挂着一块被碎石打穿的巡山木牌。木牌背面还留着字。	The shelter hugs the cliff. Inside sits a half-full jar of salve. A patrol sign hangs from the beam, pierced by falling stones, with writing still visible on its back.
+	22517	落石峡	Timeline_Gorge_CampHeal	用伤药包扎（恢复 28 气血）	Dress your wounds (restore 28 HP)
+	22518	落石峡	Timeline_Gorge_CampHealResult	药粉洒上去先是一阵刺痛。再握紧拳头时，伤口已经不往外渗血了。	The powder stings at first. When you close your fist again, the wound has stopped bleeding.
+	22519	落石峡	Timeline_Gorge_CampStudy	读木牌上的步法（修为 +10）	Study the footwork on the sign (+10 Cultivation)
+	22520	落石峡	Timeline_Gorge_CampStudyResult	牌上说，听见石头响，先看脚下有没有退路。你在棚檐下练了两遍。	The sign says to check your footing and your retreat at the first sound of stone. You practice twice under the eaves.
+	22521	落石峡	Timeline_Gorge_GateText	隘口再没有脚步声。石壁上的巡山名册还在，下面凿了一道浅槽，原是放巡山铜扣的地方。	The pass has fallen quiet. A patrol roster remains carved into the cliff, with a shallow groove beneath it where the patrol clasp once rested.
+	22522	落石峡	Timeline_Gorge_Take	取下镇峡扣	Take the Gorgewarden Clasp
+	22523	落石峡	Timeline_Gorge_TakeResult	铜扣的边缘已经磨圆。扣到刀柄上时，它正好贴住那一道松动的缠绳。	The edges have worn smooth. Fastened to your grip, the clasp fits right over the loose wrap.
+	22524	落石峡	Timeline_Gorge_Read	研读名册边的巡山心得（修为 +14）	Study the notes beside the roster (+14 Cultivation)
+	22525	落石峡	Timeline_Gorge_ReadResult	有人在名字旁刻了每次落石的间隔。你守着峡风听了一阵，终于对上了那些刻痕。	Someone marked the time between rockfalls beside the names. You listen to the wind until you can match its rhythm to the marks.
+	22541	潮回旧栈	Timeline_Tide_Pier	断潮栈	Broken-Tide Jetty
+	22542	潮回旧栈	Timeline_Tide_Bend	白沫湾	Whitefoam Bend
+	22543	潮回旧栈	Timeline_Tide_Ledge	记潮台	Tidemark Ledge
+	22544	潮回旧栈	Timeline_Tide_Shell	回潮螺	Ebbtide Shell
+	22545	潮回旧栈	Timeline_Tide_ShellDesc	最大气血 +32，获得时同时增加 32 点当前气血。把螺口朝向水面，听见的却是岸上的风。	Max HP +32. Also gain 32 current HP when acquired. Point the shell toward the water and you hear the wind on shore.
+	22546	潮回旧栈	Timeline_Tide_PierText	栈桥断在礁石上，裂缝里嵌着一枚青螺。取下它容易，回岸却有两条路：翻过长满硬壳的礁背，或沿石滩绕回渡口。	The jetty breaks against a reef. A green shell is wedged in a crack. Taking it is easy. Getting back means climbing over sharp barnacles or following the flats around to the ferry.
+	22547	潮回旧栈	Timeline_Tide_Shortcut	取螺后翻礁抄近路（消耗 36 气血）	Take the shell and climb over the reef (costs 36 HP)
+	22548	潮回旧栈	Timeline_Tide_ShortcutResult	礁壳划开了鞋底。上岸时脚上还在渗血，潮水已经卷走了身后的脚印。	Barnacles slice through your soles. Your feet are still bleeding when you reach shore, and the tide has already swept away your tracks.
+	22549	潮回旧栈	Timeline_Tide_Detour	取螺后沿石滩绕行（耗时 2 年）	Take the shell and return along the flats (takes 2 years)
+	22550	潮回旧栈	Timeline_Tide_DetourResult	你把青螺裹进布里，沿着石滩一处处找落脚点。这条路稳当，却要多耽搁两年。	You wrap the shell in cloth and pick your way along the flats. The footing is safer, but the return will cost you two years.
+	22551	潮回旧栈	Timeline_Tide_Leave	不取青螺，先行离开	Leave the shell for now
+	22552	潮回旧栈	Timeline_Tide_LeaveResult	你退回完好的桥板上。浪又打了一次，石缝随即没入水里。	You step back onto the sound planks. Another wave strikes, and the crack slips beneath the water.
+	22553	潮回旧栈	Timeline_Tide_LedgeText	台沿刻满横线，每道线旁都有一个年份。最下面那行没有年号，只写着：今年的水，比去年高了一寸。	Lines cover the edge of the ledge, each marked with a year. The lowest line has no date. It reads: the water rose an inch higher than last year.
+	22554	潮回旧栈	Timeline_Tide_Mark	按刻线推演潮汐（修为 +12）	Read the tide from the marks (+12 Cultivation)
+	22555	潮回旧栈	Timeline_Tide_MarkResult	有几道线重叠在一起。你沿石面辨出涨落的次序，记下它们之间的间隔。	Several lines overlap. You work out the order of the tides and note the intervals between them.

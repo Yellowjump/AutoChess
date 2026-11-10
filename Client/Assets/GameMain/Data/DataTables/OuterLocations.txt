@@ -9,3 +9,27 @@
 	5	-1	-8	Timeline_OuterLocations_5_Name	8	0	1	0	0	
 	6	1	-9	Timeline_OuterLocations_6_Name	3	0	1	8201	18	Timeline_OuterLocations_6_LootName
 	7	-8	0	Timeline_OuterLocations_7_Name	4	180	28	0	0	
+	8	4	-10	Timeline_Linxi_Watch	2	54	6	0	0	
+	9	1	-8	Timeline_Linxi_Shoal	3	64	7	0	0	
+	10	1	-7	Timeline_Linxi_Steps	4	80	8	0	0	
+	11	0	-7	Timeline_Linxi_Spring	8	0	1	0	0	
+	12	3	-8	Timeline_Linxi_Gate	4	130	12	9102	12	Timeline_StoryItem_9102_Name
+	13	9	-8	Timeline_East_Beacon	3	0	1	0	0	
+	14	9	-7	Timeline_East_Reef	4	75	9	0	0	
+	15	8	-7	Timeline_East_Shrine	5	0	1	0	0	
+	16	8	-8	Timeline_East_Pool	8	0	1	0	0	
+	17	-4	9	Timeline_North_Pine	3	0	1	0	0	
+	18	-3	8	Timeline_North_Pass	4	92	11	0	0	
+	19	-3	9	Timeline_North_Shelter	7	0	1	0	0	
+	20	-9	5	Timeline_West_Foundry	3	0	1	0	0	
+	21	-8	4	Timeline_West_Hermit	4	0	1	0	0	
+	22	-8	5	Timeline_West_Pass	5	100	12	0	0	
+	23	2	7	Timeline_Snow_Post	3	82	8	9166	0	Timeline_Snow_Token
+	24	3	6	Timeline_Snow_Pavilion	4	0	1	0	0	
+	25	3	7	Timeline_Snow_Gully	5	126	12	0	0	
+	26	9	-2	Timeline_Gorge_Camp	3	0	1	0	0	
+	27	8	-2	Timeline_Gorge_Gate	5	145	15	0	0	
+	28	7	-2	Timeline_Gorge_Shelf	8	0	1	0	0	
+	29	7	2	Timeline_Tide_Pier	3	0	1	0	0	
+	30	6	2	Timeline_Tide_Bend	5	118	13	0	0	
+	31	6	3	Timeline_Tide_Ledge	7	0	1	0	0	

@@ -1,8 +1,10 @@
 
 using System.Collections.Generic;
+using System.Linq;
 using DataTable;
 using GameFramework;
 using SkillSystem;
+using UnityEngine;
 using UnityEngine.Pool;
 using UnityGameFramework.Runtime;
 
@@ -40,6 +42,7 @@ namespace Entity
 
     public partial class EntityQizi
     {
+        private const int TideBellSkillId = 9104;
         public List<Skill> NormalSkillList = new List<Skill>();
         public int NextCastNormalSkillIndex = 0;
         public int CurCastNormalSkillIndex = 0;
@@ -107,6 +110,9 @@ namespace Entity
             }
             var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
             var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
+            var stages = TechniqueSkillId == 0 ? null :
+                GameEntry.DataTable.GetDataTable<DRTechniqueStage>("TechniqueStage")?.GetAllDataRows();
+            var activeStage = stages?.FirstOrDefault(stage => stage.SkillId == TechniqueSkillId);
             foreach (var oneItem in EquipItemList)
             {
                 if (!itemTable.HasDataRow(oneItem.ItemID))
@@ -116,8 +122,12 @@ namespace Entity
                 }
 
                 var itemData = itemTable[oneItem.ItemID];
-                bool replacesSkill = TechniqueSkillId != 0 && skillTable.HasDataRow(itemData.SkillID) &&
-                    (SkillType)skillTable[itemData.SkillID].SkillType == SkillType.NormalSkill;
+                var itemSkill = skillTable.GetDataRow(itemData.SkillID);
+                bool replacesSkill = TechniqueSkillId != 0 && itemSkill != null &&
+                    (itemSkill.Id == TechniqueSkillId ||
+                     ((SkillType)itemSkill.SkillType == SkillType.NormalSkill && itemSkill.CastPower < 0) ||
+                     (activeStage != null && stages.Any(stage => stage.TechniqueId == activeStage.TechniqueId &&
+                         stage.SkillId == itemSkill.Id)));
                 if (itemData.SkillID != 0 && !replacesSkill)
                 {
                     var skillID = itemData.SkillID;
@@ -591,6 +601,8 @@ namespace Entity
 #endif
             damageData.BurnStacksBeforeHit = damageData.TriggerDamageRelate ? FindStatusBuff(BuffTag.Burning, CommandBurnEffect.BurnBuffId)?.StackCount ?? 0 : 0;
             var shieldValue = (int)hudunAttr.GetFinalValue();
+            bool stoneSmash = damageData.SourceSkill?.SkillID == StateAttack0.StoneSmashSkillId;
+            int bellAbsorbed = 0;
             if (shieldValue >= 0)
             {
                 if (shieldValue<=(int)damageData.DamageValue)//护盾值小于伤害值
@@ -599,6 +611,9 @@ namespace Entity
                     {
                         if (curbuff.CheckBuffTag(BuffTag.Shield))
                         {
+                            RecordBattleOutput(curbuff.ParentSkill, shieldAbsorbed: curbuff.paramInt);
+                            if (stoneSmash && curbuff.ParentSkill?.SkillID == TideBellSkillId)
+                                bellAbsorbed += curbuff.paramInt;
                             curbuff.paramInt = 0;
                             curbuff.OnDestory();
                         }
@@ -624,6 +639,10 @@ namespace Entity
                         if (shieldList.Count > 0)
                         {
                             var nerBuff = shieldList[0];
+                            int absorbed = Mathf.Min(curDamageValue, nerBuff.paramInt);
+                            RecordBattleOutput(nerBuff.ParentSkill, shieldAbsorbed: absorbed);
+                            if (stoneSmash && nerBuff.ParentSkill?.SkillID == TideBellSkillId)
+                                bellAbsorbed += absorbed;
                             if (curDamageValue>nerBuff.paramInt)
                             {
                                 curDamageValue -= nerBuff.paramInt;
@@ -657,6 +676,29 @@ namespace Entity
             int healthLost = System.Math.Max(0, healthBefore - healthAfter);
             int shieldLost = System.Math.Max(0, shieldValue - shieldAfter);
             int effectiveDamage = (int)System.Math.Min(int.MaxValue, (long)healthLost + shieldLost);
+            var battle = HotGameEntry.HeroManager;
+            var visuals = battle.BurnVisuals;
+            if (shieldLost > 0 && shieldAfter <= 0)
+                visuals?.ShieldShattered(LogicPosition);
+            if (effectiveDamage > 0 && stoneSmash && visuals != null)
+            {
+                Vector3 position = GObj != null ? GObj.transform.position : LogicPosition;
+                visuals.StoneImpact(position);
+                bellAbsorbed = Mathf.Min(bellAbsorbed, shieldLost);
+                if (bellAbsorbed > 0)
+                {
+                    visuals.BellAbsorbed(position);
+                    battle.ShowShieldAbsorbNum(this, bellAbsorbed);
+                }
+            }
+            if (effectiveDamage > 0 && damageData.TriggerDamageRelate &&
+                (damageData.SourceSkill?.SkillID is TimelineSlashVisuals.BasicSlashSkillId or TimelineSlashVisuals.LongSlashSkillId) &&
+                caster?.GObj != null && GObj != null)
+            {
+                Vector3 direction = GObj.transform.position - caster.GObj.transform.position;
+                visuals?.Slash?.Impact(
+                    GObj.transform.position + Vector3.up * .82f, direction);
+            }
             RecordBattleOutput(damageData.SourceSkill, damage: effectiveDamage);
             if (techniqueHit && healthBefore > 0 && healthAfter <= 0)
                 caster.TechniqueKills++;
@@ -670,7 +712,8 @@ namespace Entity
                 if (damageData.BrokenShieldValue > 0 && IsValid)
                     OnTrigger(TriggerType.OnShieldBroken, damageData);
             }
-            HotGameEntry.HeroManager.ShowDamageNum(damageData);
+            if (bellAbsorbed <= 0 || healthLost > 0)
+                battle.ShowDamageNum(damageData, bellAbsorbed > 0 ? healthLost : null);
             
             var curHp = (int)hpAttr.GetFinalValue();
             if (curHp == 0 && IsValid)

@@ -18,8 +18,10 @@ namespace WorldTimeline
         public bool IsMerchant { get; set; }
         public bool HasExplorationGuardian { get; set; }
         public bool StoryRequiresGuardianDefeat { get; set; }
+        internal (int ActorId, int Year)? GuardianDefeat { get; set; }
         internal List<int> GroupGuardianHealth { get; } = new List<int>();
         public bool IsGuardianGroup { get; private set; }
+        public bool GuardiansStartClose { get; set; }
         public int GuardianCount => GroupGuardianHealth.Count > 0 ? GroupGuardianHealth.Count : MonsterHealth > 0 ? 1 : 0;
         public List<int> Items { get; } = new List<int>();
         public int StoryTrialItemId { get; set; }

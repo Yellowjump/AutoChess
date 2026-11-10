@@ -167,11 +167,9 @@ namespace WorldTimelineDebug
         private void LoadScenario()
         {
             roster.AddRange(scenarioData.Cultivators);
-            foreach (var location in scenarioData.Locations)
-                locations.Add(HexWorldMap.Id(location.Q, location.R), location);
         }
 
-        private void ConfigureLocations(WorldState world, bool withStories = true)
+        private void ConfigureLocations(WorldState world, StoryConfig stories, bool closeLinxiFormation)
         {
             foreach (var pair in locations)
             {
@@ -180,14 +178,18 @@ namespace WorldTimelineDebug
                 node.CultivationPerYear = row.CultivationPerYear;
                 node.MonsterHealth = row.MonsterHealth;
                 node.MonsterAttack = row.MonsterAttack;
+                if (pair.Key == LinxiEliteNode)
+                    ConfigureLinxiGuardians(node, row, closeLinxiFormation);
+                if (pair.Key == HexWorldMap.Id(4, -10) || pair.Key == GorgeGateNode)
+                    node.StoryRequiresGuardianDefeat = true;
                 node.Items.Clear();
                 int loot = row.LootItemId;
                 if (loot != 0) node.Items.Add(loot);
                 node.LootAttackBonus = row.LootAttackBonus;
             }
             foreach (var cultivator in roster) world.Nodes[cultivator.Birth].MonsterHealth = 0;
-            if (withStories && scenarioData?.Stories != null)
-                foreach (var story in scenarioData.Stories.Events.Values)
+            if (stories != null)
+                foreach (var story in stories.Events.Values)
                 {
                     if (story.IsMerchant) continue;
                     // These nodes now award through choices, never via the old automatic loot path.
@@ -261,20 +263,65 @@ namespace WorldTimelineDebug
         }
 
         private static readonly int SwordTrialNode = HexWorldMap.Id(2, -9);
+        public static readonly int LinxiEliteNode = HexWorldMap.Id(3, -8);
+        private static void ConfigureLinxiGuardians(NodeState node, LocationDefinition row, bool startClose = true)
+        {
+            node.SetGuardianGroup(2, row.MonsterHealth, row.MonsterAttack);
+            node.GuardiansStartClose = startClose;
+        }
+        private const int LinxiRouteStory = 12;
+        private static bool IsEastRouteLocation(int q, int r) =>
+            (q == 8 || q == 9) && (r == -8 || r == -7);
+        private static bool IsNorthRouteLocation(int q, int r) =>
+            (q == -4 && r == 9) || (q == -3 && (r == 8 || r == 9));
+        private static bool IsWestRouteLocation(int q, int r) =>
+            (q == -9 && r == 5) || (q == -8 && (r == 4 || r == 5));
+        private static bool IsSnowRouteLocation(int q, int r) =>
+            (q == 2 && r == 7) || (q == 3 && (r == 6 || r == 7));
+        private static readonly int GorgeGateNode = HexWorldMap.Id(8, -2);
+        private static bool IsGorgeRouteLocation(int q, int r) =>
+            r == -2 && q >= 7 && q <= 9;
+        private static bool IsTideRouteLocation(int q, int r) =>
+            (q == 7 && r == 2) || (q == 6 && (r == 2 || r == 3));
+
+        private static bool IsLinxiRouteLocation(int q, int r) =>
+            (q, r) is (4, -10) or (1, -8) or (1, -7) or (0, -7) or (3, -8);
 
         private void NewRound(IEnumerable<LifeRecord> historyOverride = null, bool enableStories = true,
             IEnumerable<RecordedStoryChoice> replayChoices = null, bool expandedExploration = true,
             bool storyCombatSkills = true, bool bleedRewardRoute = true, bool wreckBeastEncounter = true,
             bool swordRecall = true, bool techniqueCombat = true, bool swordTrial = true, bool lightningRoute = true,
-            bool battleExperience = true, bool lightningTrials = true, bool balancedLightningTrials = true, bool merchants = true)
+            bool battleExperience = true, bool lightningTrials = true, bool balancedLightningTrials = true,
+            bool merchants = true, bool linxiRoute = true, bool closeLinxiFormation = true,
+            bool eastRoute = true, bool northRoute = true, bool westRoute = true, bool snowRoute = true,
+            bool gorgeRoute = true, bool tideRoute = true)
         {
             battleResolver = returnToMenu == null ? null : BattleResolverFactory?.Invoke();
+            locations.Clear();
+            if (scenarioData != null)
+                foreach (var location in scenarioData.Locations)
+                    if ((linxiRoute || !IsLinxiRouteLocation(location.Q, location.R))
+                        && (eastRoute || !IsEastRouteLocation(location.Q, location.R))
+                        && (northRoute || !IsNorthRouteLocation(location.Q, location.R))
+                        && (westRoute || !IsWestRouteLocation(location.Q, location.R))
+                        && (snowRoute || !IsSnowRouteLocation(location.Q, location.R))
+                        && (gorgeRoute || !IsGorgeRouteLocation(location.Q, location.R))
+                        && (tideRoute || !IsTideRouteLocation(location.Q, location.R)))
+                        locations.Add(HexWorldMap.Id(location.Q, location.R), location);
+            var stories = enableStories ? scenarioData?.Stories : null;
+            if (!linxiRoute) stories = stories?.WithoutEvents(LinxiRouteStory);
+            if (!eastRoute) stories = stories?.WithoutEvents(13, 14, 15);
+            if (!northRoute) stories = stories?.WithoutEvents(16, 17);
+            if (!westRoute) stories = stories?.WithoutEvents(18, 19);
+            if (!snowRoute) stories = stories?.WithoutEvents(20);
+            if (!gorgeRoute) stories = stories?.WithoutEvents(21, 22);
+            if (!tideRoute) stories = stories?.WithoutEvents(23, 24);
             simulation = HexTimelineDemoFactory.Create(playerNode: startingCultivator?.Birth,
                 cultivation: cultivation, talentSeed: round, startingItem: startingCultivator?.Item ?? 0,
                 weaponAttack: startingCultivator?.Attack ?? 0,
-                configureLocations: startingCultivator == null ? (Action<WorldState>)null : world => ConfigureLocations(world, enableStories),
+                configureLocations: startingCultivator == null ? (Action<WorldState>)null :
+                    world => ConfigureLocations(world, stories, closeLinxiFormation),
                 battle: battleResolver);
-            var stories = scenarioData?.Stories;
             if (!merchants && stories != null)
                 stories = stories.WithoutEvents(stories.Events.Values.Where(story => story.IsMerchant).Select(story => story.Id).ToArray());
             // Keep pre-route checkpoints on the map and event set they originally replayed.
@@ -423,6 +470,44 @@ namespace WorldTimelineDebug
         }
 
 #if UNITY_EDITOR
+        public string BattleComparisonLabel { get; private set; }
+
+        public bool TryRunLinxiComparison(IWorldBattleResolver resolver, bool growthRoute)
+        {
+            var gate = scenarioData?.Locations?.FirstOrDefault(location => HexWorldMap.Id(location.Q, location.R) == LinxiEliteNode);
+            if (gate == null ||
+                scenarioData?.Techniques?.TryGetValue(1, out var swordArt) != true ||
+                swordArt.Stages.Count < 2 ||
+                swordArt.Stages[1].Requirement != TechniqueRequirement.BattleExperience)
+                return false;
+
+            var hegui = roster.FirstOrDefault(cultivator => cultivator.Item == 8104);
+            if (hegui == null) return false;
+
+            var comparison = HexTimelineDemoFactory.Create(HexWorldMap.Id(2, -8),
+                cultivation: cultivation, talentSeed: 1, startingItem: hegui.Item, weaponAttack: hegui.Attack,
+                configureLocations: world => ConfigureLinxiGuardians(world.Nodes[LinxiEliteNode], gate),
+                battle: resolver);
+            comparison.State.StoryCombatSkillsEnabled = true;
+            comparison.State.TechniqueCombatEnabled = true;
+            var actor = comparison.State.Actors[comparison.State.PlayerActorId];
+            actor.LearnTechnique(swordArt);
+            if (growthRoute)
+                actor.SettleTechniqueBattle(swordArt.Id, 1, swordArt.Stages[1].Value, 0);
+            else
+                actor.Items.Add(9104);
+
+            comparison.SetBattleSettlementPresenter(PresentComparison);
+            return TryRunBattlePreview(comparison.SubmitPlayerActionRoutine(WorldAction.Move(LinxiEliteNode)));
+
+            IEnumerator PresentComparison(BattleSettlement result)
+            {
+                BattleComparisonLabel = growthRoute ? "GM 对照 · 二阶御剑诀" : "GM 对照 · 一阶御剑诀 + 镇水铃";
+                try { yield return PresentBattleSettlement(result); }
+                finally { BattleComparisonLabel = null; }
+            }
+        }
+
         public bool TryRunBattlePreview(IEnumerator routine)
         {
             if (advancing || preparing || simulation == null || !simulation.WaitingForPlayer ||
@@ -1110,6 +1195,9 @@ namespace WorldTimelineDebug
                     ? TimelineText("Timeline_UI_EventDuel", ActorName(entry.OtherActorId.Value))
                     : TimelineText("Timeline_UI_EventBattle", entry.NodeId); break;
                 case WorldEventKind.Died: action = TimelineText("Timeline_UI_142") + detail; break;
+                case WorldEventKind.FateChanged: action = entry.OtherActorId is int clearer
+                    ? TimelineText("Timeline_Linxi_FateRescued", ActorName(clearer))
+                    : TimelineText("Timeline_UI_134"); break;
                 case WorldEventKind.Joined: action = TimelineText("Timeline_UI_143"); break;
                 case WorldEventKind.RitualReset: action = TimelineText("Timeline_UI_144") + detail; break;
                 case WorldEventKind.RitualCompleted: action = TimelineText("Timeline_UI_145"); break;

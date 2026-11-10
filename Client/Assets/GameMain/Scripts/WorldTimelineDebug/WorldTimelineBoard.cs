@@ -47,8 +47,13 @@ namespace WorldTimelineDebug
             public Color Color;
             public bool Important;
             public bool Highlighted;
+            public bool Reachable;
+            public bool Selected;
+            public float LiftFrom;
+            public float LiftStarted;
 
-
+            public float LiftAt(float now) => Mathf.SmoothStep(LiftFrom, Reachable ? 1f : 0f,
+                (now - LiftStarted) / .30f);
         }
 
         private readonly Dictionary<int, Tile> tiles = new Dictionary<int, Tile>();
@@ -58,6 +63,7 @@ namespace WorldTimelineDebug
         private readonly List<(MeshFilter Filter, Color Color)> pieceParts = new List<(MeshFilter, Color)>();
         private Material overlay;
         private Mesh markerMesh;
+        private Mesh pulseMesh;
         private Mesh links;
         private WorldState state;
         private readonly Matrix4x4[] markerMatrices = new Matrix4x4[1023];
@@ -125,6 +131,8 @@ namespace WorldTimelineDebug
             markerMesh.vertices = vertices;
             markerMesh.triangles = indices;
             meshes.Add(markerMesh);
+            pulseMesh = CreatePulseMesh();
+            meshes.Add(pulseMesh);
             origin = layout.Origin;
             boardRadius = world.Nodes.Values.Max(n => Mathf.Max(Mathf.Abs(n.Q), Mathf.Abs(n.R), Mathf.Abs(n.Q + n.R)));
             UpdatePlayerWeather(world);
@@ -171,11 +179,39 @@ namespace WorldTimelineDebug
             float lift = Mathf.Max(.08f, unit * .035f);
             tiles.Add(node.Id, new Tile { Center = center + Vector3.up * lift });
         }
+
+        private static Mesh CreatePulseMesh()
+        {
+            const int sides = 24;
+            var vertices = new Vector3[sides * 2];
+            var indices = new int[sides * 6];
+            for (int i = 0; i < sides; i++)
+            {
+                float angle = i * 2f * Mathf.PI / sides;
+                var direction = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle));
+                int outer = i * 2;
+                int next = ((i + 1) % sides) * 2;
+                vertices[outer] = direction;
+                vertices[outer + 1] = direction * .88f;
+                int index = i * 6;
+                indices[index] = outer;
+                indices[index + 1] = next;
+                indices[index + 2] = outer + 1;
+                indices[index + 3] = next;
+                indices[index + 4] = next + 1;
+                indices[index + 5] = outer + 1;
+            }
+            return new Mesh { name = "可达点光圈", vertices = vertices, triangles = indices };
+        }
+
         public void Sync(WorldState world, int selectedNode)
         {
             state = world;
             UpdatePlayerWeather(world);
-            var player = world.Actors[1];
+            var player = world.Actors[world.PlayerActorId];
+            int? playerNode = player.IsAlive && !world.PlayerControlEnded && !world.IsEnded
+                && !player.LeaderId.HasValue && player.CurrentAction == null ? player.NodeId : null;
+            float now = Time.unscaledTime;
             var groups = world.Actors.Values.Where(actor => actor.IsAlive)
                 .Select(actor => ActorMapProjection.Position(world, actor))
                 .GroupBy(point => (point.Q, point.R))
@@ -183,7 +219,14 @@ namespace WorldTimelineDebug
             foreach (var node in world.Nodes.Values)
             {
                 var tile = tiles[node.Id];
-                bool reachable = player.NodeId.HasValue && world.Nodes[player.NodeId.Value].Links.Contains(node.Id);
+                bool reachable = playerNode.HasValue && world.Nodes[playerNode.Value].Links.Contains(node.Id);
+                if (tile.Reachable != reachable)
+                {
+                    tile.LiftFrom = tile.LiftAt(now);
+                    tile.LiftStarted = now;
+                    tile.Reachable = reachable;
+                }
+                tile.Selected = selectedNode == node.Id;
                 var color = new Color(.66f, .79f, .69f);
                 if (node.IsCultivationSite) color = new Color(.32f, .58f, .51f);
                 if (node.IsMerchant) color = new Color(.81f, .60f, .26f);
@@ -335,13 +378,16 @@ namespace WorldTimelineDebug
             if (state == null || ForRenderingCamera(camera) != this) return;
             OverlayDrawCount++;
             if (linkIndices.Count > 0) cmd.DrawMesh(links, Matrix4x4.identity, overlay, 0, 1);
+            DrawReachablePulses(cmd);
             DrawMarkers(cmd, true);
             DrawMarkers(cmd, false);
             foreach (var part in pieceParts)
             {
                 if (!part.Filter.gameObject.activeInHierarchy) continue;
                 properties.Clear();
-                properties.SetColor(MarkerColor, part.Color);
+                var color = part.Color;
+                color.a = 1f;
+                properties.SetColor(MarkerColor, color);
                 cmd.DrawMesh(part.Filter.sharedMesh, part.Filter.transform.localToWorldMatrix, overlay, 0, 0, properties);
             }
             if (Ink)
@@ -357,6 +403,49 @@ namespace WorldTimelineDebug
 
         private bool IsVisible(Tile tile) => Ink || tile.Important || zoom < .65f;
 
+        private Vector3 MarkerCenter(Tile tile, float lift) => tile.Center + Vector3.up * (unit * .22f * lift);
+
+        private float PulsePhase(int nodeId, Tile tile)
+            => Mathf.Repeat((Time.unscaledTime - tile.LiftStarted) / 2.5f + (nodeId & 7) * .06f, 1f);
+
+        private bool IsMarkerFocused(int nodeId, Tile tile) => tile.Selected || HoveredNode == nodeId;
+
+        private float MarkerRadius(int nodeId, Tile tile, bool border, float lift, bool picking = false)
+        {
+            float ordinary = Ink ? (border ? .12f : .075f) : (border ? .29f : .21f);
+            float highlighted = Ink ? (border ? .19f : .12f) : ordinary;
+            float resting = tile.Highlighted && !tile.Reachable ? highlighted : ordinary;
+            float breath = 0f;
+            if (tile.Reachable)
+            {
+                // Keep the hit area stable while breathing and when hover stops the animation.
+                if (picking) breath = .10f;
+                else if (!IsMarkerFocused(nodeId, tile))
+                    breath = .10f * (.5f - .5f * Mathf.Cos(PulsePhase(nodeId, tile) * 2f * Mathf.PI));
+            }
+            return unit * Mathf.Lerp(resting, highlighted * 1.4f * (1f + breath), lift);
+        }
+
+        private void DrawReachablePulses(CommandBuffer cmd)
+        {
+            int count = 0;
+            float now = Time.unscaledTime;
+            foreach (var pair in tiles)
+            {
+                var tile = pair.Value;
+                float lift = tile.LiftAt(now);
+                if (lift <= 0f) continue;
+                bool resting = IsMarkerFocused(pair.Key, tile);
+                float phase = resting ? 0f : PulsePhase(pair.Key, tile);
+                float radius = unit * Mathf.Lerp(.24f, .46f, phase);
+                var color = tile.Selected ? SelectedColor : Ink ? new Color(.38f, .67f, .56f) : Blue;
+                color.a = lift * (resting ? .60f : .65f * (1f - phase));
+                var matrix = Matrix4x4.TRS(tile.Center, Quaternion.identity, Vector3.one * radius);
+                AddMarker(cmd, pulseMesh, matrix, color, ref count);
+            }
+            if (count > 0) DrawMarkerBatch(cmd, pulseMesh, count);
+        }
+
         private void DrawMarkers(CommandBuffer cmd, bool border)
         {
             int count = 0;
@@ -365,38 +454,42 @@ namespace WorldTimelineDebug
             {
                 var tile = pair.Value;
                 if (!IsVisible(tile)) continue;
-                float radius = unit * (Ink ? (tile.Highlighted ? (border ? .19f : .12f)
-                    : (border ? .12f : .075f)) : (border ? .29f : .21f));
-                var matrix = Matrix4x4.TRS(tile.Center, boardCamera.transform.rotation * Quaternion.Euler(90, 0, 0),
+                float lift = tile.LiftAt(Time.unscaledTime);
+                float radius = MarkerRadius(pair.Key, tile, border, lift);
+                var matrix = Matrix4x4.TRS(MarkerCenter(tile, lift), boardCamera.transform.rotation * Quaternion.Euler(90, 0, 0),
                     Vector3.one * radius);
                 Color color = border ? (HoveredNode == pair.Key ? Color.white : new Color(.04f, .06f, .08f)) : tile.Color;
                 if (Ink && border && !tile.Highlighted && HoveredNode != pair.Key)
                     color = Color.Lerp(new Color(.47f, .48f, .46f), new Color(.15f, .18f, .23f), dusk);
                 if (!border && dusk > 0f)
                     color = Color.Lerp(color, new Color(.79f, .85f, .88f), .48f * dusk);
-                if (!SystemInfo.supportsInstancing)
-                {
-                    properties.Clear();
-                    properties.SetColor(MarkerColor, color);
-                    cmd.DrawMesh(markerMesh, matrix, overlay, 0, 0, properties);
-                    continue;
-                }
-                markerMatrices[count] = matrix;
-                markerColors[count++] = color;
-                if (count == markerMatrices.Length)
-                {
-                    DrawMarkerBatch(cmd, count);
-                    count = 0;
-                }
+                if (border && tile.Selected && tile.Reachable) color = Gold;
+                AddMarker(cmd, markerMesh, matrix, color, ref count);
             }
-            if (count > 0) DrawMarkerBatch(cmd, count);
+            if (count > 0) DrawMarkerBatch(cmd, markerMesh, count);
         }
 
-        private void DrawMarkerBatch(CommandBuffer cmd, int count)
+        private void AddMarker(CommandBuffer cmd, Mesh mesh, Matrix4x4 matrix, Color color, ref int count)
+        {
+            if (!SystemInfo.supportsInstancing)
+            {
+                properties.Clear();
+                properties.SetColor(MarkerColor, color);
+                cmd.DrawMesh(mesh, matrix, overlay, 0, 0, properties);
+                return;
+            }
+            markerMatrices[count] = matrix;
+            markerColors[count++] = color;
+            if (count < markerMatrices.Length) return;
+            DrawMarkerBatch(cmd, mesh, count);
+            count = 0;
+        }
+
+        private void DrawMarkerBatch(CommandBuffer cmd, Mesh mesh, int count)
         {
             properties.Clear();
             properties.SetVectorArray(MarkerColor, markerColors);
-            cmd.DrawMeshInstanced(markerMesh, 0, overlay, 0, markerMatrices, count, properties);
+            cmd.DrawMeshInstanced(mesh, 0, overlay, 0, markerMatrices, count, properties);
         }
 
         private void UpdatePlayerWeather(WorldState world)
@@ -462,9 +555,12 @@ namespace WorldTimelineDebug
             foreach (var pair in tiles)
             {
                 if (!IsVisible(pair.Value)) continue;
-                var center = boardCamera.WorldToScreenPoint(pair.Value.Center);
+                float lift = pair.Value.LiftAt(Time.unscaledTime);
+                var markerCenter = MarkerCenter(pair.Value, lift);
+                var center = boardCamera.WorldToScreenPoint(markerCenter);
                 if (center.z < boardCamera.nearClipPlane || center.z > boardCamera.farClipPlane) continue;
-                var edge = boardCamera.WorldToScreenPoint(pair.Value.Center + boardCamera.transform.right * unit * .29f);
+                float hitRadius = MarkerRadius(pair.Key, pair.Value, true, lift, picking: true);
+                var edge = boardCamera.WorldToScreenPoint(markerCenter + boardCamera.transform.right * hitRadius);
                 float radius = Vector2.Distance((Vector2)center, (Vector2)edge);
                 float candidate = (screenPosition - (Vector2)center).sqrMagnitude;
                 if (candidate > (radius + 5) * (radius + 5) || candidate >= distance) continue;
@@ -473,7 +569,11 @@ namespace WorldTimelineDebug
             }
             return selected;
         }
-        public Vector3 ProjectNode(int nodeId) => boardCamera.WorldToScreenPoint(tiles[nodeId].Center);
+        public Vector3 ProjectNode(int nodeId)
+        {
+            var tile = tiles[nodeId];
+            return boardCamera.WorldToScreenPoint(MarkerCenter(tile, tile.LiftAt(Time.unscaledTime)));
+        }
         private void OnEnable()
         {
             if (activeBoard == this && presentationSuspensions == 0) inkMap?.EnterMap(this, boardCamera);

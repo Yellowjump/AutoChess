@@ -26,3 +26,29 @@
 	504	5	Timeline_StoryOption_504_Text	FlagSet	0	bridge_repaired	Timeline_StoryOption_504_Hint	8	9151	0	0	0	0	0		Timeline_StoryOption_504_Result
 	702	7	Timeline_StoryOption_702_Text	HasItem	9151		Timeline_StoryOption_702_Hint	8	9152	0	0	0	0	0		Timeline_StoryOption_702_Result
 	602	6	Timeline_StoryOption_602_Text	HasItem	9152		Timeline_StoryOption_602_Hint	8	9153	0	0	0	0	0		Timeline_StoryOption_602_Result
+	1201	12	Timeline_Linxi_Study	Always	0			4	0	0	0	0	8	0		Timeline_Linxi_StudyResult
+	1202	12	Timeline_Linxi_Rest	Always	0			2	0	0	0	40	0	0		Timeline_Linxi_RestResult
+	1301	13	Timeline_East_Option1301	FlagUnset	0	east_bell_rung	Timeline_East_BellAlready	8	0	0	10	0	8	0	east_bell_rung	Timeline_East_Result1301
+	1302	13	Timeline_East_Option1302	Always	0			1	0	0	0	0	0	0		Timeline_East_Result1302
+	1401	14	Timeline_East_Option1401	FlagSet	0	east_bell_rung	Timeline_East_BellNeeded	8	9162	0	0	0	0	0		Timeline_East_Result1401
+	1402	14	Timeline_East_Option1402	Always	0			1	0	0	0	0	0	0		Timeline_East_Result1402
+	1501	15	Timeline_East_Option1501	Always	0			3	0	0	0	30	0	0		Timeline_East_Result1501
+	1502	15	Timeline_East_Option1502	Always	0			2	0	0	0	0	8	0		Timeline_East_Result1502
+	1601	16	Timeline_North_PineTake	Always	0			3	9163	0	45	0	0	0		Timeline_North_PineTakeResult
+	1602	16	Timeline_North_PineStudy	Always	0			4	0	0	0	0	12	0		Timeline_North_PineStudyResult
+	1701	17	Timeline_North_ShelterHeal	Always	0			5	0	0	0	32	0	0		Timeline_North_ShelterHealResult
+	1702	17	Timeline_North_ShelterTrain	Always	0			2	0	0	0	0	22	1		Timeline_North_ShelterTrainResult
+	1801	18	Timeline_West_Take	Always	0			7	9164	0	0	0	0	0		Timeline_West_TakeResult
+	1802	18	Timeline_West_Copy	Always	0			2	0	0	0	0	7	0		Timeline_West_CopyResult
+	1901	19	Timeline_West_Trade	Always	0			4	9165	9164	0	0	0	0		Timeline_West_TradeResult
+	1902	19	Timeline_West_Keep	Always	0			4	0	0	0	0	0	0		Timeline_West_KeepResult
+	2001	20	Timeline_Snow_Study	Always	0			8	9131	9166	0	0	0	0		Timeline_Snow_StudyResult
+	2002	20	Timeline_Snow_Leave	Always	0			1	0	0	0	0	0	0		Timeline_Snow_LeaveResult
+	2101	21	Timeline_Gorge_CampHeal	Always	0			5	0	0	0	28	0	0		Timeline_Gorge_CampHealResult
+	2102	21	Timeline_Gorge_CampStudy	Always	0			3	0	0	0	0	10	0		Timeline_Gorge_CampStudyResult
+	2201	22	Timeline_Gorge_Take	Always	0			7	9167	0	0	0	0	0		Timeline_Gorge_TakeResult
+	2202	22	Timeline_Gorge_Read	Always	0			2	0	0	0	0	14	0		Timeline_Gorge_ReadResult
+	2301	23	Timeline_Tide_Shortcut	Always	0			4	9168	0	36	0	0	0		Timeline_Tide_ShortcutResult
+	2302	23	Timeline_Tide_Detour	Always	0			4	9168	0	0	0	0	2		Timeline_Tide_DetourResult
+	2303	23	Timeline_Tide_Leave	Always	0			1	0	0	0	0	0	0		Timeline_Tide_LeaveResult
+	2401	24	Timeline_Tide_Mark	Always	0			1	0	0	0	0	12	0		Timeline_Tide_MarkResult

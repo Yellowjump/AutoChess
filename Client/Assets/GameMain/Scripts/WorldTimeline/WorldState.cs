@@ -44,7 +44,7 @@ namespace WorldTimeline
         }
     }
 
-    public enum WorldEventKind { ActionStarted, Arrived, Cultivated, ActionCompleted, Battle, Died, Looted, Joined, Disguised, Absorbed, RitualReset, RitualCompleted, WorldCleared, RunEnded, Breakthrough, StoryResolved }
+    public enum WorldEventKind { ActionStarted, Arrived, Cultivated, ActionCompleted, Battle, Died, Looted, Joined, Disguised, Absorbed, RitualReset, RitualCompleted, WorldCleared, RunEnded, Breakthrough, StoryResolved, FateChanged }
 
     public sealed class WorldEvent
     {

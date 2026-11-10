@@ -13,6 +13,7 @@ namespace Entity
         public int HeroID;//hero表中ID
         public string TimelineAppearance;
         internal bool UsesUndertow;
+        internal int FirstStoneSmashDelayMs;
         internal bool HasSwordRecall;
         internal int TechniqueSkillId;
         internal int TechniqueKills;
@@ -20,13 +21,15 @@ namespace Entity
         internal int LightningApplications, LightningTransfers, LightningJumps;
         internal Dictionary<int, WorldTimeline.SkillBattleOutput> BattleOutput;
 
-        internal static void RecordBattleOutput(Skill skill, long damage = 0, long shield = 0, long healing = 0)
+        internal static void RecordBattleOutput(Skill skill, long damage = 0, long shield = 0, long healing = 0,
+            long shieldAbsorbed = 0)
         {
             var output = skill?.Caster?.BattleOutput;
-            if (output == null || (damage <= 0 && shield <= 0 && healing <= 0)) return;
+            if (output == null || (damage <= 0 && shield <= 0 && healing <= 0 && shieldAbsorbed <= 0)) return;
             output.TryGetValue(skill.SkillID, out var previous);
             output[skill.SkillID] = new WorldTimeline.SkillBattleOutput(skill.SkillID, skill.FromItemID,
-                previous.Damage + damage, previous.Shield + shield, previous.Healing + healing);
+                previous.Damage + damage, previous.Shield + shield, previous.Healing + healing,
+                previous.ShieldAbsorbed + shieldAbsorbed);
         }
         internal int UndertowAttackCount;
         private bool ownsTimelineModel;
@@ -63,6 +66,7 @@ namespace Entity
             LightningApplications = LightningTransfers = LightningJumps = 0;
             BattleOutput = recordBattleOutput ? new Dictionary<int, WorldTimeline.SkillBattleOutput>() : null;
             UndertowAttackCount = 0;
+            FirstStoneSmashDelayMs = 0;
             HeroID = i;
             HeroUID = ++HotGameEntry.HeroManager.QiziCurUniqueIndex;
             if (equipItem == null)
@@ -89,7 +93,10 @@ namespace Entity
                 if (prefab != null)
                 {
                     ownsTimelineModel = true;
-                    OnGetHeroGObjCallback(UnityEngine.Object.Instantiate(prefab, HotGameEntry.HeroManager.InstanceRoot), null);
+                    var model = UnityEngine.Object.Instantiate(prefab, HotGameEntry.HeroManager.InstanceRoot);
+                    if (TimelineAppearance == "GateGolem" && model.TryGetComponent<TimelineMonsterAnimation>(out var stoneGuard))
+                        stoneGuard.CombineRigidParts();
+                    OnGetHeroGObjCallback(model, null);
                     return;
                 }
             }

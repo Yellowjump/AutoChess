@@ -11,6 +11,8 @@ using WorldTimeline;
 
 namespace UnityGameFramework.Runtime
 {
+    internal enum TimelineArenaStyle { Forest, Cliff, Ritual, Tidegate }
+
     public sealed partial class HeroComponent
     {
         internal bool IsStationaryTargetPreview { get; private set; }
@@ -27,13 +29,14 @@ namespace UnityGameFramework.Runtime
         }
 #endif
 
-        public IEnumerator RunTimelineBattle(IReadOnlyList<ActorState> first, IReadOnlyList<ActorState> second,
+        internal IEnumerator RunTimelineBattle(IReadOnlyList<ActorState> first, IReadOnlyList<ActorState> second,
             Func<ActorState, int> heroId, Func<ActorState, List<int>> items, int seed, bool visible,
-            Action<int[]> completed, int regionDistance = 0, bool unlimitedDuration = false,
+            Action<int[]> completed, bool unlimitedDuration = false,
             bool seedPreviewBurn = false, Func<ActorState, string> appearance = null, bool enableUndertow = false,
             bool enableSwordRecall = false, Func<ActorState, int> techniqueSkill = null,
             Action<ActorState, int> settleTechnique = null, bool lightningFormation = false,
-            ActorState reportOwner = null)
+            ActorState reportOwner = null, bool slashFormation = false, bool closeGuardFormation = false,
+            TimelineArenaStyle arenaStyle = TimelineArenaStyle.Forest, bool staggerStoneGuards = false)
         {
             if (unlimitedDuration && !visible)
                 throw new ArgumentException("无时间限制的战斗必须在前台运行。", nameof(unlimitedDuration));
@@ -81,15 +84,16 @@ namespace UnityGameFramework.Runtime
                     if (sceneCamera != null)
                     {
                         sceneCamera.clearFlags = CameraClearFlags.SolidColor;
-                        sceneCamera.backgroundColor = new Color(.72f, .69f, .63f);
+                        sceneCamera.backgroundColor = new Color(.20f, .23f, .22f);
                     }
                     var stoneShader = Resources.Load<Shader>("TimelineBattleStone");
                     if (stoneShader != null && stoneShader.isSupported)
                     {
-                        stoneBoard = new GameObject("轮回战斗石台");
+                        stoneBoard = new GameObject("轮回战场 · " + arenaStyle);
                         stoneBoard.transform.position = offset;
-                        stoneMesh = BuildTimelineStoneBoard(regionDistance);
+                        stoneMesh = BuildTimelineArena(arenaStyle);
                         stoneMaterial = new Material(stoneShader);
+                        stoneMaterial.SetFloat("_ArenaSurfaces", 1f);
                         stoneBoard.AddComponent<MeshFilter>().sharedMesh = stoneMesh;
                         stoneBoard.AddComponent<MeshRenderer>().sharedMaterial = stoneMaterial;
                     }
@@ -98,8 +102,6 @@ namespace UnityGameFramework.Runtime
                         Debug.LogWarning("TimelineBattleStone shader is missing or unsupported. Falling back to the original battle grid.", this);
                     }
                     ShowQige(stoneBoard == null);
-                    var cameraSettings = GameEntry.DataTable.GetDataTable<DRAreaPoint>("AreaPoint")
-                        .GetAllDataRows().OrderBy(point => point.Id).First(point => point.AreaPointType == 2);
                     cameraObject = new GameObject("轮回战斗虚拟相机");
                     var camera = cameraObject.AddComponent<CinemachineVirtualCamera>();
                     camera.Priority = 200;
@@ -107,9 +109,26 @@ namespace UnityGameFramework.Runtime
                     camera.m_Lens.FieldOfView = 60;
                     camera.m_Lens.NearClipPlane = .3f;
                     camera.m_Lens.FarClipPlane = 2000;
-                    camera.transform.position = _qigePosOffset + cameraSettings.CameraPosRelate;
-                    var rotation = cameraSettings.CameraRotate;
-                    camera.transform.rotation = new Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+                    if (stoneBoard != null)
+                    {
+                        var focus = offset + (arenaStyle == TimelineArenaStyle.Ritual
+                            ? new Vector3(-.35f, .15f, -.30f)
+                            : closeGuardFormation ? new Vector3(-2.15f, .30f, -1.6f) : new Vector3(-.65f, .30f, -.35f));
+                        var cameraOffset = participants.Length > 10 || arenaStyle == TimelineArenaStyle.Ritual
+                            ? new Vector3(1.2f, 8.6f, -7.15f)
+                            : arenaStyle == TimelineArenaStyle.Cliff ? new Vector3(2.9f, 5.9f, -5.7f)
+                            : new Vector3(1.2f, 5.6f, -6.0f);
+                        camera.transform.SetPositionAndRotation(focus + cameraOffset,
+                            Quaternion.LookRotation(-cameraOffset));
+                    }
+                    else
+                    {
+                        var cameraSettings = GameEntry.DataTable.GetDataTable<DRAreaPoint>("AreaPoint")
+                            .GetAllDataRows().OrderBy(point => point.Id).First(point => point.AreaPointType == 2);
+                        camera.transform.position = offset + cameraSettings.CameraPosRelate;
+                        var rotation = cameraSettings.CameraRotate;
+                        camera.transform.rotation = new Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+                    }
                     BurnVisuals = cameraObject.AddComponent<TimelineBurnVisuals>();
                     m_InstanceWorldCanvas.worldCamera = Camera.main;
                 }
@@ -122,7 +141,11 @@ namespace UnityGameFramework.Runtime
                         int slot = friend ? i : i - first.Count;
                         var position = friend ? GetEmptyFriendPos() : new Vector2Int(slot % 7, 7 - slot / 7);
                         // Keep the primary target closest to the player's starting cell.
-                        if (!friend && lightningFormation)
+                        if (!friend && slashFormation)
+                            position = slot == 2 ? new Vector2Int(6, 6) : new Vector2Int(slot, 1);
+                        else if (!friend && closeGuardFormation)
+                            position = new Vector2Int(slot, 1);
+                        else if (!friend && lightningFormation)
                             position = new Vector2Int(slot * 2, stationaryEnemies ? 3 : 5);
                         else if (!friend && stationaryEnemies)
                             position = new Vector2Int(slot == 2 ? 6 : slot, 3 + (slot == 1 ? 1 : 0));
@@ -140,6 +163,8 @@ namespace UnityGameFramework.Runtime
                             (equipment[i].Contains(9104) || participants[i].Items.Contains(9104));
                         entity.TechniqueSkillId = techniqueSkill?.Invoke(participants[i]) ?? 0;
                         entity.Init(heroes[i], equipment[i], recordBattleOutput: reportOwner != null);
+                        if (staggerStoneGuards && !friend && entity.TimelineAppearance == "GateGolem")
+                            entity.FirstStoneSmashDelayMs = slot % 2 * 300;
                         if (reportOwner != null)
                         {
                             foreach (var skill in entity.NormalSkillList.Concat(entity.NoAnimAtkSkillList).Concat(entity.PassiveSkillList))
@@ -296,60 +321,340 @@ namespace UnityGameFramework.Runtime
 
         }
 
-        private Mesh BuildTimelineStoneBoard(int regionDistance)
+        private static Mesh BuildTimelineArena(TimelineArenaStyle style)
         {
             var vertices = new List<Vector3>();
             var colors = new List<Color>();
             var triangles = new List<int>();
-            var paleStone = new Color(.65f, .60f, .51f);
-            var darkStone = new Color(.28f, .27f, .23f);
-            var groundColor = regionDistance >= 7 ? new Color(.43f, .46f, .34f)
-                : regionDistance >= 4 ? new Color(.43f, .44f, .42f)
-                : new Color(.44f, .38f, .34f);
-            // Leave a flat clearing under the playable cells and raise the terrain outside it.
-            const int groundRadius = 24;
-            const int groundWidth = groundRadius * 2 + 1;
-            for (int z = -groundRadius; z <= groundRadius; z++)
-            for (int x = -groundRadius; x <= groundRadius; x++)
+            var slate = new Color(.29f, .30f, .28f, .25f);
+            var water = new Color(.10f, .19f, .18f, .5f);
+            // Vertex alpha selects the surface treatment in TimelineBattleStone.
+            var stone = new Color(.21f, .23f, .21f, 0f);
+            var wood = new Color(.20f, .13f, .09f, 0f);
+            var iron = new Color(.105f, .115f, .107f, 0f);
+            var amber = new Color(.87f, .56f, .24f, 0f);
+
+            Color Shade(Color color, float factor) =>
+                new Color(color.r * factor, color.g * factor, color.b * factor, color.a);
+
+            void Quad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, Color color)
             {
-                float edge = Mathf.Clamp01((Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)) - 5f) / 5f);
-                float noise = Mathf.PerlinNoise(x * .31f + 25f, z * .31f + 25f);
-                vertices.Add(new Vector3(x, -.43f + edge * noise * 1.2f, z));
-                colors.Add(groundColor * (.83f + noise * .31f));
-                if (x == groundRadius || z == groundRadius) continue;
-                int corner = vertices.Count - 1;
-                triangles.AddRange(new[] { corner, corner + groundWidth, corner + 1,
-                    corner + 1, corner + groundWidth, corner + groundWidth + 1 });
+                int start = vertices.Count;
+                vertices.AddRange(new[] { a, b, c, d });
+                for (int i = 0; i < 4; i++) colors.Add(color);
+                triangles.AddRange(new[] { start, start + 1, start + 2, start, start + 2, start + 3 });
             }
-            for (int row = 0; row < qigepos.Length; row++)
-            for (int column = 0; column < qigepos[row].Length; column++)
+
+            void Triangle(Vector3 a, Vector3 b, Vector3 c, Color color)
             {
-                Vector3 center = qigepos[row][column];
-                int first = vertices.Count;
-                float shade = .90f + ((row * 13 + column * 7) % 9) * .017f;
-                for (int edge = 0; edge < 6; edge++)
+                int start = vertices.Count;
+                vertices.Add(a);
+                vertices.Add(b);
+                vertices.Add(c);
+                for (int i = 0; i < 3; i++) colors.Add(color);
+                triangles.AddRange(new[] { start, start + 1, start + 2 });
+            }
+
+            void Box(Vector3 center, Vector3 size, Color color, float yaw = 0f)
+            {
+                Vector3 half = size / 2f;
+                var rotation = Quaternion.Euler(0f, yaw, 0f);
+                Vector3 Corner(float x, float z) => center + rotation * new Vector3(x, -half.y, z);
+                var a = Corner(-half.x, -half.z);
+                var b = Corner(half.x, -half.z);
+                var c = Corner(half.x, half.z);
+                var d = Corner(-half.x, half.z);
+                var up = Vector3.up * size.y;
+                Quad(a + up, d + up, c + up, b + up, color);
+                Quad(a, b, b + up, a + up, Shade(color, .74f));
+                Quad(b, c, c + up, b + up, Shade(color, .85f));
+                Quad(c, d, d + up, c + up, Shade(color, .78f));
+                Quad(d, a, a + up, d + up, Shade(color, .92f));
+            }
+
+            void Cliff(Vector3 foot, Vector3 size, float yaw, Color color)
+            {
+                const int facets = 6;
+                var baseRing = new Vector3[facets];
+                var shoulder = new Vector3[facets];
+                var crown = new Vector3[facets];
+                var rotation = Quaternion.Euler(0f, yaw, 0f);
+                for (int i = 0; i < facets; i++)
                 {
-                    float angle = (edge * 60 + 30) * Mathf.Deg2Rad;
-                    var corner = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * .566f;
-                    vertices.Add(center + corner - Vector3.up * .025f);
-                    vertices.Add(center + corner - Vector3.up * .42f);
-                    colors.Add(paleStone * shade);
-                    colors.Add(darkStone);
+                    float angle = i * Mathf.PI / 3f;
+                    float radius = i % 2 == 0 ? .54f : .46f;
+                    var radial = rotation * new Vector3(Mathf.Cos(angle) * size.x * radius, 0f,
+                        Mathf.Sin(angle) * size.z * radius);
+                    baseRing[i] = foot + radial;
+                    shoulder[i] = foot + radial * (i % 3 == 0 ? 1.08f : .86f)
+                        + Vector3.up * size.y * (.45f + .08f * (i % 3));
+                    crown[i] = foot + radial * .56f + Vector3.up * size.y * (.84f + .07f * (i % 3));
                 }
-                for (int edge = 1; edge < 5; edge++)
-                    triangles.AddRange(new[] { first, first + (edge + 1) * 2, first + edge * 2 });
-                for (int edge = 0; edge < 6; edge++)
+                for (int i = 0; i < facets; i++)
                 {
-                    int a = first + edge * 2;
-                    int b = first + ((edge + 1) % 6) * 2;
-                    triangles.AddRange(new[] { a, b, a + 1, b, b + 1, a + 1 });
+                    int next = (i + 1) % facets;
+                    float light = .74f + .10f * ((i + 1) % 4);
+                    Quad(baseRing[i], baseRing[next], shoulder[next], shoulder[i], Shade(color, light * .78f));
+                    Quad(shoulder[i], shoulder[next], crown[next], crown[i], Shade(color, light));
+                    Triangle(foot + Vector3.up * size.y * .96f, crown[next], crown[i],
+                        Shade(color, 1.08f + i % 2 * .08f));
                 }
             }
-            var mesh = new Mesh { name = "Timeline battle stone tiles" };
-            mesh.SetVertices(vertices);
-            mesh.SetColors(colors);
-            mesh.SetTriangles(triangles, 0);
-            return mesh;
+
+            Mesh FinishArena()
+            {
+                var mesh = new Mesh { name = "Timeline arena " + style };
+                mesh.SetVertices(vertices);
+                mesh.SetColors(colors);
+                mesh.SetTriangles(triangles, 0);
+                return mesh;
+            }
+
+            if (style == TimelineArenaStyle.Forest)
+            {
+                var dirt = new Color(.36f, .30f, .22f, 0f);
+                var moss = new Color(.14f, .21f, .09f, 0f);
+                var foliage = new Color(.19f, .25f, .14f, 0f);
+                Box(new Vector3(0f, -.32f, 2f), new Vector3(48f, .59f, 46f), dirt);
+
+                void Pine(Vector3 root, float scale, int seed)
+                {
+                    Box(root + Vector3.up * .82f * scale, new Vector3(.24f, 1.66f, .22f) * scale, wood);
+                    for (int layer = 0; layer < 3; layer++)
+                    {
+                        float radius = (.94f - layer * .24f) * scale;
+                        var crown = root + Vector3.up * (.66f + layer * .55f) * scale;
+                        var tip = crown + Vector3.up * 1.21f * scale;
+                        for (int facet = 0; facet < 6; facet++)
+                        {
+                            float angle = facet * Mathf.PI / 3f + seed * .41f;
+                            float next = angle + Mathf.PI / 3f;
+                            var left = crown + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
+                            var right = crown + new Vector3(Mathf.Cos(next), 0f, Mathf.Sin(next)) * radius;
+                            Triangle(left, right, tip, Shade(foliage, .71f + .11f * ((facet + layer + seed) % 5)));
+                        }
+                    }
+                }
+
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    for (int grove = 0; grove < 6; grove++)
+                    {
+                        float z = -4.2f + grove * 2.12f + side * .40f;
+                        float edge = 4.64f + Mathf.Sin(grove * 1.63f + side) * .34f;
+                        var root = new Vector3(side * edge, 0f, z);
+                        Pine(root, .68f + grove % 3 * .19f, grove);
+                        Pine(root + new Vector3(side * 1.22f, 0f, .52f), 1.10f + grove % 2 * .26f, grove + 4);
+                        Pine(root + new Vector3(side * 2.39f, 0f, -.62f), .98f + grove % 4 * .15f, grove + 7);
+                        Cliff(root + new Vector3(side * .18f, -.07f, -.70f),
+                            new Vector3(.83f, .28f + .18f * (grove % 3), .92f), grove * 29f, Shade(stone, 1.23f));
+                    }
+                    for (int i = 0; i < 54; i++)
+                    {
+                        float z = -6f + i * .235f;
+                        float x = side * (3.86f + .98f * Mathf.PerlinNoise(i * .57f, side + 2f));
+                        float scale = .78f + Mathf.PerlinNoise(i * 1.53f, 7f) * .85f;
+                        var root = new Vector3(x, -.018f, z);
+                        for (int blade = 0; blade < 4; blade++)
+                        {
+                            float angle = i * 2.39f + blade * 1.63f;
+                            var direction = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+                            var across = Vector3.Cross(Vector3.up, direction) * (.063f * scale);
+                            var start = root + direction * (.08f * blade);
+                            var tip = start + direction * (.19f * scale) + Vector3.up * (.19f + blade * .052f) * scale;
+                            Triangle(start - across, start + across, tip, Shade(moss, .83f + blade * .14f));
+                        }
+                    }
+                }
+                for (int i = 0; i < 9; i++)
+                {
+                    float z = 3.78f + i * .66f;
+                    float x = .3f + Mathf.Sin(i * .62f) * .92f;
+                    Box(new Vector3(x, -.045f, z), new Vector3(.97f - i % 3 * .18f, .07f, .46f),
+                        Shade(stone, 1.27f + i % 2 * .09f), 13f - i * 3f);
+                }
+                return FinishArena();
+            }
+
+            if (style == TimelineArenaStyle.Cliff)
+            {
+                var ledge = new Color(.31f, .28f, .25f, 0f);
+                var escarpment = new Color(.25f, .23f, .22f, 0f);
+                var basin = new Color(.17f, .20f, .21f, 0f);
+                Box(new Vector3(0f, -4.1f, 0f), new Vector3(180f, .6f, 180f), basin);
+                Vector3 Edge(int section)
+                {
+                    float z = -11f + section * 1.75f;
+                    return new Vector3(4.07f + .65f * Mathf.PerlinNoise(section * .75f, .5f), -.025f, z);
+                }
+                for (int i = 0; i < 15; i++)
+                {
+                    var front = Edge(i);
+                    var back = Edge(i + 1);
+                    var left = new Vector3(-9f, front.y, front.z);
+                    var leftBack = new Vector3(-9f, back.y, back.z);
+                    var frontSlope = front + new Vector3(.73f + i % 2 * .44f, -1.25f, 0f);
+                    var backSlope = back + new Vector3(.73f + (i + 1) % 2 * .44f, -1.25f, 0f);
+                    var frontBase = frontSlope + new Vector3(.81f, -2.7f, 0f);
+                    var backBase = backSlope + new Vector3(.81f, -2.7f, 0f);
+                    Quad(left, leftBack, back, front, Shade(ledge, .95f + .023f * (i % 4)));
+                    Quad(front, back, backSlope, frontSlope, Shade(escarpment, .83f + .09f * (i % 3)));
+                    Quad(frontSlope, backSlope, backBase, frontBase, Shade(escarpment, .63f + .08f * (i % 4)));
+                }
+                for (int i = 0; i < 10; i++)
+                {
+                    float z = -6.5f + i * 2.08f;
+                    float height = 2.9f + .45f * (i % 4);
+                    Cliff(new Vector3(-5.9f - .25f * (i % 3), -.25f, z),
+                        new Vector3(3.9f, height, 4.1f), i * 34f, Shade(escarpment, .79f + .08f * (i % 4)));
+                    Cliff(new Vector3(9.2f + (i % 3) * 1.32f, -4.0f, z + 1.7f),
+                        new Vector3(2.55f, 1.2f + .51f * (i % 4), 2.86f), i * 52f, basin);
+                }
+                for (int i = 0; i < 6; i++)
+                {
+                    var edge = Edge(i + 4);
+                    var post = edge + new Vector3(-.24f, .22f, .25f);
+                    Box(post, new Vector3(.19f, .48f, .23f), wood, i * 9f);
+                    if (i < 5 && i != 2)
+                    {
+                        var next = Edge(i + 5) + new Vector3(-.24f, .22f, .25f);
+                        var direction = next - post;
+                        Box((post + next) * .5f, new Vector3(.045f, .042f, direction.magnitude),
+                            Shade(wood, 1.37f), Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg);
+                    }
+                }
+                return FinishArena();
+            }
+
+            if (style == TimelineArenaStyle.Ritual)
+            {
+                var courtyard = new Color(.19f, .17f, .16f, 0f);
+                var platform = new Color(.26f, .23f, .21f, 0f);
+                var inlay = new Color(.46f, .24f, .18f, 0f);
+                Box(new Vector3(0f, -.60f, 0f), new Vector3(47f, .60f, 47f), courtyard);
+
+                Vector3 Polar(float angle, float radius, float height) =>
+                    new Vector3(Mathf.Cos(angle) * radius, height, Mathf.Sin(angle) * radius);
+
+                const int segments = 48;
+                for (int i = 0; i < segments; i++)
+                {
+                    float angle = i * 2f * Mathf.PI / segments;
+                    float next = (i + 1) * 2f * Mathf.PI / segments;
+                    var near = Polar(angle, 5.22f, -.025f);
+                    var far = Polar(next, 5.22f, -.025f);
+                    Triangle(new Vector3(0f, -.025f, 0f), far, near, Shade(platform, .96f + .012f * (i % 4)));
+                    Quad(near, far, Polar(next, 5.51f, -.15f), Polar(angle, 5.51f, -.15f), Shade(platform, .73f));
+                    Quad(Polar(angle, 5.51f, -.15f), Polar(next, 5.51f, -.15f),
+                        Polar(next, 5.77f, -.295f), Polar(angle, 5.77f, -.295f), Shade(platform, .60f));
+                    if (i % 8 == 0 || i % 11 == 0) continue;
+                    float end = next - .009f;
+                    Quad(Polar(angle, 4.59f, -.016f), Polar(end, 4.59f, -.016f),
+                        Polar(end, 4.73f, -.016f), Polar(angle, 4.73f, -.016f), Shade(inlay, .86f + .064f * (i % 4)));
+                    if (i % 4 == 1)
+                        Quad(Polar(angle, 4.10f, -.015f), Polar(angle + .032f, 4.10f, -.015f),
+                            Polar(angle + .032f, 4.49f, -.015f), Polar(angle, 4.49f, -.015f), inlay);
+                }
+
+                for (int i = 0; i < 7; i++)
+                {
+                    float angle = (.02f + i * .16f) * Mathf.PI;
+                    var foot = Polar(angle, 6.17f, -.28f);
+                    float height = i % 3 == 1 ? 1.9f : 1.26f;
+                    float yaw = 90f - angle * Mathf.Rad2Deg;
+                    Box(foot + Vector3.up * .13f, new Vector3(.87f, .31f, .87f), platform, yaw);
+                    Box(foot + Vector3.up * (.27f + height * .5f), new Vector3(.48f, height, .49f),
+                        Shade(platform, .80f), yaw + i % 2 * 7f);
+                    Cliff(foot + Vector3.up * (height + .20f), new Vector3(.68f, .24f, .65f), yaw, platform);
+                }
+                for (int step = 0; step < 4; step++)
+                    Box(new Vector3(0f, -.20f + step * .14f, 5.60f + step * .28f),
+                        new Vector3(3.84f - step * .23f, .19f, 2.42f - step * .32f), Shade(platform, .83f + step * .10f));
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    var shard = new Vector3(side * .92f, .31f, 6.55f);
+                    Cliff(shard, new Vector3(1.48f, 1.24f + side * .18f, 1.10f), side * 23f, Shade(courtyard, .84f));
+                    Box(new Vector3(side * 2.08f, -.05f, 5.7f), new Vector3(.46f, .52f, .46f), iron);
+                    Box(new Vector3(side * 2.08f, .24f, 5.7f), new Vector3(.35f, .09f, .35f), Shade(amber, .73f));
+                }
+                return FinishArena();
+            }
+
+            // The paving extends toward the camera and joins both abutments.
+            Box(new Vector3(-.25f, -.53f, -3.4f), new Vector3(9.4f, 1.01f, 16.6f), slate);
+            Quad(new Vector3(-32, -.59f, -32), new Vector3(-32, -.59f, 32),
+                new Vector3(32, -.59f, 32), new Vector3(32, -.59f, -32), water);
+
+            // Sluice posts, lintels and vertical boards sit behind the far row.
+            const float gateZ = 4.75f;
+            // The water plane continues below the dam. Solid masonry closes the openings
+            // behind the door planks, and the rear embankment covers the water above them.
+            Box(new Vector3(-.25f, .45f, gateZ + .83f), new Vector3(9.2f, 2.55f, 1.30f), Shade(stone, .69f));
+            Box(new Vector3(-.25f, .38f, gateZ + 6.8f), new Vector3(19f, 2.6f, 11.3f), Shade(stone, .81f));
+            Box(new Vector3(-.25f, 1.85f, gateZ + .65f), new Vector3(9.48f, .33f, 1.76f), Shade(stone, 1.12f));
+            Box(new Vector3(-.25f, 2.04f, gateZ + .72f), new Vector3(9.2f, .13f, 1.58f), stone);
+            for (int i = -6; i <= 6; i++)
+            {
+                Box(new Vector3(-.25f + i * .71f, 2.23f, gateZ + .08f),
+                    new Vector3(.44f, .30f, .37f), Shade(stone, 1.02f + .04f * (i % 3)));
+            }
+            for (int i = -1; i <= 1; i++)
+            {
+                float x = -.25f + i * 2.7f;
+                Box(new Vector3(x, .02f, gateZ), new Vector3(1.06f, .42f, 1.34f), Shade(stone, .85f));
+                Box(new Vector3(x, .60f, gateZ), new Vector3(.70f, 2.55f, .94f), stone);
+                Box(new Vector3(x, 1.68f, gateZ), new Vector3(.80f, .14f, 1.02f), Shade(stone, .83f));
+                Box(new Vector3(x, 1.88f, gateZ), new Vector3(.94f, .28f, 1.10f), stone);
+            }
+            for (int i = 0; i < 14; i++)
+            {
+                float x = -2.62f + i * .365f;
+                Box(new Vector3(x, .67f, gateZ + .14f), new Vector3(.335f, 1.48f, .19f),
+                    Shade(wood, .86f + .08f * (i % 4)));
+            }
+            Box(new Vector3(-.25f, 1.56f, gateZ - .09f), new Vector3(6.05f, .30f, .67f), wood);
+            Box(new Vector3(-.25f, .93f, gateZ - .10f), new Vector3(5.12f, .16f, .18f), wood);
+            for (int side = -1; side <= 1; side += 2)
+            {
+                float x = -.25f + side * 2.7f;
+                float bay = -.25f + side * 1.35f;
+                Box(new Vector3(bay, -.11f, gateZ - .05f), new Vector3(2.08f, .19f, .78f), Shade(stone, .87f));
+                Box(new Vector3(bay, 1.08f, gateZ - .25f), new Vector3(.18f, 1.18f, .10f), iron);
+                Box(new Vector3(bay, 1.33f, gateZ - .32f), new Vector3(.39f, .13f, .14f), iron);
+                float lanternZ = gateZ - .61f;
+                Box(new Vector3(x, 1.42f, lanternZ), new Vector3(.19f, .28f, .20f), amber);
+                Box(new Vector3(x, 1.59f, lanternZ), new Vector3(.27f, .065f, .28f), iron);
+                Box(new Vector3(x, 1.25f, lanternZ), new Vector3(.24f, .055f, .25f), iron);
+                Box(new Vector3(x, 1.42f, lanternZ - .104f), new Vector3(.026f, .29f, .03f), iron);
+                Box(new Vector3(-.25f + side * 4.0f, .23f, gateZ), new Vector3(2.6f, 1.65f, 2.5f), stone);
+                for (int tier = 0; tier < 3; tier++)
+                {
+                    float inset = tier * .21f;
+                    Box(new Vector3(-.25f + side * 4.28f, 1.14f + tier * .35f, gateZ + .66f + inset),
+                        new Vector3(2.24f - inset, .34f, 2.34f - inset),
+                        Shade(stone, .86f + tier * .08f));
+                }
+                Cliff(new Vector3(-.25f + side * 6.6f, -.83f, 5.7f),
+                    new Vector3(4.6f, 3.7f, 4.9f), side * 22f, Shade(stone, .83f));
+
+                // Low coping defines the edge of the fightable terrace without covering the nearest row.
+                for (int i = 0; i < 6; i++)
+                {
+                    if ((i + side + 1) % 5 == 1) continue;
+                    float z = -4.5f + i * 1.53f;
+                    Box(new Vector3(-.25f + side * 4.40f, .08f, z),
+                        new Vector3(.42f, .23f, 1.46f), Shade(stone, 1.10f + .05f * (i % 3)));
+                }
+
+                for (int i = 0; i < 7; i++)
+                {
+                    float z = -5.5f + i * 1.9f;
+                    float height = .90f + (i % 3) * .36f + (i > 3 ? .40f : 0f);
+                    Cliff(new Vector3(-.25f + side * (5.95f + (i % 2) * .31f), -.82f, z),
+                        new Vector3(3.6f, height, 3.3f), side * (17f + i * 28f), Shade(stone, .88f + .065f * (i % 4)));
+                }
+            }
+            return FinishArena();
         }
     }
 }

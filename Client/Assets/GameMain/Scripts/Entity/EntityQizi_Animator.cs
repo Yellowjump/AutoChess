@@ -1,6 +1,7 @@
 using Animancer;
 using DataTable;
 using GameFramework;
+using SkillSystem;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
@@ -10,10 +11,12 @@ namespace Entity
     {
         public string AnimAssetPath;
         public float Speed;
+        public bool TraceSlash;
         public void Clear()
         {
             AnimAssetPath = string.Empty;
             Speed = 1;
+            TraceSlash = false;
         }
     }
     public partial class EntityQizi
@@ -89,13 +92,21 @@ namespace Entity
                     {
                         state.Time = 0f;
                     }
+                    if (_waitPlayAni.TraceSlash)
+                    {
+                        var hand = GetWeaponHandle(WeaponHandleType.RightHand);
+                        if (hand == null && _animancer.Animator != null && _animancer.Animator.isHuman)
+                            hand = _animancer.Animator.GetBoneTransform(HumanBodyBones.RightHand);
+                        if (hand != null)
+                            HotGameEntry.HeroManager.BurnVisuals?.Slash?.Swing(hand, GObj.transform, state);
+                    }
                 }
                 ReferencePool.Release(_waitPlayAni);
                 _waitPlayAni = null;
             }
         }
 
-        public void AddAnimCommand(int aniAssetID,float speed=1)
+        public void AddAnimCommand(int aniAssetID, float speed = 1f, bool traceSlash = false)
         {
             if (HotGameEntry.HeroManager.IsTimelineSimulation || monsterAnimation != null) return;
             var assetsPathTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
@@ -104,6 +115,7 @@ namespace Entity
                 _waitPlayAni ??= ReferencePool.Acquire<WaitPlayAnimData>();
                 _waitPlayAni.AnimAssetPath =assetsPathTable[aniAssetID].AssetPath;
                 _waitPlayAni.Speed = speed;
+                _waitPlayAni.TraceSlash = traceSlash;
             }
         }
         public void AddAnimCommandIdle()

@@ -12,9 +12,12 @@ namespace Entity
     {
         private const int ImpulseChannel = 128;
         private const int Segments = 48;
+        private const int BlueBurstSfxId = 4;
         private static readonly Color Ember = new Color(.83f, .15f, .045f);
         private static readonly Color Flame = new Color(1f, .57f, .17f);
         private static readonly Color Water = new Color(.19f, .81f, .87f, .9f);
+        private static readonly Color StoneDust = new Color(.53f, .37f, .22f);
+        private static readonly Color StoneGold = new Color(.98f, .77f, .40f);
         private static readonly Color ThunderInk = new Color(.17f, .18f, .28f);
         private static readonly Color ThunderSilver = new Color(.86f, .89f, .97f);
         private static readonly Color ThunderSeal = new Color(.39f, .37f, .55f);
@@ -22,8 +25,10 @@ namespace Entity
             new Keyframe(0f, .12f), new Keyframe(.26f, 1f), new Keyframe(.75f, .68f), new Keyframe(1f, .12f));
         private readonly List<Stroke> strokes = new List<Stroke>();
         private Material material;
+        internal TimelineSlashVisuals Slash { get; private set; }
         private CinemachineImpulseDefinition impulse;
         private float nextSwordChimeTime;
+        private float nextStoneImpulseTime;
 
         private sealed class Stroke
         {
@@ -40,6 +45,16 @@ namespace Entity
         {
             var shader = Resources.Load<Shader>("TimelineBurnStroke");
             if (shader != null && shader.isSupported) material = new Material(shader);
+            if (material != null)
+            {
+                var slashPrefab = Resources.Load<GameObject>("TimelineVfx/BasicSlash");
+                var slashTemplate = slashPrefab != null ? slashPrefab.GetComponent<TimelineSlashVisuals>() : null;
+                if (slashTemplate != null)
+                {
+                    Slash = Instantiate(slashTemplate, transform);
+                    Slash.Initialize(material);
+                }
+            }
             var listener = gameObject.AddComponent<CinemachineImpulseListener>();
             listener.m_ChannelMask = ImpulseChannel;
             listener.m_Gain = 1f;
@@ -59,6 +74,72 @@ namespace Entity
             HotGameEntry.Sound.PlaySfxSoundThisFrame((int)EnumSound.ShortBoom, position);
             impulse.CreateEvent(position, new Vector3(.07f, -.14f, 0f));
         }
+
+        internal void ShieldRaised(Vector3 position)
+        {
+            Ring(position, .56f, .29f, .07f, Water);
+        }
+
+        internal LineRenderer StoneWarning(Transform owner)
+        {
+            if (material == null) return null;
+            var line = CreateLine("断碑重砸·蓄力", owner, true);
+            line.loop = true;
+            line.positionCount = 24;
+            UpdateStoneWarning(line, owner.position, 0f);
+            return line;
+        }
+
+        internal static void UpdateStoneWarning(LineRenderer line, Vector3 position, float progress)
+        {
+            float radius = Mathf.Lerp(.90f, .36f, progress);
+            for (int i = 0; i < line.positionCount; i++)
+            {
+                float angle = i * (2f * Mathf.PI / line.positionCount);
+                float edge = i % 4 == 0 ? radius * 1.24f : radius;
+                line.SetPosition(i, position + new Vector3(Mathf.Cos(angle) * edge, .085f, Mathf.Sin(angle) * edge));
+            }
+            var color = Color.Lerp(StoneDust, StoneGold, progress);
+            color.a = Mathf.Lerp(.65f, 1f, progress);
+            line.startColor = line.endColor = color;
+            line.widthMultiplier = Mathf.Lerp(.045f, .095f, progress);
+        }
+
+        internal void StoneImpact(Vector3 position)
+        {
+            Ring(position, 1.15f, .28f, .18f, StoneDust);
+            Ring(position, .70f, .17f, .10f, StoneGold);
+            if (Time.time < nextStoneImpulseTime) return;
+            nextStoneImpulseTime = Time.time + .19f;
+            HotGameEntry.Sound.PlaySfxSoundThisFrame((int)EnumSound.ShortBoom, position);
+            impulse.CreateEvent(position, new Vector3(.035f, -.135f, 0f));
+        }
+
+        internal void BellAbsorbed(Vector3 position)
+        {
+            Ring(position + Vector3.up * .38f, .52f, .25f, .12f, Water);
+        }
+
+        internal void ShieldShattered(Vector3 position)
+        {
+            var table = GameEntry.DataTable.GetDataTable<DRSfx>("Sfx");
+            if (table == null || !table.HasDataRow(BlueBurstSfxId)) return;
+            // The burst is anchored to the impact even if the defender dies on this hit.
+            var point = HotGameEntry.HeroManager.CreatePosPoint();
+            point.LogicPosition = position + Vector3.up * .40f;
+            point.DurationMs = Mathf.Max(1, table[BlueBurstSfxId].DurationMs);
+            point.RemainMs = point.DurationMs;
+            point.AddSfx(BlueBurstSfxId);
+        }
+
+        internal void BleedApplied(Vector3 position) =>
+            Slash?.StatusBurst(position + Vector3.up * .74f, new Color(.73f, .09f, .14f), .44f);
+
+        internal void Ignited(Vector3 position) =>
+            Slash?.StatusBurst(position + Vector3.up * .55f, new Color(1f, .39f, .10f), 1.32f);
+
+        internal void OpeningStruck(Vector3 position) =>
+            Slash?.StatusBurst(position + Vector3.up * .78f, new Color(.91f, .80f, .52f), .75f);
 
         public void Spread(Vector3 from, Vector3 to)
         {

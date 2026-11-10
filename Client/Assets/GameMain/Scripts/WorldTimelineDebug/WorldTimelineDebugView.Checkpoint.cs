@@ -13,7 +13,7 @@ namespace WorldTimelineDebug
         [Serializable]
         private sealed class Checkpoint
         {
-            public int version = 15, round, item, selectedNode, year, health, attack, level;
+            public int version = 23, round, item, selectedNode, year, health, attack, level;
             public bool ended;
             public bool hasLifespanCutoff;
             public int lifespanThroughYear;
@@ -103,7 +103,7 @@ namespace WorldTimelineDebug
                 {
                     if (!File.Exists(CheckpointPath)) return false;
                     var data = JsonUtility.FromJson<Checkpoint>(File.ReadAllText(CheckpointPath));
-                    return data != null && data.version >= 1 && data.version <= 15 && !data.ended && !string.IsNullOrEmpty(data.histories);
+                    return data != null && data.version >= 1 && data.version <= 23 && !data.ended && !string.IsNullOrEmpty(data.histories);
                 }
                 catch (Exception error) when (error is IOException || error is ArgumentException || error is UnauthorizedAccessException)
                 { return false; }
@@ -167,7 +167,10 @@ namespace WorldTimelineDebug
                     data.storyChoices?.Select(choice => choice.ToChoice()), expandedExploration: data.version >= 3,
                     storyCombatSkills: data.version >= 4, bleedRewardRoute: data.version >= 5,
                     wreckBeastEncounter: data.version >= 6, swordRecall: data.version >= 7,
-                    techniqueCombat: data.version >= 8, swordTrial: data.version >= 9, lightningRoute: data.version >= 10, battleExperience: data.version >= 11, lightningTrials: data.version >= 12, balancedLightningTrials: data.version >= 13, merchants: data.version >= 14);
+                    techniqueCombat: data.version >= 8, swordTrial: data.version >= 9, lightningRoute: data.version >= 10, battleExperience: data.version >= 11, lightningTrials: data.version >= 12, balancedLightningTrials: data.version >= 13, merchants: data.version >= 14,
+                    linxiRoute: data.version >= 16, closeLinxiFormation: data.version >= 17,
+                    eastRoute: data.version >= 18, northRoute: data.version >= 19, westRoute: data.version >= 20,
+                    snowRoute: data.version >= 21, gorgeRoute: data.version >= 22, tideRoute: data.version >= 23);
                 int cutoff = data.hasLifespanCutoff ? data.lifespanThroughYear : data.year;
                 if (cutoff < 0 || cutoff > data.year)
                     throw new InvalidDataException("续玩存档的旧寿元结算截止年份无效。");

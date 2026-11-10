@@ -12,3 +12,16 @@
 	8	3	-9	Timeline_StoryEvent_8_Title	Timeline_StoryEvent_8_Text	Cave	0
 	9	2	-10	Timeline_StoryEvent_9_Title	Timeline_StoryEvent_9_Text	Cave	0
 	10	2	-7	Timeline_StoryEvent_10_Title	Timeline_StoryEvent_10_Text	Traveler	0
+	12	4	-10	Timeline_Linxi_Watch	Timeline_Linxi_Intro	Bridge	0
+	13	9	-8	Timeline_East_Beacon	Timeline_East_BeaconText	Bridge	1
+	14	8	-7	Timeline_East_Shrine	Timeline_East_ShrineText	Gate	1
+	15	8	-8	Timeline_East_Pool	Timeline_East_PoolText	Well	0
+	16	-4	9	Timeline_North_Pine	Timeline_North_PineText	Traveler	0
+	17	-3	9	Timeline_North_Shelter	Timeline_North_ShelterText	Cave	0
+	18	-9	5	Timeline_West_Foundry	Timeline_West_FoundryText	Cave	0
+	19	-8	4	Timeline_West_Hermit	Timeline_West_HermitText	Traveler	1
+	20	3	6	Timeline_Snow_Pavilion	Timeline_Snow_PavilionText	Gate	1
+	21	9	-2	Timeline_Gorge_Camp	Timeline_Gorge_CampText	Traveler	0
+	22	8	-2	Timeline_Gorge_Gate	Timeline_Gorge_GateText	Gate	0
+	23	7	2	Timeline_Tide_Pier	Timeline_Tide_PierText	Bridge	1
+	24	6	3	Timeline_Tide_Ledge	Timeline_Tide_LedgeText	Well	0

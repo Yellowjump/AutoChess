@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Client/Assets/GameMain/Scripts/WorldTimeline/*.cs" />
+    <Compile Include="WorldSimulationTests.cs" />
+    <Compile Include="WorldStoryTests.cs" />
+    <None Include="Fixtures/CultivationLevels.csv" Link="CultivationLevels.csv" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../Client/Assets/GameMain/Data/DataTables/CultivationLevel.bytes" Link="CultivationLevel.bytes" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

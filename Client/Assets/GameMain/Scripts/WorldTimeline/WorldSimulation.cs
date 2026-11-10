@@ -161,7 +161,7 @@ namespace WorldTimeline
             // The deadline is exclusive: arriving exactly on it is already too late.
             if (ritual.ExpireIfDue(State, Emit))
             {
-                foreach (var history in histories) history.UpdateStatus(State);
+                UpdateHistoryStatuses();
                 yield break;
             }
             var actors = State.Actors.Values.OrderBy(a => a.Id).ToList();
@@ -223,9 +223,28 @@ namespace WorldTimeline
                     Emit(new WorldEvent(State.Year, WorldEventKind.ActionStarted, actor.Id, actor.NodeId, "Story delay"));
                 }
             }
-            foreach (var history in histories) history.UpdateStatus(State);
+            UpdateHistoryStatuses();
             if (Chosen != null && !State.Actors[Chosen.ActorId].IsAlive)
                 foreach (var actor in actors.Where(a => a.LeaderId == Chosen.ActorId)) actor.LeaderId = null;
+        }
+
+        private void UpdateHistoryStatuses()
+        {
+            foreach (var history in histories)
+            {
+                var previous = history.Status;
+                history.UpdateStatus(State);
+                if (previous != HistoryReplayStatus.Replaying || history.Status != HistoryReplayStatus.FateChanged)
+                    continue;
+
+                var actor = State.Actors[history.ActorId];
+                int? clearer = null;
+                if (history.Record.GuardianDeathNodeId is int nodeId && actor.NodeId == nodeId &&
+                    State.Nodes.TryGetValue(nodeId, out var node) &&
+                    node.GuardianDefeat is { } defeat && defeat.ActorId != actor.Id && defeat.Year < State.Year)
+                    clearer = defeat.ActorId;
+                Emit(new WorldEvent(State.Year, WorldEventKind.FateChanged, actor.Id, actor.NodeId, otherActorId: clearer));
+            }
         }
 
         private void SyncPartyPositions()

@@ -64,7 +64,11 @@ namespace SkillSystem
             }
             int attack = (int)hit.Caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
             bleed.AddDamageLayer(Math.Max(1, (int)(attack * (long)row.IntParam1 / 100)), source);
-            if (isNew) hit.Target.AddBuff(bleed);
+            if (isNew)
+            {
+                hit.Target.AddBuff(bleed);
+                HotGameEntry.HeroManager.BurnVisuals?.BleedApplied(hit.Target.LogicPosition);
+            }
         }
 
         public override void WriteToFile(BinaryWriter writer)

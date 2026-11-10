@@ -25,17 +25,19 @@ namespace SkillSystem
                     }
 
                     var curSkill = trigger.ParentTriggerList.ParentSkill;
+                    bool traceSlash = curSkill?.SkillID == TimelineSlashVisuals.BasicSlashSkillId &&
+                        target == curSkill.Caster;
                     if (curSkill != null)
                     {
                         var curCDMs = curSkill.CurCastCDMs ;
                         var curAnimEndMs = curSkill.DefaultAnimationDurationMs;
                         if (curCDMs < curAnimEndMs)//实际CD小于动画时间了，需要动画加速
                         {
-                            target.AddAnimCommand(AnimAssetID.Value,curAnimEndMs/(float)curCDMs);
+                            target.AddAnimCommand(AnimAssetID.Value, curAnimEndMs / (float)curCDMs, traceSlash);
                             return;
                         }
                     }
-                    target.AddAnimCommand(AnimAssetID.Value);
+                    target.AddAnimCommand(AnimAssetID.Value, traceSlash: traceSlash);
                 }
             }
         }

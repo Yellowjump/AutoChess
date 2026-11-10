@@ -133,7 +133,12 @@ namespace SkillSystem
             int attack = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
             int tick = Mathf.Max(1, (int)((long)attack * row.IntParam1 / 100));
             for (int i = 0; i < layers; i++) burn.AddDamageLayer(tick, source);
-            if (isNew) target.AddBuff(burn);
+            if (isNew)
+            {
+                target.AddBuff(burn);
+                if (source != null)
+                    HotGameEntry.HeroManager.BurnVisuals?.Ignited(target.LogicPosition);
+            }
         }
 
         public override void WriteToFile(BinaryWriter writer)

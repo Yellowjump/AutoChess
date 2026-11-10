@@ -54,8 +54,10 @@ namespace SkillSystem
                             curBuff.paramInt = Mathf.FloorToInt(finalShieldValue * (1+huDunBoost/100f));
                             int before = (int)hudunAttr.GetFinalValue();
                             hudunAttr.AddNum(curBuff.paramInt);
-                            EntityQizi.RecordBattleOutput(curBuff.ParentSkill,
-                                shield: (long)(int)hudunAttr.GetFinalValue() - before);
+                            long gained = (long)(int)hudunAttr.GetFinalValue() - before;
+                            EntityQizi.RecordBattleOutput(curBuff.ParentSkill, shield: gained);
+                            if (before <= 0 && gained > 0)
+                                HotGameEntry.HeroManager.BurnVisuals?.ShieldRaised(curqizi.LogicPosition);
                         }
                     }
                 }

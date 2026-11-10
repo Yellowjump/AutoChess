@@ -161,7 +161,11 @@ namespace WorldTimeline
                     emit(new WorldEvent(world.Year, WorldEventKind.Battle, survivor.Id, nodeId, "Node monster"));
                     ApplyPartyResult(world, party, health - result.FirstHealth, outcome.Remaining, nodeId, emit);
                     victory = result.SecondHealth == 0 && survivor.IsAlive;
-                    if (victory) AwardVictoryRewards(world, survivor, nodeId, emit);
+                    if (victory)
+                    {
+                        node.GuardianDefeat = (survivor.Id, world.Year);
+                        AwardVictoryRewards(world, survivor, nodeId, emit);
+                    }
                     if (ritual != null && nodeId == world.Ritual.NodeId && victory)
                     {
                         ritual.BossDefeated(world, survivor, emit);
@@ -219,6 +223,7 @@ namespace WorldTimeline
             };
             node.SetGuardianFormation(guardAttack, health);
             node.StoryTrialStarted = true;
+            node.GuardianDefeat = null;
             node.HasExplorationGuardian = true;
         }
 

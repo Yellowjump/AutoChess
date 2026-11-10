@@ -122,7 +122,23 @@ namespace UnityGameFramework.Runtime
                         if (_previewItems.Count > 0 && GUILayout.Button("清空试招装备")) _previewItems.Clear();
                         bool guiEnabled = GUI.enabled;
                         GUI.enabled = guiEnabled && !timeline.IsBusy;
+                        if (GUILayout.Button("镇潮关对照：二阶御剑诀"))
+                            RunLinxiComparison(true);
+                        if (GUILayout.Button("镇潮关对照：一阶御剑诀 + 镇水铃"))
+                            RunLinxiComparison(false);
+
+                        void RunLinxiComparison(bool growthRoute)
+                        {
+                            if (timeline.TryRunLinxiComparison(new WorldTimelineBattleResolver(), growthRoute))
+                                HotGameEntry.Debugger.ShowFullWindow = false;
+                            else
+                                Debug.LogWarning("请在新开一世的轮回地图等待选择时开始镇潮关对照。");
+                        }
+
                         _threePreviewTargets = GUILayout.Toggle(_threePreviewTargets, "三固定靶（两个相邻，一个远处）");
+                        if (GUILayout.Button("试招：长兵挥斩（近距离双靶）") &&
+                            WorldTimelineBattleResolver.TryPreview(timeline, new[] { 1 }, slashFormation: true))
+                            HotGameEntry.Debugger.ShowFullWindow = false;
                         if (GUILayout.Button("试招：使用本世角色和背包"))
                         {
                             if (WorldTimelineBattleResolver.TryPreviewCurrentCharacter(timeline, _threePreviewTargets))

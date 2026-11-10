@@ -12,11 +12,14 @@ using UnityGameFramework.Runtime;
 
 public class StateAttack0 : FsmState<EntityQizi>,IReference
 {
+    internal const int StoneSmashSkillId = 9192;
     private int curNormalIndex = 0;
     private float durationAccumulate = 0f;
     private bool m_HasEnterShakeBefore = false;
     private bool m_HasAnimEndCheckToIdle = false;
     private TimelineUndertow undertow;
+    private int openingDelayMs;
+    private LineRenderer stoneWarning;
     protected override void OnInit(IFsm<EntityQizi> fsm)
     {
         base.OnInit(fsm);
@@ -30,9 +33,18 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         }
         var owner = fsm.Owner;
         curNormalIndex = owner.CurCastNormalSkillIndex;
+        var skill = owner.NormalSkillList[curNormalIndex];
         undertow = TimelineUndertow.Begin(owner);
-        owner.PlayMonsterWindup(undertow != null
-            ? TimelineUndertow.WindupMs : owner.NormalSkillList[curNormalIndex].CurShakeBeforeMs);
+        int windupMs = undertow != null ? TimelineUndertow.WindupMs : skill.CurShakeBeforeMs;
+        if (skill.SkillID == StoneSmashSkillId)
+        {
+            openingDelayMs = owner.FirstStoneSmashDelayMs;
+            owner.FirstStoneSmashDelayMs = 0;
+            windupMs += openingDelayMs;
+            if (owner.GObj != null && windupMs > 0)
+                stoneWarning = HotGameEntry.HeroManager.BurnVisuals?.StoneWarning(owner.GObj.transform);
+        }
+        owner.PlayMonsterWindup(windupMs);
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
@@ -63,23 +75,27 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         durationAccumulate += elapseSeconds;
         //update 技能时间
         var curSkill = owner.NormalSkillList[curNormalIndex];
-        var curCDMs = curSkill.CurCastCDMs;
-        var curAnimEndMs = curSkill.CurAnimationDurationMs;
-        var curShakeBeforeMs = curSkill.CurShakeBeforeMs;
+        var curCDMs = curSkill.CurCastCDMs + openingDelayMs;
+        var curAnimEndMs = curSkill.CurAnimationDurationMs + openingDelayMs;
+        var curShakeBeforeMs = curSkill.CurShakeBeforeMs + openingDelayMs;
         if (undertow != null)
         {
             curShakeBeforeMs = TimelineUndertow.WindupMs;
             curAnimEndMs = Mathf.Max(curAnimEndMs, curShakeBeforeMs + 450);
             curCDMs = Mathf.Max(curCDMs, curAnimEndMs);
         }
-        if (!m_HasEnterShakeBefore && curShakeBeforeMs > 0 && (undertow != null || curSkill.IsActiveDamageSkill))
+        if (!m_HasEnterShakeBefore && curShakeBeforeMs > 0 &&
+            (undertow != null || curSkill.IsActiveDamageSkill || curSkill.SkillID == StoneSmashSkillId))
         {
             float progress = durationAccumulate * 1000f / curShakeBeforeMs;
             owner.ShowWindupProgress(progress < 1f ? progress : -1f);
+            if (stoneWarning != null && progress < 1f)
+                TimelineBurnVisuals.UpdateStoneWarning(stoneWarning, stoneWarning.transform.parent.position, progress);
         }
         if (m_HasEnterShakeBefore==false&& durationAccumulate * 1000 >= curShakeBeforeMs)
         {
             m_HasEnterShakeBefore = true;
+            ClearStoneWarning();
             owner.PlayMonsterStrike(curAnimEndMs - curShakeBeforeMs);
             if (undertow != null) undertow.Strike(owner, curSkill);
             else curSkill.OnSkillBeforeShakeEnd();
@@ -103,10 +119,20 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         fsm.Owner?.ShowWindupProgress(-1f);
         undertow?.Clear();
         undertow = null;
+        ClearStoneWarning();
+        openingDelayMs = 0;
         durationAccumulate = 0;
         curNormalIndex = 0;
         m_HasEnterShakeBefore = false;
         m_HasAnimEndCheckToIdle = false;
+    }
+
+    private void ClearStoneWarning()
+    {
+        if (stoneWarning == null) return;
+        stoneWarning.enabled = false;
+        UnityEngine.Object.Destroy(stoneWarning.gameObject);
+        stoneWarning = null;
     }
     protected override void OnDestroy(IFsm<EntityQizi> fsm)
     {

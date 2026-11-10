@@ -9,6 +9,7 @@ Shader "WorldTimeline/Overlay"
         Cull Off
         Pass
         {
+            Blend SrcAlpha OneMinusSrcAlpha
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment Frag

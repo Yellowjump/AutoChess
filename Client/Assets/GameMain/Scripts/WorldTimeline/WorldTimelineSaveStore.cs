@@ -20,7 +20,7 @@ namespace WorldTimeline
     public static class WorldTimelineSaveStore
     {
         private const int Signature = 0x574C4946;
-        private const int Version = 2;
+        private const int Version = 3;
         public const int Capacity = 15;
         private const int MaxEntriesPerLife = 100000;
 
@@ -36,7 +36,7 @@ namespace WorldTimeline
             if (reader.ReadInt32() != Signature)
                 throw new InvalidDataException("无法识别前世存档版本。");
             int version = reader.ReadInt32();
-            if (version != 1 && version != Version) throw new InvalidDataException("无法识别前世存档版本。");
+            if (version < 1 || version > Version) throw new InvalidDataException("无法识别前世存档版本。");
 
             int count = ReadCount(reader, Capacity);
             var records = new List<SavedLife>(count);
@@ -105,6 +105,8 @@ namespace WorldTimeline
             writer.Write(life.StoryChoices.Count);
             foreach (var choice in life.StoryChoices)
             { writer.Write(choice.EventId); writer.Write(choice.Occurrence); writer.Write(choice.OptionId); }
+            writer.Write(life.GuardianDeathNodeId.HasValue);
+            if (life.GuardianDeathNodeId is int nodeId) writer.Write(nodeId);
         }
 
         private static SavedLife ReadLife(BinaryReader reader, int version)
@@ -142,7 +144,8 @@ namespace WorldTimeline
             if (version >= 2)
                 for (int i = ReadCount(reader, MaxEntriesPerLife); i > 0; i--)
                     choices.Add(new RecordedStoryChoice(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()));
-            return new SavedLife(round, new LifeRecord(actor, items, actions, Array.Empty<WorldEvent>(), year, died, choices));
+            int? deathNode = version >= 3 && reader.ReadBoolean() ? reader.ReadInt32() : null;
+            return new SavedLife(round, new LifeRecord(actor, items, actions, Array.Empty<WorldEvent>(), year, died, choices, deathNode));
         }
 
         private static int ReadCount(BinaryReader reader, int maximum)

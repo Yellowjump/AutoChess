@@ -1,0 +1,2 @@
+# Test harness projects are authored files, not Unity-generated csproj files.
+!*.csproj

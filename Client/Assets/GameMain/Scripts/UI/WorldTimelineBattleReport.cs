@@ -73,6 +73,14 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
         string location = view.LocationName(world.Nodes[battle.NodeId]);
         if (battle.TrialItemId != 0) location += " · " + view.BattleDropName(battle.NodeId, battle.TrialItemId);
         caption.text = TimelineText("Timeline_UI_StoryCaption", world.Year, location);
+        bool comparison = false;
+#if UNITY_EDITOR
+        if (view.BattleComparisonLabel is string label)
+        {
+            comparison = true;
+            caption.text = label + " · " + location;
+        }
+#endif
         if (treasureMode)
         {
             summaryHeight = 670f;
@@ -85,11 +93,11 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
         float remaining = battle.MaxHealth > 0 ? Mathf.Clamp01(battle.Health / (float)battle.MaxHealth) : 0f;
         healthFill.rectTransform.localScale = new Vector3(remaining, 1f, 1f);
         showBacklash = battle.RitualBacklash;
-        showCultivation = battle.Victory || battle.Experience > 0;
+        showCultivation = !comparison && (battle.Victory || battle.Experience > 0);
         experience.text = $"+{battle.Experience}";
         breakthrough.gameObject.SetActive(battle.Level > battle.PreviousLevel);
         breakthrough.text = TimelineText("Timeline_BattleBreakthrough", battle.PreviousLevel, battle.Level);
-        showLoot = battle.Victory || battle.Items.Count > 0;
+        showLoot = !comparison && (battle.Victory || battle.Items.Count > 0);
         ShowLoot(view, battle);
         bool hasLightning = battle.TrialItemId != 0 || battle.Lightning.Applications > 0 ||
             battle.Lightning.Transfers > 0 || battle.Lightning.Jumps > 0;
@@ -187,20 +195,21 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
                 : state.Actors.ContainsKey(actor.ActorId) ? TimelineText("Timeline_UI_139") + actor.ActorId
                 : TimelineText("Timeline_BattleGuardian", Math.Abs(actor.ActorId + battle.NodeId) + 1);
             SetRow(side + " · " + name, actor.Skills.Sum(x => x.Damage), actor.Skills.Sum(x => x.Shield),
+                actor.Skills.Sum(x => x.ShieldAbsorbed),
                 actor.Skills.Sum(x => x.Healing), true);
             foreach (var skill in actor.Skills)
             {
                 string skillName = (skill.ItemId == 0 || skill.SkillId == 1) ? TechniqueSkillName(skill.SkillId)
                     : itemTable?.HasDataRow(skill.ItemId) == true ? TimelineText(itemTable[skill.ItemId].Name)
                     : TechniqueSkillName(skill.SkillId);
-                SetRow("    " + skillName, skill.Damage, skill.Shield, skill.Healing, false);
+                SetRow("    " + skillName, skill.Damage, skill.Shield, skill.ShieldAbsorbed, skill.Healing, false);
             }
         }
         for (int i = index; i < statsRows.Count; i++) statsRows[i].gameObject.SetActive(false);
         statsScroll.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
             Mathf.Max(statsScroll.viewport.rect.height, index * 38f));
 
-        void SetRow(string label, long damage, long shield, long healing, bool heading)
+        void SetRow(string label, long damage, long shield, long shieldAbsorbed, long healing, bool heading)
         {
             if (index == statsRows.Count) statsRows.Add(Instantiate(statsRowTemplate, statsScroll.content, false));
             var row = statsRows[index];
@@ -208,7 +217,7 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
             row.GetComponent<Image>().enabled = heading;
             row.Find("Name").GetComponent<TMP_Text>().text = label;
             row.Find("Damage").GetComponent<TMP_Text>().text = damage.ToString("N0");
-            row.Find("Shield").GetComponent<TMP_Text>().text = shield.ToString("N0");
+            row.Find("Shield").GetComponent<TMP_Text>().text = $"{shield:N0} / {shieldAbsorbed:N0}";
             row.Find("Healing").GetComponent<TMP_Text>().text = healing.ToString("N0");
             row.gameObject.SetActive(true);
         }

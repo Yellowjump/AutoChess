@@ -336,6 +336,7 @@ namespace UnityGameFramework.Runtime
         public class DamageNumber:IReference
         {
             public int num;
+            public bool IsShieldAbsorb;
             public bool Playing = false;
             public EntityQizi Owner;
             public GameObject NumberObj;
@@ -350,6 +351,7 @@ namespace UnityGameFramework.Runtime
                 animDuration = -1;
                 allAnimDuration = -2;
                 num = 0;
+                IsShieldAbsorb = false;
                 TextSize = 0;
                 Owner = null;
                 HotGameEntry.HeroManager.ReleaseGameObject(DamageNumberPerfabPath, NumberObj);
@@ -384,14 +386,21 @@ namespace UnityGameFramework.Runtime
         public const string DamageNumberPerfabPath = "Assets/GameMain/Prefeb/UIPrefab/DamageNumber.prefab";
         private List<DamageNumber> WaitDmgNumberList = new List<DamageNumber>();
         private List<DamageNumber> PlayingDmgNumberList = new List<DamageNumber>();
-        public void ShowDamageNum(CauseDamageData data)
+        public void ShowDamageNum(CauseDamageData data, int? displayedDamage = null) =>
+            EnqueueCombatNumber(data.Target, displayedDamage ?? (int)data.DamageValue, false);
+
+        internal void ShowShieldAbsorbNum(EntityQizi target, int amount) =>
+            EnqueueCombatNumber(target, amount, true);
+
+        private void EnqueueCombatNumber(EntityQizi target, int amount, bool shieldAbsorb)
         {
             if (IsTimelineSimulation) return;
             var newDamageNumber = ReferencePool.Acquire<DamageNumber>();
             var numPerfabPath = DamageNumberPerfabPath;
-            newDamageNumber.num = (int)data.DamageValue;
-            newDamageNumber.Owner = data.Target;
-            newDamageNumber.targetPos = data.Target.LogicPosition + Vector3.up*0.5f;
+            newDamageNumber.num = amount;
+            newDamageNumber.IsShieldAbsorb = shieldAbsorb;
+            newDamageNumber.Owner = target;
+            newDamageNumber.targetPos = target.LogicPosition + Vector3.up * (shieldAbsorb ? .95f : .5f);
             WaitDmgNumberList.Add(newDamageNumber);
             GetNewObjFromPool(numPerfabPath, OnLoadOneNewDamageNumberPrefab);
         }
@@ -411,10 +420,12 @@ namespace UnityGameFramework.Runtime
                 oneDmg.NumberObj.transform.position = oneDmg.targetPos;
                 //设置 text
                 oneDmg.damageNumText = oneDmg.NumberObj.GetComponent<Text>();
-                oneDmg.damageNumText.text = oneDmg.num.ToString();
+                oneDmg.damageNumText.text = oneDmg.IsShieldAbsorb ? "◇ " + oneDmg.num : oneDmg.num.ToString();
                 oneDmg.TextSize = oneDmg.damageNumText.fontSize;
                 oneDmg.damageNumText.fontSize += 20;
-                oneDmg.damageNumText.color = new Color(190/255f,86/255f,11/255f); 
+                oneDmg.damageNumText.color = oneDmg.IsShieldAbsorb
+                    ? new Color(.22f, .90f, .91f)
+                    : new Color(190/255f,86/255f,11/255f);
                 //设置动画参数
                 oneDmg.animDuration = 0f;
                 oneDmg.allAnimDuration = 0.8f;

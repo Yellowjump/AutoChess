@@ -14,3 +14,10 @@
 	9153	ItemName_9153	ItemDesc_9153	0	0	0
 	9131	ItemName_9131	ItemDesc_9131	0	0	0
 	9161	Timeline_Item_9161_Name	Timeline_Item_9161_Description	0	60	0
+	9162	Timeline_East_Relic	Timeline_East_RelicDesc	6	36	0
+	9163	Timeline_North_Relic	Timeline_North_RelicDesc	9	0	0
+	9164	Timeline_West_Coal	Timeline_West_CoalDesc	10	0	0
+	9165	Timeline_West_Stone	Timeline_West_StoneDesc	0	42	0
+	9166	Timeline_Snow_Token	Timeline_Snow_TokenDesc	0	0	0
+	9167	Timeline_Gorge_Charm	Timeline_Gorge_CharmDesc	0	0	8
+	9168	Timeline_Tide_Shell	Timeline_Tide_ShellDesc	0	32	0

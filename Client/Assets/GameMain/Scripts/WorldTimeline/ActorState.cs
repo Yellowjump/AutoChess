@@ -6,12 +6,13 @@ namespace WorldTimeline
     public readonly struct SkillBattleOutput
     {
         public readonly int SkillId, ItemId;
-        public readonly long Damage, Shield, Healing;
+        public readonly long Damage, Shield, Healing, ShieldAbsorbed;
 
-        public SkillBattleOutput(int skillId, int itemId, long damage, long shield, long healing)
+        public SkillBattleOutput(int skillId, int itemId, long damage, long shield, long healing, long shieldAbsorbed = 0)
         {
             SkillId = skillId; ItemId = itemId;
             Damage = damage; Shield = shield; Healing = healing;
+            ShieldAbsorbed = shieldAbsorbed;
         }
     }
 

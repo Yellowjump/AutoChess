@@ -197,6 +197,7 @@ namespace Procedure
             _dataTableFlag.Add("StoryItem", (typeof(DRStoryItem), false));
             _dataTableFlag.Add("MerchantOffer", (typeof(DRMerchantOffer), false));
             _dataTableFlag.Add("BattleMapping", (typeof(DRBattleMapping), false));
+            _dataTableFlag.Add("BattleArena", (typeof(DRBattleArena), false));
             _dataTableFlag.Add("CultivationLevel", (typeof(DRCultivationLevel), false));
             _dataTableFlag.Add("TechniqueStage", (typeof(DRTechniqueStage), false));
             foreach (var tableName in _dataTableFlag)

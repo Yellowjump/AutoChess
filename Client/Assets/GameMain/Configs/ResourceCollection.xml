@@ -327,6 +327,7 @@
       <Asset Guid="8686af515ba54c41a410bc423942c709" ResourceName="Sound" />
       <Asset Guid="2673136a68024e1dbb327d53afb1c8e7" ResourceName="Sound" />
       <Asset Guid="1e7d00f101a34dd8a1db110faa00594b" ResourceName="Sound" />
+      <Asset Guid="c413e9fb98584401a97e2b2426692347" ResourceName="dataTable" />
     </Assets>
   </ResourceCollection>
 </UnityGameFramework>

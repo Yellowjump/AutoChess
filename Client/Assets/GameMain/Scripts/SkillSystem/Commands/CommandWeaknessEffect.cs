@@ -50,7 +50,10 @@ namespace SkillSystem
                     {
                         opening.OnDestory();
                         int attack = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
-                        CommandCauseDamage.DealSecondaryDamage(target, (long)attack * Param.Value / 100, source);
+                        long damage = (long)attack * Param.Value / 100;
+                        if (damage > 0)
+                            HotGameEntry.HeroManager.BurnVisuals?.OpeningStruck(target.LogicPosition);
+                        CommandCauseDamage.DealSecondaryDamage(target, damage, source);
                     }
                     break;
             }
