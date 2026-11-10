@@ -25,7 +25,6 @@ namespace SkillSystem
                 {
                     var target = entityOwner.CurAttackTarget;
                     var lineMidDir = (target.LogicPosition - entityOwner.LogicPosition).ToVector2();//当前朝向//扇形中线
-                    var ownerPos2V = entityOwner.LogicPosition.ToVector2();
                     var weaponLength = WeaponLength.Value;
                     if (LengthUseWeapon)
                     {
@@ -54,35 +53,37 @@ namespace SkillSystem
                         {
                             continue;
                         }
-                        var targetPos2V = oneEntity.LogicPosition.ToVector2();
-                        var targetDir2V = (oneEntity.LogicPosition - entityOwner.LogicPosition).ToVector2();
-                        if (targetDir2V.magnitude < 0.5f)
-                        {
-                            trigger.CurTargetList.Add(oneEntity);//owner 和 target重叠
-                            continue;
-                        }
-                        //判断圆心是否在扇形内
-                        if (IsPointInSector(targetPos2V, ownerPos2V, lineMidDir, weaponLength / 1000f, ValidAngle.Value,0.5f))
-                        {
-                            trigger.CurTargetList.Add(oneEntity);//owner在 target的范围里
-                            continue;
-                        }
-                        // 判断扇形的两条半径线是否与圆碰撞
-                        float halfAngleInRad = ValidAngle.Value / 2f;
-                        var cosHalfAngle = (float)Math.Cos(halfAngleInRad*Mathf.Deg2Rad);
-                        var sinHalfAngle = (float)Math.Sin(halfAngleInRad*Mathf.Deg2Rad);
-                        var rline1 = new Vector2 (lineMidDir.x * cosHalfAngle - lineMidDir.y * sinHalfAngle, lineMidDir.x * sinHalfAngle + lineMidDir.y * cosHalfAngle);
-                        var rline2 = new Vector2(lineMidDir.x * cosHalfAngle + lineMidDir.y * sinHalfAngle, -lineMidDir.x * sinHalfAngle + lineMidDir.y * cosHalfAngle);
-                        // 判断圆是否与两条半径线碰撞
-                        if (DistanceToSegment(targetPos2V, ownerPos2V, ownerPos2V + rline1) <= 0.5f ||
-                            DistanceToSegment(targetPos2V, ownerPos2V, ownerPos2V + rline2) <= 0.5f)
-                        {
+                        if (HitsFootprint(entityOwner, oneEntity, lineMidDir, weaponLength / 1000f))
                             trigger.CurTargetList.Add(oneEntity);
-                        }
                     }
                 }
             }
         }
+        private bool HitsFootprint(EntityQizi owner, EntityQizi target, Vector2 direction, float range)
+        {
+            var manager = HotGameEntry.HeroManager;
+            float halfAngle = ValidAngle.Value * 0.5f * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(halfAngle);
+            float sin = Mathf.Sin(halfAngle);
+            var left = new Vector2(direction.x * cos - direction.y * sin, direction.x * sin + direction.y * cos);
+            var right = new Vector2(direction.x * cos + direction.y * sin, -direction.x * sin + direction.y * cos);
+            foreach (var from in manager.GetRangePoints(owner))
+            {
+                var origin = from.ToVector2();
+                foreach (var to in manager.GetRangePoints(target))
+                {
+                    var point = to.ToVector2();
+                    if ((point - origin).magnitude < 0.5f ||
+                        IsPointInSector(point, origin, direction, range, ValidAngle.Value, 0.5f) ||
+                        DistanceToSegment(point, origin, origin + left) <= 0.5f ||
+                        DistanceToSegment(point, origin, origin + right) <= 0.5f)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// 判断点p是否在扇形S内
         /// </summary>

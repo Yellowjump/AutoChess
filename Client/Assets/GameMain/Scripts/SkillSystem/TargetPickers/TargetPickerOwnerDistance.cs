@@ -50,7 +50,8 @@ namespace SkillSystem
                     {
                         continue;
                     }
-                    if (oneEntity.LogicPosition.Vector3DistanceNoY(owner.LogicPosition) <weaponLength/1000f)
+                    var manager = HotGameEntry.HeroManager;
+                    if (manager.IsInSkillRange(manager.GetCombatDistanceSquare(owner, oneEntity), weaponLength))
                     {
                         trigger.CurTargetList.Add(oneEntity);
                     }

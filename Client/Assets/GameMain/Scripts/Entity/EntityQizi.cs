@@ -34,6 +34,9 @@ namespace Entity
         internal int UndertowAttackCount;
         private bool ownsTimelineModel;
         public int HeroUID;//qizi唯一id
+        public bool UsesLargeFootprint { get; private set; }
+        internal Vector2Int? ReservedMoveAnchor { get; set; }
+
         public int rowIndex;
         public int columnIndex;//在棋盘上的位置下标,左下角是0，0,如果在备战棋格，rowIndex = -1，columnIndex是第几个
         public Vector2Int SavePos;//进入战斗时的位置
@@ -61,6 +64,7 @@ namespace Entity
         public void Init(int i,List<int> equipItem = null, bool recordBattleOutput = false)
         {
             IsValid = true;
+            ReservedMoveAnchor = null;
             TechniqueKills = 0;
             LightningMarks?.Clear();
             LightningApplications = LightningTransfers = LightningJumps = 0;
@@ -68,6 +72,7 @@ namespace Entity
             UndertowAttackCount = 0;
             FirstStoneSmashDelayMs = 0;
             HeroID = i;
+            UsesLargeFootprint = BelongCamp == CampType.Enemy && HotGameEntry.HeroManager.IsLargeBossHero(i, TimelineAppearance);
             HeroUID = ++HotGameEntry.HeroManager.QiziCurUniqueIndex;
             if (equipItem == null)
             {
@@ -191,6 +196,7 @@ namespace Entity
         }
         public void Remove()
         {
+            HotGameEntry.HeroManager.ReleaseFootprint(this);
             ClearHpBar();
             RemoveAllSfx();
             RemoveGObj();

@@ -197,12 +197,6 @@ public class BattleMainCtrl : UIFormLogic
                 //获取当前鼠标是否在一个格子内
                 if (GetMousePosGezi(out var geziPos, false))
                 {
-                    //另一个格子里有hero
-                    if (HotGameEntry.HeroManager.GetQiziByQigeIndex(geziPos, out var curPosQizi))
-                    {
-                        HotGameEntry.HeroManager.UpdateEntityPos(curPosQizi, new Vector2Int(tryDragTargetQizi.columnIndex, tryDragTargetQizi.rowIndex));
-                    }
-
                     if (geziPos.y == tryDragTargetQizi.rowIndex && geziPos.x == tryDragTargetQizi.columnIndex) //選中位置沒有移動
                     {
                         tryDragTargetQizi.ShowHighlight(true);

@@ -142,22 +142,210 @@ namespace UnityGameFramework.Runtime
             return 0;
         }
 
+        [SerializeField]
+        private int[] m_LargeBossHeroIds = Array.Empty<int>();
+
+        [SerializeField]
+        private string[] m_LargeBossAppearances = Array.Empty<string>();
+
+        public bool IsLargeBossHero(int heroId, string appearance)
+        {
+            return Array.IndexOf(m_LargeBossHeroIds, heroId) >= 0 ||
+                   (!string.IsNullOrEmpty(appearance) && Array.IndexOf(m_LargeBossAppearances, appearance) >= 0);
+        }
+
+        private bool IsBoardCell(Vector2Int cell)
+        {
+            return cell.y >= 0 && cell.y < qige.Length &&
+                   cell.x >= 0 && cell.x < qige[cell.y].Length;
+        }
+
+        private IEnumerable<Vector2Int> GetFootprint(EntityQizi qizi, Vector2Int anchor)
+        {
+            yield return anchor;
+            if (!qizi.UsesLargeFootprint)
+                yield break;
+
+            var offsets = anchor.y % 2 == 0 ? adjacentOffsetDoubleRow : adjacentOffsetSingleRow;
+            foreach (var offset in offsets)
+                yield return anchor + offset;
+        }
+
         public Vector2Int GetIndexQizi(EntityQizi qizi)
         {
-            var qiziUid = qizi.HeroUID;
-            for (var rowIndex = 0; rowIndex < qige.Length; rowIndex++)
+            var anchor = new Vector2Int(qizi.columnIndex, qizi.rowIndex);
+            return IsBoardCell(anchor) && qige[anchor.y][anchor.x] == qizi.HeroUID
+                ? anchor : new Vector2Int(-1, -1);
+        }
+
+        private bool CanPlace(EntityQizi qizi, Vector2Int anchor)
+        {
+            foreach (var cell in GetFootprint(qizi, anchor))
             {
-                var oneline = qige[rowIndex];
-                for (int columnIndex = 0; columnIndex < oneline.Length; columnIndex++)
+                if (!IsBoardCell(cell))
+                    return false;
+
+                int occupant = qige[cell.y][cell.x];
+                if (occupant != -1 && occupant != qizi.HeroUID)
+                    return false;
+            }
+
+            return true;
+        }
+
+        public void ReleaseFootprint(EntityQizi qizi)
+        {
+            ReleaseFootprintAt(qizi, new Vector2Int(qizi.columnIndex, qizi.rowIndex));
+            if (qizi.ReservedMoveAnchor is Vector2Int destination)
+            {
+                ReleaseFootprintAt(qizi, destination);
+                qizi.ReservedMoveAnchor = null;
+            }
+        }
+
+        private void ReleaseFootprintAt(EntityQizi qizi, Vector2Int anchor)
+        {
+            foreach (var cell in GetFootprint(qizi, anchor))
+            {
+                if (IsBoardCell(cell) && qige[cell.y][cell.x] == qizi.HeroUID)
+                    qige[cell.y][cell.x] = -1;
+            }
+        }
+
+        public bool TryPlace(EntityQizi qizi, Vector2Int anchor)
+        {
+            if (!CanPlace(qizi, anchor))
+                return false;
+
+            ReleaseFootprint(qizi);
+            foreach (var cell in GetFootprint(qizi, anchor))
+                qige[cell.y][cell.x] = qizi.HeroUID;
+
+            qizi.columnIndex = anchor.x;
+            qizi.rowIndex = anchor.y;
+            return true;
+        }
+
+        public bool TryBeginStep(EntityQizi qizi, Vector2Int destination)
+        {
+            // A moving unit still needs its old cells until its model arrives.
+            var anchor = GetIndexQizi(qizi);
+            var offsets = anchor.y % 2 == 0 ? adjacentOffsetDoubleRow : adjacentOffsetSingleRow;
+            if (!qizi.IsValid || qizi.ReservedMoveAnchor.HasValue || !IsBoardCell(anchor) ||
+                Array.IndexOf(offsets, destination - anchor) < 0 || !CanPlace(qizi, destination))
+                return false;
+
+            foreach (var cell in GetFootprint(qizi, destination))
+                qige[cell.y][cell.x] = qizi.HeroUID;
+            qizi.ReservedMoveAnchor = destination;
+            return true;
+        }
+
+        public void CompleteStep(EntityQizi qizi)
+        {
+            if (qizi.ReservedMoveAnchor is Vector2Int destination)
+                TryPlace(qizi, destination);
+        }
+
+        public void CancelStep(EntityQizi qizi)
+        {
+            if (!qizi.ReservedMoveAnchor.HasValue)
+                return;
+
+            if (!qizi.IsValid)
+            {
+                ReleaseFootprint(qizi);
+                return;
+            }
+
+            var anchor = GetIndexQizi(qizi);
+            if (TryPlace(qizi, anchor))
+                qizi.LogicPosition = GetGeziPos(anchor.y, anchor.x);
+        }
+
+        private Vector2Int FindPlacement(EntityQizi qizi, Vector2Int preferred)
+        {
+            if (CanPlace(qizi, preferred))
+                return preferred;
+
+            var best = new Vector2Int(-1, -1);
+            float bestDistance = float.PositiveInfinity;
+            for (int row = 0; row < qige.Length; row++)
+            {
+                for (int column = 0; column < qige[row].Length; column++)
                 {
-                    if (qige[rowIndex][columnIndex] == qiziUid)
+                    var cell = new Vector2Int(column, row);
+                    if (!CanPlace(qizi, cell))
+                        continue;
+
+                    float distance = IsBoardCell(preferred) ? getDistance(cell, preferred) : 0f;
+                    if (distance < bestDistance)
                     {
-                        return new Vector2Int(columnIndex, rowIndex);
+                        best = cell;
+                        bestDistance = distance;
                     }
                 }
             }
 
-            return new Vector2Int(-1, -1);
+            return best;
+        }
+
+        public IEnumerable<Vector3> GetRangePoints(EntityBase entity, Vector2Int? plannedAnchor = null)
+        {
+            if (entity is EntityQizi qizi)
+            {
+                if (plannedAnchor.HasValue || qizi.UsesLargeFootprint)
+                {
+                    var anchor = plannedAnchor ?? GetIndexQizi(qizi);
+                    if (IsBoardCell(anchor))
+                    {
+                        // Reservations block movement. Attack points follow the moving model.
+                        var offset = !plannedAnchor.HasValue && qizi.ReservedMoveAnchor.HasValue
+                            ? qizi.LogicPosition - GetGeziPos(anchor.y, anchor.x)
+                            : Vector3.zero;
+                        foreach (var cell in GetFootprint(qizi, anchor))
+                            yield return GetGeziPos(cell.y, cell.x) + offset;
+                        yield break;
+                    }
+                }
+            }
+
+            yield return entity.LogicPosition;
+        }
+
+        public float GetCombatDistanceSquare(EntityBase source, EntityBase target, Vector2Int? plannedAnchor = null)
+        {
+            if (plannedAnchor.HasValue && !(source is EntityQizi mover && mover.UsesLargeFootprint) &&
+                target is EntityQizi singleTarget && !singleTarget.UsesLargeFootprint)
+            {
+                var targetAnchor = singleTarget.ReservedMoveAnchor ?? GetIndexQizi(singleTarget);
+                if (IsBoardCell(targetAnchor))
+                    return getDistance(plannedAnchor.Value, targetAnchor);
+            }
+
+            if (!plannedAnchor.HasValue &&
+                !(source is EntityQizi sourceQizi && sourceQizi.UsesLargeFootprint) &&
+                !(target is EntityQizi targetQizi && targetQizi.UsesLargeFootprint))
+                return source.GetDistanceSquare(target);
+
+            float nearest = float.PositiveInfinity;
+            foreach (var from in GetRangePoints(source, plannedAnchor))
+            {
+                foreach (var to in GetRangePoints(target, null))
+                {
+                    float dx = from.x - to.x;
+                    float dz = from.z - to.z;
+                    nearest = Mathf.Min(nearest, dx * dx + dz * dz);
+                }
+            }
+
+            return nearest;
+        }
+
+        public bool IsInSkillRange(float distanceSquare, int skillRange)
+        {
+            float range = skillRange / 1000f;
+            return skillRange >= 0 && Utility.TruncateFloat(distanceSquare, 4) <= range * range;
         }
 
         public bool GetQiziByQigeIndex(Vector2Int geziPos, out EntityQizi curPosQizi)
@@ -194,55 +382,65 @@ namespace UnityGameFramework.Runtime
 
         public void UpdateEntityPos(EntityQizi qizi, Vector2Int newPos)
         {
-            qige[qizi.rowIndex][qizi.columnIndex] = -1;
-            qige[newPos.y][newPos.x] = qizi.HeroUID;
-            qizi.LogicPosition = GetGeziPos(newPos.y,newPos.x);
-            qizi.columnIndex = newPos.x;
-            qizi.rowIndex = newPos.y;
+            var oldPos = GetIndexQizi(qizi);
+            if (qizi.BelongCamp == CampType.Friend && IsBoardCell(oldPos) &&
+                GetQiziByQigeIndex(newPos, out var other) && other != qizi &&
+                other.BelongCamp == CampType.Friend)
+            {
+                ReleaseFootprint(qizi);
+                TryPlace(other, oldPos);
+                other.LogicPosition = GetGeziPos(oldPos.y, oldPos.x);
+            }
+
+            if (TryPlace(qizi, newPos))
+                qizi.LogicPosition = GetGeziPos(newPos.y, newPos.x);
+            else if (IsBoardCell(oldPos))
+                qizi.LogicPosition = GetGeziPos(oldPos.y, oldPos.x);
         }
 
-        public Vector2Int Findpath(Vector2Int start, Vector2Int end, int atkRangeMM)
+        public Vector2Int Findpath(EntityQizi mover, EntityQizi target, int atkRangeMM)
         {
-            /*if (gongjidistance == 1&&IsSurround(end))//攻击距离为1，先判断是否目标被围了一圈
-            {
-                return new Vector2Int(-1,-1);
-            }*/
+            var start = GetIndexQizi(mover);
+            if (target == null || !IsBoardCell(start))
+                return new Vector2Int(-1, -1);
+
             Vector2Int lastpos = start;
+            float closestDistance = GetCombatDistanceSquare(mover, target, start);
             List<Vector2Int> sortList = new List<Vector2Int>();
             Dictionary<Vector2Int, Vector2Int> cameFrom = new Dictionary<Vector2Int, Vector2Int>();
             Dictionary<Vector2Int, float> xiaoHao = new Dictionary<Vector2Int, float>();
             sortList.Add(start);
             //cameFrom[start] = new Vector2Int(-1,-1);
             xiaoHao[start] = 0f;
-            bool find = false;
             while (sortList.Count > 0)
             {
-                sortList.Sort((a, b) => (xiaoHao[a] * xiaoHao[a] + getDistance(a, end)).CompareTo((xiaoHao[b] * xiaoHao[b] + getDistance(b, end))));
+                sortList.Sort((a, b) => (xiaoHao[a] * xiaoHao[a] + GetCombatDistanceSquare(mover, target, a)).CompareTo((xiaoHao[b] * xiaoHao[b] + GetCombatDistanceSquare(mover, target, b))));
                 Vector2Int current = sortList[0];
                 sortList.Remove(current);
-                var dis = Utility.TruncateFloat(getDistance(current, end), 4);
-                if (dis <= (atkRangeMM * atkRangeMM)/1000000f) //一格斜着因为浮点精度计算出来距离大于1
+                float distance = GetCombatDistanceSquare(mover, target, current);
+                if (IsInSkillRange(distance, atkRangeMM))
                 {
                     lastpos = current;
-                    find = true;
                     break;
+                }
+
+                // Large units can still approach when no current anchor is in range.
+                if (mover.UsesLargeFootprint && distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    lastpos = current;
                 }
 
                 var adjacentOffList = current.y % 2 == 0 ? adjacentOffsetDoubleRow : adjacentOffsetSingleRow;
                 for (int adjacentCellIndex = 0; adjacentCellIndex < 6; adjacentCellIndex++)
                 {
                     var curAdjacent = current + adjacentOffList[adjacentCellIndex];
-                    if (curAdjacent.x < 0 || curAdjacent.x > 6 || curAdjacent.y < 0 || curAdjacent.y > 7)
+                    if (!CanPlace(mover, curAdjacent))
                     {
                         continue;
                     }
 
-                    if (cameFrom.ContainsKey(curAdjacent) && xiaoHao[curAdjacent] <= xiaoHao[current] + 1) //找到了更短到达newPos的路径
-                    {
-                        continue;
-                    }
-
-                    if (HotGameEntry.HeroManager.qige[curAdjacent.y][curAdjacent.x] > -1)
+                    if (xiaoHao.TryGetValue(curAdjacent, out var previousCost) && previousCost <= xiaoHao[current] + 1) //找到了更短到达newPos的路径
                     {
                         continue;
                     }
@@ -253,26 +451,12 @@ namespace UnityGameFramework.Runtime
                 }
             }
 
-            if (find)
-            {
-                Stack<Vector2Int> trace = new Stack<Vector2Int>();
-                Vector2Int pos = lastpos;
-                while (pos != start)
-                {
-                    trace.Push(pos);
-                    pos = cameFrom[pos];
-                }
+            if (lastpos == start)
+                return new Vector2Int(-1, -1);
 
-                while (trace.Count > 0)
-                {
-                    Vector2Int p = trace.Pop();
-                    return p;
-                }
-
-                return lastpos;
-            }
-
-            return new Vector2Int(-1, -1);
+            while (cameFrom[lastpos] != start)
+                lastpos = cameFrom[lastpos];
+            return lastpos;
         }
 
         public bool IsSurround(Vector2Int target)
@@ -434,7 +618,7 @@ namespace UnityGameFramework.Runtime
                 return;
             }
 
-            qige[qizi.rowIndex][qizi.columnIndex] = -1;
+            ReleaseFootprint(qizi);
             List<EntityQizi> qiziList = qizi.BelongCamp == CampType.Friend ? QiziCSList : DirenList;
             if (!IsTimelineBattle && qiziList.Count((entity)=>entity.IsValid) == 0)
             {
@@ -519,10 +703,7 @@ namespace UnityGameFramework.Runtime
             foreach (var oneEntity in QiziCSList)
             {
                 oneEntity.ReInit();
-                oneEntity.LogicPosition = GetGeziPos(oneEntity.SavePos.y, oneEntity.SavePos.x);
-                oneEntity.columnIndex = oneEntity.SavePos.x;
-                oneEntity.rowIndex = oneEntity.SavePos.y;
-                qige[oneEntity.SavePos.y][oneEntity.SavePos.x] = oneEntity.HeroUID;
+                UpdateEntityPos(oneEntity, oneEntity.SavePos);
             }
         }
 

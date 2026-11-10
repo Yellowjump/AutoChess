@@ -24,6 +24,8 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
         }
 
         var owner = fsm.Owner;
+        _moving = false;
+        _moveAccumulate = 0f;
         startpos = owner.LogicPosition;
         nextPosIndex = new Vector2Int(-1, -1);
     }
@@ -50,11 +52,9 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
             {
                 _moveAccumulate = 0;
                 owner.LogicPosition = nextpos;
+                HotGameEntry.HeroManager.CompleteStep(owner);
                 //已到达目标点
                 _moving = false;
-                var v2 = HotGameEntry.HeroManager.GetIndexQizi(owner);
-                owner.columnIndex = v2.x;
-                owner.rowIndex = v2.y;
             }
         }
         //判断是否可以changeState或者确定下一移动目标点
@@ -84,6 +84,7 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
                 {
                     owner.GObj?.transform.LookAt(target.GObj.transform);
                 }
+                ListPool<int>.Release(checkNormalSkillList);
                 ChangeState<StateAttack0>(fsm);
                 return;
             }
@@ -91,18 +92,16 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
             {
                 owner.CurAttackTarget = target;
                 Vector2Int ownerIndex = HotGameEntry.HeroManager.GetIndexQizi(owner);
-                Vector2Int targetIndex = HotGameEntry.HeroManager.GetIndexQizi(target);
-                nextPosIndex = HotGameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.NormalSkillList[checkNormalSkillList[index]].SkillRange);
-                if (nextPosIndex.x != -1 && nextPosIndex.y != -1&&nextPosIndex!=ownerIndex)
+                nextPosIndex = HotGameEntry.HeroManager.Findpath(owner, target, owner.NormalSkillList[checkNormalSkillList[index]].SkillRange);
+                if (nextPosIndex.x != -1 && nextPosIndex.y != -1 && nextPosIndex != ownerIndex &&
+                    HotGameEntry.HeroManager.TryBeginStep(owner, nextPosIndex))
                 {
                     noNextPosMove = false;
                     _moving = true;
                     startpos = owner.LogicPosition;
-                    nextpos = HotGameEntry.HeroManager.GetGeziPos(nextPosIndex.y,nextPosIndex.x);;
+                    nextpos = HotGameEntry.HeroManager.GetGeziPos(nextPosIndex.y,nextPosIndex.x);
                     owner.AddAnimCommandRun();
                     owner.GObj?.transform.LookAt(nextpos);
-                    HotGameEntry.HeroManager.qige[ownerIndex.y][ownerIndex.x] = -1;
-                    HotGameEntry.HeroManager.qige[nextPosIndex.y][nextPosIndex.x] = owner.HeroUID;
                     break;
                 }
             }
@@ -117,6 +116,9 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
     }
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {
+        if (_moving && fsm.Owner != null)
+            HotGameEntry.HeroManager.CancelStep(fsm.Owner);
+        _moving = false;
         base.OnLeave(fsm, isShutdown);
     }
     protected override void OnDestroy(IFsm<EntityQizi> fsm)

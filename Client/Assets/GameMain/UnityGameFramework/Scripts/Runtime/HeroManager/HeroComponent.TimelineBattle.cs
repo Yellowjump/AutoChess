@@ -149,8 +149,6 @@ namespace UnityGameFramework.Runtime
                             position = new Vector2Int(slot * 2, stationaryEnemies ? 3 : 5);
                         else if (!friend && stationaryEnemies)
                             position = new Vector2Int(slot == 2 ? 6 : slot, 3 + (slot == 1 ? 1 : 0));
-                        int row = position.y;
-                        int column = position.x;
                         var entity = GetNewEntityQizi();
                         entities.Add(entity);
                         entity.BelongCamp = friend ? CampType.Friend : CampType.Enemy;
@@ -170,12 +168,13 @@ namespace UnityGameFramework.Runtime
                             foreach (var skill in entity.NormalSkillList.Concat(entity.NoAnimAtkSkillList).Concat(entity.PassiveSkillList))
                                 entity.BattleOutput.TryAdd(skill.SkillID, new SkillBattleOutput(skill.SkillID, skill.FromItemID, 0, 0, 0));
                         }
-                        entity.rowIndex = row;
-                        entity.columnIndex = column;
-                        entity.SavePos = new Vector2Int(column, row);
+                        position = FindPlacement(entity, position);
+                        if (!TryPlace(entity, position))
+                            throw new InvalidOperationException($"No free board position for hero {entity.HeroID}.");
+
+                        entity.SavePos = position;
                         (friend ? QiziCSList : DirenList).Add(entity);
-                        qige[row][column] = entity.HeroUID;
-                        entity.LogicPosition = GetGeziPos(row, column);
+                        entity.LogicPosition = GetGeziPos(position.y, position.x);
                         var actor = participants[i];
                         entity.GetAttribute(AttributeType.MaxHp).SetBaseNum(actor.MaxHealth);
                         entity.GetAttribute(AttributeType.Hp).SetBaseNum(actor.Health);

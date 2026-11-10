@@ -65,9 +65,7 @@ public class StateIdle0 : FsmState<EntityQizi>,IReference
             }
             else if (result == CheckCastSkillResult.TargetOutRange)
             {
-                Vector2Int ownerIndex = HotGameEntry.HeroManager.GetIndexQizi(owner);
-                Vector2Int targetIndex = HotGameEntry.HeroManager.GetIndexQizi(target);
-                var nextPosIndex = HotGameEntry.HeroManager.Findpath(ownerIndex, targetIndex, owner.NormalSkillList[checkNormalSkillList[index]].SkillRange);
+                var nextPosIndex = HotGameEntry.HeroManager.Findpath(owner, target, owner.NormalSkillList[checkNormalSkillList[index]].SkillRange);
                 if (nextPosIndex != new Vector2Int(-1, -1))//有路线可走
                 {
                     owner.CurAttackTarget = target;

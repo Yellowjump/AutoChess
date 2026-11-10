@@ -505,7 +505,9 @@ namespace Entity
                     int hp = (int)CurAttackTarget.GetAttribute(AttributeType.Hp).GetFinalValue();
                     canUseOldTarget = hp >= 0;
                     //判断是否有不可选中之类
-                    canUseOldTarget = canUseOldTarget&&!(Utility.TruncateFloat(GetDistanceSquare(CurAttackTarget),4)  > (willCastSkill.SkillRange * willCastSkill.SkillRange)/1000000f);
+                    var heroManager = HotGameEntry.HeroManager;
+                    canUseOldTarget = canUseOldTarget && heroManager.IsInSkillRange(
+                        heroManager.GetCombatDistanceSquare(this, CurAttackTarget), willCastSkill.SkillRange);
                     if (canUseOldTarget)
                     {
                         inAttackRange = true;

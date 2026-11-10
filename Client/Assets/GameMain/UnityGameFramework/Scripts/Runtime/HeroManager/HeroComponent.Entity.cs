@@ -24,10 +24,15 @@ namespace UnityGameFramework.Runtime
             EntityQizi qizi = HotGameEntry.HeroManager.GetNewEntityQizi();
             qizi.BelongCamp = CampType.Enemy;
             qizi.Init(oneInfo.HeroID);
-            qizi.rowIndex = oneInfo.Pos.y;
-            qizi.columnIndex = oneInfo.Pos.x;
+            var position = FindPlacement(qizi, oneInfo.Pos);
+            if (!TryPlace(qizi, position))
+            {
+                Log.Error($"No free board position for enemy hero {oneInfo.HeroID}.");
+                qizi.Remove();
+                return;
+            }
+
             DirenList.Add(qizi);
-            qige[qizi.rowIndex][qizi.columnIndex] = qizi.HeroUID;
             qizi.LogicPosition = GetGeziPos(qizi.rowIndex, qizi.columnIndex);
             qizi.InitGObj();
         }
@@ -43,10 +48,15 @@ namespace UnityGameFramework.Runtime
                 emptyPos = GetEmptyFriendPos();
             }
 
-            qizi.rowIndex = emptyPos.y;
-            qizi.columnIndex = emptyPos.x;
+            emptyPos = FindPlacement(qizi, emptyPos);
+            if (!TryPlace(qizi, emptyPos))
+            {
+                Log.Error($"No free board position for friendly hero {heroID}.");
+                qizi.Remove();
+                return null;
+            }
+
             QiziCSList.Add(qizi);
-            qige[qizi.rowIndex][qizi.columnIndex] = qizi.HeroUID;
             qizi.LogicPosition = GetGeziPos(qizi.rowIndex, qizi.columnIndex);
             qizi.SavePos = emptyPos;
             //qizi.InitGObj();
@@ -91,7 +101,7 @@ namespace UnityGameFramework.Runtime
                 }
             }
 
-            return Vector2Int.one;
+            return new Vector2Int(-1, -1);
         }
 
         public List<EntityQizi> GetEnemyList(CampType ownerCamp)
@@ -121,7 +131,7 @@ namespace UnityGameFramework.Runtime
                     continue;
                 }
 
-                var newDistanceSquare = oneQizi.GetDistanceSquare(source);
+                var newDistanceSquare = GetCombatDistanceSquare(source, oneQizi);
                 if (newDistanceSquare < minDistanceSquare)
                 {
                     target = oneQizi;
@@ -130,7 +140,7 @@ namespace UnityGameFramework.Runtime
             }
 
             ListPool<EntityQizi>.Release(waitCheckList);
-            if (Utility.TruncateFloat(minDistanceSquare, 3) < (skillRange * skillRange)/1000000f)
+            if (target != null && IsInSkillRange(minDistanceSquare, skillRange))
             {
                 return true;
             }
