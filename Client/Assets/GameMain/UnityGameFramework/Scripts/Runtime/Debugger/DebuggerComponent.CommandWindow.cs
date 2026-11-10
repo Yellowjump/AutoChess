@@ -162,6 +162,7 @@ namespace UnityGameFramework.Runtime
                         PreviewMonster("试招：沉舟水妖", "WreckBeast");
                         PreviewMonster("试招：守隘石傀", "GateGolem");
                         PreviewMonster("试招：归墟阵灵", "RitualWraith");
+                        PreviewMonster("试招：归墟阵主·无名碑", global::Entity.TimelineMonsterAnimation.NamelessSteleAppearance);
                         GUILayout.EndHorizontal();
 
                         void PreviewMonster(string label, string appearance)

@@ -50,16 +50,18 @@ namespace Entity
             }
         }
 
-        public void PlayMonsterWindup(int durationMs)
+        internal void PlayMonsterWindup(int durationMs, bool lineSlam)
         {
             if (monsterAnimation != null && durationMs > 0)
-                monsterAnimation.Play(monsterAnimation.Windup, durationMs);
+                monsterAnimation.Play(lineSlam && monsterAnimation.LineWindup != null
+                    ? monsterAnimation.LineWindup : monsterAnimation.Windup, durationMs);
         }
 
-        public void PlayMonsterStrike(int recoveryMs)
+        internal void PlayMonsterStrike(int recoveryMs, bool lineSlam)
         {
             if (monsterAnimation != null)
-                monsterAnimation.Play(monsterAnimation.Strike, Mathf.Max(1, recoveryMs));
+                monsterAnimation.Play(lineSlam && monsterAnimation.LineRecovery != null
+                    ? monsterAnimation.LineRecovery : monsterAnimation.Strike, Mathf.Max(1, recoveryMs));
         }
 
         private void InitAnimationClip()

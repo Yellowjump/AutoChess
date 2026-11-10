@@ -18,6 +18,7 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
     private bool m_HasEnterShakeBefore = false;
     private bool m_HasAnimEndCheckToIdle = false;
     private TimelineUndertow undertow;
+    private TimelineNamelessSteleCast steleCast;
     private int openingDelayMs;
     private LineRenderer stoneWarning;
     protected override void OnInit(IFsm<EntityQizi> fsm)
@@ -35,7 +36,9 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         curNormalIndex = owner.CurCastNormalSkillIndex;
         var skill = owner.NormalSkillList[curNormalIndex];
         undertow = TimelineUndertow.Begin(owner);
-        int windupMs = undertow != null ? TimelineUndertow.WindupMs : skill.CurShakeBeforeMs;
+        steleCast = TimelineNamelessSteleCast.Begin(owner, skill);
+        int windupMs = steleCast?.WindupMs ??
+            (undertow != null ? TimelineUndertow.WindupMs : skill.CurShakeBeforeMs);
         if (skill.SkillID == StoneSmashSkillId)
         {
             openingDelayMs = owner.FirstStoneSmashDelayMs;
@@ -44,7 +47,7 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
             if (owner.GObj != null && windupMs > 0)
                 stoneWarning = HotGameEntry.HeroManager.BurnVisuals?.StoneWarning(owner.GObj.transform);
         }
-        owner.PlayMonsterWindup(windupMs);
+        owner.PlayMonsterWindup(windupMs, steleCast?.IsLine == true);
     }
     protected override void OnUpdate(IFsm<EntityQizi> fsm, float elapseSeconds, float realElapseSeconds)
     {
@@ -78,14 +81,14 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         var curCDMs = curSkill.CurCastCDMs + openingDelayMs;
         var curAnimEndMs = curSkill.CurAnimationDurationMs + openingDelayMs;
         var curShakeBeforeMs = curSkill.CurShakeBeforeMs + openingDelayMs;
-        if (undertow != null)
+        if (steleCast != null || undertow != null)
         {
-            curShakeBeforeMs = TimelineUndertow.WindupMs;
+            curShakeBeforeMs = steleCast?.WindupMs ?? TimelineUndertow.WindupMs;
             curAnimEndMs = Mathf.Max(curAnimEndMs, curShakeBeforeMs + 450);
             curCDMs = Mathf.Max(curCDMs, curAnimEndMs);
         }
         if (!m_HasEnterShakeBefore && curShakeBeforeMs > 0 &&
-            (undertow != null || curSkill.IsActiveDamageSkill || curSkill.SkillID == StoneSmashSkillId))
+            (steleCast != null || undertow != null || curSkill.IsActiveDamageSkill || curSkill.SkillID == StoneSmashSkillId))
         {
             float progress = durationAccumulate * 1000f / curShakeBeforeMs;
             owner.ShowWindupProgress(progress < 1f ? progress : -1f);
@@ -96,8 +99,9 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         {
             m_HasEnterShakeBefore = true;
             ClearStoneWarning();
-            owner.PlayMonsterStrike(curAnimEndMs - curShakeBeforeMs);
-            if (undertow != null) undertow.Strike(owner, curSkill);
+            owner.PlayMonsterStrike(curAnimEndMs - curShakeBeforeMs, steleCast?.IsLine == true);
+            if (steleCast != null) steleCast.Strike(owner, curSkill);
+            else if (undertow != null) undertow.Strike(owner, curSkill);
             else curSkill.OnSkillBeforeShakeEnd();
         }
         if (m_HasAnimEndCheckToIdle==false&& durationAccumulate * 1000 >= curAnimEndMs)
@@ -119,6 +123,8 @@ public class StateAttack0 : FsmState<EntityQizi>,IReference
         fsm.Owner?.ShowWindupProgress(-1f);
         undertow?.Clear();
         undertow = null;
+        steleCast?.Clear();
+        steleCast = null;
         ClearStoneWarning();
         openingDelayMs = 0;
         durationAccumulate = 0;

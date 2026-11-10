@@ -129,7 +129,7 @@ namespace UnityGameFramework.Runtime
                 {
                     return;
                 }
-                HpBarObj.transform.position = Owner.LogicPosition+Vector3.up*2;
+                HpBarObj.transform.position = Owner.LogicPosition + Vector3.up * Owner.HpBarHeight;
             }
 
             internal void BindHealthFill()
@@ -306,7 +306,7 @@ namespace UnityGameFramework.Runtime
                 ? m_InstanceWorldCanvas.worldCamera.transform.rotation
                 : HotGameEntry.HeroManager.CurAreaPoint.CameraRotation;
             //oneHpBar.HpBarObj.transform.forward = Camera.main.transform.forward;
-            oneHpBar.HpBarObj.transform.position = oneHpBar.Owner.LogicPosition+Vector3.up*2;
+            oneHpBar.HpBarObj.transform.position = oneHpBar.Owner.LogicPosition + Vector3.up * oneHpBar.Owner.HpBarHeight;
             //绑定棋子血条
             oneHpBar.Owner.xuetiao=obj.transform.Find("xuetiao").GetComponent<Slider>();
             oneHpBar.Owner.WindupProgress = obj.transform.Find("WindupProgress").GetComponent<Slider>();

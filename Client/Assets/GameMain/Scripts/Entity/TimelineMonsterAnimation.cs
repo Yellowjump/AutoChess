@@ -7,10 +7,13 @@ namespace Entity
 {
     public sealed class TimelineMonsterAnimation : MonoBehaviour
     {
+        internal const string NamelessSteleAppearance = "NamelessStele";
         public AnimationClip Idle;
         public AnimationClip Move;
         public AnimationClip Windup;
         public AnimationClip Strike;
+        public AnimationClip LineWindup;
+        public AnimationClip LineRecovery;
 
         private AnimationClip playing;
         private float duration;
@@ -62,7 +65,7 @@ namespace Entity
                 var bounds = mesh.bounds;
                 bounds.Expand(2f);
                 renderer.localBounds = bounds;
-                renderer.shadowCastingMode = batch.Key.name == "GateGolemShade"
+                renderer.shadowCastingMode = batch.Key.name is "GateGolemShade" or "NamelessSteleShade"
                     ? ShadowCastingMode.On : ShadowCastingMode.Off;
                 foreach (var part in parts) part.enabled = false;
                 active.Add(renderer);

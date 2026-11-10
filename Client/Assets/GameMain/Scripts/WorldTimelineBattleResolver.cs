@@ -6,6 +6,7 @@ using UnityEngine;
 using DataTable;
 using UnityGameFramework.Runtime;
 using WorldTimeline;
+using Entity;
 
 // Lives in the main game assembly so the pure timeline assembly does not depend on Unity's combat code.
 public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
@@ -81,8 +82,11 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
             if (currentLoadout || resolver.heroByItem.ContainsKey(item)) tester.Items.Add(item);
         int previewTechnique = slashFormation ? 1001 : currentLoadout && world.TechniqueCombatEnabled &&
             player.Techniques.TryGetValue(SwordArtId, out var progress) ? progress.SkillId : 0;
-        int dummyHealth = (int)Math.Min(int.MaxValue, Math.Max(600L, player.MaxHealth * 4L) * healthMultiplier);
-        int dummyAttack = Mathf.Max(1, player.Attack / 8);
+        bool stelePreview = previewMonster == TimelineMonsterAnimation.NamelessSteleAppearance;
+        int dummyHealth = (int)Math.Min(int.MaxValue, stelePreview
+            ? Math.Max(600L, player.CombatAttack * 16L)
+            : Math.Max(600L, player.MaxHealth * 4L) * healthMultiplier);
+        int dummyAttack = Mathf.Max(1, player.Attack / (stelePreview ? 3 : 8));
         var opponents = new ActorState[slashFormation || threeTargets || previewCast ? 3 : 1];
         for (int i = 0, id = -1; i < opponents.Length; i++, id--)
         {
@@ -183,7 +187,7 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
                 {
                     "WreckBeast" => 9191,
                     "GateGolem" => 9192,
-                    "RitualWraith" => 9193,
+                    "RitualWraith" or TimelineMonsterAnimation.NamelessSteleAppearance => 9193,
                     _ => 9190
                 });
                 return result;
@@ -236,7 +240,7 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
             // A node guardian is a temporary combatant, never a saved timeline actor.
             if (IsGuardian(actor))
             {
-                if (world.Ritual?.NodeId == nodeId) return "RitualWraith";
+                if (world.Ritual?.NodeId == nodeId) return TimelineMonsterAnimation.NamelessSteleAppearance;
                 if (nodeId == HexWorldMap.Id(3, -9) || nodeId == HexWorldMap.Id(-8, 0)) return "WreckBeast";
                 if (regionDistance <= 6) return "GateGolem";
             }
@@ -258,7 +262,8 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
                     swordArts.Add(actor, (progress.Rank, progress.SkillId));
         int BattleMusicId()
         {
-            if (previewMonster == "RitualWraith") return (int)EnumSound.TimelineBossBattleBgm;
+            if (previewMonster is "RitualWraith" or TimelineMonsterAnimation.NamelessSteleAppearance)
+                return (int)EnumSound.TimelineBossBattleBgm;
             if (previewMonster is "WreckBeast" or "GateGolem" || lightningFormation)
                 return (int)EnumSound.TimelineEliteBattleBgm;
 
@@ -276,7 +281,10 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
                 appearance: Appearance, enableUndertow: world.WreckBeastEncounterEnabled || previewMonster != null,
                 enableSwordRecall: world.SwordRecallEnabled || (previewItems != null && previewItems.Count > 0),
                 lightningFormation: lightningFormation, slashFormation: slashFormation,
-                arenaStyle: visible ? ResolveArena(nodeId, node == null ? 0 : HexWorldMap.Radius - regionDistance) : TimelineArenaStyle.Forest,
+                arenaStyle: previewMonster == TimelineMonsterAnimation.NamelessSteleAppearance
+                    ? ResolveArena(HexWorldMap.Id(0, 0), HexWorldMap.Radius)
+                    : visible ? ResolveArena(nodeId, node == null ? 0 : HexWorldMap.Radius - regionDistance)
+                    : TimelineArenaStyle.Forest,
                 closeGuardFormation: node?.GuardiansStartClose == true && second.All(IsGuardian),
                 staggerStoneGuards: tidegateArena && second.All(IsGuardian),
                 reportOwner: visible && previewItems == null ? world.Actors[world.PlayerActorId] : null,

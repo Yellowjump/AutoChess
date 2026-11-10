@@ -7,6 +7,7 @@ using UnityEngine;
 public static class TimelineMonsterAuthoring
 {
     private const string Folder = "Assets/GameMain/Art/Characters/Resources/StoryCharacters";
+    private const string SteleName = "NamelessStele";
     private static readonly int[] Faces =
     {
         0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 2, 5,
@@ -36,6 +37,155 @@ public static class TimelineMonsterAuthoring
         BuildOne("RitualWraith", mesh, .95f, new Color32(57, 41, 66, 255), new Color32(208, 98, 124, 255), Ritual);
         AssetDatabase.SaveAssets();
         Debug.Log("Built WreckBeast, GateGolem and RitualWraith with idle, move and two-phase attack clips.");
+    }
+
+    [MenuItem("Tools/World Timeline/Build Nameless Stele Boss")]
+    public static void BuildNamelessStele()
+    {
+        var wedge = Prism("NamelessSteleFoot", new[]
+        {
+            new Vector2(-.48f,.025f), new Vector2(-.37f,.24f), new Vector2(-.12f,.36f),
+            new Vector2(.26f,.32f), new Vector2(.48f,.025f)
+        }, .46f, .74f);
+        BuildOne(SteleName, wedge, 1f, new Color32(54, 51, 55, 255),
+            new Color32(82, 104, 87, 255), NamelessStele);
+        AssetDatabase.SaveAssets();
+        Debug.Log("Built the Nameless Stele boss prefab.");
+    }
+
+    private static void NamelessStele(Transform body, Mesh wedge, Material stone, Material bronze,
+        TimelineMonsterAnimation clips)
+    {
+        var dark = Tint(SteleName + "Base", new Color32(43, 43, 49, 255));
+        var seal = Tint(SteleName + "Seal", new Color32(158, 58, 40, 255));
+        var page = Tint(SteleName + "Page", new Color32(228, 193, 126, 255));
+        var feet = new Transform[6];
+        for (int i = 0; i < feet.Length; i++)
+        {
+            float angle = i * 60f;
+            var direction = Quaternion.Euler(0, angle, 0) * Vector3.right;
+            feet[i] = Pivot(body, "Foot" + i, direction * .93f);
+            var foot = Part(feet[i], "Slate", wedge, stone, Vector3.zero, Vector3.one);
+            foot.localEulerAngles = new Vector3(0f, angle + 90f, 0f);
+            Part(body, "Plinth" + i, wedge, dark, direction * .39f + Vector3.up * .09f,
+                new Vector3(.82f, .78f, .92f)).localEulerAngles = new Vector3(0f, angle + 90f, 0f);
+        }
+
+        var slab = Pivot(body, "Stele", Vector3.up * .24f);
+        var left = Prism("NamelessSteleLeft", new[]
+        {
+            new Vector2(-.65f,0), new Vector2(-.78f,.44f), new Vector2(-.69f,1.48f),
+            new Vector2(-.51f,2.13f), new Vector2(.13f,2.52f), new Vector2(.10f,1.83f),
+            new Vector2(-.07f,1.24f), new Vector2(.05f,.83f), new Vector2(-.09f,.33f), new Vector2(-.04f,0)
+        }, .44f, .57f);
+        var right = Prism("NamelessSteleRight", new[]
+        {
+            new Vector2(.11f,0), new Vector2(.15f,.41f), new Vector2(.25f,.84f),
+            new Vector2(.13f,1.27f), new Vector2(.31f,1.88f), new Vector2(.58f,2.16f),
+            new Vector2(.71f,1.72f), new Vector2(.63f,1.28f), new Vector2(.77f,.94f), new Vector2(.65f,0)
+        }, .42f, .53f);
+        Part(slab, "Broken Left", left, stone, Vector3.zero, Vector3.one);
+        Part(slab, "Broken Right", right, dark, Vector3.zero, Vector3.one);
+        var strip = Prism("NamelessSteleBand", new[]
+        {
+            new Vector2(-.5f,0), new Vector2(-.45f,.83f), new Vector2(-.15f,1f),
+            new Vector2(.5f,.92f), new Vector2(.47f,.16f), new Vector2(.19f,.07f)
+        }, .025f, .02f);
+        var folio = Prism("NamelessSteleFolio", new[]
+        {
+            new Vector2(-.43f,0), new Vector2(-.5f,.3f), new Vector2(-.39f,.95f),
+            new Vector2(.32f,1f), new Vector2(.5f,.83f), new Vector2(.41f,.23f), new Vector2(.23f,.04f)
+        }, .05f, .055f);
+        for (int side = -1; side <= 1; side += 2)
+        {
+            var front = side > 0 ? " Front" : " Back";
+            Part(slab, "Register" + front, folio, page, new Vector3(.08f,.37f,side * .215f),
+                new Vector3(.26f,1.51f,1f)).localEulerAngles = new Vector3(0,0,-8f);
+            Part(slab, "Lower Seal Left" + front, strip, seal, new Vector3(-.36f,.28f,side * .223f),
+                new Vector3(.54f,.19f,1f));
+            Part(slab, "Lower Seal Right" + front, strip, seal, new Vector3(.38f,.25f,side * .216f),
+                new Vector3(.39f,.20f,1f));
+            for (int i = 0; i < 2; i++)
+                Part(slab, "Clamp " + i + front, strip, bronze,
+                    new Vector3(.10f + i * .1f,.74f + i * .66f,side * .262f),
+                    new Vector3(.64f,.105f,1.7f)).localEulerAngles = new Vector3(0,0,6f + i * 2f);
+        }
+        clips.Idle = Clip(clips, "Idle", true, c => Rotate(c, slab, "z", -1f, 1f, -1f));
+        clips.Move = Clip(clips, "Move", true, c =>
+        {
+            Rotate(c, slab, "x", 5f, -4f, 5f);
+            for (int i = 0; i < feet.Length; i++)
+                Offset(c, feet[i], "y", i % 2 == 0 ? .12f : 0f, i % 2 == 0 ? 0f : .12f, i % 2 == 0 ? .12f : 0f);
+        });
+        clips.Windup = Clip(clips, "Windup", false, c =>
+        {
+            Rotate(c, slab, "x", 0f, -9f, -17f);
+            Offset(c, slab, "y", 0f, .12f, .22f);
+        });
+        clips.Strike = Clip(clips, "Strike", false, c =>
+        {
+            Rotate(c, slab, "x", 20f, 7f, 0f);
+            Offset(c, slab, "y", -.10f, -.03f, 0f);
+        });
+        const float impactPitch = 87f;
+        float restHeight = slab.localPosition.y;
+        float impactHeight = restHeight + .22f;
+        // The last windup frame and the first recovery frame are the impact pose.
+        // The attack state samples recovery frame zero before resolving the hit.
+        clips.LineWindup = Clip(clips, "LineWindup", false, c =>
+        {
+            Curve(c, slab, "localEulerAnglesRaw.x",
+                new Keyframe(0f, 0f), new Keyframe(.72f, -28f), new Keyframe(.87f, -28f), new Keyframe(1f, impactPitch));
+            Curve(c, slab, "localPosition.y",
+                new Keyframe(0f, restHeight), new Keyframe(.72f, restHeight + .28f),
+                new Keyframe(.87f, restHeight + .28f), new Keyframe(1f, impactHeight));
+        });
+        clips.LineRecovery = Clip(clips, "LineRecovery", false, c =>
+        {
+            Curve(c, slab, "localEulerAnglesRaw.x",
+                new Keyframe(0f, impactPitch), new Keyframe(.25f, impactPitch), new Keyframe(1f, 0f));
+            Curve(c, slab, "localPosition.y",
+                new Keyframe(0f, impactHeight), new Keyframe(.25f, impactHeight), new Keyframe(1f, restHeight));
+        });
+    }
+
+    private static Mesh Prism(string name, Vector2[] profile, float frontDepth, float backDepth)
+    {
+        var vertices = new List<Vector3>();
+        var faces = new List<int>();
+        var center = Vector2.zero;
+        foreach (var point in profile) center += point;
+        center /= profile.Length;
+        Vector3 FacePoint(Vector2 point, float depth) => new Vector3(point.x, point.y, depth);
+        void Triangle(Vector3 a, Vector3 b, Vector3 c)
+        {
+            faces.Add(vertices.Count);
+            faces.Add(vertices.Count + 1);
+            faces.Add(vertices.Count + 2);
+            vertices.Add(a);
+            vertices.Add(b);
+            vertices.Add(c);
+        }
+        for (int i = 0; i < profile.Length; i++)
+        {
+            int next = (i + 1) % profile.Length;
+            var a = FacePoint(profile[i], frontDepth * .48f);
+            var b = FacePoint(profile[next], frontDepth * .48f);
+            var c = FacePoint(profile[next], -backDepth * .48f);
+            var d = FacePoint(profile[i], -backDepth * .48f);
+            Triangle(FacePoint(center, frontDepth * .56f), b, a);
+            Triangle(FacePoint(center, -backDepth * .54f), d, c);
+            Triangle(a, b, c);
+            Triangle(a, c, d);
+        }
+        var mesh = Asset(name, new Mesh());
+        mesh.Clear();
+        mesh.SetVertices(vertices);
+        mesh.SetTriangles(faces, 0);
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        EditorUtility.SetDirty(mesh);
+        return mesh;
     }
 
     private static void BuildOne(string name, Mesh mesh, float scale, Color shade, Color accent,
@@ -180,10 +330,13 @@ public static class TimelineMonsterAuthoring
     }
 
     private static void Curve(AnimationClip clip, Transform pivot, string property, float a, float b, float c)
+        => Curve(clip, pivot, property, new Keyframe(0, a), new Keyframe(.5f, b), new Keyframe(1, c));
+
+    private static void Curve(AnimationClip clip, Transform pivot, string property, params Keyframe[] keys)
     {
         string path = AnimationUtility.CalculateTransformPath(pivot, pivot.root);
         var binding = EditorCurveBinding.FloatCurve(path, typeof(Transform), property);
-        AnimationUtility.SetEditorCurve(clip, binding, new AnimationCurve(new Keyframe(0, a), new Keyframe(.5f, b), new Keyframe(1, c)));
+        AnimationUtility.SetEditorCurve(clip, binding, new AnimationCurve(keys));
     }
 
     private static T Asset<T>(string name, T created, string extension = ".asset") where T : UnityEngine.Object

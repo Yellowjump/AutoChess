@@ -32,6 +32,8 @@ namespace Entity
                 previous.ShieldAbsorbed + shieldAbsorbed);
         }
         internal int UndertowAttackCount;
+        internal int NamelessSteleAttackCount;
+        internal bool NamelessSteleSealed;
         private bool ownsTimelineModel;
         public int HeroUID;//qizi唯一id
         public bool UsesLargeFootprint { get; private set; }
@@ -59,7 +61,10 @@ namespace Entity
             }
         }
 
-        public override Vector3 LogicHitPosition => LogicPosition + Vector3.up * ConstValue.EntityQiziHeight;
+        public override Vector3 LogicHitPosition => LogicPosition + Vector3.up *
+            (TimelineAppearance == TimelineMonsterAnimation.NamelessSteleAppearance ? 1.55f : ConstValue.EntityQiziHeight);
+
+        internal float HpBarHeight => TimelineAppearance == TimelineMonsterAnimation.NamelessSteleAppearance ? 3.1f : 2f;
 
         public void Init(int i,List<int> equipItem = null, bool recordBattleOutput = false)
         {
@@ -70,6 +75,8 @@ namespace Entity
             LightningApplications = LightningTransfers = LightningJumps = 0;
             BattleOutput = recordBattleOutput ? new Dictionary<int, WorldTimeline.SkillBattleOutput>() : null;
             UndertowAttackCount = 0;
+            NamelessSteleAttackCount = 0;
+            NamelessSteleSealed = false;
             FirstStoneSmashDelayMs = 0;
             HeroID = i;
             UsesLargeFootprint = BelongCamp == CampType.Enemy && HotGameEntry.HeroManager.IsLargeBossHero(i, TimelineAppearance);
@@ -99,8 +106,9 @@ namespace Entity
                 {
                     ownsTimelineModel = true;
                     var model = UnityEngine.Object.Instantiate(prefab, HotGameEntry.HeroManager.InstanceRoot);
-                    if (TimelineAppearance == "GateGolem" && model.TryGetComponent<TimelineMonsterAnimation>(out var stoneGuard))
-                        stoneGuard.CombineRigidParts();
+                    if ((TimelineAppearance is "GateGolem" or TimelineMonsterAnimation.NamelessSteleAppearance) &&
+                        model.TryGetComponent<TimelineMonsterAnimation>(out var monster))
+                        monster.CombineRigidParts();
                     OnGetHeroGObjCallback(model, null);
                     return;
                 }

@@ -221,6 +221,62 @@ namespace Entity
             impulse.CreateEvent(position, new Vector3(.04f, -.08f, 0f));
         }
 
+        internal LineRenderer NamelessWarning(Transform owner, Vector3 origin, Vector3 direction,
+            float radius, float length)
+        {
+            return NamelessOutline(owner, origin, direction, radius, length, .065f,
+                new Color(.72f, .18f, .12f, .9f));
+        }
+
+        internal void NamelessImpact(Vector3 origin, Vector3 direction, float radius, float length, bool hit)
+        {
+            var cinnabar = new Color(.95f, .36f, .19f);
+            var outline = NamelessOutline(transform, origin, direction, radius, length, .18f, cinnabar);
+            if (outline != null) StartCoroutine(FadeNamelessOutline(outline, cinnabar));
+            if (length == 0f) Ring(origin, radius, .42f, .12f, StoneGold);
+            HotGameEntry.Sound.PlaySfxSoundThisFrame((int)EnumSound.ShortBoom, origin);
+            if (hit) impulse.CreateEvent(origin, new Vector3(.06f, -.16f, 0f));
+        }
+
+        private LineRenderer NamelessOutline(Transform parent, Vector3 origin, Vector3 direction, float radius,
+            float length, float width, Color color)
+        {
+            if (material == null) return null;
+            var line = CreateLine(length > 0f ? "无名碑·封名裁线" : "无名碑·封山归墟", parent, true);
+            line.loop = true;
+            line.widthMultiplier = width;
+            line.startColor = line.endColor = color;
+            origin += Vector3.up * .105f;
+            if (length > 0f)
+            {
+                var edge = Vector3.Cross(Vector3.up, direction) * radius;
+                var end = origin + direction * length;
+                line.positionCount = 4;
+                line.SetPositions(new[] { origin - edge, end - edge, end + edge, origin + edge });
+            }
+            else
+            {
+                line.positionCount = 36;
+                for (int i = 0; i < line.positionCount; i++)
+                {
+                    float angle = i * 2f * Mathf.PI / line.positionCount;
+                    line.SetPosition(i, origin + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius);
+                }
+            }
+            return line;
+        }
+
+        private static IEnumerator FadeNamelessOutline(LineRenderer outline, Color color)
+        {
+            for (float age = 0f; age < .32f; age += Time.deltaTime)
+            {
+                color.a = 1f - age / .32f;
+                outline.startColor = outline.endColor = color;
+                yield return null;
+            }
+            Destroy(outline.gameObject);
+        }
+
         internal void LightningTransfer(Vector3 from, Vector3 to)
         {
             if (material != null) StartCoroutine(AnimateLightningTransfer(from, to));
