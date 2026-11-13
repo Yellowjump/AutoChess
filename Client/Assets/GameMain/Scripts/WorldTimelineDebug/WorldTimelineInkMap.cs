@@ -10,8 +10,16 @@ namespace WorldTimelineDebug
         public const string LayerName = "WorldTimelineMap";
         private static readonly int WeatherField = Shader.PropertyToID("_TimelineWeatherField");
         private static readonly int WeatherDusk = Shader.PropertyToID("_TimelineWeatherDusk");
-        private static readonly Color DayBackground = new Color(.94f, .92f, .85f);
-        private static readonly Color NightBackground = new Color(.44f, .47f, .54f);
+        private static readonly int Relief = Shader.PropertyToID("_Relief");
+        private static readonly int InkFinish = Shader.PropertyToID("_InkFinish");
+        private static readonly int DepthWrite = Shader.PropertyToID("_DepthWrite");
+        private static readonly int SoftShadow = Shader.PropertyToID("_SoftShadow");
+        private static readonly int RiverWash = Shader.PropertyToID("_RiverWash");
+        private static readonly int EmberParticle = Shader.PropertyToID("_EmberParticle");
+        private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
+        private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+        private static readonly Color DayBackground = new Color(.92f, .92f, .92f);
+        private static readonly Color NightBackground = new Color(.47f, .47f, .47f);
         private float duskVelocity;
         public float Dusk { get; private set; }
         private Camera sceneCamera;
@@ -22,36 +30,170 @@ namespace WorldTimelineDebug
         private WorldTimelineBoard owner;
         private MeshRenderer[] artwork;
         private readonly HashSet<MeshRenderer> hiddenLandmarks = new HashSet<MeshRenderer>();
-        private readonly List<Transform> standees = new List<Transform>();
+        private Material contactShadow;
+        private Material landmarkMaterial;
+        private Material riverMaterial;
+        private Material emberMaterial;
+        private ParticleSystem volcanoEmbers;
+        private Texture2D riverInk;
+        private readonly Mesh[] landmarks = new Mesh[8];
+
+        internal Material ContactShadow => contactShadow;
+        internal Material LandmarkMaterial => landmarkMaterial;
+        internal Mesh GateMesh => landmarks[4];
 
         public bool IsApplied => applied;
         private void Awake()
         {
+            var layout = GetComponent<WorldTimelineMapLayout>();
+            var ferryAsset = Resources.Load<GameObject>("WorldTimeline/LinxiFerry");
+            var ferryMesh = ferryAsset != null ? ferryAsset.GetComponentInChildren<MeshFilter>()?.sharedMesh : null;
+            riverInk = Resources.Load<Texture2D>("WorldTimeline/LinxiRiverInk");
             foreach (var region in GetComponentsInChildren<WorldTimelineRegion>(true))
             {
                 var node = region.Node;
-                // Village, ferry, mountain pass and shrine are the current map's visual anchors.
-                bool keyLandmark = node == new Vector2Int(0, -9) || node == new Vector2Int(4, -9)
-                    || node == new Vector2Int(0, -6) || node == new Vector2Int(-4, 9);
+                int kind = (node.x, node.y) switch
+                {
+                    (0, -9) => 0, (4, -9) => 1, (0, -6) => 2, (-4, 9) => 3,
+                    (-7, 5) => 5, (-3, 3) => 6, (0, 0) => 7,
+                    _ => -1
+                };
                 foreach (var renderer in region.GetComponentsInChildren<MeshRenderer>(true))
                 {
                     if (!renderer.name.StartsWith("Landmark_", System.StringComparison.Ordinal)) continue;
-                    if (!keyLandmark)
+                    if (kind < 0)
                     {
                         hiddenLandmarks.Add(renderer);
                         continue;
                     }
-                    var standee = renderer.transform;
-                    standee.localScale *= .65f;
-                    standee.position += Vector3.up * standee.TransformVector(Vector3.forward).magnitude * .5f;
-                    standees.Add(standee);
+                    var anchor = layout.Project(node.x, node.y);
+                    if (landmarkMaterial == null)
+                    {
+                        landmarkMaterial = new Material(renderer.sharedMaterial.shader) { renderQueue = 3010 };
+                        landmarkMaterial.SetFloat(Relief, 1f);
+                        landmarkMaterial.SetFloat(InkFinish, 1f);
+                        landmarkMaterial.SetFloat(DepthWrite, 1f);
+                        landmarks[4] = WorldTimelineLandmarkMesh.Create(4);
+                    }
+                    AddContactShadow(renderer, anchor, layout.NodeSpacing);
+                    bool useFerry = kind == 1 && ferryMesh != null;
+                    if (useFerry && riverInk != null) AddRiver(renderer, anchor, layout.NodeSpacing);
+                    renderer.transform.SetPositionAndRotation(anchor, Quaternion.Euler(0, 337, 0));
+                    renderer.transform.localScale = Vector3.one * (layout.NodeSpacing * (useFerry ? .51f : 1f));
+                    renderer.GetComponent<MeshFilter>().sharedMesh = useFerry ? ferryMesh
+                        : (landmarks[kind] ??= WorldTimelineLandmarkMesh.Create(kind));
+                    renderer.sharedMaterial = landmarkMaterial;
+                    if (kind == 5 && renderer.name == "Landmark_主地标")
+                        AddVolcanoEmbers(renderer.transform, layout.NodeSpacing);
                 }
             }
+        }
+
+        private void AddVolcanoEmbers(Transform volcano, float spacing)
+        {
+            var effect = new GameObject("熔脉窟 · 火口熔滴") { layer = volcano.gameObject.layer };
+            effect.SetActive(false);
+            effect.transform.SetParent(volcano.parent, false);
+            effect.transform.SetPositionAndRotation(volcano.TransformPoint(WorldTimelineLandmarkMesh.VolcanoVentOffset),
+                Quaternion.Euler(-90f, 0f, 0f));
+            volcanoEmbers = effect.AddComponent<ParticleSystem>();
+            volcanoEmbers.useAutoRandomSeed = false;
+            volcanoEmbers.randomSeed = 7619;
+
+            var main = volcanoEmbers.main;
+            main.duration = 2.4f;
+            main.loop = true;
+            main.playOnAwake = true;
+            main.useUnscaledTime = true;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.cullingMode = ParticleSystemCullingMode.PauseAndCatchup;
+            main.maxParticles = 40;
+            main.startSpeed = new ParticleSystem.MinMaxCurve(.85f * spacing, 1.35f * spacing);
+            main.startLifetime = new ParticleSystem.MinMaxCurve(.52f, .92f);
+            main.startSize = new ParticleSystem.MinMaxCurve(.046f * spacing, .105f * spacing);
+            main.gravityModifier = 2.55f * spacing / Mathf.Max(Physics.gravity.magnitude, .01f);
+            main.startColor = new ParticleSystem.MinMaxGradient(
+                new Color32(159, 79, 43, 220), new Color32(230, 158, 98, 255));
+
+            var shape = volcanoEmbers.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 29f;
+            shape.radius = .044f * spacing;
+            var emission = volcanoEmbers.emission;
+            emission.rateOverTime = 2f;
+            emission.SetBursts(new[] { new ParticleSystem.Burst(.10f, 13), new ParticleSystem.Burst(1.23f, 7) });
+            var colors = volcanoEmbers.colorOverLifetime;
+            colors.enabled = true;
+            var fade = new Gradient();
+            fade.SetKeys(new[] { new GradientColorKey(Color.white, 0), new GradientColorKey(Color.white, 1) },
+                new[] { new GradientAlphaKey(1, 0), new GradientAlphaKey(1, .44f), new GradientAlphaKey(0, 1) });
+            colors.color = fade;
+
+            emberMaterial = new Material(landmarkMaterial.shader) { renderQueue = 3015 };
+            emberMaterial.SetFloat(EmberParticle, 1f);
+            var renderer = volcanoEmbers.GetComponent<ParticleSystemRenderer>();
+            renderer.sharedMaterial = emberMaterial;
+            renderer.renderMode = ParticleSystemRenderMode.Stretch;
+            renderer.lengthScale = 1.3f;
+            renderer.velocityScale = .013f;
+            renderer.maxParticleSize = .035f;
+            renderer.SetActiveVertexStreams(new List<ParticleSystemVertexStream>
+            {
+                ParticleSystemVertexStream.Position, ParticleSystemVertexStream.Color, ParticleSystemVertexStream.UV
+            });
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+        }
+
+        private void AddRiver(MeshRenderer landmark, Vector3 anchor, float spacing)
+        {
+            if (riverMaterial == null)
+            {
+                riverMaterial = new Material(landmark.sharedMaterial.shader) { renderQueue = 2995 };
+                riverMaterial.SetFloat(RiverWash, 1f);
+                riverMaterial.SetTexture(BaseMap, riverInk);
+            }
+
+            var river = new GameObject("临溪渡口 · 水墨河流") { layer = landmark.gameObject.layer };
+            river.transform.SetParent(landmark.transform.parent, false);
+            river.transform.SetPositionAndRotation(anchor + Vector3.up * .01f, Quaternion.Euler(0, 337, 0));
+            river.transform.localScale = new Vector3(3.2f, 1f, 9.5f) * spacing;
+            river.AddComponent<MeshFilter>().sharedMesh = landmark.GetComponent<MeshFilter>().sharedMesh;
+            var renderer = river.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = riverMaterial;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+        }
+
+        private void AddContactShadow(MeshRenderer standee, Vector3 anchor, float spacing)
+        {
+            if (contactShadow == null)
+            {
+                contactShadow = new Material(standee.sharedMaterial.shader) { renderQueue = 3005 };
+                contactShadow.SetFloat(SoftShadow, 1f);
+                contactShadow.SetColor(BaseColor, new Color(.22f, .18f, .13f, .52f));
+            }
+
+            var shadow = new GameObject("Landmark contact shadow") { layer = standee.gameObject.layer };
+            shadow.transform.SetParent(standee.transform.parent, false);
+            shadow.transform.SetPositionAndRotation(anchor + Vector3.up * .07f, Quaternion.identity);
+            shadow.transform.localScale = new Vector3(2.65f, 1f, 1.58f) * spacing;
+            shadow.AddComponent<MeshFilter>().sharedMesh = standee.GetComponent<MeshFilter>().sharedMesh;
+            var renderer = shadow.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = contactShadow;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
         }
 
         private void LateUpdate()
         {
             if (!applied || sceneCamera == null) return;
+            if (volcanoEmbers != null)
+            {
+                bool showEmbers = owner.CaptureView().Zoom < .65f;
+                if (volcanoEmbers.gameObject.activeSelf != showEmbers)
+                    volcanoEmbers.gameObject.SetActive(showEmbers);
+            }
             float target = owner.PlayerDusk;
             if (Dusk != target)
             {
@@ -64,15 +206,6 @@ namespace WorldTimelineDebug
                 }
                 ApplyDusk(next);
             }
-            foreach (var standee in standees)
-            {
-                if (!standee.gameObject.activeInHierarchy) continue;
-                Vector3 facing = sceneCamera.orthographic ? -sceneCamera.transform.forward
-                    : sceneCamera.transform.position - standee.position;
-                facing.y = 0;
-                if (facing.sqrMagnitude < .0001f) continue;
-                standee.rotation = Quaternion.LookRotation(facing, Vector3.up) * Quaternion.Euler(90, 0, 0);
-            }
         }
         private void OnEnable()
         {
@@ -83,6 +216,7 @@ namespace WorldTimelineDebug
         }
         private void SetSceneryVisible(bool visible)
         {
+            if (volcanoEmbers != null && !visible) volcanoEmbers.gameObject.SetActive(false);
             if (artwork == null) return;
             foreach (var renderer in artwork)
                 if (renderer != null) renderer.forceRenderingOff = !visible || hiddenLandmarks.Contains(renderer);
@@ -136,6 +270,15 @@ namespace WorldTimelineDebug
         private void OnDisable()
         {
             Restore();
+        }
+        private void OnDestroy()
+        {
+            if (contactShadow != null) Destroy(contactShadow);
+            if (landmarkMaterial != null) Destroy(landmarkMaterial);
+            if (riverMaterial != null) Destroy(riverMaterial);
+            if (emberMaterial != null) Destroy(emberMaterial);
+            foreach (var mesh in landmarks)
+                if (mesh != null) Destroy(mesh);
         }
     }
 }

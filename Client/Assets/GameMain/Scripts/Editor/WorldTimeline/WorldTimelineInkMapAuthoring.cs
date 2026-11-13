@@ -19,30 +19,44 @@ public static class WorldTimelineInkMapAuthoring
     public readonly struct RegionSpec
     {
         public readonly string Name;
-        public readonly int Q, R, Landmark;
+        public readonly int Q, R, Landmark, Terrain;
         public readonly bool Mountain;
-        public RegionSpec(string name, int q, int r, bool mountain, int landmark)
-        { Name = name; Q = q; R = r; Mountain = mountain; Landmark = landmark; }
+        public RegionSpec(string name, int q, int r, bool mountain, int landmark, int terrain = -1)
+        { Name = name; Q = q; R = r; Mountain = mountain; Landmark = landmark; Terrain = terrain; }
     }
+    private const int Desert = 0, Plain = 1, Grassland = 2, Lake = 3, Falls = 4, Ash = 5, Shallows = 6;
     public static readonly RegionSpec[] Definitions = {
         new RegionSpec("Outer_青禾乡野", 0, -9, false, 0),
         new RegionSpec("Transition_灵山古隘", 0, -6, true, 2),
         new RegionSpec("Outer_临溪渡口", 4, -9, false, 1),
-        new RegionSpec("Outer_柳岸农庄", 9, -8, false, 0),
-        new RegionSpec("Outer_重山乡野", 9, -2, false, 0),
-        new RegionSpec("Outer_听潮水乡", 7, 1, false, 1),
-        new RegionSpec("Outer_照夜村落", 2, 7, false, 0),
+        new RegionSpec("Outer_柳岸农庄", 9, -8, false, 0, Plain),
+        new RegionSpec("Outer_重山乡野", 9, -2, false, 0, Grassland),
+        new RegionSpec("Outer_听潮水乡", 7, 1, false, 1, Lake),
+        new RegionSpec("Outer_照夜村落", 2, 7, false, 0, Plain),
         new RegionSpec("Outer_松溪古祠", -4, 9, false, 3),
         new RegionSpec("Outer_逐星渡", -9, 5, false, 1),
-        new RegionSpec("Outer_西原乡野", -7, -1, false, 0),
+        new RegionSpec("Outer_西原乡野", -7, -1, false, 0, Grassland),
         new RegionSpec("Transition_东岭山门", 5, -3, true, 2),
-        new RegionSpec("Transition_云松古寺", 3, 3, true, 3),
-        new RegionSpec("Transition_北麓古隘", -3, 5, true, 2),
+        new RegionSpec("Transition_云松古寺", 3, 3, true, 3, Falls),
+        new RegionSpec("Transition_北麓古隘", -3, 5, true, 2, Grassland),
         new RegionSpec("Transition_西山旧观", -5, 0, true, 3),
-        new RegionSpec("Transition_东麓松境", 7, -5, true, 2),
-        new RegionSpec("Transition_竹溪灵境", 2, 5, true, 3),
-        new RegionSpec("Transition_北麓松境", -3, 7, true, 3),
-        new RegionSpec("Transition_西岭松林", -7, 3, true, 2)
+        new RegionSpec("Transition_东麓松境", 7, -5, true, 2, Grassland),
+        new RegionSpec("Transition_竹溪灵境", 2, 5, true, 3, Grassland),
+        new RegionSpec("Transition_北麓松境", -3, 7, true, 3, Desert),
+        new RegionSpec("Transition_西岭松林", -7, 3, true, 2, Desert),
+        new RegionSpec("Transition_熔脉窟", -7, 5, true, 2, Ash),
+        new RegionSpec("Transition_寒髓洞", -3, 3, true, 2),
+        new RegionSpec("Inner_归墟内坛", 0, 0, true, 3),
+        new RegionSpec("Outer_南缘沙洲", 7, -10, false, 1),
+        new RegionSpec("Outer_白蒲汀", 8, -4, false, 1, Plain),
+        new RegionSpec("Outer_北荒石圩", -7, 9, false, 0, Desert),
+        new RegionSpec("Outer_西南旧坞", -3, -7, false, 0, Plain),
+        new RegionSpec("Outer_祁墨西驿", -10, 2, false, 0),
+        new RegionSpec("Transition_东岭界桩", 4, -1, true, 2, Plain),
+        new RegionSpec("Transition_北泽古驿", -1, 7, true, 3, Lake),
+        new RegionSpec("Inner_无名碑林", 1, 2, true, 3),
+        new RegionSpec("Inner_沉灯阶", -2, 2, true, 2, Falls),
+        new RegionSpec("Transition_浅溪", 3, -5, true, -1, Shallows)
     };
 
     [MenuItem("Tools/World Timeline/Build Ink Map Sample")]
@@ -83,6 +97,8 @@ public static class WorldTimelineInkMapAuthoring
             Plane(draft.transform, "宣纸底面", mesh, paper, mapOrigin - Vector3.up * .1f,
                 Vector3.one * spacing * 120, layer);
             PrepareTexture(Folder + "/LandmarkAtlas.png");
+            PrepareTexture(Folder + "/TerrainAtlas.png");
+            PrepareTexture(Folder + "/Shallows.png");
             var regions = Definitions.Select(spec => Region(draft.transform, spec, mesh, shader, layout, layer)).ToArray();
             draft.AddComponent<WorldTimelineRegionCulling>().Configure(regions, spacing * .6f);
             string path = Folder + "/InkMapSample.prefab";
@@ -109,10 +125,15 @@ public static class WorldTimelineInkMapAuthoring
     {
         string name = spec.Name;
         var node = new Vector2Int(spec.Q, spec.R);
-        string image = spec.Mountain ? "InnerPass.png" : "OuterCountryside.png";
+        bool atlasTile = spec.Terrain >= 0 && spec.Terrain != Shallows;
+        string image = spec.Terrain == Shallows ? "Shallows.png" : atlasTile ? "TerrainAtlas.png" :
+            spec.Mountain ? "InnerPass.png" : "OuterCountryside.png";
         string imagePath = Folder + "/" + image;
-        PrepareTexture(imagePath);
         var material = Material(name, shader, AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath));
+        material.SetFloat("_TerrainWash", spec.Terrain >= 0 ? 1 : 0);
+        material.SetTextureScale("_BaseMap", atlasTile ? new Vector2(1f / 3f, .41f) : Vector2.one);
+        material.SetTextureOffset("_BaseMap", atlasTile
+            ? new Vector2(spec.Terrain % 3 / 3f, spec.Terrain < 3 ? .50f : .10f) : Vector2.zero);
         var region = new GameObject(name);
         region.layer = layer;
         region.transform.SetParent(root, false);
@@ -123,15 +144,18 @@ public static class WorldTimelineInkMapAuthoring
         var scale = new Vector3(RegionWidth, 1, RegionDepth) * layout.NodeSpacing;
         Plane(middle.transform, "InkArtwork", mesh, material, region.transform.position + Vector3.up * .015f, scale, layer);
         Plane(far.transform, "InkArtwork", mesh, material, region.transform.position + Vector3.up * .015f, scale, layer);
-        var landmark = Material("Landmark_" + spec.Landmark, shader,
-            AssetDatabase.LoadAssetAtPath<Texture2D>(Folder + "/LandmarkAtlas.png"));
-        landmark.SetTextureScale("_BaseMap", new Vector2(.5f,.5f));
-        landmark.SetTextureOffset("_BaseMap", new Vector2(spec.Landmark % 2 * .5f, spec.Landmark < 2 ? .5f : 0));
-        landmark.renderQueue = 3010;
-        var landmarkPosition = region.transform.position + new Vector3(-.55f, .05f / layout.NodeSpacing, .65f) * layout.NodeSpacing;
-        var landmarkScale = new Vector3(LandmarkWidth, 1, LandmarkDepth) * layout.NodeSpacing;
-        Plane(middle.transform, "Landmark_主地标", mesh, landmark, landmarkPosition, landmarkScale, layer);
-        Plane(far.transform, "Landmark_远景地标", mesh, landmark, landmarkPosition, landmarkScale, layer);
+        if (spec.Landmark >= 0)
+        {
+            var landmark = Material("Landmark_" + spec.Landmark, shader,
+                AssetDatabase.LoadAssetAtPath<Texture2D>(Folder + "/LandmarkAtlas.png"));
+            landmark.SetTextureScale("_BaseMap", new Vector2(.5f, .5f));
+            landmark.SetTextureOffset("_BaseMap", new Vector2(spec.Landmark % 2 * .5f, spec.Landmark < 2 ? .5f : 0));
+            landmark.renderQueue = 3010;
+            var landmarkPosition = region.transform.position + new Vector3(-.55f, .05f / layout.NodeSpacing, .65f) * layout.NodeSpacing;
+            var landmarkScale = new Vector3(LandmarkWidth, 1, LandmarkDepth) * layout.NodeSpacing;
+            Plane(middle.transform, "Landmark_主地标", mesh, landmark, landmarkPosition, landmarkScale, layer);
+            Plane(far.transform, "Landmark_远景地标", mesh, landmark, landmarkPosition, landmarkScale, layer);
+        }
         var component = region.AddComponent<WorldTimelineRegion>();
         component.Configure(node, new Bounds(Vector3.zero, new Vector3(scale.x, layout.NodeSpacing * .2f, scale.z)), near, middle, far);
         string path = Folder + "/Regions/" + name + ".prefab";
