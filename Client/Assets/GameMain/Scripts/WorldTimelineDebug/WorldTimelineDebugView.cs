@@ -736,7 +736,7 @@ namespace WorldTimelineDebug
             if (GUI.Button(new Rect(1240, 102, 180, 30), showBoardDetails ? "收起世界详情" : "角色 / 路线 / 日志", button))
                 showBoardDetails = !showBoardDetails;
             GUI.Box(new Rect(20, 94, 850, 40), GUIContent.none, card);
-            GUI.Label(new Rect(36, 103, 390, 26), "蓝棋：本世　金棋：天选　紫棋：前世", muted);
+            GUI.Label(new Rect(36, 103, 390, 26), "蓝棋：本世　金棋：无名客　紫棋：前世", muted);
             if (GUI.Button(new Rect(438, 102, 66, 28), "缩小", button)) board.Zoom(1.22f);
             if (GUI.Button(new Rect(510, 102, 66, 28), "放大", button)) board.Zoom(.82f);
             if (GUI.Button(new Rect(582, 102, 76, 28), TimelineText("Timeline_UI_12"), button)) board.Overview();
@@ -948,7 +948,7 @@ namespace WorldTimelineDebug
             if (GUI.Button(new Rect(1030, 12, 90, 30), TimelineText("Timeline_UI_14"), button)) showGrowth = false;
             var actor = simulation.State.Actors[inspectedActorId];
             GUI.Label(new Rect(18, 48, 1100, 24), $"{ActorName(actor.Id)} Lv{actor.Level}  生命{actor.Talents.Health.Grade} 攻击{actor.Talents.Attack.Grade}  当前经验 {actor.LevelExperience}/{NextExperience(actor)}", text);
-            GUI.Label(new Rect(18, 78, 1100, 42), "第1级为出生属性，第2级起为升入该级的增量。每次升级独立取值，历史回放保持一致。\n单次增量允许少量重叠；本表保证同等级基础属性的高档累计下限高于低档累计上限。天选吸收与物品加成另算。", small);
+            GUI.Label(new Rect(18, 78, 1100, 42), "第1级为出生属性，第2级起为升入该级的增量。每次升级独立取值，历史回放保持一致。\n单次增量允许少量重叠；本表保证同等级基础属性的高档累计下限高于低档累计上限。无名客吸收与物品加成另算。", small);
             GUI.Label(new Rect(18, 124, 1100, 26), "配置文件：Config/CultivationLevel.xlsx（导出后重新进入 Play）", muted);
             GUILayout.BeginArea(new Rect(18, 160, 1100, 550));
             growthScroll = GUILayout.BeginScrollView(growthScroll);
@@ -1046,7 +1046,7 @@ namespace WorldTimelineDebug
             GUI.enabled = !showGrowth && simulation.WaitingForPlayer && !simulation.CanJoinChosen(1);
             if (GUI.Button(new Rect(646, 654, 205, 36), "提前伪装 · 1年", button)) Submit(WorldAction.Disguise());
             GUI.enabled = !showGrowth && simulation.WaitingForPlayer && simulation.CanJoinChosen(1);
-            if (GUI.Button(new Rect(36, 702, 200, 36), "加入天选 → 观察", button)) Submit(WorldAction.JoinChosen());
+            if (GUI.Button(new Rect(36, 702, 200, 36), "与无名客同行 → 观察", button)) Submit(WorldAction.JoinChosen());
             GUI.enabled = !showGrowth && !simulation.WaitingForPlayer && !world.IsEnded;
             if (GUI.Button(new Rect(246, 702, 130, 36), TimelineText("Timeline_UI_58"), button)) { autoObserve = false; StartAdvancing(simulation.AdvanceOneYearRoutine()); }
             if (GUI.Button(new Rect(386, 702, 140, 36), autoObserve ? TimelineText("Timeline_UI_22") : TimelineText("Timeline_UI_21"), button)) autoObserve = !autoObserve;
@@ -1067,7 +1067,7 @@ namespace WorldTimelineDebug
             if (board != null) return;
             GUI.Label(new Rect(36, 750, 815, 48), saveIssue ?? message, muted);
             string saveHint = returnToMenu == null ? "调试场景的记录保留到本次 Play 结束。" : "结算后的前世路线自动保存。";
-            GUI.Label(new Rect(36, 800, 815, 65), "保留三条破仪路线，天选第100年抵达中心。滚轮缩放、拖动平移。\n改命验证：勾选改命 A，元年从 (0,-10) 进入 (0,-9) 清怪并离开，解除其第5年的死因。\n右上角可查看经验和增量表。" + saveHint, small);
+            GUI.Label(new Rect(36, 800, 815, 65), "保留三条破仪路线，无名客第100年抵达中心。滚轮缩放、拖动平移。\n改命验证：勾选改命 A，元年从 (0,-10) 进入 (0,-9) 清怪并离开，解除其第5年的死因。\n右上角可查看经验和增量表。" + saveHint, small);
         }
 
         private void DrawActors()

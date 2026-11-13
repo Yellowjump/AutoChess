@@ -7,12 +7,14 @@ namespace Procedure
     // Cultivation sessions are opened by the title UI; the old auto-chess campaign is no longer entered.
     public class ProcedureTitle : ProcedureBase
     {
+        public const string TitleMusic = "Assets/GameMain/Audio/Title_Ferry.wav";
+
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
             GameEntry.UI.OpenUIForm(UICtrlName.MainTitlePanel, "middle");
             HotGameEntry.HeroManager.InitStartCamera();
-            HotGameEntry.Sound.PlayMusic("Assets/GameMain/Audio/Title_Ferry.wav");
+            HotGameEntry.Sound.PlayMusic(TitleMusic);
         }
 
         protected override void OnLeave(ProcedureOwner procedureOwner, bool isShutdown)

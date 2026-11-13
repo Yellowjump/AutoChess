@@ -79,7 +79,7 @@
 	21006	轮回	Timeline_OuterLocations_4_Name	黑牙巢	Blackfang Den
 	21007	轮回	Timeline_OuterLocations_5_Name	洗髓灵泉	Marrowcleansing Spring
 	21008	轮回	Timeline_OuterLocations_6_Name	古修遗府	Ancient Adept’s Estate
-	21009	轮回	Timeline_OuterLocations_7_Name	天选险关	Trial of the Chosen
+	21009	轮回	Timeline_OuterLocations_7_Name	无名险关	Nameless Pass
 	21010	轮回	Timeline_OuterLocations_6_LootName	古修剑谱	Ancient Sword Manual
 	21011	轮回	Timeline_StartingCultivators_1_Name	青篁	Qinghuang
 	21012	轮回	Timeline_StartingCultivators_2_Name	赤砾	Chili
@@ -179,7 +179,7 @@
 	21106	轮回	Timeline_UI_17	前世	Past Lives
 	21107	轮回	Timeline_UI_18	前世命途	Past-Life Paths
 	21108	轮回	Timeline_UI_19	功法	Arts
-	21109	轮回	Timeline_UI_20	加入天选	Join the Chosen
+	21109	轮回	Timeline_UI_20	与无名客同行	Join the Nameless
 	21110	轮回	Timeline_UI_21	加速观察	Fast Forward
 	21111	轮回	Timeline_UI_22	暂停观察	Pause
 	21112	轮回	Timeline_UI_23	十人轮回，前世同行	Ten Cultivators, One Cycle
@@ -189,7 +189,7 @@
 	21116	轮回	Timeline_UI_27	固定出生点  ·  元年启程	Fixed Birthplace · Depart in Year One
 	21117	轮回	Timeline_UI_28	守怪攻击	Guardian Attack
 	21118	轮回	Timeline_UI_29	守怪生命	Guardian HP
-	21119	轮回	Timeline_UI_30	定位天选	Find the Chosen
+	21119	轮回	Timeline_UI_30	定位无名客	Find the Nameless
 	21120	轮回	Timeline_UI_31	定位本世	Find Current Life
 	21121	轮回	Timeline_UI_32	尚无前世记录\n\n完成一世后，可在此选择前世路线。	No past lives recorded.\n\nComplete a life to select its path here.
 	21122	轮回	Timeline_UI_33	山河众生	People of the Realm
@@ -238,7 +238,7 @@
 	21165	轮回	Timeline_UI_76	无	None
 	21166	轮回	Timeline_UI_77	世界日志	World Log
 	21167	轮回	Timeline_UI_78	修行与资质	Cultivation and Aptitude
-	21168	轮回	Timeline_UI_79	天选	The Chosen
+	21168	轮回	Timeline_UI_79	无名客	The Nameless
 	21169	轮回	Timeline_UI_80	尚无随身物品	Inventory is empty
 	21170	轮回	Timeline_UI_81	已习得 · 随身功法	Learned Art
 	21171	轮回	Timeline_UI_82	入世未能完成，请检查游戏日志。	Could not begin this life. Check the game log.
@@ -280,7 +280,7 @@
 	21207	轮回	Timeline_UI_118	结束	Ended
 	21208	轮回	Timeline_UI_119	选择相邻节点移动，或留在原地修炼。	Move to an adjacent node or stay here to cultivate.
 	21209	轮回	Timeline_UI_120	地图初始化失败，请检查地图布局、主相机和节点材质配置。	Could not initialize the map. Check its layout, main camera, and node materials.
-	21210	轮回	Timeline_UI_121	本局已载入勾选路线。天选第100年抵达中心；初始仪式截止第35年。	Selected paths loaded. The Chosen reaches the center in year 100. The ritual initially ends in year 35.
+	21210	轮回	Timeline_UI_121	本局已载入勾选路线。无名客第100年抵达中心；初始仪式截止第35年。	Selected paths loaded. The Nameless reaches the center in year 100. The ritual initially ends in year 35.
 	21211	轮回	Timeline_UI_122	前世存档已满（15条）；本局仍可观察。	The past-life archive is full (15 records). You can still observe this run.
 	21212	轮回	Timeline_UI_123	前世存档读取失败：	Could not load past lives: 
 	21213	轮回	Timeline_UI_124	前世存档写入失败，可点返回主菜单重试：	Could not save past lives. Return to the main menu to retry: 
@@ -289,9 +289,9 @@
 	21216	轮回	Timeline_UI_127	当前局保存失败：	Could not save this life: 
 	21217	轮回	Timeline_UI_128	继续轮回失败：	Could not resume this life: 
 	21218	轮回	Timeline_UI_129	战斗进行中 · 世界时间暂停	Battle in Progress · World Paused
-	21219	轮回	Timeline_UI_130	通关：天选击败最终 Boss	Victory: The Chosen defeated the final boss
+	21219	轮回	Timeline_UI_130	通关：无名客击败最终 Boss	Victory: The Nameless defeated the final boss
 	21220	轮回	Timeline_UI_131	失败：仪式完成，世界毁灭	Defeat: The ritual destroyed the world
-	21221	轮回	Timeline_UI_132	结束：本世角色杀死天选	Run ended: The current cultivator killed the Chosen
+	21221	轮回	Timeline_UI_132	结束：本世角色杀死无名客	Run ended: The current cultivator killed the Nameless
 	21222	轮回	Timeline_UI_133	观察中	Observing
 	21223	轮回	Timeline_UI_134	已改命	Fate Changed
 	21224	轮回	Timeline_UI_135	死亡	Dead
@@ -302,7 +302,7 @@
 	21229	轮回	Timeline_UI_140	突破升级 · 	Breakthrough · 
 	21230	轮回	Timeline_UI_141	奇遇 · 	Encounter · 
 	21231	轮回	Timeline_UI_142	死亡 · 	Death · 
-	21232	轮回	Timeline_UI_143	加入天选队伍	Joined the Chosen
+	21232	轮回	Timeline_UI_143	与无名客同行	Joined the Nameless
 	21233	轮回	Timeline_UI_144	击败最终 Boss，仪式重置 · 	Final boss defeated, ritual reset · 
 	21234	轮回	Timeline_UI_145	灭世仪式完成	Ritual Completed
 	21235	轮回	Timeline_UI_146	终结最终 Boss，世界通关	Final boss defeated, realm saved
@@ -362,14 +362,14 @@
 	21289	轮回	Timeline_UI_DetailLifespan	寿元耗尽	Lifespan exhausted
 	21290	轮回	Timeline_UI_DetailBacklash	仪式反噬	Ritual backlash
 	21291	轮回	Timeline_UI_DetailDestroyed	世界毁灭	World destroyed
-	21292	轮回	Timeline_UI_DetailChosenVictory	天选击败最终 Boss	The Chosen defeated the final boss
-	21293	轮回	Timeline_UI_DetailPlayerKilledChosen	本世修士杀死天选	The current cultivator killed the Chosen
+	21292	轮回	Timeline_UI_DetailChosenVictory	无名客击败最终 Boss	The Nameless defeated the final boss
+	21293	轮回	Timeline_UI_DetailPlayerKilledChosen	本世修士杀死无名客	The current cultivator killed the Nameless
 	21294	轮回	Timeline_UI_DetailStoryDelay	剧情驻留	Story delay
 	21295	轮回	Timeline_UI_DetailWait	等待	Wait
 	21296	轮回	Timeline_UI_DetailMove	移动	Travel
 	21297	轮回	Timeline_UI_DetailCultivate	修炼	Cultivate
 	21298	轮回	Timeline_UI_DetailDisguise	伪装守关	Disguise as Guardian
-	21299	轮回	Timeline_UI_DetailJoinChosen	加入天选	Join the Chosen
+	21299	轮回	Timeline_UI_DetailJoinChosen	与无名客同行	Join the Nameless
 	21300	轮回	Timeline_UI_DetailLevel	第 {0} 层	Level {0}
 	21301	轮回	Timeline_UI_DetailDeadline	截止第 {0} 年	Deadline: Year {0}
 	21302	轮回	Timeline_UI_DetailAbsorbed	气血 +{0}，攻击 +{1}	HP +{0}, attack +{1}

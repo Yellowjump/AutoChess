@@ -8,6 +8,7 @@ using Procedure;
 using SelfEventArg;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Pool;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -37,9 +38,12 @@ public class MainTitlePanelCtrl : UIFormLogic
     private Button _btnStart;
     [SerializeField]
     private Button _btnSetting;
-    [SerializeField, FormerlySerializedAs("_btnTestHotFixing")]
-    private Button _btnWorldTimeline;
+    [SerializeField, FormerlySerializedAs("_btnWorldTimeline"), FormerlySerializedAs("_btnTestHotFixing")]
+    private Button _btnReplayOpening;
     private WorldTimelineDebugView worldTimeline;
+    [SerializeField] private OpeningCinematic openingCinematicPrefab;
+    private OpeningCinematic openingCinematic;
+    private bool restoreDebugger;
     [SerializeField] private Transform mTransSetting;
     [SerializeField] private Slider mVolumeMasterSlider;
     [SerializeField] private Slider mVolumeBgmSlider;
@@ -60,7 +64,8 @@ public class MainTitlePanelCtrl : UIFormLogic
         _btnContinue.onClick.AddListener(OnClickContinueBtn);
         _btnStart.onClick.AddListener(OnClickStartBtn);
         _btnSetting.onClick.AddListener(OnClickSettingBtn);
-        _btnWorldTimeline.gameObject.SetActive(false);
+        if (_btnReplayOpening != null)
+            _btnReplayOpening.onClick.AddListener(OnClickReplayOpening);
         mLanguageDropDown.ClearOptions();
         var stringList = ListPool<string>.Get();
         stringList.Add(GameEntry.Localization.GetString(EnumLanguage.Language_Chinese));
@@ -135,6 +140,12 @@ public class MainTitlePanelCtrl : UIFormLogic
         GameEntry.Event.Subscribe(OpenUIFormFailureEventArgs.EventId, OnTimelineFormFailed);
         var hasData = WorldTimelineDebugView.HasUnfinishedRun;
         _btnContinue.gameObject.SetActive(hasData);
+        if (_btnReplayOpening != null)
+        {
+            _btnReplayOpening.gameObject.SetActive(openingCinematicPrefab != null);
+            _btnReplayOpening.GetComponentInChildren<TMP_Text>(true).text =
+                currentLanguage == Language.English ? "Watch Opening" : "观看开场";
+        }
         GameEntry.UI.CloseUIForm(UICtrlName.LoadingPanel);
         mTransSetting.gameObject.SetActive(false);
     }
@@ -156,9 +167,15 @@ public class MainTitlePanelCtrl : UIFormLogic
         mTransSetting.gameObject.SetActive(!mTransSetting.gameObject.activeSelf);
     }
 
+    private void OnClickReplayOpening()
+    {
+        HotGameEntry.Sound.PlayUISound((int)EnumSound.BtnSfx);
+        if (worldTimeline == null) TryPlayOpeningCinematic();
+    }
+
     private void OpenWorldTimeline(bool resume)
     {
-        if (worldTimeline != null) return;
+        if (worldTimeline != null || openingCinematic != null) return;
         // MonoBehaviour implicitly converts to bool; name userData to select the data overload.
         WorldTimelineDebugView.OpenMapHud = view => GameEntry.UI.OpenUIForm(UICtrlName.WorldTimelinePanel, "top", userData: view);
         WorldTimelineDebugView.OpenPreparation = view => GameEntry.UI.OpenUIForm(UICtrlName.WorldTimelinePreparation, "top", userData: view);
@@ -179,7 +196,8 @@ public class MainTitlePanelCtrl : UIFormLogic
         }
         if (worldTimeline.IsReady)
         {
-            if (!resume) WorldTimelineDebugView.OpenPreparation?.Invoke(worldTimeline);
+            if (!resume && !(worldTimeline.PreparationHistoryCount == 0 && !WorldTimelineDebugView.HasUnfinishedRun &&
+                TryPlayOpeningCinematic(EnterNewTimeline))) EnterNewTimeline();
         }
         else
         {
@@ -188,12 +206,60 @@ public class MainTitlePanelCtrl : UIFormLogic
         }
     }
 
+    private bool TryPlayOpeningCinematic(System.Action onComplete = null)
+    {
+        if (openingCinematicPrefab == null || openingCinematic != null) return false;
+
+        var sound = HotGameEntry.Sound;
+        var bgm = sound.GetSoundGroup("BGM");
+        var sfx = sound.GetSoundGroup("Sfx");
+        openingCinematic = Instantiate(openingCinematicPrefab);
+        if (openingCinematic.TryPlay(currentLanguage == Language.English,
+            bgm == null || bgm.Mute ? 0 : sound.MasterVolume * bgm.Volume,
+            sfx == null || sfx.Mute ? 0 : sound.MasterVolume * sfx.Volume,
+            () =>
+            {
+                openingCinematic = null;
+                RestoreDebugger();
+                sound.PlayMusic(ProcedureTitle.TitleMusic);
+                onComplete?.Invoke();
+            }))
+        {
+            var debugger = HotGameEntry.Debugger;
+            restoreDebugger = debugger != null && debugger.ActiveWindow;
+            if (restoreDebugger) debugger.ActiveWindow = false;
+            EventSystem.current?.SetSelectedGameObject(null);
+            sound.StopMusic();
+            return true;
+        }
+
+        openingCinematic.Cancel();
+        openingCinematic = null;
+        return false;
+    }
+
+    private void EnterNewTimeline()
+    {
+        if (worldTimeline != null)
+            WorldTimelineDebugView.OpenPreparation?.Invoke(worldTimeline);
+    }
+
+    private void RestoreDebugger()
+    {
+        if (!restoreDebugger) return;
+        restoreDebugger = false;
+        var debugger = HotGameEntry.Debugger;
+        if (debugger != null) debugger.ActiveWindow = true;
+    }
+
     private void OnTimelineFormOpened(object sender, GameEventArgs args)
     {
         var opened = (OpenUIFormSuccessEventArgs)args;
         if (worldTimeline == null || !ReferenceEquals(opened.UserData, worldTimeline)) return;
         if (opened.UIForm.Logic is WorldTimelinePreparationCtrl || opened.UIForm.Logic is WorldTimelinePanelCtrl)
+        {
             Visible = false;
+        }
     }
 
     private void OnTimelineFormFailed(object sender, GameEventArgs args)
@@ -207,6 +273,9 @@ public class MainTitlePanelCtrl : UIFormLogic
     {
         GameEntry.Event.Unsubscribe(OpenUIFormSuccessEventArgs.EventId, OnTimelineFormOpened);
         GameEntry.Event.Unsubscribe(OpenUIFormFailureEventArgs.EventId, OnTimelineFormFailed);
+        if (openingCinematic != null) openingCinematic.Cancel();
+        openingCinematic = null;
+        RestoreDebugger();
         if (worldTimeline != null) Destroy(worldTimeline.gameObject);
         worldTimeline = null;
         base.OnClose(isShutdown, userData);

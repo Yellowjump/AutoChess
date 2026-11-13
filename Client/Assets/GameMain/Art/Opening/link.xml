@@ -1,0 +1,11 @@
+<linker>
+  <!-- The opening Timeline is reached through the title AssetBundle. -->
+  <assembly fullname="Unity.Timeline" preserve="all" />
+  <assembly fullname="UnityEngine.DirectorModule">
+    <type fullname="UnityEngine.Playables.PlayableDirector" preserve="all" />
+  </assembly>
+  <assembly fullname="UnityEngine.VideoModule">
+    <type fullname="UnityEngine.Video.VideoClip" preserve="all" />
+    <type fullname="UnityEngine.Video.VideoPlayer" preserve="all" />
+  </assembly>
+</linker>
