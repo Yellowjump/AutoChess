@@ -13,15 +13,21 @@ namespace WorldTimelineDebug
         [Serializable]
         private sealed class Checkpoint
         {
-            public int version = 23, round, item, selectedNode, year, health, attack, level;
+            public const int LatestVersion = 49;
+            public int version = LatestVersion, round, item, selectedNode, year, health, attack, level;
+            public bool openingMap, openingPrompt;
+            public int openingChoice;
             public bool ended;
             public bool hasLifespanCutoff;
             public int lifespanThroughYear;
             public int battleRewardsFromYear;
+            public int regionalGuardiansFromYear;
+            public int outerGuardiansFromYear;
             public long spiritStones;
             public bool hasLegacyTradeCutoff;
             public int legacyTradeThroughYear;
-            public string histories;
+            public string histories, balanceRunId;
+            public ChosenRouteStage[] chosenRoute;
             public List<CheckpointAction> actions = new List<CheckpointAction>();
             public List<CheckpointStoryChoice> storyChoices = new List<CheckpointStoryChoice>();
         }
@@ -37,7 +43,17 @@ namespace WorldTimelineDebug
         private sealed class CheckpointAction
         {
             public const int GrantNativeItem = -2;
-            public int kind, years, target;
+            public const int EnableExpedition = -3, RecruitCompanion = -4, PlaceCompanion = -5, BenchCompanion = -6;
+            public const int EnableMapProgression = -7;
+            public const int EnableCompanionStages = -8;
+            public const int EnableVanguard = -9;
+            public const int EnableTeamEquipment=-10, EquipTeamItem=-11, UnequipTeamItem=-12,
+                UseTeamItem=-13, ClaimTeamReward=-14;
+            public const int EnableArtifacts=-15, EquipArtifact=-16, BuyArtifact=-17, UpgradeArtifact=-18, EventUpgrade=-19;
+            public const int EquipArtifactSixSlots=-20;
+            public int kind, years, target, atBattle, atService;
+            public CheckpointAction(int command, int value, int cell)
+            { kind = command; target = value; years = cell; }
             public CheckpointAction(int itemId, int count)
             {
                 kind = GrantNativeItem;
@@ -68,6 +84,54 @@ namespace WorldTimelineDebug
         private Checkpoint checkpoint;
 
 #if UNITY_EDITOR
+        public static void ClearSaves()
+        {
+            if (FindFirstObjectByType<WorldTimelineDebugView>() != null)
+                throw new InvalidOperationException("请先返回标题页，再清空轮回存档。");
+
+            string checkpointPath = CheckpointPath;
+            string historyPath = SavePath;
+            string suffix = ".reset-" + Guid.NewGuid().ToString("N");
+            string stagedCheckpoint = checkpointPath + suffix;
+            string stagedHistory = historyPath + suffix;
+
+            // Move both files out of their active slots before deleting either one.
+            bool movedCheckpoint = StageSaveForDeletion(checkpointPath, stagedCheckpoint);
+            try
+            {
+                StageSaveForDeletion(historyPath, stagedHistory);
+            }
+            catch
+            {
+                if (movedCheckpoint) File.Move(stagedCheckpoint, checkpointPath);
+                throw;
+            }
+
+            DeleteStagedSave(stagedCheckpoint);
+            DeleteStagedSave(stagedHistory);
+        }
+
+        private static bool StageSaveForDeletion(string path, string stagedPath)
+        {
+            try
+            {
+                File.Move(path, stagedPath);
+                return true;
+            }
+            catch (FileNotFoundException) { return false; }
+            catch (DirectoryNotFoundException) { return false; }
+        }
+
+        private static void DeleteStagedSave(string path)
+        {
+            try { File.Delete(path); }
+            catch (DirectoryNotFoundException) { }
+            catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+            {
+                Debug.LogWarning($"已清空游戏使用的轮回存档，但删除暂存文件失败：{path}\n{error}");
+            }
+        }
+
         public bool TryGrantNativeItem(int itemId, int count)
         {
             if (itemId <= 0 || count < 1 || count > 99 || advancing || preparing ||
@@ -103,7 +167,8 @@ namespace WorldTimelineDebug
                 {
                     if (!File.Exists(CheckpointPath)) return false;
                     var data = JsonUtility.FromJson<Checkpoint>(File.ReadAllText(CheckpointPath));
-                    return data != null && data.version >= 1 && data.version <= 23 && !data.ended && !string.IsNullOrEmpty(data.histories);
+                    return data != null && data.version >= 1 && data.version <= Checkpoint.LatestVersion &&
+                        !data.ended && !string.IsNullOrEmpty(data.histories);
                 }
                 catch (Exception error) when (error is IOException || error is ArgumentException || error is UnauthorizedAccessException)
                 { return false; }
@@ -112,14 +177,28 @@ namespace WorldTimelineDebug
 
         private void BeginCheckpoint()
         {
-            if (returnToMenu == null || IsRestoringCheckpoint) return;
-            var histories = library.Where(entry => entry.Selected).Take(10)
-                .Select(entry => new SavedLife(1, entry.Record)).ToArray();
+            balanceConfigVersion = GetBalanceConfigVersion();
+            if (IsRestoringCheckpoint) return;
+            if (returnToMenu == null)
+            {
+                StartBalanceLog(Guid.NewGuid().ToString("N"), false);
+                return;
+            }
+            var histories = simulation.Histories.Select(history => new SavedLife(1, history.Record)).ToArray();
             checkpoint = new Checkpoint { round = round, item = startingCultivator.Item,
+                chosenRoute = activeChosenRoute,
+                balanceRunId = Guid.NewGuid().ToString("N"),
                 battleRewardsFromYear = simulation.State.BattleRewardsFromYear,
                 hasLifespanCutoff = true,
                 histories = Convert.ToBase64String(WorldTimelineSaveStore.Encode(histories)) };
+            if (Expedition != null) checkpoint.actions.Add(new CheckpointAction(CheckpointAction.EnableExpedition, 0, 0));
+            if (Expedition?.ProgressionEnabled == true) checkpoint.actions.Add(new CheckpointAction(CheckpointAction.EnableMapProgression, 0, 0));
+            if (Expedition?.CompanionStagesEnabled == true) checkpoint.actions.Add(new CheckpointAction(CheckpointAction.EnableCompanionStages, 0, 0));
+            if (Expedition?.VanguardEnabled == true) checkpoint.actions.Add(new CheckpointAction(CheckpointAction.EnableVanguard, 0, 0));
+            if (Expedition?.Equipment.Enabled == true) checkpoint.actions.Add(new CheckpointAction(
+                Expedition.Equipment.Modern?CheckpointAction.EnableArtifacts:CheckpointAction.EnableTeamEquipment,0,0));
             SaveCheckpoint();
+            StartBalanceLog(checkpoint.balanceRunId, false);
         }
 
         private bool SaveCheckpoint()
@@ -130,7 +209,12 @@ namespace WorldTimelineDebug
             {
                 var player = simulation.State.Actors[simulation.State.PlayerActorId];
                 checkpoint.selectedNode = selectedNode;
+                checkpoint.openingMap = openingMap;
+                checkpoint.openingPrompt = openingPrompt;
+                checkpoint.openingChoice = openingChoice;
                 checkpoint.year = simulation.State.Year;
+                checkpoint.regionalGuardiansFromYear = simulation.State.RegionalGuardiansFromYear;
+                checkpoint.outerGuardiansFromYear = simulation.State.OuterGuardiansFromYear;
                 checkpoint.health = player.Health;
                 checkpoint.attack = player.Attack;
                 checkpoint.level = player.Level;
@@ -160,8 +244,11 @@ namespace WorldTimelineDebug
                 var histories = WorldTimelineSaveStore.Decode(Convert.FromBase64String(data.histories));
                 if (data.actions == null || data.actions.Count > 100000 || data.round < 1)
                     throw new InvalidDataException("续玩存档行动数量或轮次无效。");
+                if (data.version >= 29 && data.chosenRoute == null)
+                    throw new InvalidDataException("续玩存档缺少无名客路线。");
                 startingCultivator = roster.Single(entry => entry.Item == data.item);
                 round = data.round;
+                openingChoice = data.openingChoice;
                 IsRestoringCheckpoint = true;
                 NewRound(histories.Select(entry => entry.Record), data.version >= 2,
                     data.storyChoices?.Select(choice => choice.ToChoice()), expandedExploration: data.version >= 3,
@@ -170,13 +257,25 @@ namespace WorldTimelineDebug
                     techniqueCombat: data.version >= 8, swordTrial: data.version >= 9, lightningRoute: data.version >= 10, battleExperience: data.version >= 11, lightningTrials: data.version >= 12, balancedLightningTrials: data.version >= 13, merchants: data.version >= 14,
                     linxiRoute: data.version >= 16, closeLinxiFormation: data.version >= 17,
                     eastRoute: data.version >= 18, northRoute: data.version >= 19, westRoute: data.version >= 20,
-                    snowRoute: data.version >= 21, gorgeRoute: data.version >= 22, tideRoute: data.version >= 23);
+                    snowRoute: data.version >= 21, gorgeRoute: data.version >= 22, tideRoute: data.version >= 23,
+                    blackfangPounce: data.version >= 24, whitefoamSalvage: data.version >= 25, gorgeBrace: data.version >= 26,
+                    ashridgeStory: data.version >= 27, contractPostRoute: data.version >= 28,
+                    useConfiguredChosenRoute: data.version >= 29, chosenRouteOverride: data.chosenRoute,
+                    useOpeningMap: data.openingMap, characterStories: data.version >= 31, regionalExploration: data.version >= 32,
+                    sluiceCampaign: data.version >= 33, northRelay: data.version >= 34, legacyAttack: data.version < 35,
+                    caveRegions: data.version >= 36, contractStory: data.version >= 37, northRelaySpring: data.version >= 38,
+                    sluiceDrainsBoss: data.version >= 39, saltChannel: data.version >= 40, expandedMap: data.version >= 41,
+                    expandedMapEncounters: data.version >= 42);
                 int cutoff = data.hasLifespanCutoff ? data.lifespanThroughYear : data.year;
                 if (cutoff < 0 || cutoff > data.year)
                     throw new InvalidDataException("续玩存档的旧寿元结算截止年份无效。");
                 simulation.State.LegacyLifespanDeathThroughYear = cutoff;
                 simulation.State.BattleRewardsFromYear = data.battleRewardsFromYear > 0
                     ? data.battleRewardsFromYear : int.MaxValue;
+                simulation.State.RegionalGuardiansFromYear = data.regionalGuardiansFromYear > 0
+                    ? data.regionalGuardiansFromYear : int.MaxValue;
+                simulation.State.OuterGuardiansFromYear = data.outerGuardiansFromYear > 0
+                    ? data.outerGuardiansFromYear : int.MaxValue;
                 int tradeCutoff = data.hasLegacyTradeCutoff ? data.legacyTradeThroughYear
                     : data.version < 15 ? data.year : -1;
                 if (tradeCutoff < -1 || tradeCutoff > data.year)
@@ -188,6 +287,27 @@ namespace WorldTimelineDebug
                 data.lifespanThroughYear = cutoff;
                 foreach (var step in data.actions)
                 {
+                    if (step.kind <= CheckpointAction.EnableExpedition && step.kind >= CheckpointAction.EquipArtifactSixSlots)
+                    {
+                        if(step.atService!=0)
+                        {
+                            if(step.atService<=equipmentServiceNumber || step.atBattle!=0 ||
+                                step.kind is not (CheckpointAction.BuyArtifact or CheckpointAction.UpgradeArtifact or CheckpointAction.EventUpgrade))
+                                throw new InvalidDataException("商人或事件升级顺序无效。");
+                            replayEquipmentServices.Add(step);continue;
+                        }
+                        if (step.atBattle != 0)
+                        {
+                            if (step.atBattle <= expeditionBattleNumber || step.kind is not (CheckpointAction.PlaceCompanion or CheckpointAction.BenchCompanion or CheckpointAction.ClaimTeamReward))
+                                throw new InvalidDataException("续玩存档的战前布阵顺序无效。");
+                            if(step.kind==CheckpointAction.ClaimTeamReward)replayTeamRewards.Add(step);
+                            else replayFormations.Add(step);
+                            continue;
+                        }
+                        if (!ApplyExpeditionCommand(step.kind, step.target, step.years))
+                            throw new InvalidDataException("续玩存档的招募或布阵记录无效。");
+                        continue;
+                    }
                     if (step.kind == CheckpointAction.GrantNativeItem)
                     {
                         if (step.target <= 0 || step.years < 1 || step.years > 99)
@@ -200,7 +320,7 @@ namespace WorldTimelineDebug
                         : simulation.SubmitPlayerActionRoutine(step.ToAction()));
                 }
                 var player = simulation.State.Actors[simulation.State.PlayerActorId];
-                if (simulation.State.Year != data.year || player.Health != data.health
+                if (replayEquipmentServices.Count!=0 || replayFormations.Count != 0 || replayTeamRewards.Count!=0 || simulation.State.Year != data.year || player.Health != data.health
                     || player.Attack != data.attack || player.Level != data.level
                     || player.LegacySpiritStones != data.spiritStones || simulation.State.IsEnded)
                     throw new InvalidDataException("存档演算结果不一致，可能是配置或战斗规则已变化。");
@@ -211,15 +331,51 @@ namespace WorldTimelineDebug
                     simulation.State.BattleRewardsFromYear = data.battleRewardsFromYear;
                 }
                 selectedNode = data.selectedNode;
+                if (data.regionalGuardiansFromYear <= 0)
+                    simulation.State.RegionalGuardiansFromYear = checked(data.year + 1);
+                if (data.outerGuardiansFromYear <= 0)
+                    simulation.State.OuterGuardiansFromYear = checked(data.year + 1);
                 if (!simulation.State.Nodes.ContainsKey(selectedNode)) throw new InvalidDataException("存档节点无效。");
                 archived = savedLives.Any(entry => entry.Round == round);
                 checkpoint = data;
+                if (Expedition == null && player.IsAlive && player.NodeId.HasValue && !simulation.State.PlayerControlEnded)
+                {
+                    simulation.State.EnableExpedition();
+                    checkpoint.actions.Add(new CheckpointAction(CheckpointAction.EnableExpedition, 0, 0));
+                }
+                if (Expedition != null && !Expedition.ProgressionEnabled && !simulation.State.PlayerControlEnded)
+                {
+                    EnableMapProgression();
+                    checkpoint.actions.Add(new CheckpointAction(CheckpointAction.EnableMapProgression, 0, 0));
+                }
+                openingPrompt = data.openingMap && data.openingPrompt;
+                if (Expedition != null && !Expedition.CompanionStagesEnabled && !simulation.State.PlayerControlEnded)
+                {
+                    EnableCompanionStages();
+                    checkpoint.actions.Add(new CheckpointAction(CheckpointAction.EnableCompanionStages, 0, 0));
+                }
+                if (!Guid.TryParseExact(data.balanceRunId, "N", out _))
+                {
+                    data.balanceRunId = Guid.NewGuid().ToString("N");
+                }
+                if (Expedition != null && !Expedition.VanguardEnabled && !simulation.State.PlayerControlEnded)
+                {
+                    EnableVanguard();
+                    checkpoint.actions.Add(new CheckpointAction(CheckpointAction.EnableVanguard, 0, 0));
+                }
+                if(Expedition!=null && !Expedition.Equipment.Modern && !simulation.State.PlayerControlEnded)
+                {
+                    Expedition.Equipment.EnableArtifacts();
+                    checkpoint.actions.Add(new CheckpointAction(CheckpointAction.EnableArtifacts,0,0));
+                }
                 preparing = false;
                 if (simulation.Stories != null) simulation.Stories.InteractivePlayer = true;
                 InitializeBoard();
+                ShowOpeningMap();
                 OpenMapHud?.Invoke(this);
                 if (simulation.Stories != null && !UsesStoryHud) OpenStoryHud?.Invoke(this);
                 message = TimelineText("Timeline_UI_Resumed", simulation.State.Year);
+                StartBalanceLog(data.balanceRunId, true);
                 return true;
             }
             catch (Exception error)

@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<!-- unity-dashboard-base -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>世界时间线 · 养成调参</title>
+<style>
+:root{color-scheme:dark;--bg:#121814;--card:#1b241e;--edge:#38483c;--muted:#b7c4b8;--accent:#92e4b1}
+*{box-sizing:border-box}body{margin:0 auto;max-width:1420px;padding:28px;font:15px/1.55 system-ui,sans-serif;background:var(--bg);color:#eff7ef}
+h1,h2,h3,p{margin:0 0 12px}h1{font-size:30px}h2{font-size:21px}h3{font-size:16px}p,small{color:var(--muted)}
+header,section{background:var(--card);border:1px solid var(--edge);padding:20px;margin:0 0 16px;border-radius:12px}
+.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center}button,select,input{font:inherit}button,select{border:1px solid var(--edge);border-radius:6px;background:#293a30;color:inherit;padding:5px 10px}button{cursor:pointer}button:hover,button:focus-visible{border-color:var(--accent)}
+.scroll{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:8px;border-bottom:1px solid var(--edge);white-space:nowrap}th{color:var(--muted)}td button{width:100%;text-align:left}
+svg{display:block;width:100%;min-width:520px;height:auto}svg text{fill:var(--muted);font-size:12px}svg line{stroke:var(--edge)}svg .curve{fill:none;stroke:var(--accent);stroke-width:2}
+details{border-bottom:1px solid var(--edge);padding:7px 0}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted)}a{color:var(--accent)}
+</style>
+<header>
+<h1>世界时间线 · 养成调参</h1>
+<p>导入 Unity Console 中「养成日志目录」下的多个 JSONL。分析在本机完成，续档片段使用同一局 ID。</p>
+<p>配置表 · <a href="../Client/Assets/GameMain/Data/DataTables/CultivationLevel.txt">升级经验</a> ·
+<a href="../Client/Assets/GameMain/Data/DataTables/OuterLocations.txt">地图与野怪</a> ·
+<a href="../Client/Assets/GameMain/Data/DataTables/StoryEvent.txt">事件</a> ·
+<a href="../Client/Assets/GameMain/Data/DataTables/StoryOption.txt">选项奖励</a> ·
+<a href="../Client/Assets/GameMain/Data/DataTables/StoryItem.txt">物品</a></p>
+<div class="controls">
+<label>选择日志 <input id="files" type="file" multiple accept=".jsonl,.ndjson,.txt"></label>
+<label>数值版本 <select id="version"></select></label>
+<label>最低样本量 <input id="min" type="number" min="1" value="3" style="width:4.5em"></label>
+<button id="clear">清空</button>
+</div>
+<p id="status" role="status">等待导入日志。</p>
+</header>
+<main id="report" hidden>
+<section><h2>升级耗时曲线</h2><p>按游戏内年计。折线是已完成升级的中位数，短竖线是 P25–P75。未完成的等级停留单列。</p><div id="curve" class="scroll"></div><div id="levels" class="scroll"></div></section>
+<section><h2>野怪翻车热力图</h2><p>行是遭遇，列是角色入场等级。每局同一遭遇取首次已结算样本。灰色表示低于最低样本量。</p><div id="heat" class="scroll"></div></section>
+<section><h2>低养成平推榜</h2><p>低养成为背包只含开局已有物品、功法最高一阶。平推为获胜且战斗结算时剩余生命至少为最大生命的 75%，榜单只显示平推率达 80% 的组合。按遭遇与入场等级分别比较。</p><div id="easy" class="scroll"></div></section>
+<section><h2>地图灵气与奖励</h2><p>地图按节点聚合。经验来自实际入账记录，奖励保留发放来源和配置 ID。</p><div id="economy" class="scroll"></div></section>
+<section id="detail" tabindex="-1"><h2>样本详情</h2><p>点击曲线或任意统计行查看。</p><div id="drill"></div></section>
+</main>
+<!-- unity-dashboard-logs -->
+<script>
+"use strict";
+const byId = id => document.getElementById(id);
+const el = (tag, content) => {
+  const node = document.createElement(tag);
+  if (content !== undefined) node.textContent = content;
+  return node;
+};
+const entries = new Map();
+let invalid = 0;
+const group = (rows, key) => {
+  const groups = new Map();
+  for (const row of rows) {
+    const k = key(row);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(row);
+  }
+  return groups;
+};
+const sum = (rows, fn) => rows.reduce((total, row) => total + fn(row), 0);
+const pct = (n, d) => d ? Math.round(n / d * 100) + "%" : "—";
+const quantile = (values, q) => {
+  if (!values.length) return null;
+  const ordered = [...values].sort((a, b) => a - b);
+  const position = (ordered.length - 1) * q;
+  const lower = Math.floor(position);
+  return ordered[lower] + (ordered[Math.ceil(position)] - ordered[lower]) * (position - lower);
+};
+const number = n => n == null ? "—" : Number(n.toFixed(2)).toString();
+const nodeName = row => (row.nodeName ? row.nodeName + " " : "") + "#" + row.nodeId +
+  (row.locationConfigId ? " · 地图表 #" + row.locationConfigId : "");
+const encounter = row => [row.nodeId, row.source, row.trialStage].join("/");
+const encounterName = row => nodeName(row) + " · " +
+  ({ monster:"野怪", guardian:"守卫", trial:"试炼 " + row.trialStage }[row.source] ?? row.source);
+const sourceName = source => ({ cultivation:"地图修炼", battle:"战斗", story:"事件",
+  merchant:"商人", treasure:"宝物", guardian_loot:"守卫掉落" }[source] ?? source ?? "其他");
+const segmentKey = row => row.runId + "/" + row.segmentId;
+const hpRatio = row => row.maxHp > 0 ? row.battleHp / row.maxHp : 0;
+const isWin = row => row.outcome === "win";
+const isEasy = row => isWin(row) && hpRatio(row) >= .75;
+function button(label, action) {
+  const item = el("button", label);
+  item.type = "button";
+  item.addEventListener("click", action);
+  return item;
+}
+function table(target, titles, rows) {
+  if (!rows.length) { target.replaceChildren(el("p", "暂无符合条件的样本。")); return; }
+  const result = el("table");
+  const head = result.createTHead().insertRow();
+  for (const title of titles) head.append(el("th", title));
+  const body = result.createTBody();
+  for (const row of rows) {
+    const line = body.insertRow();
+    for (const value of row) {
+      const cell = line.insertCell();
+      if (value instanceof Node) cell.append(value);
+      else cell.textContent = value;
+    }
+  }
+  target.replaceChildren(result);
+}
+function expand(title, content) {
+  const d = el("details");
+  d.append(el("summary", title), content);
+  return d;
+}
+function eventLabel(row) {
+  if (row.type === "battle") return encounterName(row) + " · " + (isWin(row) ? "胜" : "负") +
+    " · 敌生命 " + row.enemyHealth + " / 攻击 " + row.enemyAttack + " / 数量 " + row.enemyCount +
+    " · 我方剩余 " + row.battleHp + "/" + row.maxHp;
+  if (row.type === "reward") return sourceName(row.source) + "奖励" +
+    (row.eventId ? " · " + (row.eventName || "事件") + " #" + row.eventId + " / 选项 #" + row.optionId : "") +
+    " · 经验 +" + row.experienceGain + " · 物品 " + ((row.items ?? []).join(", ") || "无") +
+    (row.spiritStonesDelta ? " · 灵石 " + row.spiritStonesDelta : "");
+  if (row.type === "experience") return sourceName(row.source) + " · 经验 +" + row.experienceGain;
+  if (row.type === "level_up") return "突破 " + row.previousLevel + " → " + row.level;
+  if (row.type === "Arrived") return "到达 " + nodeName(row);
+  return row.type + (row.source ? " · " + row.source : "");
+}
+function raw(row) {
+  return expand("第 " + row.year + " 年 · " + eventLabel(row), el("pre", JSON.stringify(row, null, 2)));
+}
+function drill(title, samples, selectEvents, summary) {
+  const pane = byId("drill");
+  pane.replaceChildren(el("h3", title));
+  if (summary) pane.append(el("p", summary));
+  for (const sample of samples) {
+    const content = el("div");
+    const events = selectEvents(sample);
+    if (events.length > 1 && events.at(-1).year > events[0].year)
+      content.append(drawTimeline(events));
+    for (const row of events) content.append(raw(row));
+    pane.append(expand(sample.runId.slice(0, 8) + " / " + sample.segmentId.slice(0, 6) +
+      " · 第 " + sample.year + " 年 · " + eventLabel(sample), content));
+  }
+  if (samples.length === 1) pane.querySelector("details").open = true;
+  byId("detail").focus();
+  byId("detail").scrollIntoView({block:"start"});
+}
+function levelStays(segments) {
+  const stays = [];
+  for (const rows of segments.values()) {
+    let start = rows.find(row => row.type === "run_started" || row.type === "run_resumed");
+    if (!start) continue;
+    let partial = start.type === "run_resumed";
+    let activity = [];
+    let ended = false;
+    const firstIndex = rows.indexOf(start);
+    for (let index = firstIndex + 1; index < rows.length; index++) {
+      const row = rows[index];
+      activity.push(row);
+      if (row.type === "level_up" && row.previousLevel === start.level) {
+        stays.push({ start, end:row, activity, duration:row.year - start.year, partial, complete:true });
+        start = row;
+        partial = false;
+        activity = [];
+      } else if (row.type === "Died" || row.type === "run_finished") {
+        const after = rows.slice(index + 1).filter(event => event.year === row.year);
+        stays.push({ start, end:row, activity:[...activity, ...after], complete:false, partial });
+        ended = true;
+        break;
+      }
+    }
+    if (!ended) stays.push({ start, end:rows.at(-1), activity, complete:false, partial });
+  }
+  return stays;
+}
+function svgNode(name, attributes, content) {
+  const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+  for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
+  if (content !== undefined) node.textContent = content;
+  return node;
+}
+function drawTimeline(events) {
+  const svg = svgNode("svg", { viewBox:"0 0 850 195", role:"img",
+    "aria-label":"累计经验与地图灵气时间线" });
+  const first = events[0], last = events.at(-1);
+  const x = year => 55 + (year - first.year) * 760 / (last.year - first.year);
+  const xpRange = Math.max(1, last.experience - first.experience);
+  const qiRange = Math.max(1, ...events.map(row => row.qi || 0));
+  const yXp = row => 80 - 55 * (row.experience - first.experience) / xpRange;
+  const yQi = row => 155 - 48 * row.qi / qiRange;
+  const path = (rows, y) => rows.map((row, i) =>
+    (i ? "H" + x(row.year) + " V" : "M" + x(row.year) + ",") + y(row)).join(" ");
+  svg.append(svgNode("text", {x:55,y:16}, "累计经验 " + first.experience + " → " + last.experience),
+    svgNode("text", {x:55,y:101}, "地图灵气 · 最高 " + qiRange),
+    svgNode("path", {d:path(events, yXp),class:"curve"}));
+  const positions = events.filter(row => row.type === "Arrived" || row.type === "year_snapshot" ||
+    row.type === "run_started" || row.type === "run_resumed" || row.type === "ActionStarted");
+  const points = [{...first}, ...positions, {...(positions.at(-1) ?? first), year:last.year}];
+  svg.append(svgNode("path", {d:path(points, yQi),class:"curve",style:"stroke:#d9b569"}));
+  for (const row of events.filter(row => row.type === "reward" || row.type === "battle")) {
+    const mark = svgNode("circle", {cx:x(row.year),cy:yXp(row),r:4,fill:row.type === "reward" ? "#d9b569" : "#e88f86"});
+    mark.append(svgNode("title", {}, eventLabel(row)));
+    svg.append(mark);
+  }
+  svg.append(svgNode("text", {x:55,y:180}, "第 " + first.year + " 年"),
+    svgNode("text", {x:815,y:180,"text-anchor":"end"}, "第 " + last.year + " 年"));
+  return svg;
+}
+function drawCurve(data, open) {
+  const target = byId("curve");
+  target.replaceChildren();
+  if (!data.some(row => row.values.length)) return;
+  const svg = svgNode("svg", { viewBox:"0 0 850 225", role:"img", "aria-label":"各等级升级耗时曲线" });
+  const max = Math.max(1, ...data.flatMap(row => row.values));
+  const x = i => 50 + i * 775 / Math.max(data.length - 1, 1);
+  const y = value => 185 - value * 155 / max;
+  for (let i = 0; i <= 4; i++) {
+    const value = i * max / 4;
+    svg.append(svgNode("line", {x1:50, x2:825, y1:y(value), y2:y(value)}),
+      svgNode("text", {x:5, y:y(value) + 4}, number(value)));
+  }
+  let path = "";
+  let previous = false;
+  for (const [i, row] of data.entries()) {
+    svg.append(svgNode("text", {x:x(i), y:211, "text-anchor":"middle"}, row.level));
+    if (!row.values.length) { previous = false; continue; }
+    const middle = y(quantile(row.values, .5));
+    path += (previous ? " L" : " M") + x(i) + "," + middle;
+    previous = true;
+    svg.append(svgNode("line", {x1:x(i), x2:x(i), y1:y(quantile(row.values, .25)),
+      y2:y(quantile(row.values, .75)), style:"stroke:#d9b569;stroke-width:3"}));
+    const point = svgNode("circle", {cx:x(i), cy:middle, r:6, fill:"#92e4b1", tabindex:0,
+      role:"button", "aria-label":row.level + "级升级详情", style:"cursor:pointer"});
+    point.addEventListener("click", () => open(row));
+    point.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(row); } });
+    svg.append(point);
+  }
+  svg.prepend(svgNode("path", {d:path, class:"curve"}));
+  target.append(svg);
+}
+function render() {
+  const all = [...entries.values()];
+  const versions = [...new Set(all.map(row => row.configVersion))].sort();
+  const select = byId("version");
+  const selected = select.value;
+  select.replaceChildren(...versions.map(version => {
+    const option = el("option", version);
+    option.value = version;
+    return option;
+  }));
+  if (versions.includes(selected)) select.value = selected;
+  const rows = all.filter(row => row.configVersion === select.value);
+  const segments = group(rows, segmentKey);
+  for (const segment of segments.values()) segment.sort((a, b) => a.seq - b.seq);
+  const resolved = new Set(rows.filter(row => row.type === "battle").map(row => row.battleId));
+  const incomplete = rows.filter(row => row.type === "battle_started" && !resolved.has(row.battleId));
+  byId("status").textContent = all.length
+    ? "当前版本 " + new Set(rows.map(row => row.runId)).size + " 局 / " + segments.size +
+      " 段 / " + rows.length + " 条记录 · 未结算战斗 " + incomplete.length + " · 跳过无效行 " + invalid
+    : "暂无可用日志 · 跳过无效行 " + invalid;
+  byId("report").hidden = !rows.length;
+  if (!rows.length) return;
+  const minimum = Math.max(1, Number(byId("min").value) || 1);
+  const stays = levelStays(segments);
+  const levels = [...group(stays.filter(stay => stay.start.thresholds?.length
+      ? stay.start.level < stay.start.thresholds.length
+      : !stay.start.level || segments.get(segmentKey(stay.start))[0].thresholds?.length > stay.start.level),
+    stay => stay.start.level)].map(([level, samples]) => ({
+    level, samples, values:samples.filter(stay => stay.complete && !stay.partial).map(stay => stay.duration)
+  })).sort((a, b) => a.level - b.level);
+  function openLevel(row) {
+    const byStart = new Map(row.samples.map(stay => [stay.start, stay]));
+    drill(row.level + " → " + (row.level + 1) + " 级", [...byStart.keys()],
+      start => [start, ...byStart.get(start).activity],
+      "续档首段单独计算。单笔经验按入账前等级归类。展开可查看节点灵气、经验来源、战斗与奖励。");
+  }
+  drawCurve(levels, openLevel);
+  table(byId("levels"), ["等级", "经验门槛", "中位耗时（年）", "已完成", "未完成", "续档首段", "经验 / 年", "经验来源"], levels.map(row => {
+    const complete = row.samples.filter(stay => stay.complete && !stay.partial);
+    const xp = row.samples.filter(stay => !stay.partial).flatMap(stay => stay.activity).filter(e => e.type === "experience");
+    const years = sum(complete, stay => stay.duration);
+    const completeXp = sum(complete, stay => sum(stay.activity.filter(e => e.type === "experience"), e => e.experienceGain));
+    const thresholds = new Set(row.samples.map(stay => segments.get(segmentKey(stay.start))[0].thresholds?.[row.level - 1]).filter(n => n != null));
+    return [button(row.level + " → " + (row.level + 1), () => openLevel(row)), [...thresholds].join(" / ") || "—",
+      number(quantile(row.values, .5)), complete.length,
+      row.samples.filter(stay => !stay.complete && !stay.partial).length,
+      row.samples.filter(stay => stay.partial).length, years ? number(completeXp / years) : "—",
+      [...group(xp, e => e.source)].map(([key, events]) => sourceName(key) + " " + sum(events, e => e.experienceGain)).join(" / ") || "—"];
+  }));
+  const starts = new Map(rows.filter(row => row.type === "run_started").map(row => [row.runId, row]));
+  const battles = rows.filter(row => row.type === "battle").sort((a, b) => a.year - b.year || (a.segmentStartedUtc ?? "").localeCompare(b.segmentStartedUtc ?? "") || a.seq - b.seq);
+  const first = [...group(battles, row => row.runId + "/" + encounter(row)).values()].map(matches => matches[0]);
+  const battleLevels = [...new Set(first.map(row => row.level))].sort((a, b) => a - b);
+  function openBattles(title, samples) {
+    const winners = samples.filter(isWin);
+    const remaining = quantile(winners.map(hpRatio), .5);
+    const summary = "胜率 " + pct(winners.length, samples.length) + " · 胜局剩余生命中位数 " +
+      (remaining == null ? "—" : pct(remaining, 1)) + " · 战斗耗时中位数 " +
+      number(quantile(samples.map(row => row.durationMs ?? 0), .5) / 1000) + " 秒。";
+    drill(title, samples, battle => segments.get(segmentKey(battle)).filter(row =>
+      row === battle || row.battleId === battle.battleId || (row.type === "reward" &&
+      row.year === battle.year && row.nodeId === battle.nodeId)),
+    summary + "有地图表 ID 时可到 OuterLocations 查配置行。自动生成和动态试炼的遭遇按节点坐标、试炼阶段及实际入场属性查询。");
+  }
+  table(byId("heat"), ["野怪 / 节点配置", ...battleLevels.map(level => level + " 级")],
+    [...group(first, encounter).values()].map(matches => [encounterName(matches[0]), ...battleLevels.map(level => {
+      const samples = matches.filter(row => row.level === level);
+      if (!samples.length) return "—";
+      const losses = samples.filter(row => !isWin(row)).length;
+      const cell = button(pct(losses, samples.length) + " · " + losses + "/" + samples.length,
+        () => openBattles(encounterName(matches[0]) + " · 入场 " + level + " 级", samples));
+      if (samples.length >= minimum) cell.style.background = "hsl(" + (135 - 135 * losses / samples.length) + " 48% 24%)";
+      return cell;
+    })]));
+  function lowGrowth(battle) {
+    const start = starts.get(battle.runId);
+    if (!start) return false;
+    const initial = [...(start.items ?? [])];
+    for (const item of battle.items ?? []) {
+      const index = initial.indexOf(item);
+      if (index < 0) return false;
+      initial.splice(index, 1);
+    }
+    return (battle.techniqueRanks ?? []).every(rank => rank <= 1);
+  }
+  const easyGroups = [...group(first, row => encounter(row) + "/" + row.level).values()].map(matches => {
+    const low = matches.filter(lowGrowth);
+    const other = matches.filter(row => starts.has(row.runId) && !lowGrowth(row));
+    return { matches, low, other, easy:low.filter(isEasy).length };
+  }).filter(row => row.low.length >= minimum && row.easy / row.low.length >= .8)
+    .sort((a, b) => b.easy / b.low.length - a.easy / a.low.length || b.low.length - a.low.length);
+  table(byId("easy"), ["遭遇", "入场", "低养成样本", "低养成胜率", "低养成平推率", "胜局剩余生命中位数", "其他养成胜率"],
+    easyGroups.map(({matches, low, other, easy}) => [
+      button(encounterName(matches[0]), () => openBattles(encounterName(matches[0]), matches)),
+      matches[0].level, low.length, pct(low.filter(isWin).length, low.length), pct(easy, low.length),
+      pct(quantile(low.filter(isWin).map(hpRatio), .5), 1), pct(other.filter(isWin).length, other.length) + " · " + other.length]));
+  const economy = rows.filter(row => row.nodeId >= 0 && (row.type === "Arrived" || row.type === "reward" ||
+    row.type === "run_started" || row.type === "run_resumed" || (row.type === "experience" && row.source === "cultivation")));
+  table(byId("economy"), ["节点", "灵气", "修炼年数", "修炼经验", "奖励记录", "奖励经验", "物品 ID"],
+    [...group(economy, row => row.nodeId).values()].map(events => {
+      const cultivation = events.filter(row => row.type === "experience");
+      const rewards = events.filter(row => row.type === "reward");
+      return [button(nodeName(events[0]), () => drill(nodeName(events[0]), events, row => [row])),
+        [...new Set(events.map(row => row.qi))].join(" / "), cultivation.length,
+        sum(cultivation, row => row.experienceGain), rewards.length,
+        sum(rewards, row => row.experienceGain), [...new Set(rewards.flatMap(row => row.items ?? []))].join(", ") || "—"];
+    }));
+  byId("drill").replaceChildren();
+}
+async function importLogs(files) {
+  for (const file of files) {
+    try {
+      for (const line of (await file.text()).split(/\r?\n/)) {
+        if (!line.trim()) continue;
+        try {
+          const row = JSON.parse(line);
+          if (row?.schemaVersion !== 1 || typeof row.runId !== "string" ||
+            typeof row.segmentId !== "string" || typeof row.configVersion !== "string" ||
+            !Number.isInteger(row.seq) || !Number.isInteger(row.year) || !Number.isInteger(row.level) ||
+            !["items","techniqueRanks","thresholds"].every(key => row[key] == null || Array.isArray(row[key]))) {
+            invalid++;
+            continue;
+          }
+          entries.set(segmentKey(row) + "/" + row.seq, row);
+        } catch { invalid++; }
+      }
+    } catch { invalid++; }
+  }
+  render();
+}
+byId("files").addEventListener("change", async event => {
+  const files = [...event.target.files];
+  event.target.value = "";
+  await importLogs(files);
+});
+byId("version").addEventListener("change", render);
+byId("min").addEventListener("change", render);
+byId("clear").addEventListener("click", () => { entries.clear(); invalid = 0; render(); });
+const unityLogs = byId("unity-logs");
+if (unityLogs) {
+  const decoder = new TextDecoder();
+  const snapshots = unityLogs.textContent.trim().split(/\s+/).filter(Boolean);
+  importLogs(snapshots.map(data => ({
+    text: async () => decoder.decode(Uint8Array.from(atob(data), byte => byte.charCodeAt(0)))
+  })));
+}
+</script>
+</html>

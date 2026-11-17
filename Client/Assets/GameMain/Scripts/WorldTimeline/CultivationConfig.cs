@@ -101,8 +101,29 @@ namespace WorldTimeline
                 var range = GetLevel(i).Range(attribute, grade);
                 min = checked(min + range.Min); max = checked(max + range.Max);
             }
+            // Attack increments can overlap. Keep the total above the lower grade's best roll.
+            if (attribute == GrowthAttribute.Attack && grade != TalentGrade.C)
+            {
+                int lowerMax = 0;
+                for (int i = 1; i <= level; i++)
+                    lowerMax = checked(lowerMax + GetLevel(i).Range(attribute, grade + 1).Max);
+                min = Math.Max(min, checked(lowerMax + 1));
+            }
             return new AttributeRange(min, max);
         }
+
+        internal int GrowAttack(int attack, AttributeTalent talent, int level) => Math.Max(
+            checked(attack + GetLevel(level).Range(GrowthAttribute.Attack, talent.Grade).SampleAtLevel(talent, level)),
+            CumulativeRange(level, GrowthAttribute.Attack, talent.Grade).Min);
+
+        public CultivationConfig WithLegacyAttackRanges() => FromRows(Levels.SelectMany(level =>
+            ((GrowthAttribute[])Enum.GetValues(typeof(GrowthAttribute))).Select(attribute =>
+                new CultivationGrowthRow(level.Level, level.ExperienceToNext, attribute,
+                    attribute != GrowthAttribute.Attack
+                        ? ((TalentGrade[])Enum.GetValues(typeof(TalentGrade))).Select(grade => level.Range(attribute, grade)).ToArray()
+                        : level.Level == 1
+                            ? new[] { new AttributeRange(90, 100), new AttributeRange(70, 80), new AttributeRange(50, 60), new AttributeRange(30, 40) }
+                            : new[] { new AttributeRange(90, 100), new AttributeRange(80, 91), new AttributeRange(70, 81), new AttributeRange(60, 71) }))));
 
         // CSV parsing is retained for test fixtures. Runtime configuration uses typed data-table rows.
         public static CultivationConfig ParseCsv(string csv)
@@ -159,6 +180,10 @@ namespace WorldTimeline
             }
             if (levels.Count == 0) throw new FormatException("Growth table is empty.");
             var config = new CultivationConfig(levels);
+            for (int grade = 0; grade < 3; grade++)
+                if (levels[0].Range(GrowthAttribute.Attack, (TalentGrade)grade).Min <=
+                    levels[0].Range(GrowthAttribute.Attack, (TalentGrade)(grade + 1)).Max)
+                    throw new FormatException("Birth attack ranges must keep higher talent grades strictly ahead.");
             foreach (var level in levels)
                 foreach (GrowthAttribute attribute in Enum.GetValues(typeof(GrowthAttribute)))
                     for (int grade = 0; grade < 3; grade++)

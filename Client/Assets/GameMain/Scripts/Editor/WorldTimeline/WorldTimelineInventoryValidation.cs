@@ -47,7 +47,9 @@ public static class WorldTimelineInventoryValidation
                     session=prep.Session;session.SelectPreparationCharacter(0);Click(prep,"begin");break;
                 case 2:
                     var hud=Object.FindFirstObjectByType<WorldTimelinePanelCtrl>();if(hud==null||!hud.Available)return;
-                    Click(hud,"equipment");break;
+                    // This editor-only legacy regression opens the retired screen directly.
+                    GameEntry.UI.OpenUIForm(UICtrlName.WorldTimelineInventory,"tips",userData:session);
+                    break;
                 case 3:
                     if(Inventory?.Session==null)return;
                     Check(session.InventoryOpen&&!Object.FindFirstObjectByType<WorldTimelinePanelCtrl>().CanInteractWithMap,"装备界面阻止地图误操作");

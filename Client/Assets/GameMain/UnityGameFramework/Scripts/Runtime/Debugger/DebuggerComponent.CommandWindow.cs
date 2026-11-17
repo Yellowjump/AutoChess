@@ -45,6 +45,9 @@ namespace UnityGameFramework.Runtime
             protected override void OnDrawScrollableWindow()
             {
                 GUILayout.Label("<b>Command</b>");
+#if UNITY_EDITOR
+                DrawTimelineCommands();
+#endif
                 GUILayout.BeginVertical("box");
                 {
                     GUILayout.BeginHorizontal();
@@ -165,6 +168,12 @@ namespace UnityGameFramework.Runtime
                         PreviewMonster("试招：归墟阵主·无名碑", global::Entity.TimelineMonsterAnimation.NamelessSteleAppearance);
                         GUILayout.EndHorizontal();
 
+                        GUILayout.BeginHorizontal();
+                        PreviewMonster("试招：盐针三叩", "SaltspineEel");
+                        PreviewMonster("试招：断索拖步", "RopeApe");
+                        PreviewMonster("试招：借梁坠击", "CliffKite");
+                        GUILayout.EndHorizontal();
+
                         void PreviewMonster(string label, string appearance)
                         {
                             if (GUILayout.Button(label) &&
@@ -219,6 +228,27 @@ namespace UnityGameFramework.Runtime
                 }
                 GUILayout.EndVertical();
             }
+
+#if UNITY_EDITOR
+            private static void DrawTimelineCommands()
+            {
+                var title = GameEntry.UI.GetUIForm(UICtrlName.MainTitlePanel)?.Logic as MainTitlePanelCtrl;
+                bool guiEnabled = GUI.enabled;
+                bool canPreview = title != null && title.CanPreviewCinematics;
+                GUI.enabled = guiEnabled && canPreview;
+                if (GUILayout.Button("观看开场") && !title.TryPreviewCinematic(ending: false))
+                    Debug.LogWarning("开场 CG 播放失败，请检查开场资源。");
+                if (GUILayout.Button("通关 CG") && !title.TryPreviewCinematic(ending: true))
+                    Debug.LogWarning("通关 CG 播放失败，请检查通关演出资源。");
+                bool canClear = title != null && title.CanClearWorldTimelineSaves;
+                GUI.enabled = guiEnabled && canClear;
+                bool requested = GUILayout.Button("清空轮回存档");
+                GUI.enabled = guiEnabled;
+                if (requested) title.ConfirmClearWorldTimelineSaves();
+                if (!canClear) GUILayout.Label("回到标题页可预览 CG 或清空轮回存档。");
+            }
+#endif
+
             private int RemoveNonIntegerCharactersAndConvertToInt(string text)
             {
                 // 移除所有非整数字符，保留负号

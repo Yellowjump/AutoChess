@@ -16,6 +16,111 @@ internal static partial class WorldSimulationTests
         new[] { new StoryItem { Id = 91, Name = "残剑", Description = "攻击提升", AttackBonus = 12, CombatAttackPercent = 15 } });
     private static void RunStoryTests()
     {
+        Run("Salt channel replay drains the shared arena and awards its art once", () =>
+        {
+            const string clue = "salt_channel_clue";
+            var unlock = new StoryOption { Id = 4801, EventId = 48, Condition = StoryCondition.FlagSetAndUnset,
+                Flag = clue, SetFlag = SaltChannel.DrainedFlag };
+            var config = new StoryConfig(
+                new[]
+                {
+                    new StoryDefinition { Id = 46, NodeId = SaltChannel.Ditch },
+                    new StoryDefinition { Id = 48, NodeId = SaltChannel.Drain, Repeatable = true },
+                    new StoryDefinition { Id = 49, NodeId = SaltChannel.Head, Repeatable = true }
+                },
+                new[]
+                {
+                    new StoryOption { Id = 4601, EventId = 46, SetFlag = clue }, unlock,
+                    new StoryOption { Id = 4802, EventId = 48, Condition = StoryCondition.FlagSet, Flag = SaltChannel.DrainedFlag },
+                    new StoryOption { Id = 4803, EventId = 48 },
+                    new StoryOption { Id = 4901, EventId = 49, ItemId = SaltChannel.RewardItemId },
+                    new StoryOption { Id = 4902, EventId = 49 }
+                },
+                new[] { new StoryItem { Id = SaltChannel.RewardItemId } });
+
+            WorldSimulation Setup(int playerStart)
+            {
+                var state = new WorldState(1);
+                foreach (var pair in HexWorldMap.Create()) state.Nodes.Add(pair.Key, pair.Value);
+                foreach (var node in state.Nodes.Values) { node.MonsterHealth = 0; node.Items.Clear(); }
+                state.Nodes[SaltChannel.Beach].SetGuardianGroup(2, 48, 7);
+                state.Nodes[SaltChannel.Head].MonsterHealth = 185;
+                state.Nodes[SaltChannel.Head].MonsterAttack = 16;
+                state.Actors.Add(1, new ActorState(1, playerStart, 500, 100, 100));
+                var sim = new WorldSimulation(state);
+                sim.ConfigureStories(config);
+                return sim;
+            }
+
+            var history = Setup(SaltChannel.Spring);
+            Check(history.Stories.UnavailableReason(history.State.Actors[1], unlock) != null,
+                "The spillway requires the tally");
+            history.SubmitPlayerAction(WorldAction.Move(SaltChannel.Ditch));
+            history.SubmitPlayerAction(WorldAction.Move(SaltChannel.Beach));
+            history.SubmitPlayerAction(WorldAction.Move(SaltChannel.Drain));
+            Check(history.State.SaltChannelDrained && history.RecordPlayerLife().StoryChoices.Any(c => c.OptionId == 4801),
+                "Opening the spillway records the choice and drains the world");
+
+            var replay = Setup(HexWorldMap.Id(5, -6));
+            replay.AddHistory(history.RecordPlayerLife(), 10);
+            replay.SubmitPlayerAction(WorldAction.Wait(3));
+            Check(replay.State.SaltChannelDrained && replay.State.Nodes[SaltChannel.Head].MonsterHealth == 185,
+                "The archived character drains the spillway while the full-health boss still guards the channel");
+            replay.SubmitPlayerAction(WorldAction.Move(SaltChannel.Head));
+            Check(replay.State.Actors[1].Items.Contains(SaltChannel.RewardItemId) &&
+                replay.Stories.ClaimedItems.Contains(SaltChannel.RewardItemId), "Defeating the beast grants the passive art");
+            replay.SubmitPlayerAction(WorldAction.Move(HexWorldMap.Id(5, -6)));
+            replay.SubmitPlayerAction(WorldAction.Move(SaltChannel.Head));
+            Check(replay.RecordPlayerLife().StoryChoices.Count(c => c.OptionId == 4901) == 1,
+                "Returning after taking the reward does not award it again");
+
+            var bypass = Setup(HexWorldMap.Id(5, -6));
+            bypass.SubmitPlayerAction(WorldAction.Move(SaltChannel.Head));
+            Check(!bypass.State.SaltChannelDrained && bypass.State.Actors[1].Items.Contains(SaltChannel.RewardItemId),
+                "The direct route still grants the same reward");
+        });
+        Run("Replayed story choice weakens the guardian for later arrivals", () =>
+        {
+            const string flag = "gorge_braced";
+            var brace = new StoryOption
+            {
+                Id = 11, EventId = 1, Condition = StoryCondition.FlagUnset, Flag = flag,
+                SetFlag = flag, HealthCost = 12, Hint = "卸石桩不可用"
+            };
+            var config = new StoryConfig(
+                new[] { new StoryDefinition { Id = 1, NodeId = 3 } },
+                new[] { brace, new StoryOption { Id = 12, EventId = 1 } },
+                Array.Empty<StoryItem>());
+
+            WorldSimulation Setup(IEnumerable<RecordedStoryChoice> choices = null)
+            {
+                var sim = Create();
+                sim.State.Actors.Remove(2);
+                sim.State.Nodes[2].MonsterHealth = 20;
+                sim.State.Nodes[2].MonsterAttack = 15;
+                sim.ConfigureStories(config, replayPlayerChoices: choices);
+                sim.Stories.WeakenGuardianOnFlag(flag, 2, 7);
+                return sim;
+            }
+
+            var source = Setup(new[] { new RecordedStoryChoice(1, 1, 11) });
+            source.SubmitPlayerAction(WorldAction.Move(3));
+            Check(source.State.Actors[1].Health == 88 && source.State.Nodes[2].MonsterAttack == 8,
+                "The choice charges HP once and changes the guardian's shared attack");
+            Check(source.Stories.UnavailableReason(source.State.Actors[1], brace) == brace.Hint,
+                "The same brace cannot be set twice");
+
+            var replay = Setup();
+            replay.AddHistory(source.RecordPlayerLife(), 10);
+            replay.SubmitPlayerAction(WorldAction.Move(2, 2));
+            Check(replay.State.Actors[1].Health == 92, "The later player fights the weaker guardian");
+            Check(replay.State.Actors[10].Health == 88, "Only the actor setting the brace pays the cost");
+
+            var cleared = Setup();
+            cleared.State.Nodes[2].MonsterHealth = 0;
+            Check(cleared.Stories.UnavailableReason(cleared.State.Actors[1], brace) == brace.Hint,
+                "Clearing the pass disables the repair choice");
+        });
         Run("Merchant purchases survive save replay and recheck each historical purchase", () =>
         {
             var config = new StoryConfig(
@@ -184,17 +289,19 @@ internal static partial class WorldSimulationTests
             var next = Create(); next.ConfigureStories(StoryFixture());
             Check(!next.Stories.Flags.Contains("opened") && next.Stories.ClaimedItems.Count == 0, "Each run starts a fresh world");
         });
-        Run("Old version one lives remain readable", () =>
+        Run("Older life records remain readable", () =>
         {
             var source = Create(); source.SubmitPlayerAction(WorldAction.Wait());
             var bytes = WorldTimelineSaveStore.Encode(new[] { new SavedLife(1, source.RecordPlayerLife()) });
-            // V2 has no guardian death marker; V1 also has no empty story-choice count.
-            foreach (int version in new[] { 2, 1 })
+            // Optional story milestones, guardian death and choices are removed newest first.
+            foreach (int version in new[] { 7, 6, 5, 4, 3, 2, 1 })
             {
-                Array.Resize(ref bytes, bytes.Length - (version == 2 ? 1 : 4));
+                Array.Resize(ref bytes, bytes.Length - (version == 1 || version == 7 ? 4 : 1));
                 bytes[4] = (byte)version;
                 var record = WorldTimelineSaveStore.Decode(bytes).Single().Record;
-                Check(record.StoryChoices.Count == 0 && record.EndYear == 1, "Backward-compatible legacy reader");
+                Check(record.StoryChoices.Count == 0 && record.EndYear == 1 &&
+                    !record.RitualBreakYear.HasValue && !record.SluiceOpeningYear.HasValue &&
+                    !record.NorthRelayRestoredYear.HasValue, "Backward-compatible legacy reader");
             }
         });
         Run("Interactive and checkpoint replay produce same story effects", () =>
@@ -204,6 +311,177 @@ internal static partial class WorldSimulationTests
             var replay = Create(); replay.ConfigureStories(StoryFixture(delay: 1), 91, false, interactive.RecordPlayerLife().StoryChoices);
             replay.SubmitPlayerAction(WorldAction.Move(3));
             Check(Signature(interactive) == Signature(replay), "Identical annual events, choices and state on restore");
+        });
+        Run("Sluice opening records the living cultivator and takes effect when replayed", () =>
+        {
+            var original = Create(attack: 100);
+            original.ConfigureStories(StoryFixture(), replayPlayerChoices: new[] { new RecordedStoryChoice(1, 1, 11) });
+            original.Stories.ConfigureSluiceOpening(11);
+            Check(!original.RecordCompletedLife(), "Cannot archive before opening the sluice");
+            original.SubmitPlayerAction(WorldAction.Move(3));
+            Check(original.State.SluiceOpening == (1, 1) && original.WaitingForPlayer, "Opening preserves player control");
+            original.SubmitPlayerAction(WorldAction.Wait());
+            Check(original.RecordCompletedLife() && original.State.Outcome == RunOutcome.LifeRecorded,
+                "Player can end their life record after continuing to explore");
+            var record = WorldTimelineSaveStore.Decode(WorldTimelineSaveStore.Encode(
+                new[] { new SavedLife(1, original.RecordPlayerLife()) })).Single().Record;
+            Check(record.SluiceOpeningYear == 1 && record.EndYear == 2 && !record.EndedInDeath, "Archive preserves both dates and survival");
+
+            var replay = Create(attack: 100);
+            replay.ConfigureStories(StoryFixture());
+            replay.Stories.ConfigureSluiceOpening(11);
+            replay.AddHistory(record, 10);
+            Check(replay.State.SluiceOpening == null, "A recorded opening does not affect the new world before replay");
+            replay.SubmitPlayerAction(WorldAction.Wait());
+            Check(replay.State.SluiceOpening == (10, 1) && !replay.RecordCompletedLife(),
+                "History opens at the recorded time, without ending the current player's life");
+        });
+        Run("The sluice exposes the boss after replay and keeps the ward drained after a reset", () =>
+        {
+            WorldSimulation Setup(bool drainsBoss)
+            {
+                var sim = CreateRitual(110, 50, bossHealth: 650, bossAttack: 65);
+                sim.ConfigureStories(StoryFixture(), replayPlayerChoices: new[] { new RecordedStoryChoice(1, 1, 11) });
+                sim.Stories.ConfigureSluiceOpening(11, drainsBoss);
+                return sim;
+            }
+
+            var source = Setup(true);
+            source.SubmitPlayerAction(WorldAction.Move(3));
+            Check(source.State.Nodes[4].MonsterHealth == 227, "Opening drains the ward from the final encounter");
+            var replay = Setup(true);
+            replay.AddHistory(source.RecordPlayerLife(), 10);
+            Check(replay.State.Nodes[4].MonsterHealth == 650, "An archive does not drain the ward in advance");
+            replay.SubmitPlayerAction(WorldAction.Wait());
+            Check(replay.State.Nodes[4].MonsterHealth == 227, "The recorded opening drains the ward when replayed");
+            replay.SubmitPlayerAction(WorldAction.Move(4));
+            Check(replay.State.Ritual.ResetCount == 1 && replay.State.Nodes[4].MonsterHealth == 227,
+                "A ritual reset rebuilds only the exposed stele");
+
+            var damaged = Setup(true);
+            damaged.State.Nodes[4].MonsterHealth = 50;
+            damaged.SubmitPlayerAction(WorldAction.Move(3));
+            Check(damaged.State.Nodes[4].MonsterHealth == 50, "Opening never heals an already damaged stele");
+            var legacy = Setup(false);
+            legacy.SubmitPlayerAction(WorldAction.Move(3));
+            Check(legacy.State.SluiceOpening.HasValue && legacy.State.Nodes[4].MonsterHealth == 650,
+                "Legacy runs still record the sluice without changing the health pool");
+        });
+        Run("Restoring the north array weakens the boss only after the replayed deed", () =>
+        {
+            WorldSimulation Setup(IEnumerable<RecordedStoryChoice> choices = null)
+            {
+                var sim = CreateRitual(110, 50, bossAttack: 65);
+                sim.ConfigureStories(StoryFixture(), replayPlayerChoices: choices);
+                sim.Stories.ConfigureNorthRelayRestoration(11);
+                return sim;
+            }
+
+            var original = Setup(new[] { new RecordedStoryChoice(1, 1, 11) });
+            original.SubmitPlayerAction(WorldAction.Wait(6));
+            original.SubmitPlayerAction(WorldAction.Move(3));
+            Check(original.State.NorthRelayRestored == (1, 7) && original.State.Nodes[4].MonsterAttack == 52,
+                "Quest completion changes the actual final encounter attack");
+            Check(original.RecordCompletedLife(), "The surviving player can archive their completed route");
+            var record = WorldTimelineSaveStore.Decode(WorldTimelineSaveStore.Encode(
+                new[] { new SavedLife(1, original.RecordPlayerLife()) })).Single().Record;
+            Check(record.NorthRelayRestoredYear == 7 && !record.EndedInDeath, "Restoration year survives archive roundtrip");
+
+            var replay = Setup();
+            replay.AddHistory(record, 10);
+            replay.SubmitPlayerAction(WorldAction.Wait(6));
+            Check(!replay.State.NorthRelayRestored.HasValue && replay.State.Nodes[4].MonsterAttack == 65,
+                "A forecast has no combat effect");
+            replay.SubmitPlayerAction(WorldAction.Wait());
+            Check(replay.State.NorthRelayRestored == (10, 7) && replay.State.Nodes[4].MonsterAttack == 52 &&
+                !replay.RecordCompletedLife(), "History restores the array without ending the current life");
+            replay.SubmitPlayerAction(WorldAction.Move(4));
+            Check(replay.State.Ritual.ResetCount == 1 && replay.State.Nodes[4].MonsterAttack == 52,
+                "A ritual reset still uses the weakened boss attack");
+        });
+        Run("The restored spring heals the chosen only on arrival", () =>
+        {
+            WorldSimulation Setup()
+            {
+                var world = new WorldState(1);
+                for (int i = 1; i <= 5; i++) world.Nodes.Add(i, new NodeState(i));
+                world.Nodes[1].Links.UnionWith(new[] { 2, 3 });
+                world.Nodes[2].Links.Add(1);
+                world.Nodes[3].Links.Add(4);
+                world.Nodes[4].Links.Add(5);
+                world.Actors.Add(1, new ActorState(1, 1, 100, 100) { Health = 50 });
+                var sim = new WorldSimulation(world);
+                sim.ConfigureChosen(new ActorState(1000, 3, 100, 100) { Health = 20 },
+                    new[] { 3, 4, 5 }, yearsPerStep: 3);
+                sim.ConfigureFinalRitual(100, 20, 100);
+                var story = new StoryConfig(
+                    new[] { new StoryDefinition { Id = 1, NodeId = 2 } },
+                    new[] { new StoryOption { Id = 11, EventId = 1 } }, Array.Empty<StoryItem>());
+                sim.ConfigureStories(story);
+                sim.Stories.ConfigureNorthRelayRestoration(11, 4);
+                return sim;
+            }
+
+            var early = Setup();
+            early.SubmitPlayerAction(WorldAction.Move(2));
+            Check(early.State.Actors[1].Health == 50 && early.State.Actors[1000].Health == 20,
+                "Restoration itself does not heal either character");
+            early.SubmitPlayerAction(WorldAction.Wait(2));
+            Check(early.State.Actors[1000].Health == 100 &&
+                early.Events.Single(entry => entry.Kind == WorldEventKind.NorthRelaySpringUsed).Detail == "80",
+                "The chosen heals on arriving at the restored spring");
+
+            var late = Setup();
+            late.SubmitPlayerAction(WorldAction.Wait(3));
+            late.SubmitPlayerAction(WorldAction.Move(2));
+            Check(late.State.NorthRelayRestored.HasValue && late.State.Actors[1000].Health == 20 &&
+                !late.Events.Any(entry => entry.Kind == WorldEventKind.NorthRelaySpringUsed),
+                "Passing the dry spring grants no retroactive healing");
+        });
+        Run("Unrecorded revisits skip player-only story choices", () =>
+        {
+            var config = new StoryConfig(
+                new[] { new StoryDefinition { Id = 1, NodeId = 3 } },
+                new[] { new StoryOption { Id = 11, EventId = 1, Weight = 0, SetFlag = "restored" },
+                    new StoryOption { Id = 12, EventId = 1 } }, Array.Empty<StoryItem>());
+            var sim = Create();
+            sim.ConfigureStories(config);
+            sim.Stories.AllowOptionsOnRevisit(11);
+            sim.SubmitPlayerAction(WorldAction.Move(3));
+            sim.SubmitPlayerAction(WorldAction.Move(1));
+            sim.SubmitPlayerAction(WorldAction.Move(3));
+            Check(!sim.Stories.Flags.Contains("restored") && sim.RecordPlayerLife().StoryChoices.Count == 1,
+                "An unrecorded revisit cannot commit the player's special choice or interrupt the timeline");
+        });
+        Run("Revoked contract removes exactly one living guard when replayed", () =>
+        {
+            WorldSimulation Setup()
+            {
+                var sim = Create(attack: 100);
+                sim.State.Nodes[2].SetGuardianGroup(2, 210, 42);
+                sim.ConfigureStories(StoryFixture(), replayPlayerChoices: new[] { new RecordedStoryChoice(1, 1, 11) });
+                sim.Stories.ConfigureContractRevocation(11, 2);
+                return sim;
+            }
+            var source = Setup();
+            source.SubmitPlayerAction(WorldAction.Move(3, 2));
+            Check(source.State.ContractRevoked == (1, 2) && source.State.Nodes[2].GuardianCount == 1 &&
+                source.State.Nodes[2].MonsterHealth == 210 && source.RecordCompletedLife(), "Revocation leaves a single guard and permits living archive");
+            var record = WorldTimelineSaveStore.Decode(WorldTimelineSaveStore.Encode(
+                new[] { new SavedLife(1, source.RecordPlayerLife()) })).Single().Record;
+            Check(record.ContractRevokedYear == 2 && !record.EndedInDeath, "Revocation survives archive roundtrip");
+            var replay = Setup();
+            replay.AddHistory(record, 10);
+            replay.SubmitPlayerAction(WorldAction.Wait());
+            Check(replay.State.Nodes[2].GuardianCount == 2, "Forecast leaves both guards in place");
+            replay.SubmitPlayerAction(WorldAction.Wait());
+            Check(replay.State.ContractRevoked == (10, 2) && replay.State.Nodes[2].GuardianCount == 1 &&
+                !replay.RecordCompletedLife(), "Past life applies the effect without ending the current life");
+            var cleared = Setup();
+            cleared.State.Nodes[2].SetGuardianFormation(42, Array.Empty<int>());
+            cleared.SubmitPlayerAction(WorldAction.Move(3));
+            Check(cleared.State.ContractRevoked.HasValue && cleared.State.Nodes[2].GuardianCount == 0,
+                "Revoking a contract never repopulates a cleared gate");
         });
     }
 

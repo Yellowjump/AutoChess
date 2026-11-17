@@ -10,7 +10,7 @@
 	302	3	Timeline_StoryOption_302_Text	Always	0			1	9103	0	15	0	0	0		Timeline_StoryOption_302_Result
 	303	3	Timeline_StoryOption_303_Text	Always	0			2	0	0	0	0	5	0		Timeline_StoryOption_303_Result
 	401	4	Timeline_StoryOption_401_Text	Always	0			5	9101	0	0	0	0	0		Timeline_StoryOption_401_Result
-	402	4	Timeline_StoryOption_402_Text	Always	0			1	0	0	0	0	20	0		Timeline_StoryOption_402_Result
+	402	4	Timeline_StoryOption_402_Text	Always	0			1	0	0	0	0	10	0		Timeline_StoryOption_402_Result
 	501	5	Timeline_StoryOption_501_Text	FlagUnset	0	bridge_repaired	Timeline_StoryOption_501_Hint	4	0	0	10	0	12	1	bridge_repaired	Timeline_StoryOption_501_Result
 	502	5	Timeline_StoryOption_502_Text	FlagSet	0	bridge_repaired	Timeline_StoryOption_502_Hint	6	0	0	0	0	0	0		Timeline_StoryOption_502_Result
 	503	5	Timeline_StoryOption_503_Text	Always	0			1	0	0	0	0	0	2		Timeline_StoryOption_503_Result
@@ -52,3 +52,84 @@
 	2302	23	Timeline_Tide_Detour	Always	0			4	9168	0	0	0	0	2		Timeline_Tide_DetourResult
 	2303	23	Timeline_Tide_Leave	Always	0			1	0	0	0	0	0	0		Timeline_Tide_LeaveResult
 	2401	24	Timeline_Tide_Mark	Always	0			1	0	0	0	0	12	0		Timeline_Tide_MarkResult
+	2402	24	Timeline_Whitefoam_Align	HasItem	9169		Timeline_Whitefoam_PinNeeded	8	0	0	0	0	24	0		Timeline_Whitefoam_AlignResult
+	2501	25	Timeline_Whitefoam_Listen	HasItem	9168		Timeline_Whitefoam_ShellNeeded	8	9169	0	0	0	0	0		Timeline_Whitefoam_ListenResult
+	2502	25	Timeline_Whitefoam_Dive	Always	0			3	9169	0	28	0	0	0		Timeline_Whitefoam_DiveResult
+	2503	25	Timeline_Whitefoam_Wait	Always	0			3	9169	0	0	0	0	1		Timeline_Whitefoam_WaitResult
+	2504	25	Timeline_Whitefoam_Study	Always	0			1	0	0	0	0	8	0		Timeline_Whitefoam_StudyResult
+	2103	21	Timeline_Gorge_Brace	FlagUnset	0	gorge_braced	Timeline_Gorge_BraceHint	1	0	0	12	0	0	0	gorge_braced	Timeline_Gorge_BraceResult
+	2601	26	Timeline_Ashridge_ShowEmber	HasItem	9164		Timeline_Ashridge_EmberNeeded	6	9135	0	0	0	0	0		Timeline_Ashridge_ShowResult
+	2602	26	Timeline_Ashridge_Apprentice	Always	0			2	9135	0	0	0	0	1		Timeline_Ashridge_ApprenticeResult
+	2603	26	Timeline_Ashridge_Tinder	Always	0			2	9131	0	0	0	0	0		Timeline_Ashridge_TinderResult
+	2604	26	Timeline_Ashridge_Names	Always	0			1	0	0	0	0	8	0		Timeline_Ashridge_NamesResult
+	2701	27	Timeline_QiMo_Learn	HasItem	8111		Timeline_QiMo_NeedBrush	8	9146	0	0	0	0	0		Timeline_QiMo_LearnResult
+	2702	27	Timeline_QiMo_Study	Always	0			1	0	0	0	0	12	0		Timeline_QiMo_StudyResult
+	2801	28	Timeline_RelayStory_Chisel_Option	Always	0			1	0	0	0	0	0	0		Timeline_RelayStory_Chisel_Result
+	2901	29	Timeline_RelayStory_Trail_Option	Always	0			1	0	0	0	0	0	0		Timeline_RelayStory_Trail_Result
+	3001	30	Timeline_RelayStory_Ledger_Option	Always	0			1	0	0	0	0	0	0		Timeline_RelayStory_Ledger_Result
+	3101	31	Timeline_Exploration_Choice_3101	FlagUnset	0	border_kiln_copy		4	0	0	0	0	0	0	border_kiln_copy	Timeline_Exploration_Result_3101
+	3102	31	Timeline_Exploration_Choice_3102	Always	0			1	0	0	0	0	8	0		Timeline_Exploration_Result_3102
+	3201	32	Timeline_Exploration_Choice_3201	FlagSet	0	border_kiln_copy	Timeline_Exploration_1_Hint	4	9171	0	0	0	0	0		Timeline_Exploration_Result_3201
+	3202	32	Timeline_Exploration_Choice_3202	Always	0			1	0	0	0	30	0	1		Timeline_Exploration_Result_3202
+	3301	33	Timeline_Exploration_Choice_3301	FlagUnset	0	border_ferry_count		4	0	0	0	0	0	0	border_ferry_count	Timeline_Exploration_Result_3301
+	3302	33	Timeline_Exploration_Choice_3302	Always	0			1	0	0	0	0	8	0		Timeline_Exploration_Result_3302
+	3401	34	Timeline_Exploration_Choice_3401	FlagSet	0	border_ferry_count	Timeline_Exploration_2_Hint	4	9172	0	0	0	0	0		Timeline_Exploration_Result_3401
+	3402	34	Timeline_Exploration_Choice_3402	Always	0			1	0	0	0	36	0	1		Timeline_Exploration_Result_3402
+	3501	35	Timeline_Exploration_Choice_3501	FlagUnset	0	border_hearth_names		4	0	0	0	0	0	0	border_hearth_names	Timeline_Exploration_Result_3501
+	3502	35	Timeline_Exploration_Choice_3502	Always	0			1	0	0	0	30	0	1		Timeline_Exploration_Result_3502
+	3601	36	Timeline_Exploration_Choice_3601	FlagSet	0	border_hearth_names	Timeline_Exploration_3_Hint	4	9174	0	0	0	0	0		Timeline_Exploration_Result_3601
+	3602	36	Timeline_Exploration_Choice_3602	Always	0			1	0	0	0	0	18	0		Timeline_Exploration_Result_3602
+	3701	37	Timeline_Exploration_Choice_3701	FlagUnset	0	border_deed_return		4	0	0	0	0	0	0	border_deed_return	Timeline_Exploration_Result_3701
+	3702	37	Timeline_Exploration_Choice_3702	Always	0			1	0	0	0	0	8	0		Timeline_Exploration_Result_3702
+	3801	38	Timeline_Exploration_Choice_3801	FlagSet	0	border_deed_return	Timeline_Exploration_4_Hint	4	9175	0	0	0	0	0		Timeline_Exploration_Result_3801
+	3802	38	Timeline_Exploration_Choice_3802	Always	0			1	0	0	0	0	24	1		Timeline_Exploration_Result_3802
+	3901	39	Timeline_Exploration_Choice_3901	FlagUnset	0	border_patrol_banner		4	0	0	0	0	0	0	border_patrol_banner	Timeline_Exploration_Result_3901
+	3902	39	Timeline_Exploration_Choice_3902	Always	0			1	0	0	0	0	10	0		Timeline_Exploration_Result_3902
+	4001	40	Timeline_Exploration_Choice_4001	FlagSet	0	border_patrol_banner	Timeline_Exploration_5_Hint	4	9173	0	0	0	0	0		Timeline_Exploration_Result_4001
+	4002	40	Timeline_Exploration_Choice_4002	Always	0			1	0	0	0	42	0	1		Timeline_Exploration_Result_4002
+	4101	41	Timeline_Exploration_Choice_4101	FlagUnset	0	border_sluice_plan		4	0	0	0	0	0	0	border_sluice_plan	Timeline_Exploration_Result_4101
+	4102	41	Timeline_Exploration_Choice_4102	Always	0			1	0	0	0	45	0	1		Timeline_Exploration_Result_4102
+	4201	42	Timeline_Exploration_Choice_4201	FlagSet	0	border_sluice_plan	Timeline_Exploration_6_Hint	4	9176	0	0	0	0	0		Timeline_Exploration_Result_4201
+	4202	42	Timeline_Exploration_Choice_4202	Always	0			1	0	0	0	0	36	1		Timeline_Exploration_Result_4202
+	2902	29	Timeline_NorthRelay_CopyNames	Always	0			1	0	0	0	0	0	0	north_relay_trail_names	Timeline_NorthRelay_CopiedNames
+	4301	43	Timeline_NorthRelay_ReadNames	FlagSet	0	north_relay_trail_names	Timeline_NorthRelay_NeedTags	0	0	0	0	0	0	0	north_relay_roster	Timeline_NorthRelay_MatchedNames
+	4302	43	Timeline_NorthRelay_LeaveHut	Always	0			1	0	0	0	0	0	0		Timeline_NorthRelay_LeftHut
+	4401	44	Timeline_NorthRelay_CarveNames	FlagSet	0	north_relay_roster	Timeline_NorthRelay_NeedRoster	0	0	0	0	0	24	0		Timeline_NorthRelay_CarvedNames
+	4402	44	Timeline_NorthRelay_LeaveArray	Always	0			1	0	0	0	0	0	0		Timeline_NorthRelay_LeftArray
+	3002	30	Timeline_QiStory_Compare	HasItem	9146		Timeline_QiStory_NeedSeal	0	0	0	0	0	0	0	qi_contract_ledger	Timeline_QiStory_Compared
+	3003	30	Timeline_QiStory_Leave	Always	0			1	0	0	0	0	0	0		Timeline_QiStory_Left
+	4501	45	Timeline_QiStory_Withdraw	FlagSet	0	qi_contract_ledger	Timeline_QiStory_NeedLedger	0	0	0	0	0	24	0		Timeline_QiStory_Withdrawn
+	4502	45	Timeline_QiStory_Leave	Always	0			1	0	0	0	0	0	0		Timeline_QiStory_Left
+	4601	46	Timeline_Salt_DitchChoice	Always	0			1	0	0	0	0	0	0	salt_channel_clue	Timeline_Salt_DitchResult
+	4701	47	Timeline_Salt_BeachChoice	Always	0			1	0	0	0	0	0	0		Timeline_Salt_BeachResult
+	4801	48	Timeline_Salt_DrainChoice	FlagSetAndUnset	0	salt_channel_clue	Timeline_Salt_DrainHint	1	0	0	0	0	0	0	salt_channel_drained	Timeline_Salt_DrainResult
+	4802	48	Timeline_Salt_DryChoice	FlagSet	0	salt_channel_drained	Timeline_Salt_DryHint	1	0	0	0	0	0	0		Timeline_Salt_DryResult
+	4803	48	Timeline_Salt_Leave	Always	0			1	0	0	0	0	0	0		Timeline_Salt_LeaveResult
+	4901	49	Timeline_Salt_RewardChoice	Always	0			1	9180	0	0	0	0	0		Timeline_Salt_RewardResult
+	4902	49	Timeline_Salt_EmptyChoice	Always	0			1	0	0	0	0	0	0		Timeline_Salt_EmptyResult
+	5001	50	Timeline_ExpandedMap_Event_50_Choice	Always	0			1	0	0	0	0	8	0		Timeline_ExpandedMap_Event_50_Result
+	5101	51	Timeline_ExpandedMap_Event_51_Choice	Always	0			1	0	0	0	24	8	0		Timeline_ExpandedMap_Event_51_Result
+	5201	52	Timeline_ExpandedMap_Event_52_Choice	Always	0			1	0	0	0	18	10	0		Timeline_ExpandedMap_Event_52_Result
+	5301	53	Timeline_ExpandedMap_Event_53_Choice	Always	0			1	0	0	0	0	12	0		Timeline_ExpandedMap_Event_53_Result
+	5401	54	Timeline_ExpandedMap_Event_54_Choice	Always	0			1	0	0	0	0	18	0		Timeline_ExpandedMap_Event_54_Result
+	5501	55	Timeline_ExpandedMap_Event_55_Choice	Always	0			1	0	0	0	35	16	0		Timeline_ExpandedMap_Event_55_Result
+	5601	56	Timeline_ExpandedMap_Option_5601_Choice	Always	0			1	0	0	0	0	0	0	goose_spit_knots	Timeline_ExpandedMap_Option_5601_Result
+	6201	62	Timeline_ExpandedMap_Option_6201_Choice	FlagSet	0	goose_spit_knots	Timeline_ExpandedMap_Option_6201_Hint	0	9181	0	0	0	0	0		Timeline_ExpandedMap_Option_6201_Result
+	6202	62	Timeline_ExpandedMap_Option_6202_Choice	Always	0			1	0	0	0	18	7	0		Timeline_ExpandedMap_Option_6202_Result
+	5701	57	Timeline_ExpandedMap_Option_5701_Choice	Always	0			1	0	0	0	0	0	0	reed_flats_tide_marks	Timeline_ExpandedMap_Option_5701_Result
+	6301	63	Timeline_ExpandedMap_Option_6301_Choice	FlagSet	0	reed_flats_tide_marks	Timeline_ExpandedMap_Option_6301_Hint	0	9182	0	0	0	0	0		Timeline_ExpandedMap_Option_6301_Result
+	6302	63	Timeline_ExpandedMap_Option_6302_Choice	Always	0			1	0	0	0	0	16	0		Timeline_ExpandedMap_Option_6302_Result
+	5801	58	Timeline_ExpandedMap_Option_5801_Choice	Always	0			1	0	0	0	0	0	0	stone_bank_wedges	Timeline_ExpandedMap_Option_5801_Result
+	6401	64	Timeline_ExpandedMap_Option_6401_Choice	FlagSet	0	stone_bank_wedges	Timeline_ExpandedMap_Option_6401_Hint	0	9183	0	0	0	0	0		Timeline_ExpandedMap_Option_6401_Result
+	6402	64	Timeline_ExpandedMap_Option_6402_Choice	Always	0			1	0	0	0	32	10	1		Timeline_ExpandedMap_Option_6402_Result
+	5901	59	Timeline_ExpandedMap_Option_5901_Choice	Always	0			1	0	0	0	0	0	0	old_mooring_cargo	Timeline_ExpandedMap_Option_5901_Result
+	6501	65	Timeline_ExpandedMap_Option_6501_Choice	FlagSet	0	old_mooring_cargo	Timeline_ExpandedMap_Option_6501_Hint	0	9184	0	0	0	0	0		Timeline_ExpandedMap_Option_6501_Result
+	6502	65	Timeline_ExpandedMap_Option_6502_Choice	Always	0			1	0	0	0	12	18	0		Timeline_ExpandedMap_Option_6502_Result
+	6001	60	Timeline_ExpandedMap_Option_6001_Choice	Always	0			1	0	0	0	0	0	0	ridge_marker_rubbing	Timeline_ExpandedMap_Option_6001_Result
+	6601	66	Timeline_ExpandedMap_Option_6601_Choice	FlagSet	0	ridge_marker_rubbing	Timeline_ExpandedMap_Option_6601_Hint	0	9185	0	0	0	0	0		Timeline_ExpandedMap_Option_6601_Result
+	6602	66	Timeline_ExpandedMap_Option_6602_Choice	Always	0			1	0	0	0	0	26	0		Timeline_ExpandedMap_Option_6602_Result
+	6101	61	Timeline_ExpandedMap_Option_6101_Choice	Always	0			1	0	0	0	0	0	0	marsh_post_courier	Timeline_ExpandedMap_Option_6101_Result
+	6701	67	Timeline_ExpandedMap_Option_6701_Choice	FlagSet	0	marsh_post_courier	Timeline_ExpandedMap_Option_6701_Hint	0	9186	0	0	0	0	0		Timeline_ExpandedMap_Option_6701_Result
+	6702	67	Timeline_ExpandedMap_Option_6702_Choice	Always	0			1	0	0	0	38	14	0		Timeline_ExpandedMap_Option_6702_Result
+	6801	68	Timeline_ExpandedMap_Option_6801_Choice	Always	0			0	0	0	25	0	48	1		Timeline_ExpandedMap_Option_6801_Result
+	6802	68	Timeline_ExpandedMap_Option_6802_Choice	Always	0			1	0	0	0	45	12	0		Timeline_ExpandedMap_Option_6802_Result

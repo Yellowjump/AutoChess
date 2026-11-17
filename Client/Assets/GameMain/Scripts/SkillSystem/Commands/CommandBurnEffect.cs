@@ -14,6 +14,7 @@ namespace SkillSystem
         public override CommandType CurCommandType => CommandType.BurnEffect;
         public Effect Mode;
         public TableParamInt Param;
+        private int minimumDetonationLayers;
 
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
@@ -45,7 +46,8 @@ namespace SkillSystem
                     }
                     break;
                 case Effect.Detonate:
-                    if (active && burn != null && hit.BurnStacksBeforeHit >= burn.MaxLayerNum)
+                    if (active && burn != null && hit.BurnStacksBeforeHit >=
+                        (minimumDetonationLayers > 0 ? minimumDetonationLayers : burn.MaxLayerNum))
                     {
                         hit.BurnDetonated = true;
                         burn.OnDestory();
@@ -114,12 +116,13 @@ namespace SkillSystem
         }
 #endif
 
-        private static void Apply(EntityQizi caster, EntityQizi target, int layers, Skill source = null)
+        internal static void Apply(EntityQizi caster, EntityQizi target, int layers, Skill source = null)
         {
             if (layers <= 0) return;
             var row = GameEntry.DataTable.GetDataTable<DRBuff>("Buff")[BurnBuffId];
             var burn = target.FindStatusBuff(BuffTag.Burning, BurnBuffId);
             bool isNew = burn == null;
+            int previousLayers = burn?.StackCount ?? 0;
             if (isNew)
             {
                 burn = SkillFactory.CreateNewBuff();
@@ -139,6 +142,7 @@ namespace SkillSystem
                 if (source != null)
                     HotGameEntry.HeroManager.BurnVisuals?.Ignited(target.LogicPosition);
             }
+            TimelineCaveHazards.OnBurnApplied(caster, target, previousLayers, burn);
         }
 
         public override void WriteToFile(BinaryWriter writer)
@@ -151,11 +155,17 @@ namespace SkillSystem
             Mode = (Effect)reader.ReadInt32();
             Param.ReadFromFile(reader);
         }
-        public override void SetSkillValue(DataRowBase row) => Param.SetSkillValue(row);
+        public override void SetSkillValue(DataRowBase row)
+        {
+            Param.SetSkillValue(row);
+            minimumDetonationLayers = Mode == Effect.Detonate && row is DRSkill skill ? skill.IntParam2 : 0;
+        }
+
         public override void Clone(CommandBase copy)
         {
             if (copy is not CommandBurnEffect effect) return;
             effect.Mode = Mode;
+            effect.minimumDetonationLayers = minimumDetonationLayers;
             Param.Clone(effect.Param);
         }
     }

@@ -444,7 +444,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Skin: {fileID: 0}
-  m_ActiveWindow: 0
+  m_ActiveWindow: 1
   m_ShowFullWindow: 0
   m_ConsoleWindow:
     m_LockScroll: 1
@@ -1249,7 +1249,6 @@ MonoBehaviour:
   CameraBrain: {fileID: 0}
   qigeXOffset: 1
   m_LargeBossAppearances:
-  - GateGolem
   - NamelessStele
   dangqianliucheng: 0
   QigePrefab: {fileID: 613257466680777229, guid: 0ef37d727bf3b084ea936ae8a8840f79, type: 3}

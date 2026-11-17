@@ -23,14 +23,16 @@ namespace SkillSystem
                 OnTrigger();
             }
         }
-        public void OnTrigger(object arg = null)
+        public void OnTrigger(object arg = null) => OnTrigger(arg, null);
+
+        internal void OnTrigger(object arg, IReadOnlyList<EntityBase> targets)
         {
             if (CurCondition != null && CurCondition.OnCheck(this,arg)==!CurCondition.ReverseResult)
             {
-                if (CurTargetPicker != null)
-                {
-                    CurTargetPicker.GetTarget(this,arg);
-                }
+                if (targets != null && CurTargetPicker is TargetPickerSkillCasterCurTarget)
+                    CurTargetList.AddRange(targets);
+                else
+                    CurTargetPicker?.GetTarget(this, arg);
 
                 if (CurCommandList != null && CurCommandList.Count != 0)
                 {

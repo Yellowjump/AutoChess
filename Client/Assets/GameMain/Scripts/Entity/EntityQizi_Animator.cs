@@ -71,7 +71,7 @@ namespace Entity
             if (tableHero.HasDataRow(HeroID))
             {
                 var heroData = tableHero[HeroID];
-                bool storyRig = !string.IsNullOrEmpty(TimelineAppearance);
+                bool storyRig = HotGameEntry.HeroManager.IsTimelineBattle;
                 idleAnimationId = storyRig ? StoryIdleAnimationId : heroData.IdleAnimID;
                 runAnimationId = storyRig ? StoryRunAnimationId : heroData.RunAnimID;
                 HotGameEntry.HeroManager.LoadAnimationClip(idleAnimationId);

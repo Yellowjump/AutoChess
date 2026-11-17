@@ -80,5 +80,33 @@ namespace DataTable
         /// 切割声
         /// </summary>
         Chop = 2006,
+
+        HeavyImpact = 2007,
+        EmberImpact = 2008,
+        ThunderImpact = 2009,
+        SealImpact = 2010,
+        WaterImpact = 2011,
+        ShieldImpact = 2012,
+        BrushImpact = 2013,
+        BadgerRubble = 2014,
+        BadgerPounce = 2015,
+        KilnRattle = 2016,
+        KilnCrack = 2017,
+        ContractLift = 2018,
+        ContractStamp = 2019,
+        EelWindup = 2020,
+        EelNeedle = 2021,
+        RopeWindup = 2022,
+        RopePull = 2023,
+        LanternWindup = 2024,
+        LanternFlare = 2025,
+        MartenWindup = 2026,
+        MartenBite = 2027,
+        KiteWindup = 2028,
+        KiteDive = 2029,
+        CrabWindup = 2030,
+        CrabShell = 2031,
+        ClerkWindup = 2032,
+        ClerkSummon = 2033,
     }
 }

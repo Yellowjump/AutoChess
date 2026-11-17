@@ -211,16 +211,11 @@ namespace UnityGameFramework.Runtime
             Screen.sleepTimeout = m_NeverSleep ? SleepTimeout.NeverSleep : SleepTimeout.SystemSetting;
 #else
             Log.Error("Game Framework only applies with Unity 5.3 and above, but current Unity version is {0}.", Application.unityVersion);
-            GameEntry.Shutdown(ShutdownType.Quit);
+            FrameworkEntry.Shutdown(ShutdownType.Quit);
 #endif
 #if UNITY_5_6_OR_NEWER
             Application.lowMemory += OnLowMemory;
 #endif
-        }
-
-        private void Start()
-        {
-            GameEntry.InitBuiltinComponents();
         }
 
         private void Update()
@@ -382,13 +377,13 @@ namespace UnityGameFramework.Runtime
         {
             Log.Info("Low memory reported...");
 
-            ObjectPoolComponent objectPoolComponent = GameEntry.GetComponent<ObjectPoolComponent>();
+            ObjectPoolComponent objectPoolComponent = FrameworkEntry.GetComponent<ObjectPoolComponent>();
             if (objectPoolComponent != null)
             {
                 objectPoolComponent.ReleaseAllUnused();
             }
 
-            ResourceComponent resourceCompoent = GameEntry.GetComponent<ResourceComponent>();
+            ResourceComponent resourceCompoent = FrameworkEntry.GetComponent<ResourceComponent>();
             if (resourceCompoent != null)
             {
                 resourceCompoent.ForceUnloadUnusedAssets(true);

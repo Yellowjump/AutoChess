@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a682b05f0b6f4bdc8919d13bd883db71, type: 3}
+  m_Name: ExpeditionFormationStyle
+  m_EditorClassIdentifier:
+  PaperTexture: {fileID: 2800000, guid: a48c606c0fba43f5a20ab00323b4e198, type: 3}
+  Landscape: {fileID: 2800000, guid: c43f17bf12e04a46a9c83ce2ab502b87, type: 3}
+  PaperFrame: {fileID: 21300000, guid: 9df70b4474fc4d8ead6082f6112bbb2e, type: 3}
+  Seal: {fileID: 21300000, guid: a5b6db4e4e7647d2bc054d813a63bda5, type: 3}
+  Portraits:
+  - {fileID: -8291474225507675318, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
+  - {fileID: -4254041353901249487, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
+  - {fileID: -2528278321664512227, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
+  - {fileID: 4388787114387687230, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
+  - {fileID: -5561863128968313407, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
+  - {fileID: 624447516775291305, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
+  - {fileID: -5591282631746331584, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
+  - {fileID: 1356848492085647348, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
+  - {fileID: -6649422510708814, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
+  - {fileID: 4780058990054923755, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
+  - {fileID: 21300000, guid: 6832649786e24297a4e903b933593eaa, type: 3}

@@ -167,7 +167,7 @@ namespace UnityGameFramework.Runtime
 
         private void Start()
         {
-            m_EventComponent = GameEntry.GetComponent<EventComponent>();
+            m_EventComponent = FrameworkEntry.GetComponent<EventComponent>();
             if (m_EventComponent == null)
             {
                 Log.Fatal("Event component is invalid.");

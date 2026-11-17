@@ -109,7 +109,11 @@ Shader "WorldTimeline/InkScenery"
                 float3 position = float3(input.world.x, input.worldY, input.world.y);
                 float3 brushPosition = position * _TimelineWeatherField.z;
                 float wash = ProjectedBrush(brushPosition, weights, float2(6, 9));
-                float brush = ProjectedBrush(brushPosition, weights, float2(36, 13));
+                // A fine mark fades into the wash once its wavelength approaches a screen pixel.
+                float footprint = max(length(ddx(brushPosition)), length(ddy(brushPosition)));
+                float brushDetail = 1 - smoothstep(.38, 1.10, footprint * 36);
+                float paperDetail = 1 - smoothstep(.26, .90, footprint * 104);
+                float brush = lerp(.5, ProjectedBrush(brushPosition, weights, float2(36, 13)), brushDetail);
                 float paper = ProjectedBrush(brushPosition, weights, float2(104, 79));
 
                 // Match the density range of the surrounding ink illustrations on the same paper.
@@ -122,11 +126,8 @@ Shader "WorldTimeline/InkScenery"
                 float edge = 1 - smoothstep(.10, .47, abs(dot(normal, view)));
                 float inkStroke = edge * smoothstep(.31, .67, brush);
                 density += .19 * (.75 - abs(normal.y)) + .23 * (wash - .46) + .20 * inkStroke;
-                density -= smoothstep(.65, .86, paper) * smoothstep(.49, .74, brush) * .15;
-
-                // Tone down fibers as the object recedes to avoid flickering on the map.
-                float fiber = 1 - smoothstep(.05, .18, length(fwidth(brushPosition)) * 12);
-                density = saturate(density + (paper - .5) * .11 * fiber);
+                density -= smoothstep(.65, .86, paper) * smoothstep(.49, .74, brush) * .15 * paperDetail;
+                density = saturate(density + (paper - .5) * .11 * paperDetail);
                 float3 color = lerp(paperTone, inkTone, density).xxx;
                 // Vertex alpha blends painted highlights and dark accents into the ink shading.
                 color = lerp(color, input.relief.rgb * lerp(.83, 1.10, wash), 1 - input.relief.a);

@@ -6,9 +6,12 @@
     <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="../../Client/Assets/GameMain/Data/Resources/ExpeditionItems.csv" LogicalName="ExpeditionItems.csv" />
     <Compile Include="../../Client/Assets/GameMain/Scripts/WorldTimeline/*.cs" />
     <Compile Include="WorldSimulationTests.cs" />
     <Compile Include="WorldStoryTests.cs" />
+    <Compile Include="TacticalTrialTests.cs" />
+    <Compile Include="ExpeditionPartyTests.cs" />
     <None Include="Fixtures/CultivationLevels.csv" Link="CultivationLevels.csv" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../Client/Assets/GameMain/Data/DataTables/CultivationLevel.bytes" Link="CultivationLevel.bytes" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

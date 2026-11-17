@@ -137,6 +137,9 @@ public static class OpeningCinematicAuthoring
             Set(viewFields, "subtitle", subtitle);
             Set(viewFields, "skip", skip);
             Set(viewFields, "skipLabel", skipLabel);
+            Set(viewFields, "endingPaintings", Load<Texture2D>("Assets/GameMain/Art/Ending/EpiloguePaintings.png"));
+            Set(viewFields, "endingScore", Load<AudioClip>(Art + "TheTwelfthName.wav"));
+            Set(viewFields, "endingAtmosphere", Load<AudioClip>(Art + "RiverAndPaper.wav"));
             viewFields.ApplyModifiedPropertiesWithoutUndo();
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
             BindTitle(prefab.GetComponent<OpeningCinematic>());

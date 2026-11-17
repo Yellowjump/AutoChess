@@ -20,6 +20,9 @@ public sealed class OpeningCinematic : MonoBehaviour
     [SerializeField] private CanvasGroup subtitles;
     [SerializeField] private Button skip;
     [SerializeField] private TMP_Text skipLabel;
+    [SerializeField] private Texture2D endingPaintings;
+    [SerializeField] private AudioClip endingScore;
+    [SerializeField] private AudioClip endingAtmosphere;
 
     private bool english;
     private Action completed;
@@ -27,6 +30,13 @@ public sealed class OpeningCinematic : MonoBehaviour
     private bool pictureStarted;
     private bool playbackStarted;
     private float prepareDeadline;
+    private (string Title, string Body, string Art)[] ending;
+    private int endingIndex;
+    private string[] endingLines;
+    private float[] endingLineEnds;
+    private bool endingEnglish;
+    private float endingStart;
+    private float endingDuration;
 
     public bool TryPlay(bool useEnglish, float musicVolume, float effectsVolume, Action onComplete)
     {
@@ -41,6 +51,27 @@ public sealed class OpeningCinematic : MonoBehaviour
         PrepareMotion();
         prepareDeadline = Time.unscaledTime + 2f;
         if (picturePlayer == null) StartPlayback();
+        return true;
+    }
+
+    public bool TryPlayEnding((string Title, string Body, string Art)[] pages, bool useEnglish,
+        float musicVolume, float effectsVolume, Action onComplete)
+    {
+        if (endingPaintings == null || pages == null || pages.Length == 0) return false;
+        ending = pages;
+        endingEnglish = useEnglish;
+        completed = onComplete;
+        skipLabel.text = useEnglish ? "Skip  /  Esc" : "跳过  /  Esc";
+        skip.onClick.AddListener(Skip);
+        score.clip = endingScore;
+        score.volume = Mathf.Clamp01(musicVolume * .70f);
+        score.loop = true;
+        if (score.clip != null) score.Play();
+        atmosphere.clip = endingAtmosphere;
+        atmosphere.volume = Mathf.Clamp01(effectsVolume * .50f);
+        atmosphere.loop = false;
+        if (atmosphere.clip != null) atmosphere.Play();
+        BeginEndingShot();
         return true;
     }
 
@@ -76,6 +107,11 @@ public sealed class OpeningCinematic : MonoBehaviour
             Skip();
             return;
         }
+        if (ending != null)
+        {
+            UpdateEndingShot();
+            return;
+        }
         if (!playbackStarted && (picturePlayer.isPrepared || Time.unscaledTime >= prepareDeadline))
             StartPlayback();
     }
@@ -98,6 +134,65 @@ public sealed class OpeningCinematic : MonoBehaviour
         if (stopDirector) director.Stop();
         gameObject.SetActive(false);
         Destroy(gameObject);
+    }
+
+    private void BeginEndingShot()
+    {
+        var page = ending[endingIndex];
+        heading.text = page.Title;
+        endingLines = page.Body.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+        if (endingLines.Length == 0) endingLines = new[] { "" };
+        endingDuration = .45f;
+        endingLineEnds = new float[endingLines.Length];
+        for (int i = 0; i < endingLines.Length; i++)
+        {
+            endingDuration += Mathf.Max(3.2f, endingLines[i].Length / (endingEnglish ? 21f : 8.5f) + .6f);
+            endingLineEnds[i] = endingDuration;
+        }
+        endingDuration += .55f;
+        endingStart = Time.unscaledTime;
+        DrawEndingShot(0);
+    }
+
+    private void UpdateEndingShot()
+    {
+        float elapsed = Time.unscaledTime - endingStart;
+        if (elapsed < endingDuration)
+        {
+            DrawEndingShot(elapsed);
+            return;
+        }
+        if (++endingIndex == ending.Length) Finish(stopDirector: false);
+        else BeginEndingShot();
+    }
+
+    private void DrawEndingShot(float elapsed)
+    {
+        int tile = ending[endingIndex].Art switch
+        {
+            "Deed" => 1, "Spring" => 2, "Sluice" => 3, "Book" => 4, "Road" => 5, _ => 0
+        };
+        float progress = Mathf.SmoothStep(0f, 1f, elapsed / endingDuration);
+        var rect = image.rectTransform.rect;
+        float viewAspect = rect.width / Mathf.Max(1f, rect.height);
+        float tileAspect = (endingPaintings.width / 2f) / (endingPaintings.height / 3f);
+        float zoom = Mathf.Lerp(1.04f, 1.14f, progress);
+        float width = Mathf.Min(.98f, viewAspect / tileAspect) / zoom;
+        float height = Mathf.Min(.98f, tileAspect / Mathf.Max(.01f, viewAspect)) / zoom;
+        image.texture = endingPaintings;
+        image.uvRect = new Rect((tile % 2 + (1f - width) * Mathf.Lerp(.40f, .60f, progress)) / 2f,
+            (2 - tile / 2 + (1f - height) * Mathf.Lerp(.40f, .55f, progress)) / 3f,
+            width / 2f, height / 3f);
+        picture.alpha = Mathf.SmoothStep(0, 1, Mathf.Clamp01(Mathf.Min(elapsed, endingDuration - elapsed) / .52f));
+        mist.color = new Color(.84f, .84f, .79f, .17f);
+        mist.uvRect = new Rect(.04f + .15f * progress, .05f, .8f, .9f);
+        heading.alpha = picture.alpha * Mathf.Clamp01((2.6f - elapsed) / .55f);
+
+        int line = 0;
+        while (line < endingLines.Length - 1 && elapsed >= endingLineEnds[line]) line++;
+        float start = line == 0 ? .45f : endingLineEnds[line - 1];
+        if (subtitle.text != endingLines[line]) subtitle.text = endingLines[line];
+        subtitles.alpha = picture.alpha * Mathf.Clamp01(Mathf.Min(elapsed - start, endingLineEnds[line] - elapsed) / .24f);
     }
 
     private void OnStopped(PlayableDirector _) => Finish(stopDirector: false);

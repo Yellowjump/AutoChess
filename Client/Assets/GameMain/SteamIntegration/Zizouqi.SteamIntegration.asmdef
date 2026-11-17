@@ -1,0 +1,6 @@
+{
+  "name": "Zizouqi.SteamIntegration",
+  "rootNamespace": "Zizouqi.SteamIntegration",
+  "references": ["com.rlabrecque.steamworks.net"],
+  "includePlatforms": ["Editor", "WindowsStandalone32", "WindowsStandalone64"]
+}

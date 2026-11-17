@@ -33,6 +33,10 @@ namespace Entity
         {
             fsm?.ChangeStatePublic<StateIdle0>();
         }
+        internal void InterruptStep()
+        {
+            if (ReservedMoveAnchor.HasValue) ChangeToIdleState();
+        }
         private void ChangeToWinState()
         {
             fsm?.ChangeStatePublic<StateBattleWin>();

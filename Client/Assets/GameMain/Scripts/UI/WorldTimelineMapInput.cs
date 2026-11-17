@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using WorldTimelineDebug;
 
 public sealed class WorldTimelineMapInput : MonoBehaviour, IPointerDownHandler, IPointerClickHandler,
     IBeginDragHandler, IDragHandler, IScrollHandler, IPointerMoveHandler, IPointerExitHandler
@@ -16,7 +17,7 @@ public sealed class WorldTimelineMapInput : MonoBehaviour, IPointerDownHandler, 
     {
         if (data.button == PointerEventData.InputButton.Left) owner.Pan(data.delta);
     }
-    public void OnScroll(PointerEventData data) => owner.Zoom(Mathf.Pow(1.1f, -data.scrollDelta.y));
+    public void OnScroll(PointerEventData data) => owner.Zoom(WorldTimelineBoard.WheelZoomFactor(-data.scrollDelta.y));
     public void OnPointerMove(PointerEventData data) { if (!dragged) owner.HoverNode(data.position); }
     public void OnPointerExit(PointerEventData data) => owner.ClearHover();
 }

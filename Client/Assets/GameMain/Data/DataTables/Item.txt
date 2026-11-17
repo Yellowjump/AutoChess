@@ -42,3 +42,27 @@
 	9151	引雷针	ItemName_9151	ItemDesc_9151	2	4505					9151	0
 	9152	传雷符	ItemName_9152	ItemDesc_9152	2	4508					9152	0
 	9153	惊蛰印	ItemName_9153	ItemDesc_9153	2	4506					9153	0
+	9135	回炉诀	ItemName_9135	ItemDesc_9135	2	4506					9135	0
+	9145	寻隙笔	ItemName_9145	ItemDesc_9145	2	4505					9145	0
+	9146	封隙印	ItemName_9146	ItemDesc_9146	2	4506					9146	0
+	9147	点墨	ItemName_9147	ItemDesc_9147	1	4505					9147	-1
+	9194	伏牙追扑	ItemName_9194	ItemDesc_9194	1	4507		593,857			9194	-1
+	9195	翻炉裂地	ItemName_9195	ItemDesc_9195	1	4507		593,857			9195	-1
+	9196	催契盖印	ItemName_9196	ItemDesc_9196	1	4507		593,857			9196	-1
+	9197	盐针三叩	ItemName_9197	ItemDesc_9197	1	4507		593,857			9197	-1
+	9198	断索拖步	ItemName_9198	ItemDesc_9198	1	4507		593,857			9198	-1
+	9199	续灯守夜	ItemName_9199	ItemDesc_9199	1	4507		593,857			9199	-1
+	9200	折雪回身	ItemName_9200	ItemDesc_9200	1	4507		593,857			9200	-1
+	9201	借梁坠击	ItemName_9201	ItemDesc_9201	1	4507		593,857			9201	-1
+	9202	合壳听潮	ItemName_9202	ItemDesc_9202	1	4507		593,857			9202	-1
+	9203	借名成形	ItemName_9203	ItemDesc_9203	1	4507		593,857			9203	-1
+	9204	踏雪留痕	Timeline_Cave_9204	Timeline_Cave_9204_Desc	1	4507					9204	-1
+	9205	寒髓碎地	Timeline_Cave_9205	Timeline_Cave_9205_Desc	1	4507					9205	-1
+	9206	熔息喷火	Timeline_Cave_9206	Timeline_Cave_9206_Desc	1	4507					9206	-1
+	9207	翻炉喷脉	Timeline_Cave_9207	Timeline_Cave_9207_Desc	1	4507					9207	-1
+	9163	裂霜楔	Timeline_North_Relic	Timeline_North_RelicDesc	2	4507					9163	-1
+	9177	余烬胆	Timeline_Cave_EmberHeart	Timeline_Cave_EmberHeartDesc	2	4507					9177	-1
+	9178	寒髓珠	Timeline_Cave_IceBead	Timeline_Cave_IceBeadDesc	2	4507					9178	-1
+	9180	截流诀	Timeline_Salt_RewardName	Timeline_Salt_RewardDesc	2	4504					9180	-1
+	9208	夹脚	Timeline_Salt_Clamp	Timeline_Salt_ClampDesc	1	4507					9208	-1
+	9209	抽潮	Timeline_Salt_Draw	Timeline_Salt_DrawDesc	1	4507					9209	-1

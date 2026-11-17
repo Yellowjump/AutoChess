@@ -30,6 +30,7 @@ public sealed class WorldTimelinePreparationCtrl : UIFormLogic
     [SerializeField] private GameObject profile, emptyState;
     [SerializeField] private Button begin, returnMenu, clearHistories, previousPage, nextPage;
     private WorldTimelineDebugView view;
+    private Sprite[] portraits;
     private int page;
     private bool closing;
     public WorldTimelineDebugView Session => view;
@@ -39,25 +40,20 @@ public sealed class WorldTimelinePreparationCtrl : UIFormLogic
         base.OnInit(userData);
         foreach (var label in GetComponentsInChildren<TMP_Text>(true))
             if (label.text.StartsWith("Timeline_", System.StringComparison.Ordinal)) label.text = TimelineText(label.text);
+        portraits = Array.ConvertAll(characters, slot => slot.portrait.sprite);
         for (int i = 0; i < characters.Length; i++)
         {
             int index = i;
             characters[i].button.onClick.AddListener(() => view?.SelectPreparationCharacter(index));
         }
-        for (int i = 0; i < histories.Length; i++)
+        foreach (var slot in histories)
         {
-            int slot = i;
-            histories[i].button.onClick.AddListener(() =>
-            {
-                if (view == null) return;
-                int index = page * histories.Length + slot;
-                if (index < view.PreparationHistoryCount)
-                    view.SelectPreparationHistory(index, !view.GetPreparationHistory(index).Selected);
-            });
+            slot.button.transition = Selectable.Transition.None;
+            slot.button.interactable = false;
         }
         begin.onClick.AddListener(Begin);
         returnMenu.onClick.AddListener(() => view?.ReturnToMenu());
-        clearHistories.onClick.AddListener(() => view?.ClearPreparationHistories());
+        clearHistories.gameObject.SetActive(false);
         previousPage.onClick.AddListener(() => { page = Math.Max(0, page - 1); Refresh(); });
         nextPage.onClick.AddListener(() => { page++; Refresh(); });
     }
@@ -133,6 +129,7 @@ public sealed class WorldTimelinePreparationCtrl : UIFormLogic
             if (i >= view.PreparationCharacterCount) continue;
             var data = view.GetPreparationCharacter(i);
             slot.name.text = data.Name; slot.weapon.text = data.Technique;
+            slot.portrait.sprite = portraits[data.PortraitIndex];
             slot.button.interactable = !data.Used;
             slot.appearance.alpha = data.Used ? .42f : 1;
             slot.selected.SetActive(data.Selected);
@@ -154,25 +151,23 @@ public sealed class WorldTimelinePreparationCtrl : UIFormLogic
         int pages = Math.Max(1, (total + histories.Length - 1) / histories.Length);
         page = Math.Min(page, pages - 1);
         emptyState.SetActive(total == 0);
-        emptyText.text = TimelineText("Timeline_UI_32");
-        historyCount.text = TimelineText("Timeline_UI_HistoryCount", view.PreparationSelectedCount);
+        emptyText.text = view.RelayPreparationHint + "\n\n" + TimelineText("Timeline_UI_32");
+        historyCount.text = TimelineText("Timeline_UI_HistoryCount", view.PreparationCompanionCount);
         for (int i = 0; i < histories.Length; i++)
         {
             var slot = histories[i]; int index = page * histories.Length + i;
             slot.button.gameObject.SetActive(index < total);
             if (index >= total) continue;
             var data = view.GetPreparationHistory(index);
-            slot.name.text = data.Name; slot.detail.text = data.CanSelect ? data.Detail : TimelineText("Timeline_UI_83");
-            slot.button.interactable = data.CanSelect;
-            slot.state.text = data.Selected ? TimelineText("Timeline_UI_84") : data.CanSelect ? TimelineText("Timeline_UI_63") : TimelineText("Timeline_UI_85");
-            slot.marker.color = data.Selected ? new Color(.34f, .69f, .57f) : new Color(.56f, .51f, .39f);
+            slot.name.text = data.Name; slot.detail.text = data.JoinsRun ? data.Detail : TimelineText("Timeline_UI_83");
+            slot.state.text = data.JoinsRun ? TimelineText("Timeline_UI_84") : TimelineText("Timeline_UI_85");
+            slot.marker.color = data.JoinsRun ? new Color(.34f, .69f, .57f) : new Color(.56f, .51f, .39f);
         }
         pageLabel.text = $"{page + 1} / {pages}";
         previousPage.interactable = page > 0; nextPage.interactable = page + 1 < pages;
         previousPage.gameObject.SetActive(pages > 1); nextPage.gameObject.SetActive(pages > 1);
         pageLabel.gameObject.SetActive(pages > 1);
-        clearHistories.interactable = view.PreparationSelectedCount > 0;
-        issue.text = view.PreparationIssue ?? "";
+        issue.text = view.PreparationIssue ?? (total > 0 ? view.RelayPreparationStatus : "");
         begin.interactable = view.CanBeginPreparation;
     }
 }

@@ -15,9 +15,27 @@
 	9131	ItemName_9131	ItemDesc_9131	0	0	0
 	9161	Timeline_Item_9161_Name	Timeline_Item_9161_Description	0	60	0
 	9162	Timeline_East_Relic	Timeline_East_RelicDesc	6	36	0
-	9163	Timeline_North_Relic	Timeline_North_RelicDesc	9	0	0
+	9163	Timeline_North_Relic	Timeline_North_RelicDesc	0	0	0
 	9164	Timeline_West_Coal	Timeline_West_CoalDesc	10	0	0
 	9165	Timeline_West_Stone	Timeline_West_StoneDesc	0	42	0
 	9166	Timeline_Snow_Token	Timeline_Snow_TokenDesc	0	0	0
 	9167	Timeline_Gorge_Charm	Timeline_Gorge_CharmDesc	0	0	8
 	9168	Timeline_Tide_Shell	Timeline_Tide_ShellDesc	0	32	0
+	9169	Timeline_Whitefoam_Pin	Timeline_Whitefoam_PinDesc	8	0	0
+	9135	ItemName_9135	ItemDesc_9135	0	0	0
+	9146	ItemName_9146	ItemDesc_9146	0	0	0
+	9171	Timeline_Exploration_Relic_9171_Name	Timeline_Exploration_Relic_9171_Desc	0	35	0
+	9172	Timeline_Exploration_Relic_9172_Name	Timeline_Exploration_Relic_9172_Desc	0	40	0
+	9173	Timeline_Exploration_Relic_9173_Name	Timeline_Exploration_Relic_9173_Desc	10	0	0
+	9174	Timeline_Exploration_Relic_9174_Name	Timeline_Exploration_Relic_9174_Desc	0	45	0
+	9175	Timeline_Exploration_Relic_9175_Name	Timeline_Exploration_Relic_9175_Desc	8	0	0
+	9176	Timeline_Exploration_Relic_9176_Name	Timeline_Exploration_Relic_9176_Desc	0	0	6
+	9177	Timeline_Cave_EmberHeart	Timeline_Cave_EmberHeartDesc	0	0	0
+	9178	Timeline_Cave_IceBead	Timeline_Cave_IceBeadDesc	0	0	0
+	9180	Timeline_Salt_RewardName	Timeline_Salt_RewardDesc	0	0	0
+	9181	Timeline_ExpandedMap_Relic_9181_Name	Timeline_ExpandedMap_Relic_9181_Desc	0	24	0
+	9182	Timeline_ExpandedMap_Relic_9182_Name	Timeline_ExpandedMap_Relic_9182_Desc	6	0	0
+	9183	Timeline_ExpandedMap_Relic_9183_Name	Timeline_ExpandedMap_Relic_9183_Desc	0	36	0
+	9184	Timeline_ExpandedMap_Relic_9184_Name	Timeline_ExpandedMap_Relic_9184_Desc	8	0	0
+	9185	Timeline_ExpandedMap_Relic_9185_Name	Timeline_ExpandedMap_Relic_9185_Desc	0	0	5
+	9186	Timeline_ExpandedMap_Relic_9186_Name	Timeline_ExpandedMap_Relic_9186_Desc	5	20	0

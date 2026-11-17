@@ -21,7 +21,7 @@ namespace SkillSystem
             bool tempResult = CurLogicOperator == LogicOperator.And ? true : false;
             foreach (var oneCondition in ConditionList)
             {
-                bool oneResult = oneCondition.OnCheck(trigger) == !oneCondition.ReverseResult;
+                bool oneResult = oneCondition.OnCheck(trigger, arg) == !oneCondition.ReverseResult;
                 switch (CurLogicOperator)
                 {
                     case LogicOperator.And:
@@ -72,6 +72,7 @@ namespace SkillSystem
             base.Clone(copy);
             if (copy is ConditionGroup copyGroup)
             {
+                copyGroup.CurLogicOperator = CurLogicOperator;
                 copyGroup.ConditionList.Clear();
                 foreach (var oneCondition in ConditionList)
                 {
@@ -93,6 +94,7 @@ namespace SkillSystem
 
         public override void Clear()
         {
+            base.Clear();
             if (ConditionList != null)
             {
                 foreach (var oneCondition in ConditionList)

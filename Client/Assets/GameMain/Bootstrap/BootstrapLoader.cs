@@ -105,7 +105,7 @@ namespace Zizouqi.Bootstrap
             CreateFrameworkRoot();
             // Let the components complete Start before using ResourceComponent.
             yield return null;
-            m_Resource = GameEntry.GetComponent<ResourceComponent>();
+            m_Resource = FrameworkEntry.GetComponent<ResourceComponent>();
             if (m_Resource == null)
             {
                 Debug.LogError("Bootstrap ResourceComponent was not initialized.");
@@ -154,7 +154,7 @@ namespace Zizouqi.Bootstrap
             if (Instance == this) Instance = null;
             if (m_FrameworkRoot != null)
             {
-                GameEntry.Shutdown(ShutdownType.None);
+                FrameworkEntry.Shutdown(ShutdownType.None);
                 Destroy(m_FrameworkRoot);
             }
         }
@@ -331,7 +331,7 @@ namespace Zizouqi.Bootstrap
                 }
             }
 
-            if (!string.IsNullOrEmpty(m_ServerUrl)) m_Resource.UpdatePrefixUri = m_ServerUrl;
+            if (m_UsingRemoteVersion) m_Resource.UpdatePrefixUri = m_ServerUrl;
             bool checkedResources = false;
             int missingCount = 0;
             m_Resource.CheckResources((moved, removed, update, length, zipped) =>
@@ -343,7 +343,7 @@ namespace Zizouqi.Bootstrap
             while (!checkedResources) yield return null;
             if (missingCount > 0)
             {
-                if (string.IsNullOrEmpty(m_ServerUrl))
+                if (!m_UsingRemoteVersion)
                 {
                     Debug.LogError("Resources are missing and no update server is configured.");
                     completed(false);
@@ -451,7 +451,7 @@ namespace Zizouqi.Bootstrap
             }
             string scenePath = sceneBundle.GetAllScenePaths()[0];
 
-            GameEntry.Shutdown(ShutdownType.None);
+            FrameworkEntry.Shutdown(ShutdownType.None);
             Destroy(m_FrameworkRoot);
             m_FrameworkRoot = null;
             yield return null;

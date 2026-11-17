@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -38,16 +38,16 @@ namespace WorldTimelineDebug
                 return Path.Combine(Application.persistentDataPath, "WorldTimeline");
             }
         }
-        private string SavePath => Path.Combine(SaveDirectory, "cultivator-lives.dat");
+        private static string SavePath => Path.Combine(SaveDirectory, "cultivator-lives.dat");
         public sealed class StartingCultivator
         {
-            public string Name;
+            public string Name, Technique;
             public int Birth, Item, Attack;
         }
 
         public sealed class LocationDefinition
         {
-            public int Q, R, CultivationPerYear, MonsterHealth, MonsterAttack, LootItemId, LootAttackBonus;
+            public int ConfigId, Q, R, CultivationPerYear, MonsterHealth, MonsterAttack, LootItemId, LootAttackBonus;
             public string Name, LootName;
         }
         public sealed class ScenarioData
@@ -55,11 +55,13 @@ namespace WorldTimelineDebug
             public CultivationConfig Cultivation;
             public StartingCultivator[] Cultivators;
             public LocationDefinition[] Locations;
+            public ChosenRouteStage[] ChosenRoute;
             public StoryConfig Stories;
             public IReadOnlyDictionary<int, TechniqueDefinition> Techniques;
         }
         public static Func<ScenarioData> ScenarioFactory { get; set; }
         private ScenarioData scenarioData;
+        private ChosenRouteStage[] activeChosenRoute;
 
         private readonly List<StartingCultivator> roster = new List<StartingCultivator>();
         private readonly Dictionary<int, LocationDefinition> locations = new Dictionary<int, LocationDefinition>();
@@ -84,7 +86,7 @@ namespace WorldTimelineDebug
         private bool archived, autoObserve;
         private float nextStepTime;
         private int yearsPerSecond = 5;
-        private string message = TimelineText("Timeline_UI_119");
+        private string message = "选择相邻地点推进，招募队友、布阵挑战关卡。";
         private GUIStyle title, text, muted, card, toggle, small, button;
         private Font font;
         private bool stylesReady;
@@ -129,7 +131,9 @@ namespace WorldTimelineDebug
                 LoadScenario();
                 try
                 {
-                    foreach (var entry in WorldTimelineSaveStore.Load(SavePath))
+                    var archive = WorldTimelineSaveStore.Load(SavePath);
+                    foreach (var entry in archive.GroupBy(life => life.Record.BirthNodeId)
+                        .Select(lives => lives.OrderBy(life => life.Round).Last()).OrderBy(life => life.Round))
                     {
                         savedLives.Add(entry);
                         AddLifeToLibrary(entry);
@@ -141,6 +145,7 @@ namespace WorldTimelineDebug
                     saveReadable = false;
                     saveIssue = TimelineText("Timeline_UI_123") + error.Message;
                 }
+                UnlockFinaleCultivator();
             }
             if (returnToMenu == null) NewRound();
             else preparing = true;
@@ -153,7 +158,8 @@ namespace WorldTimelineDebug
             board = map.AddComponent<WorldTimelineBoard>();
             if (board.Initialize(simulation.State))
             {
-                board.Sync(simulation.State, selectedNode);
+                board.RestoreVisited(simulation.Events, simulation.State.PlayerActorId);
+                board.Sync(simulation, selectedNode);
                 board.FocusActor(simulation.State.PlayerActorId);
             }
             else
@@ -167,9 +173,12 @@ namespace WorldTimelineDebug
         private void LoadScenario()
         {
             roster.AddRange(scenarioData.Cultivators);
+            playableRoster.AddRange(roster.Where(character =>
+                character.Item is OpeningCultivator or SecondRelayCultivator or QiMoStartingItem));
         }
 
-        private void ConfigureLocations(WorldState world, StoryConfig stories, bool closeLinxiFormation)
+        private void ConfigureLocations(WorldState world, StoryConfig stories, bool closeLinxiFormation,
+            bool blackfangPounce, bool expandedMapEncounters)
         {
             foreach (var pair in locations)
             {
@@ -178,6 +187,47 @@ namespace WorldTimelineDebug
                 node.CultivationPerYear = row.CultivationPerYear;
                 node.MonsterHealth = row.MonsterHealth;
                 node.MonsterAttack = row.MonsterAttack;
+                if (row.ConfigId is >= 67 and <= 70)
+                {
+                    node.IsCaveEncounter = true;
+                    node.GuardianAppearance = row.ConfigId switch
+                    {
+                        67 => "FrostfangMarten", 68 => "ColdcoreGolem", 69 => "LavascaleLizard", _ => "AshKilnMacaque"
+                    };
+                }
+                if (IsRegionalExplorationLocation(row) || IsExpandedMapLocation(row))
+                    node.IsCultivationSite = row.MonsterHealth == 0 && row.LootItemId == 0;
+                if (IsExpandedMapLocation(row) && row.MonsterHealth > 0)
+                {
+                    node.HasExplorationGuardian = true;
+                    if (expandedMapEncounters) ConfigureExpandedMapGuardian(node, row);
+                }
+                if (pair.Key == HexWorldMap.Id(0, -9))
+                {
+                    node.BattleExperienceReward = 12;
+                    node.GuardianOpensWithPounce = blackfangPounce;
+                }
+                if (row.ConfigId == 14) // 裂潮礁
+                    node.SetCoastalFormation(meleeHealth: 11, rangedHealth: 8, attack: 2);
+                if (row.ConfigId == 30) // 白沫湾
+                    node.SetCoastalFormation(meleeHealth: 16, rangedHealth: 12, attack: 3);
+                if (row.ConfigId == 34) // 残印回廊
+                {
+                    node.GuardianAppearance = "NamelessClerk";
+                    node.HasExplorationGuardian = true;
+                    node.StoryRequiresGuardianDefeat = true;
+                }
+                if (row.ConfigId == SaltChannel.CrabLocationId)
+                {
+                    node.SetGuardianGroup(2, row.MonsterHealth, row.MonsterAttack);
+                    node.GuardianAppearance = SaltChannel.CrabAppearance;
+                    node.StoryRequiresGuardianDefeat = true;
+                }
+                if (row.ConfigId == SaltChannel.BeastLocationId)
+                {
+                    node.GuardianAppearance = SaltChannel.BeastAppearance;
+                    node.StoryRequiresGuardianDefeat = true;
+                }
                 if (pair.Key == LinxiEliteNode)
                     ConfigureLinxiGuardians(node, row, closeLinxiFormation);
                 if (pair.Key == HexWorldMap.Id(4, -10) || pair.Key == GorgeGateNode)
@@ -187,11 +237,22 @@ namespace WorldTimelineDebug
                 if (loot != 0) node.Items.Add(loot);
                 node.LootAttackBonus = row.LootAttackBonus;
             }
-            foreach (var cultivator in roster) world.Nodes[cultivator.Birth].MonsterHealth = 0;
+            foreach (var cultivator in roster.Where(HasBirthplaceThisRun))
+                world.Nodes[cultivator.Birth].MonsterHealth = 0;
             if (stories != null)
                 foreach (var story in stories.Events.Values)
                 {
-                    if (story.IsMerchant) continue;
+                    bool guardedStory = story.Id is NorthRelayRosterStory or NorthRelayGateStory or ContractAltarStory ||
+                        (contractStoryActive && story.Id == LedgerStory);
+                    if (story.IsMerchant || (CharacterStoryItem(story.Id) != 0 && !guardedStory)) continue;
+                    if (IsRegionalExplorationStory(story) || IsExpandedMapStory(story) || guardedStory)
+                    {
+                        var node = world.Nodes[story.NodeId];
+                        node.IsCultivationSite = false;
+                        node.StoryRequiresGuardianDefeat = node.MonsterHealth > 0;
+                    }
+                    else if (story.Id == AshridgeStory || story.Id == ContractPostStory)
+                        world.Nodes[story.NodeId].StoryRequiresGuardianDefeat = true;
                     // These nodes now award through choices, never via the old automatic loot path.
                     world.Nodes[story.NodeId].Items.Clear();
                     world.Nodes[story.NodeId].LootAttackBonus = 0;
@@ -230,14 +291,16 @@ namespace WorldTimelineDebug
         private void PopulateExploration(WorldState world, StoryConfig stories)
         {
             var reserved = new HashSet<int>(locations.Keys);
-            reserved.UnionWith(roster.Select(cultivator => cultivator.Birth));
+            reserved.UnionWith(roster.Where(HasBirthplaceThisRun).Select(cultivator => cultivator.Birth));
+            reserved.UnionWith(simulation.Chosen.Route);
             if (stories != null)
-                reserved.UnionWith(stories.Events.Values.Select(story => story.NodeId));
+                reserved.UnionWith(stories.Events.Values.Where(story => CharacterStoryItem(story.Id) == 0)
+                    .Select(story => story.NodeId));
             foreach (var node in world.Nodes.Values)
             {
                 // The ritual relay and the Chosen's route use scripted difficulty.
                 if (reserved.Contains(node.Id) || (node.Q == 0 && node.R >= 0)
-                    || (node.R == 0 && node.Q <= 0) || node.MonsterHealth > 0
+                    || node.MonsterHealth > 0
                     || node.Items.Count > 0 || node.CultivationPerYear >= 8) continue;
 
                 int depth = HexWorldMap.Radius - HexWorldMap.Distance(node.Q, node.R);
@@ -270,6 +333,58 @@ namespace WorldTimelineDebug
             node.GuardiansStartClose = startClose;
         }
         private const int LinxiRouteStory = 12;
+        private const int AshridgeStory = 26;
+        private const int ContractPostStory = 27;
+        private const int ChiselStory = 28;
+        private const int TrailStory = 29;
+        private const int LedgerStory = 30;
+        public const int QiMoStartingItem = 8111;
+        private static bool IsRegionalExplorationLocation(LocationDefinition location) => location.ConfigId is >= 35 and <= 64;
+        private static bool IsRegionalExplorationStory(StoryDefinition story) => story.Id is >= 31 and <= 42;
+        private static bool IsExpandedMapLocation(LocationDefinition location) => location.ConfigId is >= 76 and <= 99;
+        private static bool IsExpandedMapStory(StoryDefinition story) => story.Id is >= 50 and <= 55 || IsExpandedMapEncounter(story);
+        private static bool IsExpandedMapEncounter(StoryDefinition story) => story.Id is >= 56 and <= 68;
+
+        private static void ConfigureExpandedMapGuardian(NodeState node, LocationDefinition location)
+        {
+            node.GuardianAppearance = location.ConfigId switch
+            {
+                77 => "SaltspineEel",
+                81 => "TideboneCrab",
+                85 => "RopeApe",
+                89 => "WreckBeast",
+                93 => "GateGolem",
+                97 => "LanternWatch",
+                98 => "NamelessClerk",
+                _ => null
+            };
+            if (location.ConfigId is 81 or 85 or 93)
+                node.SetGuardianGroup(2, (location.MonsterHealth + 1) / 2, Math.Max(1, location.MonsterAttack * 2 / 3));
+        }
+
+        private static int CharacterStoryItem(int storyId) => storyId switch
+        {
+            ChiselStory => OpeningCultivator,
+            TrailStory or NorthRelayRosterStory or NorthRelayGateStory => SecondRelayCultivator,
+            LedgerStory or ContractAltarStory => QiMoStartingItem,
+            _ => 0
+        };
+
+        private bool SuppressStory(ActorState actor, int nodeId)
+        {
+            if (openingMap && SuppressOpeningStory(actor, nodeId)) return true;
+            return simulation.Stories.TryGetDefinition(nodeId, out var story) && !CanSeeStory(story, actor);
+        }
+
+        internal static bool CanSeeStory(StoryDefinition story, ActorState actor)
+        {
+            int item = CharacterStoryItem(story.Id);
+            return item == 0 || actor.Items.Contains(item);
+        }
+        public static readonly int ContractPostNode = HexWorldMap.Id(-9, 2);
+        private static bool IsContractPostLocation(int q, int r) => r == 2 && q >= -10 && q <= -8;
+        private bool HasBirthplaceThisRun(StartingCultivator cultivator) =>
+            cultivator.Item != QiMoStartingItem || locations.ContainsKey(cultivator.Birth);
         private static bool IsEastRouteLocation(int q, int r) =>
             (q == 8 || q == 9) && (r == -8 || r == -7);
         private static bool IsNorthRouteLocation(int q, int r) =>
@@ -294,34 +409,86 @@ namespace WorldTimelineDebug
             bool battleExperience = true, bool lightningTrials = true, bool balancedLightningTrials = true,
             bool merchants = true, bool linxiRoute = true, bool closeLinxiFormation = true,
             bool eastRoute = true, bool northRoute = true, bool westRoute = true, bool snowRoute = true,
-            bool gorgeRoute = true, bool tideRoute = true)
+            bool gorgeRoute = true, bool tideRoute = true, bool blackfangPounce = true, bool whitefoamSalvage = true,
+            bool gorgeBrace = true, bool ashridgeStory = true, bool contractPostRoute = true,
+            bool useConfiguredChosenRoute = true, ChosenRouteStage[] chosenRouteOverride = null, bool useOpeningMap = false,
+            bool characterStories = true, bool regionalExploration = true, bool sluiceCampaign = true, bool northRelay = true,
+            bool legacyAttack = false, bool caveRegions = true, bool contractStory = true, bool northRelaySpring = true,
+            bool sluiceDrainsBoss = true, bool saltChannel = true, bool expandedMap = true, bool expandedMapEncounters = true)
         {
+            activeChosenRoute = useConfiguredChosenRoute && returnToMenu != null
+                ? chosenRouteOverride ?? scenarioData.ChosenRoute : null;
+            CloseEnding();
+            openingMap = useOpeningMap && activeChosenRoute != null;
+            if (openingMap && chosenRouteOverride == null)
+            {
+                var route = OpeningChosenRoute(activeChosenRoute);
+                openingMap = route != null;
+                activeChosenRoute = route ?? activeChosenRoute;
+            }
+            if (!IsRestoringCheckpoint && round != 1)
+            {
+                openingPrompt = false;
+                openingChoice = 0;
+            }
+            sluiceCampaignActive = sluiceCampaign && enableStories && regionalExploration && activeChosenRoute != null;
+            northRelayActive = northRelay && characterStories && sluiceCampaignActive &&
+                scenarioData?.Stories?.Options.ContainsKey(RestoreNorthRelayOption) == true;
+            contractStoryActive = contractStory && contractPostRoute && characterStories && sluiceCampaignActive &&
+                scenarioData?.Stories?.Options.ContainsKey(RevokeContractOption) == true;
             battleResolver = returnToMenu == null ? null : BattleResolverFactory?.Invoke();
             locations.Clear();
             if (scenarioData != null)
                 foreach (var location in scenarioData.Locations)
-                    if ((linxiRoute || !IsLinxiRouteLocation(location.Q, location.R))
+                    if ((expandedMap || !IsExpandedMapLocation(location))
+                        && (saltChannel || location.ConfigId < SaltChannel.FirstLocationId || location.ConfigId > SaltChannel.LastLocationId)
+                        && (contractStoryActive || location.ConfigId != ContractAltarLocation)
+                        && (caveRegions || location.ConfigId is not (>= 67 and <= 70))
+                        && (northRelayActive || location.ConfigId is not (65 or 66))
+                        && (regionalExploration || !IsRegionalExplorationLocation(location))
+                        && (linxiRoute || !IsLinxiRouteLocation(location.Q, location.R))
                         && (eastRoute || !IsEastRouteLocation(location.Q, location.R))
                         && (northRoute || !IsNorthRouteLocation(location.Q, location.R))
                         && (westRoute || !IsWestRouteLocation(location.Q, location.R))
                         && (snowRoute || !IsSnowRouteLocation(location.Q, location.R))
                         && (gorgeRoute || !IsGorgeRouteLocation(location.Q, location.R))
-                        && (tideRoute || !IsTideRouteLocation(location.Q, location.R)))
+                        && (tideRoute || !IsTideRouteLocation(location.Q, location.R))
+                        && (contractPostRoute || !IsContractPostLocation(location.Q, location.R)))
                         locations.Add(HexWorldMap.Id(location.Q, location.R), location);
             var stories = enableStories ? scenarioData?.Stories : null;
+            if (!saltChannel) stories = stories?.WithoutEvents(46, 47, 48, 49);
+            if (!expandedMap && stories != null)
+                stories = stories.WithoutEvents(stories.Events.Values.Where(IsExpandedMapStory).Select(story => story.Id).ToArray());
+            else if (!expandedMapEncounters && stories != null)
+                stories = stories.WithoutEvents(stories.Events.Values.Where(IsExpandedMapEncounter).Select(story => story.Id).ToArray());
+            if (!caveRegions) stories = stories?.WithItemOverride(9163, 9, TimelineText("Timeline_Cave_LegacyWedgeDesc"));
+            if (!characterStories) stories = stories?.WithoutEvents(ChiselStory, TrailStory, LedgerStory);
+            stories = contractStoryActive ? stories?.WithoutOptions(3001) :
+                stories?.WithoutEvents(ContractAltarStory).WithoutOptions(ReadContractLedgerOption, 3003);
+            stories = northRelayActive ? stories?.WithoutOptions(LegacyTrailOption) :
+                stories?.WithoutEvents(NorthRelayRosterStory, NorthRelayGateStory).WithoutOptions(CopyTrailNamesOption);
+            if (!regionalExploration && stories != null)
+                stories = stories.WithoutEvents(stories.Events.Values.Where(IsRegionalExplorationStory).Select(story => story.Id).ToArray());
             if (!linxiRoute) stories = stories?.WithoutEvents(LinxiRouteStory);
             if (!eastRoute) stories = stories?.WithoutEvents(13, 14, 15);
             if (!northRoute) stories = stories?.WithoutEvents(16, 17);
-            if (!westRoute) stories = stories?.WithoutEvents(18, 19);
+            if (!westRoute) stories = stories?.WithoutEvents(18, 19, AshridgeStory);
+            if (!ashridgeStory) stories = stories?.WithoutEvents(AshridgeStory);
+            if (!contractPostRoute) stories = stories?.WithoutEvents(ContractPostStory);
             if (!snowRoute) stories = stories?.WithoutEvents(20);
             if (!gorgeRoute) stories = stories?.WithoutEvents(21, 22);
-            if (!tideRoute) stories = stories?.WithoutEvents(23, 24);
+            if (!tideRoute) stories = stories?.WithoutEvents(23, 24, 25);
+            if (!whitefoamSalvage) stories = stories?.WithoutEvents(25).WithoutOptions(2402);
+            if (!gorgeBrace) stories = stories?.WithoutOptions(2103);
+            ExpeditionEquipment.DefinitionTableLoader=()=>Resources.Load<TextAsset>("ExpeditionItems").text;
             simulation = HexTimelineDemoFactory.Create(playerNode: startingCultivator?.Birth,
-                cultivation: cultivation, talentSeed: round, startingItem: startingCultivator?.Item ?? 0,
-                weaponAttack: startingCultivator?.Attack ?? 0,
+                cultivation: legacyAttack ? cultivation?.WithLegacyAttackRanges() : cultivation,
+                talentSeed: round, startingItem: startingCultivator?.Item ?? 0,
+                weaponAttack: legacyAttack && startingCultivator?.Item == OpeningCultivator ? 195 : startingCultivator?.Attack ?? 0,
                 configureLocations: startingCultivator == null ? (Action<WorldState>)null :
-                    world => ConfigureLocations(world, stories, closeLinxiFormation),
-                battle: battleResolver);
+                    world => ConfigureLocations(world, stories, closeLinxiFormation, blackfangPounce, expandedMap && expandedMapEncounters),
+                battle: battleResolver, chosenRoute: activeChosenRoute,
+                initialRitualDeadline: sluiceCampaignActive ? CampaignDeadline : (int?)null);
             if (!merchants && stories != null)
                 stories = stories.WithoutEvents(stories.Events.Values.Where(story => story.IsMerchant).Select(story => story.Id).ToArray());
             // Keep pre-route checkpoints on the map and event set they originally replayed.
@@ -332,7 +499,8 @@ namespace WorldTimelineDebug
                 {
                     var node = simulation.State.Nodes[shop.NodeId];
                     node.IsMerchant = true;
-                    node.MonsterHealth = 0;
+                    if (activeChosenRoute == null || !simulation.Chosen.Route.Contains(node.Id))
+                        node.MonsterHealth = 0;
                     node.Items.Clear();
                     node.LootAttackBonus = 0;
                 }
@@ -343,9 +511,19 @@ namespace WorldTimelineDebug
             simulation.State.TechniqueCombatEnabled = techniqueCombat && enableStories;
             simulation.State.BattleExperienceEnabled = battleExperience;
             simulation.State.BattleRewardsFromYear = 1;
+            simulation.State.RegionalGuardiansFromYear = 1;
+            simulation.State.OuterGuardiansFromYear = 1;
             simulation.State.BalancedLightningTrials = balancedLightningTrials;
+            simulation.State.CaveRegionsEnabled = caveRegions;
             simulation.SetBattleSettlementPresenter(PresentBattleSettlement);
+            expeditionBattleNumber = 0;
+            replayFormations.Clear();
+            replayTeamRewards.Clear();
+            teamRewardNodes.Clear();
+            equipmentServiceNumber=0;replayEquipmentServices.Clear();EquipmentServiceOpen=false;
+            simulation.SetBattlePreparationPresenter(PresentExpeditionFormation);
             if (swordTrial && enableStories && startingCultivator != null &&
+                (activeChosenRoute == null || !simulation.Chosen.Route.Contains(SwordTrialNode)) &&
                 simulation.State.Nodes.TryGetValue(SwordTrialNode, out var trial))
             {
                 trial.SetGuardianGroup(3, 42, 7);
@@ -355,15 +533,18 @@ namespace WorldTimelineDebug
             }
             if (simulation.State.WreckBeastEncounterEnabled && stories != null &&
                 stories.Events.TryGetValue(8, out var wreckStory) &&
+                (activeChosenRoute == null || !simulation.Chosen.Route.Contains(wreckStory.NodeId)) &&
                 simulation.State.Nodes.TryGetValue(wreckStory.NodeId, out var wreckNode))
             {
                 wreckNode.MonsterHealth = 135;
                 wreckNode.MonsterAttack = 10;
                 wreckNode.StoryRequiresGuardianDefeat = true;
             }
+            if (openingMap) ConfigureOpeningLocations(simulation.State);
             inspectedActorId = 1;
             int id = 10;
-            foreach (var record in historyOverride ?? library.Where(e => e.Selected).Take(10).Select(e => e.Record))
+            foreach (var record in historyOverride ?? (returnToMenu == null
+                ? library.Where(entry => entry.Selected).Select(entry => entry.Record) : CompanionRecords()))
                 simulation.AddHistory(record, id++);
             if (scenarioData?.Techniques?.TryGetValue(1, out var swordArt) == true)
                 foreach (var actor in simulation.State.Actors.Values.Where(actor => actor.Items.Contains(8104)))
@@ -371,6 +552,30 @@ namespace WorldTimelineDebug
             if (enableStories && stories != null)
             {
                 simulation.ConfigureStories(stories, round, returnToMenu != null && !IsRestoringCheckpoint, replayChoices);
+                simulation.Stories.ExpeditionService=PresentEquipmentService;
+                if (sluiceCampaignActive && stories.Options.ContainsKey(OpenSluiceOption))
+                    simulation.Stories.ConfigureSluiceOpening(OpenSluiceOption, sluiceDrainsBoss);
+                if (northRelayActive)
+                {
+                    simulation.Stories.ConfigureNorthRelayRestoration(RestoreNorthRelayOption,
+                        northRelaySpring && activeChosenRoute.Any(stage => stage.Q == -3 && stage.R == 0) ? NorthRelaySpring : null);
+                    simulation.Stories.AllowOptionsOnRevisit(ReadNorthRelayRosterOption, RestoreNorthRelayOption);
+                }
+                if (contractStoryActive)
+                {
+                    simulation.Stories.ConfigureContractRevocation(RevokeContractOption, TwinGolemGate);
+                    simulation.Stories.AllowOptionsOnRevisit(2701, ReadContractLedgerOption, RevokeContractOption);
+                }
+                simulation.Stories.SuppressEncountersWhen(SuppressStory);
+                simulation.Stories.AllowOptionsOnRevisit(stories.Options.Values.Where(option =>
+                    (IsRegionalExplorationStory(stories.Events[option.EventId]) &&
+                    (option.ItemId != 0 || option.Condition == StoryCondition.FlagUnset && !string.IsNullOrEmpty(option.SetFlag))) ||
+                    (IsExpandedMapEncounter(stories.Events[option.EventId]) && option.ItemId != 0))
+                    .Select(option => option.Id).ToArray());
+                if (stories.Events.ContainsKey(AshridgeStory))
+                    simulation.Stories.AllowOptionsOnRevisit(2601, 2602);
+                if (gorgeRoute && gorgeBrace && stories.Options.TryGetValue(2103, out var brace))
+                    simulation.Stories.WeakenGuardianOnFlag(brace.SetFlag, HexWorldMap.Id(8, -2), 7);
                 if (lightningRoute && lightningTrials)
                 {
                     simulation.Stories.AllowOptionsOnRevisit(702, 602);
@@ -379,19 +584,28 @@ namespace WorldTimelineDebug
                     ConfigureLightningTrial(stories, 602, 3);
                 }
             }
+            if (!IsRestoringCheckpoint)
+            {
+                simulation.State.EnableExpedition();
+                EnableMapProgression();
+                EnableCompanionStages();
+                EnableVanguard();
+                Expedition.Equipment.EnableArtifacts();
+            }
             archived = false;
             autoObserve = false;
             selectedNode = simulation.State.Actors[1].NodeId.Value;
             hexSize = 12f;
             mapPan = Vector2.zero;
             logScroll = Vector2.zero;
-            message = TimelineText("Timeline_UI_121");
+            message = simulation.Chosen.ArrivalYear == 100 && simulation.State.Ritual.PeriodYears == 35
+                ? TimelineText("Timeline_UI_121") : "";
             showGrowth = false;
             if (board != null)
             {
                 board.ClearPieces();
                 board.Overview();
-                board.Sync(simulation.State, selectedNode);
+                board.Sync(simulation, selectedNode);
             }
             BeginCheckpoint();
             if (simulation.Stories != null && !UsesStoryHud && !IsRestoringCheckpoint) OpenStoryHud?.Invoke(this);
@@ -410,7 +624,7 @@ namespace WorldTimelineDebug
 
         private void Update()
         {
-            if (advancing || simulation == null || !autoObserve || simulation.WaitingForPlayer || simulation.State.IsEnded) return;
+            if (advancing || !autoObserve || !CanObserve) return;
             if (Time.unscaledTime < nextStepTime) return;
             nextStepTime = Time.unscaledTime + 1f / yearsPerSecond;
             StartAdvancing(simulation.AdvanceOneYearRoutine());
@@ -421,7 +635,7 @@ namespace WorldTimelineDebug
             try
             {
                 action();
-                if (board != null) board.Sync(simulation.State, selectedNode);
+                if (board != null) board.Sync(simulation, selectedNode);
                 logScroll.y = float.MaxValue;
                 var player = simulation.State.Actors[WorldTimelineDemoFactory.PlayerId];
                 if (!archived && (simulation.State.IsEnded || (returnToMenu == null && (!player.IsAlive || player.HasJoinedChosen))))
@@ -462,11 +676,13 @@ namespace WorldTimelineDebug
 
         private void Submit(WorldAction action) => StartAdvancing(simulation.SubmitPlayerActionRoutine(action), true, action);
 
-        private void StartAdvancing(IEnumerator routine, bool observeAfter = false, WorldAction action = null)
+        private void StartAdvancing(IEnumerator routine, bool observeAfter = false, WorldAction action = null,
+            bool recordStep = true)
         {
             if (advancing) return;
+            CancelLanternForecast();
             advancing = true;
-            StartCoroutine(AdvanceRoutine(routine, observeAfter, action));
+            StartCoroutine(AdvanceRoutine(routine, observeAfter, action, recordStep: recordStep));
         }
 
 #if UNITY_EDITOR
@@ -512,13 +728,15 @@ namespace WorldTimelineDebug
         {
             if (advancing || preparing || simulation == null || !simulation.WaitingForPlayer ||
                 simulation.Stories?.PendingChoice != null || simulation.Stories?.PendingResult != null) return false;
+            CancelLanternForecast();
             advancing = true;
             StartCoroutine(AdvanceRoutine(routine, false, null, true));
             return true;
         }
 #endif
 
-        private IEnumerator AdvanceRoutine(IEnumerator routine, bool observeAfter, WorldAction action, bool preview = false)
+        private IEnumerator AdvanceRoutine(IEnumerator routine, bool observeAfter, WorldAction action, bool preview = false,
+            bool recordStep = true)
         {
             var player = simulation.State.Actors[simulation.State.PlayerActorId];
             player.Techniques.TryGetValue(1, out var swordArt);
@@ -559,11 +777,12 @@ namespace WorldTimelineDebug
                     message = TimelineText(requirement == TechniqueRequirement.SkillKills
                         ? "Timeline_SwordTrial_Kills" : "Timeline_SwordTrial_Experience",
                         swordArt.Progress - startingProgress, swordArt.Progress, swordArt.NextStage.Value.Value);
-                if (checkpoint != null)
+                if (checkpoint != null && recordStep)
                 {
                     checkpoint.actions.Add(new CheckpointAction(action));
                     SaveCheckpoint();
                 }
+                if (simulation.State.Outcome == RunOutcome.Cleared) ShowEnding();
                 if (observeAfter && !simulation.WaitingForPlayer && !simulation.State.IsEnded) autoObserve = true;
             }
             finally
@@ -736,7 +955,7 @@ namespace WorldTimelineDebug
             if (GUI.Button(new Rect(1240, 102, 180, 30), showBoardDetails ? "收起世界详情" : "角色 / 路线 / 日志", button))
                 showBoardDetails = !showBoardDetails;
             GUI.Box(new Rect(20, 94, 850, 40), GUIContent.none, card);
-            GUI.Label(new Rect(36, 103, 390, 26), "蓝棋：本世　金棋：无名客　紫棋：前世", muted);
+            GUI.Label(new Rect(36, 103, 390, 26), "剑印：本世　日印：无名客　书印：前世", muted);
             if (GUI.Button(new Rect(438, 102, 66, 28), "缩小", button)) board.Zoom(1.22f);
             if (GUI.Button(new Rect(510, 102, 66, 28), "放大", button)) board.Zoom(.82f);
             if (GUI.Button(new Rect(582, 102, 76, 28), TimelineText("Timeline_UI_12"), button)) board.Overview();
@@ -781,14 +1000,14 @@ namespace WorldTimelineDebug
                     Mathf.Min(e.mousePosition.y + 18, viewport.yMax - height), 246, height);
                 GUI.Box(tooltip, GUIContent.none, card);
                 GUI.Label(new Rect(tooltip.x + 10, tooltip.y + 6, 226, 50),
-                    $"{type} ({location.Q},{location.R})\n灵气 {location.CultivationPerYear}  ·  {travel}", text);
+                    $"{type} ({location.Q},{location.R})\n{travel}", text);
                 for (int i = 0; i < occupants.Length; i += 3)
                     GUI.Label(new Rect(tooltip.x + 10, tooltip.y + 50 + i / 3 * 22, 226, 22),
                         string.Join("  ", occupants.Skip(i).Take(3)), small);
             }
             if (e.type == EventType.ScrollWheel)
             {
-                board.Zoom(Mathf.Pow(1.1f, e.delta.y));
+                board.Zoom(WorldTimelineBoard.WheelZoomFactor(e.delta.y));
                 e.Use();
             }
             else if (e.type == EventType.MouseDown && e.button == 0)
@@ -809,7 +1028,7 @@ namespace WorldTimelineDebug
                 if (node.HasValue)
                 {
                     selectedNode = node.Value;
-                    board.Sync(simulation.State, selectedNode);
+                    board.SelectNode(selectedNode);
                 }
                 e.Use();
             }
@@ -825,7 +1044,7 @@ namespace WorldTimelineDebug
         private void DrawMap()
         {
             GUI.Box(new Rect(20, 94, 850, 468), GUIContent.none, card);
-            GUI.Label(new Rect(36, 103, 390, 26), "六向相邻 · 越接近中心，灵气越浓", muted);
+            GUI.Label(new Rect(36, 103, 390, 26), "六向相邻 · 探索、招募、布阵闯关", muted);
             if (GUI.Button(new Rect(438, 102, 66, 28), "缩小", button)) hexSize = Mathf.Max(8, hexSize / 1.3f);
             if (GUI.Button(new Rect(510, 102, 66, 28), "放大", button)) hexSize = Mathf.Min(52, hexSize * 1.3f);
             if (GUI.Button(new Rect(582, 102, 76, 28), TimelineText("Timeline_UI_12"), button)) { hexSize = 12; mapPan = Vector2.zero; }
@@ -885,12 +1104,12 @@ namespace WorldTimelineDebug
                 bool hasPlayer = actors != null && actors.Any(a => a.Id == 1);
                 bool hasChosen = actors != null && actors.Any(a => a.Id == 1000);
                 Color fill = hasPlayer ? new Color(.12f, .46f, .78f) : hasChosen ? new Color(.75f, .53f, .13f) :
-                    actors != null ? new Color(.48f, .25f, .6f) : node.Id == HexTimelineDemoFactory.FinalNode ? new Color(.6f, .15f, .18f) :
+                    actors != null ? new Color(.48f, .25f, .6f) : node.Id == simulation.Chosen.FinalNodeId ? new Color(.6f, .15f, .18f) :
                     Color.Lerp(new Color(.09f, .17f, .2f), new Color(.15f, .43f, .34f), (node.CultivationPerYear - 1) / 10f);
                 Color border = node.Id == selectedNode ? Color.white : neighbours != null && neighbours.Contains(node.Id) ? new Color(.3f, .85f, 1) : new Color(.25f, .35f, .38f);
                 DrawHex(center, hexSize - .4f, border);
                 DrawHex(center, hexSize - (node.Id == selectedNode ? 2.2f : 1.5f), fill);
-                string marker = hasPlayer ? "我" : hasChosen ? "天" : actors != null ? "史" : node.Id == HexTimelineDemoFactory.FinalNode ? "终" : node.MonsterHealth > 0 ? "•" : node.Items.Count > 0 ? "+" : "";
+                string marker = hasPlayer ? "我" : hasChosen ? "天" : actors != null ? "史" : node.Id == simulation.Chosen.FinalNodeId ? "终" : node.MonsterHealth > 0 ? "•" : node.Items.Count > 0 ? "+" : "";
                 if (marker.Length > 0) GUI.Label(new Rect(center.x - hexSize, center.y - 11, hexSize * 2, 22), marker, hexText);
                 else if (hexSize >= 27) GUI.Label(new Rect(center.x - hexSize, center.y - 11, hexSize * 2, 22), node.CultivationPerYear.ToString(), hexText);
             }
@@ -1003,7 +1222,7 @@ namespace WorldTimelineDebug
             string name = configured ? row.Name : final ? TimelineText("Timeline_UI_88") : node.MonsterHealth > 0 ? TimelineText("Timeline_UI_89") : "荒野";
             string kind = final ? TimelineText("Timeline_UI_91") : node.MonsterHealth > 0 ? TimelineText("Timeline_UI_93")
                 : configured && row.MonsterHealth > 0 ? "战斗关卡 · 已清除"
-                : node.Items.Count > 0 ? TimelineText("Timeline_UI_96") : node.CultivationPerYear >= 8 ? "修炼地点" : TimelineText("Timeline_UI_98");
+                : node.Items.Count > 0 ? TimelineText("Timeline_UI_96") : TimelineText("Timeline_UI_98");
             var player = world.Actors[world.PlayerActorId];
             bool current = player.NodeId == node.Id;
             bool reachable = player.NodeId.HasValue && world.Nodes[player.NodeId.Value].Links.Contains(node.Id);
@@ -1011,7 +1230,7 @@ namespace WorldTimelineDebug
             GUI.Box(new Rect(1040, 145, 380, 410), GUIContent.none, card);
             GUI.Label(new Rect(1058, 160, 344, 36), name, title);
             GUI.Label(new Rect(1058, 203, 344, 28), $"{kind}  ·  ({node.Q},{node.R})", text);
-            GUI.Label(new Rect(1058, 240, 344, 28), $"修炼收益   每年 {node.CultivationPerYear} 经验", text);
+            GUI.Label(new Rect(1058, 240, 344, 28), ExplorationReward(node), text);
             GUI.Label(new Rect(1058, 276, 344, 52), node.MonsterHealth > 0
                 ? $"守关敌人   生命 {node.MonsterHealth} / 攻击 {node.MonsterAttack}\n抵达后自动战斗"
                 : "守关敌人   当前无守怪", text);
@@ -1023,7 +1242,7 @@ namespace WorldTimelineDebug
             string hint = final ? $"仪式截止第 {world.Ritual.DeadlineYear} 年。击败守关者会重启仪式，挑战者承受反噬。"
                 : configured && row.MonsterHealth > 0 ? "击败守怪后，本局该地点保持清空。后来抵达的前世会按当前状态行动。"
                 : node.Items.Count > 0 ? "宝物由本局最先到达并存活的角色获得。"
-                : "停留修炼会消耗时间，其他角色也会同步行动。";
+                : "探索新地点和战斗胜利获得经验，队友随主角成长。";
             GUI.Label(new Rect(1058, 410, 344, 76), hint, muted);
             GUI.Label(new Rect(1058, 500, 344, 36),
                 current ? "本世当前所在地点" : reachable ? "相邻地点 · 移动耗时 1 年" : "需要经相邻地点逐步前往", text);
@@ -1035,13 +1254,12 @@ namespace WorldTimelineDebug
             var player = world.Actors[1];
             var node = world.Nodes[selectedNode];
             GUI.Box(new Rect(20, 572, 850, board == null ? 308 : 160), GUIContent.none, card);
-            GUI.Label(new Rect(36, 582, 815, 26), $"{(locations.TryGetValue(node.Id, out var details) ? details.Name : "节点")} ({node.Q},{node.R})  |  灵气 {node.CultivationPerYear}  |  怪物生命 {node.MonsterHealth} / 攻击 {node.MonsterAttack}  |  宝物 {string.Join(",", node.Items.Select(item => details != null && details.LootItemId == item ? details.LootName + $"（攻+{node.LootAttackBonus}）" : item.ToString()))}", text);
+            GUI.Label(new Rect(36, 582, 815, 26), $"{(locations.TryGetValue(node.Id, out var details) ? details.Name : "节点")} ({node.Q},{node.R})  |  怪物生命 {node.MonsterHealth} / 攻击 {node.MonsterAttack}  |  宝物 {string.Join(",", node.Items.Select(item => details != null && details.LootItemId == item ? details.LootName + $"（攻+{node.LootAttackBonus}）" : item.ToString()))}", text);
             GUI.Label(new Rect(36, 614, 815, 34), $"本世 Lv{player.Level}  生命 {player.Health}/{player.MaxHealth} [{player.Talents.Health.Grade}]  攻击 {player.Attack} [{player.Talents.Attack.Grade}]  经验 {player.LevelExperience}/{NextExperience(player)}", text);
             GUI.enabled = !showGrowth && simulation.WaitingForPlayer && player.NodeId.HasValue && world.Nodes[player.NodeId.Value].Links.Contains(selectedNode);
             if (GUI.Button(new Rect(36, 654, 150, 36), "移动至 " + selectedNode + " · 1年", button)) Submit(WorldAction.Move(selectedNode));
             GUI.enabled = !showGrowth && simulation.WaitingForPlayer;
-            if (GUI.Button(new Rect(196, 654, 140, 36), "修炼 1 年", button)) Submit(WorldAction.Cultivate(1));
-            if (GUI.Button(new Rect(346, 654, 140, 36), "修炼 5 年", button)) Submit(WorldAction.Cultivate(5));
+            if (GUI.Button(new Rect(196, 654, 140, 36), "成长来源", button)) showGrowth = true;
             if (GUI.Button(new Rect(496, 654, 140, 36), "等待 1 年", button)) Submit(WorldAction.Wait());
             GUI.enabled = !showGrowth && simulation.WaitingForPlayer && !simulation.CanJoinChosen(1);
             if (GUI.Button(new Rect(646, 654, 205, 36), "提前伪装 · 1年", button)) Submit(WorldAction.Disguise());
@@ -1133,6 +1351,7 @@ namespace WorldTimelineDebug
                 case RunOutcome.Cleared: return TimelineText("Timeline_UI_130");
                 case RunOutcome.WorldDestroyed: return TimelineText("Timeline_UI_131");
                 case RunOutcome.PlayerKilledChosen: return TimelineText("Timeline_UI_132");
+                case RunOutcome.LifeRecorded: return TimelineText("Timeline_Sluice_LifeRecorded");
                 default: return simulation.WaitingForPlayer ? TimelineText("Timeline_UI_55") : TimelineText("Timeline_UI_133");
             }
         }
@@ -1190,6 +1409,12 @@ namespace WorldTimelineDebug
             {
                 case WorldEventKind.Breakthrough: action = TimelineText("Timeline_UI_140") + detail; break;
                 case WorldEventKind.StoryResolved: action = TimelineText("Timeline_UI_141") + detail; break;
+                case WorldEventKind.SluiceOpened: action = TimelineText(detail == "Boss drained"
+                    ? "Timeline_Sluice_LogDrained" : "Timeline_Sluice_LogOpened"); break;
+                case WorldEventKind.NorthRelayRestored: action = TimelineText("Timeline_NorthRelay_LogRestored"); break;
+                case WorldEventKind.NorthRelaySpringUsed: action = TimelineText("Timeline_NorthRelay_SpringUsed", detail); break;
+                case WorldEventKind.ContractRevoked: action = TimelineText(entry.Detail == "Guardian disabled"
+                    ? "Timeline_QiStory_Removed" : "Timeline_QiStory_NoRemoval"); break;
                 case WorldEventKind.Arrived: action = TimelineText("Timeline_UI_EventArrived", entry.NodeId); break;
                 case WorldEventKind.Battle: action = entry.OtherActorId.HasValue
                     ? TimelineText("Timeline_UI_EventDuel", ActorName(entry.OtherActorId.Value))
@@ -1199,12 +1424,14 @@ namespace WorldTimelineDebug
                     ? TimelineText("Timeline_Linxi_FateRescued", ActorName(clearer))
                     : TimelineText("Timeline_UI_134"); break;
                 case WorldEventKind.Joined: action = TimelineText("Timeline_UI_143"); break;
+                case WorldEventKind.ChosenEncounter: action = TimelineText("Timeline_ChosenEncounter_Log"); break;
                 case WorldEventKind.RitualReset: action = TimelineText("Timeline_UI_144") + detail; break;
                 case WorldEventKind.RitualCompleted: action = TimelineText("Timeline_UI_145"); break;
                 case WorldEventKind.WorldCleared: action = TimelineText("Timeline_UI_146"); break;
                 case WorldEventKind.Absorbed: action = TimelineText("Timeline_UI_147") + detail; break;
                 case WorldEventKind.Looted: action = TimelineText("Timeline_UI_EventLoot", entry.NodeId); break;
                 case WorldEventKind.Cultivated: action = TimelineText("Timeline_UI_148"); break;
+                case WorldEventKind.Explored: action = "探索新地点，历练 +" + detail; break;
                 case WorldEventKind.Disguised: action = TimelineText("Timeline_UI_149"); break;
                 case WorldEventKind.RunEnded: action = TimelineText("Timeline_UI_150") + detail; break;
                 case WorldEventKind.ActionCompleted: action = TimelineText("Timeline_UI_151") + detail; break;
@@ -1215,6 +1442,7 @@ namespace WorldTimelineDebug
 
         private void OnDestroy()
         {
+            CancelLanternForecast();
             Closed?.Invoke();
             if (font != null) Destroy(font);
             if (hexTexture != null) Destroy(hexTexture);

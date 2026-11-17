@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using GameFramework;
 using SkillSystem;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -12,10 +11,15 @@ namespace Entity
         internal const int WindupMs = 1200;
         private const float Length = 3.5f;
         private const float HalfWidth = .6f;
+        internal const float TravelSeconds = .40f;
+        private readonly HashSet<EntityQizi> contacted = new();
         private readonly Vector3 origin;
         private readonly Vector3 forward;
         private readonly Vector3 side;
-        private LineRenderer warning;
+        private LineRenderer warning, crest;
+        private float front;
+        private bool finished;
+        private bool playedImpact;
 
         private TimelineUndertow(EntityQizi owner, Vector3 forward)
         {
@@ -37,55 +41,64 @@ namespace Entity
             return direction.sqrMagnitude > .0001f ? new TimelineUndertow(owner, direction.normalized) : null;
         }
 
-        internal void Strike(EntityQizi owner, Skill skill)
+        internal void Release(EntityQizi owner)
         {
-            Clear();
-            if (!owner.IsValid) return;
+            TimelineRegionalGuardianCast.ClearWarning(ref warning);
+            if (owner.GObj != null)
+                crest = HotGameEntry.HeroManager.BurnVisuals?.ReleaseUndertow(owner.GObj.transform,
+                    origin, forward, Length, HalfWidth);
+        }
 
-            var visuals = HotGameEntry.HeroManager.BurnVisuals;
-            visuals?.WaterSweep(origin, forward, side, Length, HalfWidth);
+        internal void Advance(EntityQizi owner, Skill skill, float secondsSinceRelease)
+        {
+            if (finished || !owner.IsValid) return;
+            float progress = Mathf.Clamp01(secondsSinceRelease / TravelSeconds);
+            float nextFront = Length * progress;
+            if (crest != null)
+                TimelineBurnVisuals.UpdateWaterCrest(crest, origin + forward * nextFront, side, HalfWidth, progress);
+
+            var battle = HotGameEntry.HeroManager;
+            var visuals = owner.GObj != null ? battle.BurnVisuals : null;
+            float damage = (int)owner.GetAttribute(AttributeType.AttackDamage).GetFinalValue() * 1.35f;
             var enemies = ListPool<EntityQizi>.Get();
-            Vector3? firstImpact = null;
             try
             {
-                HotGameEntry.HeroManager.GetEntityQiziList(CampType.Enemy, owner.BelongCamp, ref enemies);
+                battle.GetEntityQiziList(CampType.Enemy, owner.BelongCamp, ref enemies);
                 foreach (var target in enemies)
                 {
-                    if (!target.IsValid) continue;
-                    Vector3 offset = target.LogicPosition - origin;
-                    float along = Vector3.Dot(offset, forward);
-                    if (along < 0f || along > Length || Mathf.Abs(Vector3.Dot(offset, side)) > HalfWidth)
-                        continue;
-
-                    Vector3 position = target.LogicPosition;
-                    float damage = (int)owner.GetAttribute(AttributeType.AttackDamage).GetFinalValue() * 1.35f;
-                    var hit = ReferencePool.Acquire<CauseDamageData>();
-                    try
+                    if (!target.IsValid || contacted.Contains(target)) continue;
+                    foreach (var point in battle.GetRangePoints(target))
                     {
-                        hit.Caster = owner;
-                        hit.SourceSkill = skill;
-                        hit.Target = target;
-                        hit.DamageValue = damage;
-                        hit.TriggerDamageRelate = true;
-                        owner.OnTrigger(TriggerType.BeforeCauseDamage, hit);
-                        target.OnTrigger(TriggerType.BeforeBeCauseDamage, hit);
-                        target.BeCauseDamage(hit);
+                        var offset = point - origin;
+                        float along = Vector3.Dot(offset, forward);
+                        if (along < front || along > nextFront || Mathf.Abs(Vector3.Dot(offset, side)) > HalfWidth)
+                            continue;
+
+                        contacted.Add(target);
+                        if (TimelineRegionalGuardianCast.Hit(owner, target, skill, damage))
+                        {
+                            visuals?.WaterSplash(point);
+                            if (!playedImpact)
+                            {
+                                visuals?.WaterImpact(point);
+                                playedImpact = true;
+                            }
+                        }
+                        break;
                     }
-                    finally { ReferencePool.Release(hit); }
-                    visuals?.WaterSplash(position);
-                    firstImpact ??= position;
                 }
             }
             finally { ListPool<EntityQizi>.Release(enemies); }
-            if (firstImpact.HasValue) visuals?.WaterImpact(firstImpact.Value);
+            front = nextFront;
+            if (progress < 1f) return;
+            finished = true;
+            TimelineRegionalGuardianCast.ClearWarning(ref crest);
         }
 
         internal void Clear()
         {
-            if (warning == null) return;
-            warning.gameObject.SetActive(false);
-            Object.Destroy(warning.gameObject);
-            warning = null;
+            TimelineRegionalGuardianCast.ClearWarning(ref warning);
+            TimelineRegionalGuardianCast.ClearWarning(ref crest);
         }
     }
 }

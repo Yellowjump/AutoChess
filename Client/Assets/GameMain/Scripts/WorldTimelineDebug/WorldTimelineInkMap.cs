@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using WorldTimeline;
 
 namespace WorldTimelineDebug
 {
@@ -8,6 +9,10 @@ namespace WorldTimelineDebug
     public sealed class WorldTimelineInkMap : MonoBehaviour
     {
         public const string LayerName = "WorldTimelineMap";
+        private const int MapDiameter = 2 * HexWorldMap.Radius + 1;
+        private const int ArtworkOrderCount = MapDiameter * MapDiameter;
+        private const int ContactShadowOrder = 2 * ArtworkOrderCount + 1;
+        private const int LandmarkOrder = ContactShadowOrder + 1;
         private static readonly int WeatherField = Shader.PropertyToID("_TimelineWeatherField");
         private static readonly int WeatherDusk = Shader.PropertyToID("_TimelineWeatherDusk");
         private static readonly int Relief = Shader.PropertyToID("_Relief");
@@ -16,6 +21,7 @@ namespace WorldTimelineDebug
         private static readonly int SoftShadow = Shader.PropertyToID("_SoftShadow");
         private static readonly int RiverWash = Shader.PropertyToID("_RiverWash");
         private static readonly int EmberParticle = Shader.PropertyToID("_EmberParticle");
+        private static readonly int TerrainWash = Shader.PropertyToID("_TerrainWash");
         private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
         private static readonly Color DayBackground = new Color(.92f, .92f, .92f);
@@ -60,6 +66,15 @@ namespace WorldTimelineDebug
                 };
                 foreach (var renderer in region.GetComponentsInChildren<MeshRenderer>(true))
                 {
+                    if (renderer.name == "InkArtwork")
+                    {
+                        // Transparent washes overlap by design. Keep both detail tiers on the
+                        // same painter order as the camera pans and zooms across the map.
+                        bool localTerrain = renderer.sharedMaterial.GetFloat(TerrainWash) > .5f;
+                        int positionOrder = (HexWorldMap.Radius - node.y) * MapDiameter + node.x + HexWorldMap.Radius;
+                        renderer.sortingOrder = 1 + positionOrder + (localTerrain ? ArtworkOrderCount : 0);
+                        continue;
+                    }
                     if (!renderer.name.StartsWith("Landmark_", System.StringComparison.Ordinal)) continue;
                     if (kind < 0)
                     {
@@ -83,6 +98,7 @@ namespace WorldTimelineDebug
                     renderer.GetComponent<MeshFilter>().sharedMesh = useFerry ? ferryMesh
                         : (landmarks[kind] ??= WorldTimelineLandmarkMesh.Create(kind));
                     renderer.sharedMaterial = landmarkMaterial;
+                    renderer.sortingOrder = LandmarkOrder;
                     if (kind == 5 && renderer.name == "Landmark_主地标")
                         AddVolcanoEmbers(renderer.transform, layout.NodeSpacing);
                 }
@@ -133,6 +149,7 @@ namespace WorldTimelineDebug
             emberMaterial.SetFloat(EmberParticle, 1f);
             var renderer = volcanoEmbers.GetComponent<ParticleSystemRenderer>();
             renderer.sharedMaterial = emberMaterial;
+            renderer.sortingOrder = LandmarkOrder + 1;
             renderer.renderMode = ParticleSystemRenderMode.Stretch;
             renderer.lengthScale = 1.3f;
             renderer.velocityScale = .013f;
@@ -181,6 +198,7 @@ namespace WorldTimelineDebug
             shadow.AddComponent<MeshFilter>().sharedMesh = standee.GetComponent<MeshFilter>().sharedMesh;
             var renderer = shadow.AddComponent<MeshRenderer>();
             renderer.sharedMaterial = contactShadow;
+            renderer.sortingOrder = ContactShadowOrder;
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             renderer.receiveShadows = false;
         }

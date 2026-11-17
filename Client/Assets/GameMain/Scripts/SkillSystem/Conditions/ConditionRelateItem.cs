@@ -19,7 +19,7 @@ namespace SkillSystem
             switch (ItemFrom)
             {
                 case ConditionRelateItemFrom.SkillItem:
-                    /*targetItemID = trigger.ParentTriggerList.ParentSkill.FromItemID;
+                    /*targetItemID = (trigger?.ParentTriggerList?.ParentSkill ?? arg as Skill)?.FromItemID ?? 0;
                     break;*/
                 case ConditionRelateItemFrom.ArgSkillItem:
                     if (arg is Skill argSkill)
@@ -28,7 +28,7 @@ namespace SkillSystem
                     }
                     break;
                 default:
-                    targetItemID = trigger.ParentTriggerList.ParentSkill.FromItemID;
+                    targetItemID = (trigger?.ParentTriggerList?.ParentSkill ?? arg as Skill)?.FromItemID ?? 0;
                     break;
             }
 

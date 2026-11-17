@@ -31,12 +31,19 @@ namespace WorldTimeline
         public IReadOnlyList<WorldEvent> Events { get; }
         public int EndYear { get; }
         public bool EndedInDeath { get; }
+        public int? RitualBreakYear { get; }
+        public int? SluiceOpeningYear { get; }
+        public int? NorthRelayRestoredYear { get; }
+        public int? ContractRevokedYear { get; }
         internal int? GuardianDeathNodeId { get; }
         public IReadOnlyList<RecordedStoryChoice> StoryChoices { get; }
+        public IReadOnlyList<RecordedExpedition> Expedition { get; }
 
         internal LifeRecord(ActorState initial, IEnumerable<int> items, IEnumerable<RecordedAction> actions,
             IEnumerable<WorldEvent> events, int endYear, bool endedInDeath,
-            IEnumerable<RecordedStoryChoice> storyChoices = null, int? guardianDeathNodeId = null)
+            IEnumerable<RecordedStoryChoice> storyChoices = null, int? guardianDeathNodeId = null, int? ritualBreakYear = null,
+            int? sluiceOpeningYear = null, int? northRelayRestoredYear = null, int? contractRevokedYear = null,
+            IEnumerable<RecordedExpedition> expedition = null)
         {
             SourceActorId = initial.Id; BirthNodeId = initial.NodeId.Value;
             InitialHealth = initial.Health; InitialAttack = initial.Attack; Lifespan = initial.Lifespan;
@@ -46,6 +53,15 @@ namespace WorldTimeline
             Events = Array.AsReadOnly(events.ToArray());
             EndYear = endYear; EndedInDeath = endedInDeath;
             StoryChoices = Array.AsReadOnly((storyChoices ?? Enumerable.Empty<RecordedStoryChoice>()).ToArray());
+            Expedition = Array.AsReadOnly((expedition ?? Enumerable.Empty<RecordedExpedition>()).ToArray());
+            RitualBreakYear = ritualBreakYear ?? Events.LastOrDefault(entry =>
+                entry.Kind == WorldEventKind.RitualReset && entry.ActorId == SourceActorId)?.Year;
+            SluiceOpeningYear = sluiceOpeningYear ?? Events.FirstOrDefault(entry =>
+                entry.Kind == WorldEventKind.SluiceOpened && entry.ActorId == SourceActorId)?.Year;
+            NorthRelayRestoredYear = northRelayRestoredYear ?? Events.FirstOrDefault(entry =>
+                entry.Kind == WorldEventKind.NorthRelayRestored && entry.ActorId == SourceActorId)?.Year;
+            ContractRevokedYear = contractRevokedYear ?? Events.FirstOrDefault(entry =>
+                entry.Kind == WorldEventKind.ContractRevoked && entry.ActorId == SourceActorId)?.Year;
             if (endedInDeath)
             {
                 GuardianDeathNodeId = guardianDeathNodeId;

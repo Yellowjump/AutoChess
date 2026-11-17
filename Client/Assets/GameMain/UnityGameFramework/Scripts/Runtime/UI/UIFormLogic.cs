@@ -7,8 +7,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using DataTable;
+using GameFramework.Localization;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.TextCore.LowLevel;
 
 namespace UnityGameFramework.Runtime
 {
@@ -18,6 +23,39 @@ namespace UnityGameFramework.Runtime
         public TextMeshProUGUI Tmp;
         public string LanguageKey;
     }
+    [Serializable]
+    public class ImageAndLanguagePrefix
+    {
+        public Image Target;
+        [Tooltip("Sprite name before the language suffix, for example game_title.")]
+        public string ImagePrefix;
+        [Tooltip("Assign sprites named <prefix>_zh and <prefix>_en.")]
+        public Sprite[] Sprites;
+
+        public void Refresh(string languageCode)
+        {
+            if (Target == null || string.IsNullOrWhiteSpace(ImagePrefix) || Sprites == null) return;
+
+            string prefix = ImagePrefix.Trim();
+            string requestedName = prefix + "_" + languageCode;
+            string fallbackName = prefix + "_zh";
+            Sprite fallback = null;
+            foreach (var sprite in Sprites)
+            {
+                if (sprite == null) continue;
+                if (string.Equals(sprite.name, requestedName, StringComparison.Ordinal))
+                {
+                    Target.sprite = sprite;
+                    return;
+                }
+                if (string.Equals(sprite.name, fallbackName, StringComparison.Ordinal))
+                    fallback = sprite;
+            }
+
+            Target.sprite = fallback;
+        }
+    }
+
     /// <summary>
     /// 界面逻辑基类。
     /// </summary>
@@ -29,6 +67,7 @@ namespace UnityGameFramework.Runtime
         private Transform m_CachedTransform = null;
         private int m_OriginalLayer = 0;
         public List<TxtAndLanguageKey> AutoLanguageTmp;
+        [SerializeField] private List<ImageAndLanguagePrefix> autoLanguageImages;
         /// <summary>
         /// 获取界面。
         /// </summary>
@@ -117,7 +156,16 @@ namespace UnityGameFramework.Runtime
 
             m_UIForm = GetComponent<UIForm>();
             m_OriginalLayer = gameObject.layer;
+            foreach (var button in GetComponentsInChildren<Button>(true)) BindButtonClickSound(button);
         }
+
+        internal static void BindButtonClickSound(Button button)
+        {
+            button.onClick.RemoveListener(PlayButtonClick);
+            button.onClick.AddListener(PlayButtonClick);
+        }
+
+        private static void PlayButtonClick() => HotGameEntry.Sound?.PlayUISound((int)EnumSound.BtnSfx);
 
         /// <summary>
         /// 界面回收。
@@ -132,18 +180,64 @@ namespace UnityGameFramework.Runtime
         /// <param name="userData">用户自定义数据。</param>
         public virtual void OnOpen(object userData)
         {
-            if (AutoLanguageTmp != null && AutoLanguageTmp.Count > 0)
-            {
-                foreach (var oneTxtAndLanguage in AutoLanguageTmp)
-                {
-                    if (oneTxtAndLanguage.Tmp != null && !string.IsNullOrEmpty(oneTxtAndLanguage.LanguageKey))
-                    {
-                        oneTxtAndLanguage.Tmp.text = GameEntry.Localization.GetString(oneTxtAndLanguage.LanguageKey.TrimEnd());
-                    }
-                }
-            }
+            RefreshLocalizedText();
             m_Available = true;
             Visible = true;
+        }
+
+        public virtual void RefreshLocalizedText()
+        {
+            var localization = GameEntry.Localization;
+            if (AutoLanguageTmp != null)
+            {
+                foreach (var item in AutoLanguageTmp)
+                {
+                    if (item?.Tmp != null && !string.IsNullOrEmpty(item.LanguageKey))
+                        item.Tmp.text = localization.GetString(item.LanguageKey.TrimEnd());
+                }
+            }
+
+            if (autoLanguageImages == null) return;
+            string languageCode = localization.Language == Language.English ? "en" : "zh";
+            foreach (var item in autoLanguageImages)
+                item?.Refresh(languageCode);
+        }
+
+        private static TMP_FontAsset chinesePaperFont;
+        private static TMP_FontAsset englishPaperFont;
+
+        private static TMP_FontAsset CreatePaperFont(string familyName, string windowsFileName)
+        {
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), windowsFileName);
+            if (File.Exists(path))
+            {
+                var font = TMP_FontAsset.CreateFontAsset(path, 0, 72, 8, GlyphRenderMode.SDFAA, 1024, 1024);
+                if (font != null) return font;
+            }
+#endif
+            return TMP_FontAsset.CreateFontAsset(familyName, "Regular");
+        }
+
+        protected static void RefreshPaperTypography(Transform root)
+        {
+            if (root == null) return;
+            bool english = GameEntry.Localization.Language == Language.English;
+            var font = english
+                ? (englishPaperFont ??= CreatePaperFont("Georgia", "georgia.ttf"))
+                : (chinesePaperFont ??= CreatePaperFont("KaiTi", "simkai.ttf"));
+            if (font == null) return;
+            font.fallbackFontAssetTable ??= new List<TMP_FontAsset>();
+            foreach (var label in root.GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (label.font == font) continue;
+                var previous = label.font;
+                if (previous != null && previous != chinesePaperFont && previous != englishPaperFont &&
+                    !font.fallbackFontAssetTable.Contains(previous))
+                    font.fallbackFontAssetTable.Add(previous);
+                label.font = font;
+                label.fontSharedMaterial = font.material;
+            }
         }
 
         public void Close()

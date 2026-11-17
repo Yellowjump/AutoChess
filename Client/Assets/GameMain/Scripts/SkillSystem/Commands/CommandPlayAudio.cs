@@ -1,4 +1,5 @@
 using System.IO;
+using DataTable;
 using Entity;
 using GameFramework;
 using UnityEngine.Serialization;
@@ -20,7 +21,15 @@ namespace SkillSystem
                 {
                     if (CreateOrRemove)
                     {
-                        var serialId = HotGameEntry.Sound.PlaySfxSoundThisFrame(AudioID.Value, oneTarget.LogicHitPosition);
+                        var cue = (EnumSound)AudioID.Value;
+                        bool timeline = HotGameEntry.HeroManager.IsTimelineBattle;
+                        // Timeline melee plays on confirmed damage, including hits absorbed by a shield.
+                        if (timeline && cue == EnumSound.Chop) return;
+                        bool burst = cue is EnumSound.GenFlySword or EnumSound.FlySwordFly or EnumSound.FlySwordHit or
+                            EnumSound.Bullet_Hit or EnumSound.ShortBoom;
+                        var serialId = timeline && burst
+                            ? HotGameEntry.Sound.PlayTimelineCue(cue, oneTarget.LogicHitPosition)
+                            : HotGameEntry.Sound.PlaySfxSoundThisFrame((int)cue, oneTarget.LogicHitPosition);
                         trigger.ParentTriggerList.paramInt = serialId;
                     }
                     else

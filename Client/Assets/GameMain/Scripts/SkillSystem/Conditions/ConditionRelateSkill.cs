@@ -20,7 +20,7 @@ namespace SkillSystem
             switch (SkillFrom)
             {
                 case ConditionRelateSkillFrom.Source:
-                    targetSkill = trigger.ParentTriggerList.ParentSkill;
+                    targetSkill = trigger?.ParentTriggerList?.ParentSkill ?? arg as Skill;
                     break;
                 case ConditionRelateSkillFrom.ArgSkill:
                     if (arg is Skill argSkill)

@@ -18,6 +18,7 @@ namespace UnityGameFramework.Runtime
     {
         private const float FadeVolumeDuration = 1f;
         private static int? s_MusicSerialId = null;
+        private static int? s_FadingMusicSerialId;
         private static string s_MusicAssetPath;
 
         public static int? PlayMusic(this SoundComponent soundComponent, int musicId, object userData = null)
@@ -47,6 +48,7 @@ namespace UnityGameFramework.Runtime
 
         public static int? PlayMusic(this SoundComponent soundComponent, string musicAssetPath, object userData = null)
         {
+            if (s_MusicSerialId.HasValue && s_MusicAssetPath == musicAssetPath) return s_MusicSerialId;
             soundComponent.StopMusic();
             PlaySoundParams playSoundParams = PlaySoundParams.Create();
             playSoundParams.Priority = 64;
@@ -63,7 +65,7 @@ namespace UnityGameFramework.Runtime
         internal static IDisposable PlayTemporaryMusic(this SoundComponent soundComponent, int musicId)
         {
             string musicAssetPath = GetMusicAssetPath(musicId);
-            if (musicAssetPath == null) return null;
+            if (musicAssetPath == null || musicAssetPath == s_MusicAssetPath) return null;
             string previousMusic = s_MusicAssetPath;
             int? serialId = soundComponent.PlayMusic(musicAssetPath);
             return new TemporaryMusic(soundComponent, serialId, previousMusic);
@@ -97,7 +99,11 @@ namespace UnityGameFramework.Runtime
                 return;
             }
 
+            // Keep one slot for the incoming track even when two transitions happen in quick succession.
+            if (s_FadingMusicSerialId is int fading)
+                soundComponent.StopSound(fading);
             soundComponent.StopSound(s_MusicSerialId.Value, FadeVolumeDuration);
+            s_FadingMusicSerialId = s_MusicSerialId;
             s_MusicSerialId = null;
             s_MusicAssetPath = null;
         }
@@ -122,10 +128,16 @@ namespace UnityGameFramework.Runtime
             return soundComponent.PlaySound(AssetUtility.GetAssetPathByID(drSound.AssetId), drSound.SoundGroupId, ConstValue.AssetPriority.SoundAsset, playSoundParams, worldPos, userData);
         }
 
+        internal static int PlayTimelineCue(this SoundComponent soundComponent, EnumSound cue, Vector3 position)
+        {
+            float minimumInterval = cue == EnumSound.FlySwordFly ? .15f : .09f;
+            return soundComponent.PlaySfxSoundThisFrame((int)cue, position, minimumInterval);
+        }
+
         public static int? PlayUISound(this SoundComponent soundComponent, int uiSoundId, object userData = null)
         {
             IDataTable<DRSound> dtUISound = GameEntry.DataTable.GetDataTable<DRSound>("Sound");
-            DRSound drUISound = dtUISound.GetDataRow(uiSoundId);
+            DRSound drUISound = dtUISound?.GetDataRow(uiSoundId);
             if (drUISound == null)
             {
                 Log.Warning("Can not load UI sound '{0}' from data table.", uiSoundId.ToString());

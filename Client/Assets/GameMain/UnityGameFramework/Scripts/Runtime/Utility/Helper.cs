@@ -40,8 +40,7 @@ namespace UnityGameFramework.Runtime
             T helper = null;
             if (!string.IsNullOrEmpty(helperTypeName))
             {
-                // Bootstrap has a second, AOT copy of the framework helpers. Prefer
-                // the assembly that defines T so a hot component gets a hot helper.
+                // Prefer the helper alongside its base type before looking in other assemblies.
                 System.Type helperType = typeof(T).Assembly.GetType(helperTypeName)
                     ?? Utility.Assembly.GetType(helperTypeName);
                 if (helperType == null)

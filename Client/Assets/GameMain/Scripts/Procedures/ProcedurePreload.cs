@@ -28,7 +28,6 @@ namespace Procedure
         {
             base.OnEnter(procedureOwner);
             InitLanguageSettings();
-            InitCurrentVariant();
             InitSoundVolume();
             InitScreenResolution();
             if (GameEntry.Base.EditorResourceMode)
@@ -47,25 +46,20 @@ namespace Procedure
 
         private void InitLanguageSettings()
         {
-            if (GameEntry.Base.EditorResourceMode && GameEntry.Base.EditorLanguage != Language.Unspecified)
-            {
-                // 编辑器资源模式直接使用 Inspector 上设置的语言
-                GameEntry.Setting.SetInt(ConstValue.SettingKeyLanguage, (int)GameEntry.Base.EditorLanguage);
-                GameEntry.Setting.Save();
-                return;
-            }
-
-            Language language = (Language)GameEntry.Setting.GetInt(ConstValue.SettingKeyLanguage, (int)Language.ChineseSimplified);
-
-            if (language != Language.English && language != Language.ChineseSimplified)
-            {
-                language = Language.ChineseSimplified;
-                GameEntry.Setting.SetString(ConstValue.SettingKeyLanguage, language.ToString());
-                GameEntry.Setting.Save();
-            }
+            string saved = GameEntry.Setting.GetString(ConstValue.SettingKeyLanguage, null);
+            var fallback = GameEntry.Base.EditorResourceMode &&
+                GameEntry.Base.EditorLanguage == Language.English ? Language.English : Language.ChineseSimplified;
+            var language = fallback;
+            if (Enum.TryParse(saved, out Language parsed) &&
+                (parsed == Language.English || parsed == Language.ChineseSimplified))
+                language = parsed;
 
             GameEntry.Localization.Language = language;
-            Log.Info("Init language settings complete, current language is '{0}'.", language.ToString());
+            if (saved != null && saved != ((int)language).ToString())
+            {
+                GameEntry.Setting.SetInt(ConstValue.SettingKeyLanguage, (int)language);
+                GameEntry.Setting.Save();
+            }
         }
 
         private void InitScreenResolution()
@@ -80,30 +74,6 @@ namespace Procedure
                 GameEntry.Setting.Save();
                 Screen.SetResolution(savedResolution.Value.width,savedResolution.Value.height, savedFullScreenMode);
             }
-        }
-
-        private void InitCurrentVariant()
-        {
-            if (GameEntry.Base.EditorResourceMode)
-            {
-                // 编辑器资源模式不使用 AssetBundle，也就没有变体了
-                return;
-            }
-
-            string currentVariant = "zh_cn";
-            switch (GameEntry.Localization.Language)
-            {
-                case Language.English:
-                    currentVariant = "en_us";
-                    break;
-
-                case Language.ChineseSimplified:
-                    currentVariant = "zh_cn";
-                    break;
-            }
-
-            GameEntry.Resource.SetCurrentVariant(currentVariant);
-            Log.Info("Init current variant complete.current variant :{0}.", currentVariant);
         }
 
         private void InitSoundVolume()
@@ -121,8 +91,6 @@ namespace Procedure
             GameEntry.Event.Subscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
             GameEntry.Event.Subscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
             GameEntry.Event.Subscribe(LoadSceneSuccessEventArgs.EventId, OnLoadTerrainSceneSuccess);
-            GameEntry.Event.Subscribe(LoadDictionarySuccessEventArgs.EventId, OnLoadLocalDataTableSuccess);
-            GameEntry.Event.Subscribe(LoadDictionaryFailureEventArgs.EventId, OnLoadLocalTableFailure);
             m_LoadedFlag.Add("Assets/GameMain/Scenes/terrain.unity", false);
             GameEntry.Scene.LoadScene("Assets/GameMain/Scenes/terrain.unity");
             PreloadDataTable();
@@ -163,8 +131,6 @@ namespace Procedure
             GameEntry.Event.Unsubscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
             GameEntry.Event.Unsubscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
             GameEntry.Event.Unsubscribe(LoadSceneSuccessEventArgs.EventId, OnLoadTerrainSceneSuccess);
-            GameEntry.Event.Unsubscribe(LoadDictionarySuccessEventArgs.EventId, OnLoadLocalDataTableSuccess);
-            GameEntry.Event.Unsubscribe(LoadDictionaryFailureEventArgs.EventId, OnLoadLocalTableFailure);
         }
 
         protected override void OnDestroy(ProcedureOwner procedureOwner)
@@ -191,6 +157,7 @@ namespace Procedure
             _dataTableFlag.Add("RewardConfig", (typeof(DRRewardConfig), false));
             _dataTableFlag.Add("Sound", (typeof(DRSound), false));
             _dataTableFlag.Add("OuterLocations", (typeof(DROuterLocations), false));
+            _dataTableFlag.Add("ChosenRoute", (typeof(DRChosenRoute), false));
             _dataTableFlag.Add("StartingCultivators", (typeof(DRStartingCultivators), false));
             _dataTableFlag.Add("StoryEvent", (typeof(DRStoryEvent), false));
             _dataTableFlag.Add("StoryOption", (typeof(DRStoryOption), false));
@@ -200,14 +167,12 @@ namespace Procedure
             _dataTableFlag.Add("BattleArena", (typeof(DRBattleArena), false));
             _dataTableFlag.Add("CultivationLevel", (typeof(DRCultivationLevel), false));
             _dataTableFlag.Add("TechniqueStage", (typeof(DRTechniqueStage), false));
+            _dataTableFlag.Add("Language", (typeof(DRLanguage), false));
             foreach (var tableName in _dataTableFlag)
             {
                 DataTableBase dataTable = GameEntry.DataTable.CreateDataTable(tableName.Value.Item1, tableName.Key);
                 dataTable.ReadData($"Assets/GameMain/Data/DataTables/{tableName.Key}.bytes", 0, null);
             }
-
-            _dataTableFlag.Add("Language", (typeof(DRLanguage), false)); //交给localizationComponent
-            GameEntry.Localization.ReadData("Assets/GameMain/Data/DataTables/Language.bytes", 0);
         }
 
 
@@ -222,7 +187,12 @@ namespace Procedure
             var tableName = ExtractFileName(ne.DataTableAssetName);
             if (_dataTableFlag.ContainsKey(tableName))
             {
-                _dataTableFlag[tableName] = new ValueTuple<Type, bool>(_dataTableFlag[tableName].Item1, true);
+                if (tableName == "Language" && !LocalizationExtensions.ApplyLanguage(GameEntry.Localization.Language))
+                {
+                    Log.Error("The language table has missing or duplicate keys.");
+                    return;
+                }
+                _dataTableFlag[tableName] = (_dataTableFlag[tableName].Item1, true);
                 Log.Info("Load config '{0}' OK.", ne.DataTableAssetName);
             }
             else
@@ -240,37 +210,6 @@ namespace Procedure
             }
 
             Log.Error("Can not load table '{0}' with error: {1}", ne.DataTableAssetName, ne.ErrorMessage);
-        }
-
-        private void OnLoadLocalDataTableSuccess(object sender, GameEventArgs e)
-        {
-            LoadDictionarySuccessEventArgs ne = (LoadDictionarySuccessEventArgs)e;
-            if (ne == null)
-            {
-                return;
-            }
-
-            var tableName = ExtractFileName(ne.DictionaryAssetName);
-            if (_dataTableFlag.ContainsKey(tableName))
-            {
-                _dataTableFlag[tableName] = new ValueTuple<Type, bool>(_dataTableFlag[tableName].Item1, true);
-                Log.Info("Load Localization config '{0}' OK.", ne.DictionaryAssetName);
-            }
-            else
-            {
-                Log.Error("load Localization error table '{0}' ", ne.DictionaryAssetName);
-            }
-        }
-
-        private void OnLoadLocalTableFailure(object sender, GameEventArgs e)
-        {
-            LoadDictionaryFailureEventArgs ne = (LoadDictionaryFailureEventArgs)e;
-            if (ne == null)
-            {
-                return;
-            }
-
-            Log.Error("Can not load table '{0}' with error: {1}", ne.DictionaryAssetName, ne.ErrorMessage);
         }
 
         private void OnLoadTerrainSceneSuccess(object sender, GameEventArgs e)

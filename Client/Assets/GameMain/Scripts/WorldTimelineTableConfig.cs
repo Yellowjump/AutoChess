@@ -9,7 +9,7 @@ using WorldTimelineDebug;
 // The Game Framework data-table boundary; simulation and map code receive typed configuration.
 public static class WorldTimelineTableConfig
 {
-    private static string Localize(string value)
+    internal static string Localize(string value)
     {
         if (string.IsNullOrEmpty(value) || !GameEntry.Localization.HasRawString(value)) return value;
         return GameEntry.Localization.GetString(value);
@@ -17,17 +17,20 @@ public static class WorldTimelineTableConfig
 
     public static WorldTimelineDebugView.ScenarioData Create()
     {
+        // Archive validation reads item levels before the first simulation is created.
+        ExpeditionEquipment.DefinitionTableLoader=()=>UnityEngine.Resources.Load<UnityEngine.TextAsset>("ExpeditionItems").text;
         WorldTimelineDebugView.ResolveLanguageKey = Localize;
         var growth = GameEntry.DataTable.GetDataTable<DRCultivationLevel>("CultivationLevel");
         var cultivators = GameEntry.DataTable.GetDataTable<DRStartingCultivators>("StartingCultivators");
         var locations = GameEntry.DataTable.GetDataTable<DROuterLocations>("OuterLocations");
+        var chosenRoute = GameEntry.DataTable.GetDataTable<DRChosenRoute>("ChosenRoute");
         var stories = GameEntry.DataTable.GetDataTable<DRStoryEvent>("StoryEvent");
         var options = GameEntry.DataTable.GetDataTable<DRStoryOption>("StoryOption");
         var items = GameEntry.DataTable.GetDataTable<DRStoryItem>("StoryItem");
         var offers = GameEntry.DataTable.GetDataTable<DRMerchantOffer>("MerchantOffer");
         var techniques = GameEntry.DataTable.GetDataTable<DRTechniqueStage>("TechniqueStage");
         var skills = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
-        if (growth == null || cultivators == null || locations == null || stories == null ||
+        if (growth == null || cultivators == null || locations == null || chosenRoute == null || stories == null ||
             options == null || items == null || offers == null || techniques == null || skills == null)
             throw new InvalidOperationException("轮回配置表尚未完成预加载。");
         var merchants = offers.GetAllDataRows().GroupBy(row => row.MerchantId).ToArray();
@@ -39,6 +42,13 @@ public static class WorldTimelineTableConfig
                 throw new InvalidOperationException($"商人 {merchant.Key} 的商品配置无效。");
         return new WorldTimelineDebugView.ScenarioData
         {
+            ChosenRoute = chosenRoute.GetAllDataRows().OrderBy(row => row.Id).Select(row =>
+                new ChosenRouteStage
+                {
+                    Q = row.Q, R = row.R, TravelYears = row.TravelYears, GuardianCount = row.GuardianCount,
+                    GuardianHealth = row.GuardianHealth, GuardianAttack = row.GuardianAttack,
+                    GuardianAppearance = row.GuardianAppearance, RitualPeriod = row.RitualPeriod
+                }).ToArray(),
             Techniques = techniques.GetAllDataRows().GroupBy(row => row.TechniqueId).ToDictionary(
                 group => group.Key, group => new TechniqueDefinition(group.Key, group.OrderBy(row => row.Rank)
                     .Select((row, index) =>
@@ -87,12 +97,13 @@ public static class WorldTimelineTableConfig
                 new WorldTimelineDebugView.StartingCultivator
                 {
                     Name = Localize(row.Name), Birth = HexWorldMap.Id(row.Q, row.R), Item = row.ItemId,
-                    Attack = row.AttackBonus
+                    Attack = row.AttackBonus,
+                    Technique = row.ItemId == WorldTimelineDebugView.QiMoStartingItem ? Localize(row.WeaponName) : ""
                 }).ToArray(),
             Locations = locations.GetAllDataRows().OrderBy(row => row.Id).Select(row =>
                 new WorldTimelineDebugView.LocationDefinition
                 {
-                    Q = row.Q, R = row.R, Name = Localize(row.Name), CultivationPerYear = row.CultivationPerYear,
+                    ConfigId = row.Id, Q = row.Q, R = row.R, Name = Localize(row.Name), CultivationPerYear = row.CultivationPerYear,
                     MonsterHealth = row.MonsterHealth, MonsterAttack = row.MonsterAttack,
                     LootItemId = row.LootItemId, LootAttackBonus = row.LootAttackBonus, LootName = Localize(row.LootName)
                 }).ToArray()

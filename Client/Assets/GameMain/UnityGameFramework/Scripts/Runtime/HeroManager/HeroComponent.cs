@@ -565,6 +565,7 @@ namespace UnityGameFramework.Runtime
         /// <param name="realElapseSeconds">真实流逝时间，以秒为单位。</param>
         public void OnLogicUpdate(float elapseSeconds, float realElapseSeconds, bool stationaryEnemies = false)
         {
+            CaveHazards?.Update(elapseSeconds);
             List<EntityQizi> tempEntityList = ListPool<EntityQizi>.Get();
             //先轮询己方棋子，后续联机的话需要判断 玩家uid来确定先后
             tempEntityList.AddRange(QiziCSList);

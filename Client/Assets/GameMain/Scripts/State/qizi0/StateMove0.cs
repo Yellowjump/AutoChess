@@ -1,6 +1,7 @@
 using GameFramework.Fsm;
 using Entity;
 using System.Collections.Generic;
+using System.Linq;
 using GameFramework;
 using SkillSystem;
 using UnityEngine;
@@ -13,6 +14,12 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
     Vector3 startpos;
     Vector3 nextpos;
     private const float MoveOneCellDuration = 0.5f;
+    private const int PounceWindupMs = 250;
+    private const float PounceCellDuration = 0.04f;
+    private float pounceWindupRemaining;
+    private int pounceWindupMs;
+    private LineRenderer pounceWarning;
+    private bool pouncing;
     private float _moveAccumulate = 0f;
     private bool _moving = false;
     protected override void OnEnter(IFsm<EntityQizi> fsm)
@@ -26,6 +33,29 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
         var owner = fsm.Owner;
         _moving = false;
         _moveAccumulate = 0f;
+        pouncing = false;
+        pounceWindupRemaining = 0f;
+        pounceWindupMs = PounceWindupMs;
+        if (owner.CanOpenWithPounce)
+        {
+            owner.CanOpenWithPounce = false;
+            var target = owner.CurAttackTarget;
+            bool regionalBadger = owner.TimelineAppearance == TimelineRegionalGuardianCast.BadgerAppearance;
+            pouncing = target != null && target.IsValid &&
+                (regionalBadger || target.NormalSkillList.All(skill => skill.SkillRange > 1000)) &&
+                HotGameEntry.HeroManager.GetCombatDistanceSquare(owner, target) > 9f;
+            if (pouncing)
+            {
+                if (regionalBadger)
+                {
+                    pounceWindupMs = TimelineRegionalGuardianCast.PounceWindupMs;
+                    pounceWarning = TimelineRegionalGuardianCast.WarnPounce(owner, target);
+                }
+                pounceWindupRemaining = pounceWindupMs / 1000f;
+                owner.PlayMonsterWindup(pounceWindupMs, false);
+                owner.ShowWindupProgress(0f);
+            }
+        }
         startpos = owner.LogicPosition;
         nextPosIndex = new Vector2Int(-1, -1);
     }
@@ -38,13 +68,22 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
             Log.Error("Owner is null");
             return;
         }
+        if (pounceWindupRemaining > 0f)
+        {
+            pounceWindupRemaining -= elapseSeconds;
+            owner.ShowWindupProgress(pounceWindupRemaining > 0f
+                ? 1f - pounceWindupRemaining * 1000f / pounceWindupMs : -1f);
+            if (pounceWindupRemaining > 0f) return;
+            TimelineRegionalGuardianCast.ClearWarning(ref pounceWarning);
+        }
+        float stepDuration = pouncing ? PounceCellDuration : MoveOneCellDuration;
         //判断是否在移动中
         if (_moving)
         {
-            _moveAccumulate += elapseSeconds;
-            if (_moveAccumulate < MoveOneCellDuration)
+            _moveAccumulate += elapseSeconds * (owner.FrostSlowSeconds > 0f && !pouncing ? .65f : 1f);
+            if (_moveAccumulate < stepDuration)
             {
-                owner.LogicPosition = Vector3.Lerp(startpos, nextpos, _moveAccumulate / MoveOneCellDuration);
+                owner.LogicPosition = Vector3.Lerp(startpos, nextpos, _moveAccumulate / stepDuration);
                 /*owner.LogicPosition = new Vector3(Mathf.Lerp(startpos.x, nextpos.x, _moveAccumulate/MoveOneCellDuration), 0, Mathf.Lerp(startpos.z, nextpos.z, _moveAccumulate/MoveOneCellDuration));*/
                 return;
             }
@@ -69,6 +108,7 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
             return;
         }
         var owner = fsm.Owner;
+        var battle = HotGameEntry.HeroManager;
         var result = CheckCastSkillResult.Error;
         EntityQizi target = null;
         List<int> checkNormalSkillList = owner.GetNormalSkillCheckSort();
@@ -79,6 +119,7 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
             if (result == CheckCastSkillResult.CanCast)
             {
                 owner.CurAttackTarget = target;
+                owner.IsPounceStrike = pouncing;
                 owner.CastNormalSkill(checkNormalSkillList[index]);
                 if (target != null)
                 {
@@ -116,6 +157,8 @@ public class StateMove0 : FsmState<EntityQizi>,IReference
     }
     protected override void OnLeave(IFsm<EntityQizi> fsm, bool isShutdown)
     {
+        if (pouncing) fsm.Owner?.ShowWindupProgress(-1f);
+        TimelineRegionalGuardianCast.ClearWarning(ref pounceWarning);
         if (_moving && fsm.Owner != null)
             HotGameEntry.HeroManager.CancelStep(fsm.Owner);
         _moving = false;

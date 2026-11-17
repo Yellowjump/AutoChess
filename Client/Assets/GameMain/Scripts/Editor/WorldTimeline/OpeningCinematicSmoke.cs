@@ -1,12 +1,15 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using UnityGameFramework.Runtime;
+using WorldTimeline;
 using WorldTimelineDebug;
 using Object = UnityEngine.Object;
 
@@ -16,6 +19,7 @@ public static class OpeningCinematicSmoke
     private static WorldTimelineDebugView session;
     private static string output, previous;
     private static string checkpoint;
+    private static SavedLife sampleLife;
     private static int step;
     private static double deadline, next;
 
@@ -32,7 +36,7 @@ public static class OpeningCinematicSmoke
         WorldTimelineDebugView.EditorSaveDirectory = Path.Combine(output, "Saves");
         EditorApplication.update += Tick;
         EditorApplication.playModeStateChanged += Restore;
-        step = 0;
+        step = -3;
         next = EditorApplication.timeSinceStartup;
         deadline = next + 85;
     }
@@ -46,6 +50,21 @@ public static class OpeningCinematicSmoke
             var cg = Object.FindFirstObjectByType<OpeningCinematic>();
             switch (step)
             {
+                case -3:
+                    PreviewCinematic(ending: true);
+                    break;
+                case -2:
+                    Check(cg != null && Object.FindFirstObjectByType<WorldTimelineDebugView>() == null,
+                        "GM ending plays before the first run without creating a session");
+                    var heading = cg.GetComponentsInChildren<TMP_Text>().Single(label => label.name == "Location");
+                    Check(heading.text == "碑倒之后" || heading.text == "After the Stele Fell",
+                        "GM ending resolves localized captions from a fresh title screen");
+                    cg.GetComponentInChildren<Button>().onClick.Invoke();
+                    break;
+                case -1:
+                    Check(cg == null && menu.Visible && !Directory.Exists(WorldTimelineDebugView.EditorSaveDirectory),
+                        "Skipping the GM ending returns to the title without creating saves");
+                    break;
                 case 0:
                     Click("_btnStart");
                     break;
@@ -70,10 +89,10 @@ public static class OpeningCinematicSmoke
                 case 2:
                     if (cg != null) return;
                     session = Object.FindFirstObjectByType<WorldTimelineDebugView>();
-                    if (Object.FindFirstObjectByType<WorldTimelinePreparationCtrl>() == null) return;
-                    Check(session.Simulation == null && session.SelectPreparationCharacter(0) &&
-                        session.BeginPreparedRun() && session.Simulation.State.Year == 0,
-                        "Natural end opens preparation and the new run begins at year zero");
+                    if (Object.FindFirstObjectByType<WorldTimelinePanelCtrl>() == null) return;
+                    Check(session.OpeningOfferRoutes && session.Simulation.State.Year == 0, "Natural end starts the opening map at year zero");
+                    Check(session.Notice == WorldTimelineDebugView.TimelineText("Timeline_Opening_Intro",
+                        session.Simulation.State.Ritual.DeadlineYear), "First-life guidance shows the actual ritual deadline");
                     ScreenCapture.CaptureScreenshot(Path.Combine(output, "FirstChoice.png"));
                     break;
                 case 3:
@@ -88,13 +107,14 @@ public static class OpeningCinematicSmoke
                     if (Object.FindFirstObjectByType<WorldTimelinePanelCtrl>() == null) return;
                     Check(cg == null, "Continue bypasses the cinematic");
                     session = Object.FindFirstObjectByType<WorldTimelineDebugView>();
-                    Check(session.Simulation.State.Year == 0, "Resume preserves the starting year");
+                    Check(session.OpeningOfferRoutes && session.Simulation.State.Year == 0, "Resume preserves the tutorial");
+                    sampleLife = new SavedLife(1, session.Simulation.RecordPlayerLife());
                     session.ReturnToMenu();
                     break;
                 case 6:
                     if (!menu.Visible) return;
                     checkpoint = File.ReadAllText(Path.Combine(output, "Saves/current-run.json"));
-                    Click("_btnReplayOpening");
+                    PreviewCinematic(ending: false);
                     break;
                 case 7:
                     Check(cg != null && Object.FindFirstObjectByType<WorldTimelineDebugView>() == null,
@@ -108,18 +128,97 @@ public static class OpeningCinematicSmoke
                     break;
                 case 9:
                     if (!menu.Visible) return;
-                    WorldTimelineDebugView.EditorSaveDirectory = Path.Combine(output, "SkipSaves");
+                    WorldTimelineSaveStore.Save(Path.Combine(output, "Saves/cultivator-lives.dat"), new[] { sampleLife });
+                    File.WriteAllText(Path.Combine(output, "Saves/unrelated.txt"), "preserve");
                     Click("_btnStart");
                     break;
                 case 10:
-                    Check(cg != null, "Fresh save opens the cinematic for skip");
-                    cg.GetComponentInChildren<Button>().onClick.Invoke();
+                    if (FindConfirmation() == null) return;
+                    Check(Object.FindFirstObjectByType<WorldTimelineDebugView>() == null &&
+                        checkpoint == File.ReadAllText(Path.Combine(output, "Saves/current-run.json")),
+                        "New game waits for confirmation before opening a session");
+                    Click(FindConfirmation(), "_btnCancel");
                     break;
                 case 11:
+                    if (FindConfirmation() != null) return;
+                    Check(WorldTimelineDebugView.HasUnfinishedRun &&
+                        checkpoint == File.ReadAllText(Path.Combine(output, "Saves/current-run.json")) &&
+                        FindButton(menu, "_btnContinue").gameObject.activeSelf, "Cancelling a new game preserves Continue and the checkpoint");
+                    Click("_btnStart");
+                    break;
+                case 12:
+                    if (FindConfirmation() == null) return;
+                    Click(FindConfirmation(), "_btnConfirm");
+                    break;
+                case 13:
                     if (Object.FindFirstObjectByType<WorldTimelinePreparationCtrl>() == null) return;
-                    Check(cg == null && Object.FindFirstObjectByType<WorldTimelineDebugView>().Simulation == null,
-                        "Skip opens preparation");
-                    Finish("Passed natural completion, skip, resume, replay with a save, shot and subtitle.");
+                    Check(checkpoint == File.ReadAllText(Path.Combine(output, "Saves/current-run.json")) &&
+                        WorldTimelineSaveStore.Load(Path.Combine(output, "Saves/cultivator-lives.dat")).Count == 1,
+                        "Confirming opens character selection and keeps the old save until a new life begins");
+                    Object.FindFirstObjectByType<WorldTimelineDebugView>().ReturnToMenu();
+                    break;
+                case 14:
+                    if (!menu.Visible) return;
+                    ShowClearSaveConfirmation();
+                    break;
+                case 15:
+                    if (FindConfirmation() == null) return;
+                    Click(FindConfirmation(), "_btnCancel");
+                    break;
+                case 16:
+                    if (FindConfirmation() != null) return;
+                    Check(WorldTimelineDebugView.HasUnfinishedRun &&
+                        checkpoint == File.ReadAllText(Path.Combine(output, "Saves/current-run.json")) &&
+                        WorldTimelineSaveStore.Load(Path.Combine(output, "Saves/cultivator-lives.dat")).Count == 1 &&
+                        FindButton(menu, "_btnContinue").gameObject.activeSelf, "Cancel preserves both saves and Continue");
+                    ShowClearSaveConfirmation();
+                    break;
+                case 17:
+                    if (FindConfirmation() == null) return;
+                    Click(FindConfirmation(), "_btnConfirm");
+                    break;
+                case 18:
+                    if (FindConfirmation() != null) return;
+                    Check(!File.Exists(Path.Combine(output, "Saves/current-run.json")) &&
+                        !File.Exists(Path.Combine(output, "Saves/cultivator-lives.dat")) &&
+                        File.Exists(Path.Combine(output, "Saves/unrelated.txt")) &&
+                        !FindButton(menu, "_btnContinue").gameObject.activeSelf, "Confirmed GM clears both saves and hides Continue");
+                    Click("_btnStart");
+                    break;
+                case 19:
+                    Check(cg != null, "Start after clearing both saves opens the cinematic");
+                    cg.GetComponentInChildren<Button>().onClick.Invoke();
+                    break;
+                case 20:
+                    if (Object.FindFirstObjectByType<WorldTimelinePanelCtrl>() == null) return;
+                    session = Object.FindFirstObjectByType<WorldTimelineDebugView>();
+                    Check(cg == null && session.OpeningOfferRoutes, "Skip starts the same map");
+                    var ritual = session.Simulation.State.Ritual;
+                    typeof(FinalRitualState).GetProperty(nameof(FinalRitualState.DeadlineYear)).SetValue(ritual, 1);
+                    Click(Object.FindFirstObjectByType<WorldTimelinePanelCtrl>(), "move");
+                    break;
+                case 21:
+                    if (session.IsBusy || session.Simulation.State.Outcome != RunOutcome.WorldDestroyed) return;
+                    var panel = Object.FindFirstObjectByType<WorldTimelinePanelCtrl>();
+                    var notice = (TMP_Text)new SerializedObject(panel).FindProperty("notice").objectReferenceValue;
+                    Check(notice.text == WorldTimelineDebugView.TimelineText("Timeline_Guide_AfterRitual", 1) &&
+                        FindButton(panel, "nextLife").interactable, "Ritual defeat shows guidance and enables Begin Next Life");
+                    ScreenCapture.CaptureScreenshot(Path.Combine(output, "AfterRitual.png"));
+                    break;
+                case 22:
+                    Click(Object.FindFirstObjectByType<WorldTimelinePanelCtrl>(), "nextLife");
+                    break;
+                case 23:
+                    if (Object.FindFirstObjectByType<WorldTimelinePreparationCtrl>() == null) return;
+                    Check(session.IsPreparing, "Begin Next Life opens character selection after defeat");
+                    session.ReturnToMenu();
+                    break;
+                case 24:
+                    if (!menu.Visible) return;
+                    Check(FindButton(menu, "_btnQuit").isActiveAndEnabled, "Quit is available on the title screen");
+                    EditorApplication.update -= Tick;
+                    EditorApplication.playModeStateChanged += VerifyQuit;
+                    Click("_btnQuit");
                     return;
             }
             step++;
@@ -128,8 +227,25 @@ public static class OpeningCinematicSmoke
         catch (Exception error) { Finish(error.ToString()); }
     }
 
-    private static void Click(string field) =>
-        ((Button)new SerializedObject(menu).FindProperty(field).objectReferenceValue).onClick.Invoke();
+    private static void ShowClearSaveConfirmation() =>
+        menu.SendMessage("ConfirmClearWorldTimelineSaves");
+
+    private static void PreviewCinematic(bool ending)
+    {
+        var method = typeof(MainTitlePanelCtrl).GetMethod("TryPreviewCinematic",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Check((bool)method.Invoke(menu, new object[] { ending }), "GM preview started");
+    }
+
+    private static ConfirmPanelCtrl FindConfirmation() =>
+        GameEntry.UI.GetUIForm(UICtrlName.ConfirmPanel)?.Logic as ConfirmPanelCtrl;
+
+    private static Button FindButton(Component view, string field) =>
+        (Button)new SerializedObject(view).FindProperty(field).objectReferenceValue;
+
+    private static void Click(Component view, string field) => FindButton(view, field).onClick.Invoke();
+
+    private static void Click(string field) => Click(menu, field);
 
     private static void Check(bool result, string message)
     {
@@ -143,6 +259,15 @@ public static class OpeningCinematicSmoke
         File.WriteAllText(Path.Combine(output, "Result.txt"), result);
         Debug.Log("Opening CG: " + result);
         EditorApplication.isPlaying = false;
+    }
+
+    private static void VerifyQuit(PlayModeStateChange change)
+    {
+        if (change != PlayModeStateChange.EnteredEditMode) return;
+        EditorApplication.playModeStateChanged -= VerifyQuit;
+        const string result = "Passed CG previews, first-life guidance, resume, new-game confirmation, GM save reset, ritual defeat guidance, and title Quit.";
+        File.WriteAllText(Path.Combine(output, "Result.txt"), result);
+        Debug.Log("Opening CG: " + result);
     }
 
     private static void Restore(PlayModeStateChange change)

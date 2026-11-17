@@ -127,6 +127,8 @@ namespace SkillSystem
                     conditionRelateItem.ParamInt1 ??= CreateTableParamInt();
                     conditionRelateItem.ParamInt2 ??= CreateTableParamInt();
                     return conditionRelateItem;
+                case ConditionType.SummonWave:
+                    return ReferencePool.Acquire<ConditionSummonWave>();
                 case ConditionType.RelateSkill:
                     var conditionRelateSkill = ReferencePool.Acquire<ConditionRelateSkill>();
                     conditionRelateSkill.ParamInt1 ??= CreateTableParamInt();

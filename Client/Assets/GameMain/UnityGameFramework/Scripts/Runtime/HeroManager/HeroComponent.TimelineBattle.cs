@@ -11,7 +11,7 @@ using WorldTimeline;
 
 namespace UnityGameFramework.Runtime
 {
-    internal enum TimelineArenaStyle { Forest, Cliff, Ritual, Tidegate }
+    internal enum TimelineArenaStyle { Forest, Cliff, Ritual, Tidegate, Ashridge, IceCave, LavaCave, SaltFlat, SaltChannel }
 
     public sealed partial class HeroComponent
     {
@@ -36,10 +36,15 @@ namespace UnityGameFramework.Runtime
             bool enableSwordRecall = false, Func<ActorState, int> techniqueSkill = null,
             Action<ActorState, int> settleTechnique = null, bool lightningFormation = false,
             ActorState reportOwner = null, bool slashFormation = false, bool closeGuardFormation = false,
-            TimelineArenaStyle arenaStyle = TimelineArenaStyle.Forest, bool staggerStoneGuards = false)
+            TimelineArenaStyle arenaStyle = TimelineArenaStyle.Forest, bool staggerStoneGuards = false,
+            bool openingGuardianPounce = false, bool suppressNamelessSeal = false, bool saltChannelDrained = false,
+            Func<ActorState, int> coastalFormation = null, bool timeSliceSimulation = false,
+            TimelineBattleSetup setup = null)
         {
             if (unlimitedDuration && !visible)
                 throw new ArgumentException("无时间限制的战斗必须在前台运行。", nameof(unlimitedDuration));
+            if (setup?.DurationSeconds is float duration && (duration <= 0 || float.IsNaN(duration) || float.IsInfinity(duration)))
+                throw new ArgumentException("Encounter duration must be finite and positive.", nameof(setup));
             if (IsTimelineBattle || InBattle || QiziCSList.Count != 0 || DirenList.Count != 0
                 || BulletList.Count != 0 || PosPointList.Count != 0)
                 throw new InvalidOperationException("自走棋棋盘正在使用，无法开始轮回战斗。");
@@ -49,6 +54,13 @@ namespace UnityGameFramework.Runtime
             var participants = first.Concat(second).ToArray();
             var heroes = participants.Select(heroId).ToArray();
             var equipment = participants.Select(items).ToArray();
+            for (int i = 0; i < equipment.Length; i++)
+            {
+                var loadout = equipment[i];
+                if (loadout.Contains(TimelineOuterGuardianCast.Clerk) &&
+                    !loadout.Contains(TimelineOuterGuardianCast.ClerkBasicAttack))
+                    equipment[i] = new List<int>(loadout) { TimelineOuterGuardianCast.ClerkBasicAttack };
+            }
             var heroTable = GameEntry.DataTable.GetDataTable<DRHero>("Hero");
             var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
             for (int i = 0; i < participants.Length; i++)
@@ -68,6 +80,7 @@ namespace UnityGameFramework.Runtime
             GameObject stoneBoard = null;
             Mesh stoneMesh = null;
             Material stoneMaterial = null;
+            Material mistMaterial = null;
             int? battleDetailsForm = null;
             Camera sceneCamera = visible ? Camera.main : null;
             CameraClearFlags previousClearFlags = sceneCamera != null ? sceneCamera.clearFlags : default;
@@ -76,7 +89,11 @@ namespace UnityGameFramework.Runtime
             IsTimelineBattle = true;
             IsTimelineSimulation = !visible;
             bool stationaryEnemies = unlimitedDuration && second.Count == 3;
+            bool tidegate = arenaStyle == TimelineArenaStyle.Tidegate;
+            Camera previousInkCamera = TidegateInkRenderFeature.BattleCamera;
             IsStationaryTargetPreview = stationaryEnemies;
+            if (arenaStyle is TimelineArenaStyle.IceCave or TimelineArenaStyle.LavaCave)
+                CaveHazards = new TimelineCaveHazards(this);
             try
             {
                 if (visible)
@@ -84,18 +101,40 @@ namespace UnityGameFramework.Runtime
                     if (sceneCamera != null)
                     {
                         sceneCamera.clearFlags = CameraClearFlags.SolidColor;
-                        sceneCamera.backgroundColor = new Color(.20f, .23f, .22f);
+                        sceneCamera.backgroundColor = tidegate
+                            ? new Color(.75f, .73f, .68f)
+                            : new Color(.20f, .23f, .22f);
                     }
-                    var stoneShader = Resources.Load<Shader>("TimelineBattleStone");
+                    bool ashridge = arenaStyle == TimelineArenaStyle.Ashridge;
+                    var ashShader = ashridge ? Resources.Load<Shader>("TimelineAshridge") : null;
+                    bool renderAshridge = ashShader != null && ashShader.isSupported;
+                    if (renderAshridge && sceneCamera != null) sceneCamera.backgroundColor = new Color(.35f, .36f, .38f);
+                    var stoneShader = renderAshridge ? ashShader : Resources.Load<Shader>("TimelineBattleStone");
                     if (stoneShader != null && stoneShader.isSupported)
                     {
                         stoneBoard = new GameObject("轮回战场 · " + arenaStyle);
                         stoneBoard.transform.position = offset;
-                        stoneMesh = BuildTimelineArena(arenaStyle);
                         stoneMaterial = new Material(stoneShader);
-                        stoneMaterial.SetFloat("_ArenaSurfaces", 1f);
+                        if (renderAshridge)
+                        {
+                            var mistShader = Resources.Load<Shader>("TimelineAshridgeMist");
+                            if (mistShader != null && mistShader.isSupported) mistMaterial = new Material(mistShader);
+                            stoneMesh = TimelineAshridgeArena.Build(mistMaterial != null);
+                        }
+                        else
+                        {
+                            stoneMesh = BuildTimelineArena(ashridge ? TimelineArenaStyle.Forest : arenaStyle, saltChannelDrained);
+                            stoneMaterial.SetFloat("_ArenaSurfaces", 1f);
+                            if (tidegate)
+                            {
+                                stoneMaterial.SetFloat("_TidegateInk", 1f);
+                                TidegateInkRenderFeature.BattleCamera = sceneCamera;
+                            }
+                        }
                         stoneBoard.AddComponent<MeshFilter>().sharedMesh = stoneMesh;
-                        stoneBoard.AddComponent<MeshRenderer>().sharedMaterial = stoneMaterial;
+                        var renderer = stoneBoard.AddComponent<MeshRenderer>();
+                        if (mistMaterial != null) renderer.sharedMaterials = new[] { stoneMaterial, mistMaterial };
+                        else renderer.sharedMaterial = stoneMaterial;
                     }
                     else
                     {
@@ -113,11 +152,28 @@ namespace UnityGameFramework.Runtime
                     {
                         var focus = offset + (arenaStyle == TimelineArenaStyle.Ritual
                             ? new Vector3(-.35f, .15f, -.30f)
+                            : renderAshridge ? new Vector3(-.52f, .72f, .15f)
                             : closeGuardFormation ? new Vector3(-2.15f, .30f, -1.6f) : new Vector3(-.65f, .30f, -.35f));
-                        var cameraOffset = participants.Length > 10 || arenaStyle == TimelineArenaStyle.Ritual
-                            ? new Vector3(1.2f, 8.6f, -7.15f)
+                        bool wideFormation = participants.Length > 10;
+                        var cameraOffset = renderAshridge
+                            ? (wideFormation ? new Vector3(1.15f, 4.95f, -9.45f) : new Vector3(.95f, 2.64f, -8.05f))
+                            : wideFormation || arenaStyle == TimelineArenaStyle.Ritual ? new Vector3(1.2f, 8.6f, -7.15f)
                             : arenaStyle == TimelineArenaStyle.Cliff ? new Vector3(2.9f, 5.9f, -5.7f)
                             : new Vector3(1.2f, 5.6f, -6.0f);
+                        if (renderAshridge) camera.m_Lens.FieldOfView = 59f;
+                        if (tidegate && !wideFormation && !slashFormation)
+                        {
+                            if (closeGuardFormation) focus = offset + new Vector3(-1.24f, .30f, -1.45f);
+                            cameraOffset = closeGuardFormation
+                                ? new Vector3(1.55f, 4.18f, -5.85f)
+                                : new Vector3(1.55f, 4.78f, -6.35f);
+                            camera.m_Lens.FieldOfView = 57f;
+                        }
+                        if (setup?.ExpeditionView == true)
+                        {
+                            focus = offset + new Vector3(.5f, .30f, -.9f);
+                            cameraOffset = new Vector3(1.2f, 7.6f, -7.8f);
+                        }
                         camera.transform.SetPositionAndRotation(focus + cameraOffset,
                             Quaternion.LookRotation(-cameraOffset));
                     }
@@ -138,7 +194,9 @@ namespace UnityGameFramework.Runtime
                     for (int i = 0; i < participants.Length; i++)
                     {
                         bool friend = i < first.Count;
-                        int slot = friend ? i : i - first.Count;
+                        bool coastalGuardian = !friend && coastalFormation != null;
+                        int slot = coastalGuardian ? coastalFormation(participants[i]) : friend ? i : i - first.Count;
+                        // Seven shooters in the back. Six melee units in front and seven in the rank behind them.
                         var position = friend ? GetEmptyFriendPos() : new Vector2Int(slot % 7, 7 - slot / 7);
                         // Keep the primary target closest to the player's starting cell.
                         if (!friend && slashFormation)
@@ -161,6 +219,24 @@ namespace UnityGameFramework.Runtime
                             (equipment[i].Contains(9104) || participants[i].Items.Contains(9104));
                         entity.TechniqueSkillId = techniqueSkill?.Invoke(participants[i]) ?? 0;
                         entity.Init(heroes[i], equipment[i], recordBattleOutput: reportOwner != null);
+                        entity.ShowsPlayerHitFeedback = visible &&
+                            (reportOwner != null ? participants[i].Id == reportOwner.Id : friend);
+                        if (coastalGuardian && slot < NodeState.CoastalRangedCount)
+                        {
+                            // Reach the front line without following the crabs into melee.
+                            var saltNeedle = entity.NormalSkillList.First(skill => skill.SkillID == TimelineOuterGuardianCast.Eel);
+                            saltNeedle.SkillRange = 8500;
+                            saltNeedle.DefaultSkillCDMs = 2550 + slot % 3 * 100;
+                            entity.IsCoastalShooter = true;
+                            entity.SaltFirstAttackDelayMs = slot * 90;
+                        }
+                        else if (coastalGuardian) entity.IsCoastalMelee = true;
+                        entity.SaltChannelDrained = saltChannelDrained;
+                        if (!friend && entity.TimelineAppearance == SaltChannel.CrabAppearance)
+                            entity.SaltFirstAttackDelayMs = slot % 2 * 300;
+                        entity.NamelessSteleSealed = !friend && suppressNamelessSeal &&
+                            entity.TimelineAppearance == TimelineMonsterAnimation.NamelessSteleAppearance;
+                        entity.CanOpenWithPounce = openingGuardianPounce && !friend;
                         if (staggerStoneGuards && !friend && entity.TimelineAppearance == "GateGolem")
                             entity.FirstStoneSmashDelayMs = slot % 2 * 300;
                         if (reportOwner != null)
@@ -168,7 +244,14 @@ namespace UnityGameFramework.Runtime
                             foreach (var skill in entity.NormalSkillList.Concat(entity.NoAnimAtkSkillList).Concat(entity.PassiveSkillList))
                                 entity.BattleOutput.TryAdd(skill.SkillID, new SkillBattleOutput(skill.SkillID, skill.FromItemID, 0, 0, 0));
                         }
-                        position = FindPlacement(entity, position);
+                        if (setup?.AdjustPosition != null) position = setup.AdjustPosition(participants[i], position);
+                        if (setup?.Position != null)
+                        {
+                            position = setup.Position(participants[i]);
+                            if (position.x < 0 || position.x >= 7 || position.y < 0 || position.y >= 8)
+                                throw new InvalidOperationException("Encounter formation is outside the battle board.");
+                        }
+                        else position = FindPlacement(entity, position);
                         if (!TryPlace(entity, position))
                             throw new InvalidOperationException($"No free board position for hero {entity.HeroID}.");
 
@@ -179,6 +262,7 @@ namespace UnityGameFramework.Runtime
                         entity.GetAttribute(AttributeType.MaxHp).SetBaseNum(actor.MaxHealth);
                         entity.GetAttribute(AttributeType.Hp).SetBaseNum(actor.Health);
                         entity.GetAttribute(AttributeType.AttackDamage).SetBaseNum(actor.CombatAttack);
+                        setup?.Configure?.Invoke(actor, entity);
                     }
                 }
                 if (visible)
@@ -191,8 +275,21 @@ namespace UnityGameFramework.Runtime
                             throw new InvalidOperationException("战斗角色模型加载超时。");
                         yield return null;
                     }
-                    battleDetailsForm = GameEntry.UI.OpenUIForm(UICtrlName.BattleMainPanel, "middle",
-                        BattleMainCtrl.OpenMode.InspectOnly);
+                    if (tidegate && stoneBoard != null)
+                    {
+                        foreach (var fighter in QiziCSList)
+                            if (fighter.ShowsPlayerHitFeedback)
+                                fighter.GObj.transform.localScale *= 1.10f;
+                        BurnVisuals.SetTidegatePresentation(entities, offset.y);
+                    }
+                    if (setup?.Planning == null)
+                        battleDetailsForm = GameEntry.UI.OpenUIForm(UICtrlName.BattleMainPanel, "middle",
+                            BattleMainCtrl.OpenMode.InspectOnly);
+                }
+                if (setup?.Planning != null)
+                {
+                    yield return setup.Planning(participants, entities);
+                    yield break;
                 }
 #if UNITY_EDITOR
                 if (stationaryEnemies && seedPreviewBurn) previewBurnTarget = entities[first.Count];
@@ -201,8 +298,9 @@ namespace UnityGameFramework.Runtime
                 float step = GameEntry.LogicDeltaTime;
                 if (step <= 0 || float.IsNaN(step) || float.IsInfinity(step))
                     throw new InvalidOperationException("战斗逻辑步长无效。");
-                int? remainingTicks = unlimitedDuration ? null : Mathf.CeilToInt(ConstValue.BattleMaxDuration / step);
+                int? remainingTicks = unlimitedDuration ? null : Mathf.CeilToInt((setup?.DurationSeconds ?? ConstValue.BattleMaxDuration) / step);
                 float accumulator = 0;
+                long sliceBudget = System.Diagnostics.Stopwatch.Frequency / 500; // Two milliseconds of combat ticks per frame.
                 while ((remainingTicks ?? 1) > 0 &&
                     QiziCSList.Any(entity => entity.IsValid) && DirenList.Any(entity => entity.IsValid))
                 {
@@ -214,13 +312,23 @@ namespace UnityGameFramework.Runtime
                         steps = Math.Min(steps, Mathf.FloorToInt(accumulator / step));
                         accumulator -= steps * step;
                     }
+                    else if (timeSliceSimulation)
+                        steps = Math.Min(steps, 32);
+                    long sliceStart = timeSliceSimulation ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
                     for (int i = 0; i < steps; i++)
                     {
                         using (GameFramework.Utility.Random.UseGenerator(random))
+                        {
                             OnLogicUpdate(step, step, stationaryEnemies);
+                            setup?.Tick?.Invoke(step);
+                        }
                         remainingTicks--;
                         if (!QiziCSList.Any(entity => entity.IsValid) || !DirenList.Any(entity => entity.IsValid)) break;
+                        if (timeSliceSimulation && System.Diagnostics.Stopwatch.GetTimestamp() - sliceStart >= sliceBudget) break;
                     }
+                    if (timeSliceSimulation && remainingTicks > 0 &&
+                        QiziCSList.Any(entity => entity.IsValid) && DirenList.Any(entity => entity.IsValid))
+                        yield return null;
                 }
                 var health = entities.Select(entity => entity.IsValid
                     ? Math.Max(0, (int)entity.GetAttribute(AttributeType.Hp).GetFinalValue()) : 0).ToArray();
@@ -263,6 +371,8 @@ namespace UnityGameFramework.Runtime
                     {
                         ActorId = actor.Id,
                         Allied = (i < first.Count) == playerAttacks,
+                        DamageTaken = entities[i].BattleDamageTaken,
+                        HealthLost = entities[i].BattleHealthLost,
                         Skills = entities[i].BattleOutput.Values.OrderBy(row => row.SkillId).ToArray()
                     }).ToArray();
                 }
@@ -271,6 +381,8 @@ namespace UnityGameFramework.Runtime
             finally
             {
                 IsStationaryTargetPreview = false;
+                CaveHazards?.Clear();
+                CaveHazards = null;
                 BurnVisuals = null;
 #if UNITY_EDITOR
                 previewBurnTarget = null;
@@ -282,6 +394,8 @@ namespace UnityGameFramework.Runtime
                         GameEntry.UI.CloseUIForm(formId);
                     ClearBullet();
                     ClearPosPoint();
+                    foreach (var shadow in QiziCSList.Concat(DirenList).Where(entity => entity.IsPaperShadow))
+                        shadow.Remove();
                     foreach (var entity in entities) entity.Remove();
                     QiziCSList.Clear();
                     DirenList.Clear();
@@ -307,6 +421,8 @@ namespace UnityGameFramework.Runtime
                     }
                     if (stoneMesh != null) Destroy(stoneMesh);
                     if (stoneMaterial != null) Destroy(stoneMaterial);
+                    if (mistMaterial != null) Destroy(mistMaterial);
+                    if (tidegate) TidegateInkRenderFeature.BattleCamera = previousInkCamera;
                     if (sceneCamera != null)
                     {
                         sceneCamera.clearFlags = previousClearFlags;
@@ -320,7 +436,7 @@ namespace UnityGameFramework.Runtime
 
         }
 
-        private static Mesh BuildTimelineArena(TimelineArenaStyle style)
+        private static Mesh BuildTimelineArena(TimelineArenaStyle style, bool saltChannelDrained)
         {
             var vertices = new List<Vector3>();
             var colors = new List<Color>();
@@ -407,6 +523,115 @@ namespace UnityGameFramework.Runtime
                 mesh.SetColors(colors);
                 mesh.SetTriangles(triangles, 0);
                 return mesh;
+            }
+
+            if (style is TimelineArenaStyle.SaltFlat or TimelineArenaStyle.SaltChannel)
+            {
+                bool channel = style == TimelineArenaStyle.SaltChannel;
+                var salt = new Color(.65f, .61f, .49f, 0f);
+                var bank = new Color(.40f, .39f, .31f, 0f);
+                var brass = new Color(.47f, .34f, .19f, 0f);
+                Box(new Vector3(0, -.88f, 0), new Vector3(34, .45f, 29), Shade(bank, .72f));
+                Box(new Vector3(0, -.31f, -.12f), new Vector3(9.6f, .56f, 10.8f), channel ? slate : salt);
+                float waterHeight = channel && saltChannelDrained ? -.56f : -.37f;
+                Box(new Vector3(-6.1f, waterHeight, 0), new Vector3(2.55f, .06f, 24), water);
+                Box(new Vector3(6.1f, waterHeight, 0), new Vector3(2.55f, .06f, 24), water);
+                if (channel)
+                {
+                    for (int side = -1; side <= 1; side += 2)
+                    {
+                        for (int i = 0; i < 8; i++)
+                        {
+                            float z = -5.1f + i * 1.47f;
+                            Box(new Vector3(side * 4.93f, -.27f, z), new Vector3(.44f, .7f, 1.44f), Shade(bank, .91f + i % 3 * .05f));
+                            Box(new Vector3(side * 5.15f, saltChannelDrained ? -.29f : -.10f, z),
+                                new Vector3(.08f, .08f, 1.43f), salt);
+                        }
+                    }
+                    Box(new Vector3(0, .06f, 6.1f), new Vector3(10f, 1.05f, 1.45f), bank);
+                    Box(new Vector3(0, .69f, 6.05f), new Vector3(5.6f, .34f, .55f), wood);
+                    for (int i = -5; i <= 5; i++)
+                        Box(new Vector3(i * .45f, .16f, 5.49f), new Vector3(.31f, .52f, .12f), brass);
+                    for (int i = -2; i <= 2; i++)
+                        Box(new Vector3(i * 1.34f, -.015f, .04f), new Vector3(.045f, .018f, 8.7f), Shade(bank, .83f));
+                }
+                else
+                {
+                    for (int i = 0; i < 6; i++)
+                    {
+                        float x = -4.7f + i * 1.86f;
+                        Box(new Vector3(x, .19f, 5.7f), new Vector3(.13f, .85f, .15f), wood, i % 2 * 9);
+                        if (i < 5)
+                            Box(new Vector3(x + .9f, .53f, 5.7f), new Vector3(1.86f, .10f, .16f), wood);
+                        for (int tag = 0; tag < 3; tag++)
+                            Box(new Vector3(x + .27f + tag * .28f, .35f - .03f * (tag % 2), 5.64f),
+                                new Vector3(.16f, .27f, .035f), Shade(brass, .83f + tag * .11f), tag * 9f);
+                    }
+                    for (int i = 0; i < 15; i++)
+                    {
+                        int side = i % 2 == 0 ? -1 : 1;
+                        Box(new Vector3(side * (4.1f + i % 4 * .14f), -.019f, -4.4f + i * .64f),
+                            new Vector3(.49f + i % 3 * .14f, .025f, .22f), Shade(salt, 1.08f), i * 29f);
+                    }
+                }
+                return FinishArena();
+            }
+
+            if (style is TimelineArenaStyle.IceCave or TimelineArenaStyle.LavaCave)
+            {
+                bool ice = style == TimelineArenaStyle.IceCave;
+                var floor = ice ? new Color(.34f, .50f, .56f, .25f) : new Color(.25f, .225f, .23f, .25f);
+                var bank = ice ? new Color(.12f, .21f, .28f, 0) : new Color(.11f, .079f, .085f, 0);
+                var river = ice ? new Color(.19f, .40f, .50f, .75f) : new Color(.83f, .20f, .043f, 1f);
+                Box(new Vector3(0, -.68f, 5f), new Vector3(60f, .45f, 59f), river);
+                if (ice)
+                {
+                    Box(new Vector3(-.25f, -.20f, 1.2f), new Vector3(10.9f, .34f, 15.2f), floor);
+                    var shelf = new Color(.29f, .53f, .60f, 0f);
+                    Cliff(new Vector3(-3.9f, -.12f, 8.8f), new Vector3(4.7f, .8f, 3.9f), -14, shelf);
+                    Cliff(new Vector3(4.1f, -.14f, 10.5f), new Vector3(5.0f, 1.2f, 4.4f), 39, shelf);
+                }
+                else
+                {
+                    var a = new Vector3(-5.1f, -.031f, -5.4f);
+                    var b = new Vector3(4.7f, -.031f, -5.4f);
+                    var c = new Vector3(5.0f, -.031f, 3.2f);
+                    var d = new Vector3(-4.6f, -.031f, 3.2f);
+                    var e = new Vector3(3.7f, -.031f, 9.1f);
+                    var f = new Vector3(-2.7f, -.031f, 9.1f);
+                    Quad(a, d, c, b, floor);
+                    Quad(d, f, e, c, floor);
+                    var drop = Vector3.down * .43f;
+                    var basaltEdge = Shade(floor, .65f);
+                    Quad(a, a + drop, d + drop, d, basaltEdge);
+                    Quad(d, d + drop, f + drop, f, basaltEdge);
+                    Quad(b, c, c + drop, b + drop, basaltEdge);
+                    Quad(c, e, e + drop, c + drop, basaltEdge);
+                    for (int i = 0; i < 6; i++)
+                    {
+                        float z = 3.9f + i * 1.48f;
+                        Cliff(new Vector3(-5.7f - i * .21f, -.45f, z), new Vector3(.98f, .62f + i * .16f, .97f), i * 15f, bank);
+                        Cliff(new Vector3(5.8f + i * .29f, -.45f, z), new Vector3(1.23f, 1.10f + i * .21f, 1.06f), i * 26f, bank);
+                    }
+                }
+                for (int i = 0; i < 9; i++)
+                {
+                    float z = -3.8f + i * 2.1f;
+                    float shift = Mathf.Sin(i * 1.9f) * .9f;
+                    for (int side = -1; side <= 1; side += 2)
+                    {
+                        Cliff(new Vector3(side * (7.1f + shift), -.45f, z), new Vector3(4.1f, 1.4f + i * .52f, 4.6f),
+                            side * i * 27f, bank);
+                        if (ice && i >= 2)
+                            Cliff(new Vector3(side * (5.35f + Mathf.Abs(shift)), -.04f, z),
+                                new Vector3(1.13f, 1.6f + i % 3 * .71f, 1.05f), side * i * 34f,
+                                Shade(new Color(.38f, .71f, .78f, 0), .76f + .10f * (i % 3)));
+                    }
+                }
+                for (int i = -3; i <= 3; i++)
+                    Cliff(new Vector3(i * 3.7f, -.5f, 16f + Mathf.Abs(i) * 1.3f),
+                        new Vector3(5.7f, 3.9f + Mathf.Abs(i) * 1.12f, 5.2f), i * 19f, bank);
+                return FinishArena();
             }
 
             if (style == TimelineArenaStyle.Forest)
@@ -580,6 +805,10 @@ namespace UnityGameFramework.Runtime
             }
 
             // The paving extends toward the camera and joins both abutments.
+            slate = new Color(.43f, .40f, .34f, .25f);
+            water = new Color(.136f, .19f, .179f, .5f);
+            stone = new Color(.24f, .267f, .24f, 0f);
+            wood = new Color(.205f, .14f, .097f, 0f);
             Box(new Vector3(-.25f, -.53f, -3.4f), new Vector3(9.4f, 1.01f, 16.6f), slate);
             Quad(new Vector3(-32, -.59f, -32), new Vector3(-32, -.59f, 32),
                 new Vector3(32, -.59f, 32), new Vector3(32, -.59f, -32), water);
@@ -590,6 +819,13 @@ namespace UnityGameFramework.Runtime
             // behind the door planks, and the rear embankment covers the water above them.
             Box(new Vector3(-.25f, .45f, gateZ + .83f), new Vector3(9.2f, 2.55f, 1.30f), Shade(stone, .69f));
             Box(new Vector3(-.25f, .38f, gateZ + 6.8f), new Vector3(19f, 2.6f, 11.3f), Shade(stone, .81f));
+            for (int i = 0; i < 7; i++)
+            {
+                float x = (i - 3) * 4.3f;
+                Cliff(new Vector3(x, -.70f, 17f + i % 3 * 2.9f),
+                    new Vector3(6.2f, 3.2f + (i * 7 % 5) * .83f, 6.4f),
+                    i * 23f, Shade(stone, .92f));
+            }
             Box(new Vector3(-.25f, 1.85f, gateZ + .65f), new Vector3(9.48f, .33f, 1.76f), Shade(stone, 1.12f));
             Box(new Vector3(-.25f, 2.04f, gateZ + .72f), new Vector3(9.2f, .13f, 1.58f), stone);
             for (int i = -6; i <= 6; i++)

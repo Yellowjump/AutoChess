@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -24,6 +26,43 @@ namespace WorldTimelineDebug.Editor
         {
             Open();
             if (EditorSceneManager.GetActiveScene().path == ScenePath) EditorApplication.isPlaying = true;
+        }
+
+        [MenuItem("Tools/世界时间线/打开养成调参面板")]
+        public static void OpenBalanceDashboard()
+        {
+            try
+            {
+                string tools = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "Tools"));
+                string template = Path.Combine(tools, "WorldTimelineBalance.html");
+                string html = File.ReadAllText(template);
+                string logDirectory = WorldTimelineDebugView.BalanceLogDirectory;
+                var payload = new StringBuilder();
+                if (Directory.Exists(logDirectory))
+                {
+                    foreach (string path in Directory.EnumerateFiles(logDirectory, "*.jsonl").OrderBy(path => path, StringComparer.Ordinal))
+                    {
+                        using var stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        using var reader = new StreamReader(stream);
+                        payload.AppendLine(Convert.ToBase64String(Encoding.UTF8.GetBytes(reader.ReadToEnd())));
+                    }
+                }
+
+                string baseUri = new Uri(tools + Path.DirectorySeparatorChar).AbsoluteUri;
+                html = html.Replace("<!-- unity-dashboard-base -->", "<base href=\"" + baseUri + "\">")
+                    .Replace("<!-- unity-dashboard-logs -->", "<script id=\"unity-logs\" type=\"text/plain\">" + payload + "</script>");
+                string output = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Library", "WorldTimelineBalance.html"));
+                File.WriteAllText(output, html, new UTF8Encoding(false));
+                Application.OpenURL(new Uri(output).AbsoluteUri);
+            }
+            catch (IOException error)
+            {
+                Debug.LogError("无法打开养成调参面板：" + error.Message);
+            }
+            catch (UnauthorizedAccessException error)
+            {
+                Debug.LogError("无法读取养成调参面板或日志：" + error.Message);
+            }
         }
 
         // CLI validation: imports/compiles the real project, opens the serialized scene,

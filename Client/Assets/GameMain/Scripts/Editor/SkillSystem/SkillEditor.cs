@@ -16,6 +16,12 @@ namespace Editor.SkillSystem
             }
             skill.TempleteID = EditorGUILayout.IntField("当前技能模板ID:", skill.TempleteID);
             skill.EditorDesc = EditorGUILayout.TextField("描述:", skill.EditorDesc);
+            var current = skill.CastCondition?.CurConditionType ?? ConditionType.NoCondition;
+            var selected = (ConditionType)EditorGUILayout.EnumPopup("释放条件", current);
+            if (selected != current)
+                skill.SetCastCondition(selected == ConditionType.NoCondition ? null : SkillFactory.CreateCondition(selected));
+            if (skill.CastCondition != null)
+                SkillSystemDrawerCenter.DrawOneInstance(skill.CastCondition);
             _triggerListEditorInstance ??= new TriggerListEditor();
             _triggerListEditorInstance.OnGUIDraw(skill);
             //SkillSystemDrawerCenter.DrawOneInstance((TriggerList)skill);

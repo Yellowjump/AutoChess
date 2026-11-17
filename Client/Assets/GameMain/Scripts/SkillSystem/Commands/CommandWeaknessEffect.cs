@@ -9,11 +9,12 @@ namespace SkillSystem
     public sealed class CommandWeaknessEffect : CommandBase
     {
         public const int WeaknessBuffId = 30401;
-        private const int OpeningBuffId = 30402;
+        internal const int OpeningBuffId = 30402;
         public enum Effect { Weaken, Mark, Strike, Retaliate }
         public override CommandType CurCommandType => CommandType.WeaknessEffect;
         public Effect Mode;
         public TableParamInt Param;
+        private bool basicAttackCombo;
 
         public override void OnExecute(OneTrigger trigger, object arg = null)
         {
@@ -36,7 +37,15 @@ namespace SkillSystem
             switch (Mode)
             {
                 case Effect.Weaken:
-                    if (hit.SourceSkill?.IsActiveDamageSkill == true)
+                    if (basicAttackCombo && hit.SourceSkill?.IsBasicAttack == true)
+                    {
+                        ApplyStatus(target, BuffTag.Weakened, WeaknessBuffId);
+                        var existingOpening = target.FindStatusBuff(BuffTag.Exposed, OpeningBuffId);
+                        if (hit.OpeningStacksBeforeHit == 0 ||
+                            (existingOpening != null && hit.OpeningStacksBeforeHit < existingOpening.MaxLayerNum))
+                            ApplyStatus(target, BuffTag.Exposed, OpeningBuffId);
+                    }
+                    else if (!basicAttackCombo && hit.SourceSkill?.IsActiveDamageSkill == true)
                         ApplyStatus(target, BuffTag.Weakened, WeaknessBuffId);
                     break;
                 case Effect.Mark:
@@ -45,14 +54,19 @@ namespace SkillSystem
                     break;
                 case Effect.Strike:
                     var opening = target.FindStatusBuff(BuffTag.Exposed, OpeningBuffId);
-                    if (hit.SourceSkill?.IsActiveDamageSkill == true && opening != null &&
-                        opening.StackCount >= opening.MaxLayerNum)
+                    if (opening != null && (basicAttackCombo
+                        ? hit.SourceSkill?.IsBasicAttack == true && hit.OpeningStacksBeforeHit >= opening.MaxLayerNum
+                        : hit.SourceSkill?.IsActiveDamageSkill == true && opening.StackCount >= opening.MaxLayerNum))
                     {
                         opening.OnDestory();
                         int attack = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
                         long damage = (long)attack * Param.Value / 100;
                         if (damage > 0)
-                            HotGameEntry.HeroManager.BurnVisuals?.OpeningStruck(target.LogicPosition);
+                        {
+                            var visuals = HotGameEntry.HeroManager.BurnVisuals;
+                            if (basicAttackCombo) visuals?.OpeningSealStamped(target.LogicPosition);
+                            else visuals?.OpeningStruck(target.LogicPosition);
+                        }
                         CommandCauseDamage.DealSecondaryDamage(target, damage, source);
                     }
                     break;
@@ -91,11 +105,16 @@ namespace SkillSystem
             Mode = (Effect)reader.ReadInt32();
             Param.ReadFromFile(reader);
         }
-        public override void SetSkillValue(DataRowBase row) => Param.SetSkillValue(row);
+        public override void SetSkillValue(DataRowBase row)
+        {
+            Param.SetSkillValue(row);
+            basicAttackCombo = row is DRSkill skill && skill.IntParam2 == 1;
+        }
         public override void Clone(CommandBase copy)
         {
             if (copy is not CommandWeaknessEffect effect) return;
             effect.Mode = Mode;
+            effect.basicAttackCombo = basicAttackCombo;
             Param.Clone(effect.Param);
         }
     }

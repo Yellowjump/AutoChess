@@ -25,3 +25,47 @@
 	22	8	-2	Timeline_Gorge_Gate	Timeline_Gorge_GateText	Gate	0
 	23	7	2	Timeline_Tide_Pier	Timeline_Tide_PierText	Bridge	1
 	24	6	3	Timeline_Tide_Ledge	Timeline_Tide_LedgeText	Well	0
+	25	6	2	Timeline_Whitefoam_Title	Timeline_Whitefoam_Intro	Bridge	0
+	26	-8	5	Timeline_Ashridge_Title	Timeline_Ashridge_Intro	Cave	0
+	27	-9	2	Timeline_QiMo_Title	Timeline_QiMo_Intro	Gate	0
+	28	0	-7	Timeline_RelayStory_Chisel_Title	Timeline_RelayStory_Chisel_Intro	Well	0
+	29	-2	8	Timeline_RelayStory_Trail_Title	Timeline_RelayStory_Trail_Intro	Traveler	0
+	30	-8	2	Timeline_RelayStory_Ledger_Title	Timeline_RelayStory_Ledger_Intro	Gate	0
+	31	6	-8	Timeline_Exploration_1_Place_1	Timeline_Exploration_Event_31_Intro	Cave	0
+	32	5	-6	Timeline_Exploration_1_Place_3	Timeline_Exploration_Event_32_Intro	Gate	0
+	33	8	0	Timeline_Exploration_2_Place_1	Timeline_Exploration_Event_33_Intro	Traveler	0
+	34	6	1	Timeline_Exploration_2_Place_3	Timeline_Exploration_Event_34_Intro	Well	0
+	35	-4	8	Timeline_Exploration_3_Place_1	Timeline_Exploration_Event_35_Intro	Traveler	0
+	36	-5	7	Timeline_Exploration_3_Place_3	Timeline_Exploration_Event_36_Intro	Traveler	0
+	37	-9	3	Timeline_Exploration_4_Place_1	Timeline_Exploration_Event_37_Intro	Gate	0
+	38	-7	2	Timeline_Exploration_4_Place_3	Timeline_Exploration_Event_38_Intro	Gate	0
+	39	1	7	Timeline_Exploration_5_Place_1	Timeline_Exploration_Event_39_Intro	Traveler	0
+	40	1	5	Timeline_Exploration_5_Place_3	Timeline_Exploration_Event_40_Intro	Gate	0
+	41	-4	-3	Timeline_Exploration_6_Place_1	Timeline_Exploration_Event_41_Intro	Cave	0
+	42	-3	-2	Timeline_Exploration_6_Place_3	Timeline_Exploration_Event_42_Intro	Well	0
+	43	-3	7	Timeline_NorthRelay_HutTitle	Timeline_NorthRelay_HutIntro	Traveler	0
+	44	-3	5	Timeline_NorthRelay_ArrayTitle	Timeline_NorthRelay_ArrayIntro	Gate	0
+	45	-6	1	Timeline_QiStory_Altar	Timeline_QiStory_AltarIntro	Gate	0
+	46	8	-9	Timeline_Salt_Ditch	Timeline_Salt_DitchText	Bridge	0
+	47	7	-8	Timeline_Salt_Beach	Timeline_Salt_BeachText	Bridge	0
+	48	6	-7	Timeline_Salt_Drain	Timeline_Salt_DrainText	Well	1
+	49	6	-6	Timeline_Salt_Head	Timeline_Salt_HeadText	Gate	1
+	50	6	-9	Timeline_ExpandedMap_78	Timeline_ExpandedMap_Event_50_Intro	Bridge	0
+	51	8	-4	Timeline_ExpandedMap_82	Timeline_ExpandedMap_Event_51_Intro	Well	0
+	52	-7	8	Timeline_ExpandedMap_86	Timeline_ExpandedMap_Event_52_Intro	Cave	0
+	53	-1	-7	Timeline_ExpandedMap_90	Timeline_ExpandedMap_Event_53_Intro	Bridge	0
+	54	2	-1	Timeline_ExpandedMap_94	Timeline_ExpandedMap_Event_54_Intro	Gate	0
+	55	1	2	Timeline_ExpandedMap_99	Timeline_ExpandedMap_Event_55_Intro	Gate	0
+	56	7	-10	Timeline_ExpandedMap_76	Timeline_ExpandedMap_Event_56_Intro	Bridge	0
+	62	7	-9	Timeline_ExpandedMap_77	Timeline_ExpandedMap_Event_62_Intro	Bridge	0
+	57	9	-5	Timeline_ExpandedMap_80	Timeline_ExpandedMap_Event_57_Intro	Bridge	0
+	63	9	-4	Timeline_ExpandedMap_81	Timeline_ExpandedMap_Event_63_Intro	Gate	0
+	58	-8	9	Timeline_ExpandedMap_84	Timeline_ExpandedMap_Event_58_Intro	Traveler	0
+	64	-7	9	Timeline_ExpandedMap_85	Timeline_ExpandedMap_Event_64_Intro	Gate	0
+	59	-3	-7	Timeline_ExpandedMap_88	Timeline_ExpandedMap_Event_59_Intro	Bridge	0
+	65	-2	-7	Timeline_ExpandedMap_89	Timeline_ExpandedMap_Event_65_Intro	Cave	0
+	60	4	-1	Timeline_ExpandedMap_92	Timeline_ExpandedMap_Event_60_Intro	Gate	0
+	66	3	-1	Timeline_ExpandedMap_93	Timeline_ExpandedMap_Event_66_Intro	Gate	0
+	61	-1	7	Timeline_ExpandedMap_96	Timeline_ExpandedMap_Event_61_Intro	Traveler	0
+	67	-1	6	Timeline_ExpandedMap_97	Timeline_ExpandedMap_Event_67_Intro	Gate	0
+	68	-2	2	Timeline_ExpandedMap_98	Timeline_ExpandedMap_Event_68_Intro	Gate	0

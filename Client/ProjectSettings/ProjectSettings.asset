@@ -745,7 +745,7 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   scriptingDefineSymbols:
     Android: ENABLE_LOG
-    Standalone: ENABLE_LOG
+    Standalone: ENABLE_LOG;STEAMWORKS_NET
     WebGL: ENABLE_LOG
     Windows Store Apps: ENABLE_LOG
     iPhone: ENABLE_LOG

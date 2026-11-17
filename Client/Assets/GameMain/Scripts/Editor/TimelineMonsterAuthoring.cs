@@ -4,7 +4,7 @@ using Entity;
 using UnityEditor;
 using UnityEngine;
 
-public static class TimelineMonsterAuthoring
+public static partial class TimelineMonsterAuthoring
 {
     private const string Folder = "Assets/GameMain/Art/Characters/Resources/StoryCharacters";
     private const string SteleName = "NamelessStele";
@@ -33,7 +33,8 @@ public static class TimelineMonsterAuthoring
         mesh.RecalculateBounds();
         EditorUtility.SetDirty(mesh);
         BuildOne("WreckBeast", mesh, .68f, new Color32(39, 85, 77, 255), new Color32(167, 203, 169, 255), Water);
-        BuildOne("GateGolem", mesh, .83f, new Color32(71, 74, 82, 255), new Color32(215, 151, 66, 255), Stone);
+        BuildOne("GateGolem", mesh, 1f, new Color32(71, 74, 82, 255), new Color32(215, 151, 66, 255), Stone,
+            new Vector3(.22f, .70f, .30f));
         BuildOne("RitualWraith", mesh, .95f, new Color32(57, 41, 66, 255), new Color32(208, 98, 124, 255), Ritual);
         AssetDatabase.SaveAssets();
         Debug.Log("Built WreckBeast, GateGolem and RitualWraith with idle, move and two-phase attack clips.");
@@ -189,13 +190,13 @@ public static class TimelineMonsterAuthoring
     }
 
     private static void BuildOne(string name, Mesh mesh, float scale, Color shade, Color accent,
-        Action<Transform, Mesh, Material, Material, TimelineMonsterAnimation> build)
+        Action<Transform, Mesh, Material, Material, TimelineMonsterAnimation> build, Vector3? proportions = null)
     {
         var root = new GameObject(name);
         root.layer = 11;
         try
         {
-            root.transform.localScale = Vector3.one * scale;
+            root.transform.localScale = (proportions ?? Vector3.one) * scale;
             var clips = root.AddComponent<TimelineMonsterAnimation>();
             build(Pivot(root.transform, "Body", Vector3.zero), mesh, Tint(name + "Shade", shade),
                 Tint(name + "Accent", accent), clips);
@@ -230,20 +231,31 @@ public static class TimelineMonsterAuthoring
 
     private static void Stone(Transform body, Mesh mesh, Material shade, Material accent, TimelineMonsterAnimation clips)
     {
-        Part(body, "Torso", mesh, shade, new Vector3(0, .68f, 0), new Vector3(.43f, .44f, .32f), true);
-        Part(body, "Seal", mesh, accent, new Vector3(0, .69f, .27f), new Vector3(.17f, .23f, .08f));
-        Part(body, "Helmet", mesh, shade, new Vector3(0, 1.12f, .02f), new Vector3(.26f, .23f, .23f), true);
-        var arms = Pivot(body, "Arms", new Vector3(0, .89f, 0));
+        shade.shader = Shader.Find(TimelineMonsterAnimation.GateStoneShader);
+        EditorUtility.SetDirty(shade);
+        Part(body, "Torso", mesh, shade, new Vector3(0, .77f, -.08f), new Vector3(.72f, .53f, .49f), true);
+        Part(body, "Seal", mesh, accent, new Vector3(0, .80f, .37f), new Vector3(.23f, .26f, .11f));
+        Part(body, "Helmet", mesh, shade, new Vector3(0, 1.34f, .08f), new Vector3(.33f, .26f, .29f), true);
+        var arms = Pivot(body, "Arms", new Vector3(0, .96f, 0));
         for (int side = -1; side <= 1; side += 2)
         {
-            Part(body, "Foot" + side, mesh, shade, new Vector3(side * .24f, .20f, .02f), new Vector3(.22f, .24f, .29f), true);
-            Part(arms, "Boulder" + side, mesh, shade, new Vector3(side * .46f, -.25f, .07f), new Vector3(.30f, .38f, .27f), true);
-            Part(arms, "Mark" + side, mesh, accent, new Vector3(side * .48f, -.25f, .31f), new Vector3(.11f, .13f, .04f));
+            Part(body, "Shoulder" + side, mesh, shade, new Vector3(side * .76f, 1.02f, -.05f),
+                new Vector3(.46f, .30f, .45f), true);
+            Part(body, "Foot" + side, mesh, shade, new Vector3(side * .56f, .28f, .12f),
+                new Vector3(.38f, .28f, .67f));
+            Part(arms, "Boulder" + side, mesh, shade, new Vector3(side * 1.09f, -.29f, .16f),
+                new Vector3(.52f, .42f, .43f), true);
+            Part(arms, "Mark" + side, mesh, accent, new Vector3(side * 1.09f, -.26f, .61f),
+                new Vector3(.16f, .17f, .065f));
         }
         clips.Idle = Clip(clips, "Idle", true, c => Rotate(c, body, "z", -2, 2, -2));
-        clips.Move = Clip(clips, "Move", true, c => Rotate(c, body, "z", -9, 9, -9));
+        clips.Move = Clip(clips, "Move", true, c =>
+        {
+            Rotate(c, body, "z", -5, 5, -5);
+            Offset(c, body, "y", .05f, .05f, .05f);
+        });
         clips.Windup = Clip(clips, "Windup", false, c => Rotate(c, arms, "x", 0, -80, -148));
-        clips.Strike = Clip(clips, "Strike", false, c => { Rotate(c, arms, "x", -43, -14, 0); Rotate(c, body, "x", 28, 8, 0); });
+        clips.Strike = Clip(clips, "Strike", false, c => { Rotate(c, arms, "x", -43, -14, 0); Rotate(c, body, "x", 17, 8, 0); });
     }
 
     private static void Ritual(Transform body, Mesh mesh, Material shade, Material accent, TimelineMonsterAnimation clips)

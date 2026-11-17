@@ -12,3 +12,17 @@
 	8	Node	-3	8	0	Cliff
 	9	Node	3	7	0	Cliff
 	10	Node	0	0	0	Ritual
+	11	Node	-8	5	0	Ashridge
+	12	Node	-3	4	0	IceCave
+	13	Node	-3	3	0	IceCave
+	14	Node	-8	6	0	LavaCave
+	15	Node	-7	5	0	LavaCave
+	16	Node	7	-8	0	SaltFlat
+	17	Node	6	-6	0	SaltChannel
+	18	Node	7	-9	0	SaltFlat
+	19	Node	9	-4	0	SaltFlat
+	20	Node	-7	9	0	Cliff
+	21	Node	-2	-7	0	SaltFlat
+	22	Node	3	-1	0	Cliff
+	23	Node	-1	6	0	Cliff
+	24	Node	-2	2	0	Ritual

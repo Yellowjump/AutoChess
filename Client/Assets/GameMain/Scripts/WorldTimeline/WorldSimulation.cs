@@ -31,11 +31,20 @@ namespace WorldTimeline
                     throw new ArgumentException("Initial actor node missing.");
             encounters = new EncounterSystem(battle ?? new SimpleWorldBattleResolver()) { Growth = cultivation };
             recorder = new LifeRecorder(Player);
+            State.PrepareHistoricalParty = (actor, node) => histories.FirstOrDefault(h => h.ActorId == actor)?.PrepareBattle(State, node);
         }
 
-        public LifeRecord RecordPlayerLife() => recorder.Snapshot(State.Year);
+        public LifeRecord RecordPlayerLife() => recorder.Snapshot(State.Year, State.Expedition?.Records);
+        public bool RecordCompletedLife()
+        {
+            if (!WaitingForPlayer || !State.PlayerCompletedPersonalStory) return false;
+            State.Finish(RunOutcome.LifeRecorded);
+            return true;
+        }
         public void SetBattleSettlementPresenter(Func<BattleSettlement, IEnumerator> presenter)
             => encounters.PresentSettlement = presenter;
+        public void SetBattlePreparationPresenter(Func<int, IEnumerator> presenter)
+            => encounters.PrepareBattle = presenter;
         public void ConfigureStories(StoryConfig config, int seed = 1, bool interactivePlayer = false,
             IEnumerable<RecordedStoryChoice> replayPlayerChoices = null)
         {
@@ -47,22 +56,23 @@ namespace WorldTimeline
             encounters.StoryResolver = Stories.ResolveRoutine;
         }
 
-        public void ConfigureFinalRitual(int bossHealth, int bossAttack, int periodYears = 100)
+        public void ConfigureFinalRitual(int bossHealth, int bossAttack, int periodYears = 100, int? initialDeadlineYear = null)
         {
             if (State.Year != 0 || State.IsEnded || Chosen == null || State.Ritual != null)
                 throw new InvalidOperationException("Configure the ritual once at year zero after configuring chosen.");
-            var data = new FinalRitualState(Chosen.FinalNodeId, periodYears, bossHealth, bossAttack);
+            var data = new FinalRitualState(Chosen.FinalNodeId, periodYears, bossHealth, bossAttack, initialDeadlineYear);
             State.Ritual = data;
             State.Nodes[data.NodeId].MonsterHealth = data.BossHealth;
             State.Nodes[data.NodeId].MonsterAttack = data.BossAttack;
             encounters.ConfigureRitual(ritual);
         }
 
-        public void ConfigureChosen(ActorState actor, IEnumerable<int> route, int yearsPerStep = 10, int absorptionPercent = 10)
+        public void ConfigureChosen(ActorState actor, IEnumerable<int> route, int yearsPerStep = 10, int absorptionPercent = 10,
+            IEnumerable<int> travelYears = null)
         {
             if (State.Year != 0 || Chosen != null || State.Actors.ContainsKey(actor.Id))
                 throw new InvalidOperationException("Configure one chosen actor at year zero using a unique ID.");
-            var controller = new ChosenActorController(State, actor, route, yearsPerStep, absorptionPercent);
+            var controller = new ChosenActorController(State, actor, route, yearsPerStep, absorptionPercent, travelYears);
             State.Actors.Add(actor.Id, actor);
             State.ChosenActorId = actor.Id;
             Chosen = controller;
@@ -86,6 +96,11 @@ namespace WorldTimeline
                 throw new InvalidOperationException("History must spawn at year zero with a unique ID and valid birth node.");
             var controller = new HistoryActorController(instanceId, record);
             State.Actors.Add(instanceId, record.CreateActor(instanceId));
+            if (record.Expedition.Count > 0)
+            {
+                State.HistoricalExpeditions.Add(instanceId, new ExpeditionParty(State, instanceId, (histories.Count + 1) * 4));
+                controller.RestoreParty(State);
+            }
             histories.Add(controller);
             return controller;
         }
@@ -95,6 +110,8 @@ namespace WorldTimeline
         {
             if (action == null) throw new ArgumentNullException(nameof(action));
             ActorState actor = State.Actors[actorId];
+            if (actorId == State.PlayerActorId && State.Expedition?.ProgressionEnabled == true && action.Kind == WorldActionKind.Cultivate)
+                throw new InvalidOperationException("Growth comes from exploration and victories, not stationary cultivation.");
             if (State.IsEnded || (actorId == State.PlayerActorId && State.PlayerControlEnded) || !actor.IsAlive || actor.LeaderId.HasValue || actor.CurrentAction != null || !actor.NodeId.HasValue)
                 throw new InvalidOperationException("Actor cannot start an action.");
             if (action.Kind == WorldActionKind.JoinChosen)
@@ -133,11 +150,11 @@ namespace WorldTimeline
         public void SubmitPlayerAction(WorldAction action) => CompleteSynchronously(SubmitPlayerActionRoutine(action));
         public void AdvanceOneYear() => CompleteSynchronously(AdvanceOneYearRoutine());
 
-        public IEnumerator SubmitPlayerActionRoutine(WorldAction action)
+        public IEnumerator SubmitPlayerActionRoutine(WorldAction action, Func<IEnumerator> presentArrivals = null)
         {
             AssignAction(State.PlayerActorId, action);
             while (Player.IsAlive && !State.IsEnded && Player.CurrentAction != null)
-                yield return AdvanceOneYearRoutine();
+                yield return AdvanceOneYearRoutine(presentArrivals);
         }
 
         private static void CompleteSynchronously(IEnumerator routine)
@@ -152,8 +169,9 @@ namespace WorldTimeline
             }
         }
 
-        public IEnumerator AdvanceOneYearRoutine()
-        {            if (State.IsEnded) yield break;
+        public IEnumerator AdvanceOneYearRoutine(Func<IEnumerator> presentArrivals = null)
+        {
+            if (State.IsEnded) yield break;
             foreach (var history in histories.OrderBy(h => h.ActorId)) history.Prepare(this);
             Chosen?.Prepare(this);
             SyncPartyPositions();
@@ -199,7 +217,12 @@ namespace WorldTimeline
                     follower.RemainingYears = 0;
                     AssignAction(follower.Id, WorldAction.JoinChosen());
                 }
+            if (presentArrivals != null) yield return presentArrivals();
             yield return encounters.ResolveRoutine(State, arrivals, Emit);
+            if (!State.IsEnded)
+                foreach (var actor in actors.Where(a => a.NodeId.HasValue && arrivals.Contains(a.NodeId.Value) &&
+                    a.CurrentAction?.Kind == WorldActionKind.Move && a.RemainingYears == 0))
+                    State.ExpeditionFor(actor.Id)?.Explore(actor.NodeId.Value, Cultivation, Emit);
             if (State.IsEnded)
             {
                 foreach (var history in histories) history.UpdateStatus(State);
@@ -210,7 +233,7 @@ namespace WorldTimeline
                 if (actor.CurrentAction.Kind == WorldActionKind.Cultivate)
                 {
                     if (actor.Id != State.ChosenActorId)
-                        CultivationSystem.Gain(actor, State.Nodes[actor.NodeId.Value].CultivationPerYear, Cultivation, State.Year, Emit);
+                        CultivationSystem.Gain(actor, State.Nodes[actor.NodeId.Value].CultivationPerYear, Cultivation, State.Year, Emit, State, "cultivation");
                     Emit(new WorldEvent(State.Year, WorldEventKind.Cultivated, actor.Id, actor.NodeId));
                 }
                 if (actor.RemainingYears != 0) continue;
@@ -223,6 +246,12 @@ namespace WorldTimeline
                     Emit(new WorldEvent(State.Year, WorldEventKind.ActionStarted, actor.Id, actor.NodeId, "Story delay"));
                 }
             }
+            if (State.BalanceSink != null && State.Actors.TryGetValue(State.PlayerActorId, out var player) &&
+                player.IsAlive && !State.PlayerControlEnded)
+                State.RecordBalance(player, new BalanceSample
+                {
+                    type = "year_snapshot", hp = player.Health, maxHp = player.MaxHealth, attack = player.CombatAttack
+                });
             UpdateHistoryStatuses();
             if (Chosen != null && !State.Actors[Chosen.ActorId].IsAlive)
                 foreach (var actor in actors.Where(a => a.LeaderId == Chosen.ActorId)) actor.LeaderId = null;
@@ -259,6 +288,13 @@ namespace WorldTimeline
         {
             events.Add(entry);
             recorder.RecordEvent(entry);
+            if (State.BalanceSink == null || entry.ActorId != State.PlayerActorId) return;
+            if (entry.Kind == WorldEventKind.Arrived || entry.Kind == WorldEventKind.Died ||
+                entry.Kind == WorldEventKind.ActionStarted || entry.Kind == WorldEventKind.ChosenEncounter)
+                State.RecordBalance(State.Actors[entry.ActorId], new BalanceSample
+                {
+                    type = entry.Kind.ToString(), source = entry.Detail, nodeId = entry.NodeId ?? -1
+                });
         }
     }
 }

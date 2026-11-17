@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace WorldTimeline
 {
-    public enum StoryCondition { Always, MaxHealthGreater, HasItem, FlagSet, FlagUnset }
+    public enum StoryCondition { Always, MaxHealthGreater, HasItem, FlagSet, FlagUnset, FlagSetAndUnset }
     public sealed class StoryDefinition
     {
         public int Id, NodeId;
@@ -65,6 +65,12 @@ namespace WorldTimeline
 
         public StoryConfig WithoutOptions(params int[] optionIds) => new StoryConfig(
             Events.Values, Options.Values.Where(row => !optionIds.Contains(row.Id)), Items.Values, localize);
+
+        public StoryConfig WithItemOverride(int id, int attack, string description) =>
+            new StoryConfig(Events.Values, Options.Values, Items.Values.Select(item => item.Id == id
+                ? new StoryItem { Id = item.Id, Name = item.Name, Description = description, AttackBonus = attack,
+                    HealthBonus = item.HealthBonus, CombatAttackPercent = item.CombatAttackPercent }
+                : item), localize);
     }
     public sealed class RecordedStoryChoice
     {
@@ -95,6 +101,7 @@ namespace WorldTimeline
     {
         public StoryConfig Config { get; }
         public bool InteractivePlayer { get; set; }
+        public Func<StoryEncounter,IEnumerator> ExpeditionService { get; set; }
         public StoryEncounter PendingChoice { get; private set; }
         public StoryResolution PendingResult { get; private set; }
         public HashSet<string> Flags { get; } = new HashSet<string>();
@@ -106,9 +113,13 @@ namespace WorldTimeline
         private readonly Action<RecordedStoryChoice> record;
         private readonly Func<int, int, int, IEnumerable<RecordedStoryChoice>> historicalChoices;
         private readonly Dictionary<int, StoryDefinition> byNode;
+        private readonly Dictionary<string, (NodeState Node, int AttackReduction)> guardianEffects = new();
         private readonly Dictionary<long, int> visits = new Dictionary<long, int>();
         private readonly HashSet<(int ActorId, int MerchantId)> merchantClaims = new HashSet<(int, int)>();
         private readonly RecordedStoryChoice[] playerReplay;
+        private int sluiceOpeningOptionId;
+        private int restoreNorthRelayOptionId;
+        private (int OptionId, int GateId)? revokeContract;
         private int? decision;
 
         internal WorldStorySystem(WorldState world, StoryConfig config, CultivationConfig growth, int seed,
@@ -122,10 +133,44 @@ namespace WorldTimeline
         }
         public bool TryGetDefinition(int nodeId, out StoryDefinition definition) => byNode.TryGetValue(nodeId, out definition);
         private readonly HashSet<int> revisitOptions = new HashSet<int>();
+        private Func<ActorState, int, bool> suppressEncounter;
         public void AllowOptionsOnRevisit(params int[] optionIds) => revisitOptions.UnionWith(optionIds);
+        public void SuppressEncountersWhen(Func<ActorState, int, bool> predicate) => suppressEncounter = predicate;
+        public void WeakenGuardianOnFlag(string flag, int nodeId, int attackReduction)
+            => guardianEffects.Add(flag, (world.Nodes[nodeId], attackReduction));
+
+        public void ConfigureSluiceOpening(int optionId, bool drainsBoss = false)
+        {
+            if (!Config.Options.ContainsKey(optionId)) throw new ArgumentException("Sluice option missing.", nameof(optionId));
+            sluiceOpeningOptionId = optionId;
+            world.SluiceDrainsBoss = drainsBoss;
+        }
+
+        public void ConfigureNorthRelayRestoration(int optionId, int? springNodeId = null)
+        {
+            if (!Config.Options.ContainsKey(optionId)) throw new ArgumentException("North relay option missing.", nameof(optionId));
+            restoreNorthRelayOptionId = optionId;
+            world.NorthRelaySpringNodeId = springNodeId;
+        }
+
+        public void ConfigureContractRevocation(int optionId, int gateId)
+        {
+            if (!Config.Options.ContainsKey(optionId) || !world.Nodes.ContainsKey(gateId))
+                throw new ArgumentException("Missing contract option or gate.");
+            revokeContract = (optionId, gateId);
+        }
+
         public string UnavailableReason(ActorState actor, StoryOption option)
         {
+            if (revokeContract?.OptionId == option.Id && world.ContractRevoked.HasValue)
+                return Config.Format("Timeline_QiStory_Already", "副契已经撤销。");
+            if (option.Id == restoreNorthRelayOptionId && world.NorthRelayRestored.HasValue)
+                return Config.Format("Timeline_NorthRelay_AlreadyRestored", "名字已经刻回阵石。");
             if (option.ItemId != 0 && ClaimedItems.Contains(option.ItemId)) return Config.Format("Timeline_UI_StoryClaimed", "遗物已被先行者取走");
+            if (!string.IsNullOrEmpty(option.SetFlag) && guardianEffects.TryGetValue(option.SetFlag, out var guardian) &&
+                guardian.Node.MonsterHealth <= 0)
+                return string.IsNullOrEmpty(option.Hint)
+                    ? Config.Format("Timeline_UI_StoryConditionUnmet", "当前条件不满足") : option.Hint;
             if (world.Year <= world.LegacyTradeThroughYear && option.LegacyPrice > actor.LegacySpiritStones)
                 return Config.Format("Timeline_MerchantInsufficient", "灵石不足");
             if (option.CostItemId != 0 && !actor.Items.Contains(option.CostItemId))
@@ -139,6 +184,7 @@ namespace WorldTimeline
                 case StoryCondition.HasItem: allowed = actor.Items.Contains(option.Value); break;
                 case StoryCondition.FlagSet: allowed = Flags.Contains(option.Flag); break;
                 case StoryCondition.FlagUnset: allowed = !Flags.Contains(option.Flag); break;
+                case StoryCondition.FlagSetAndUnset: allowed = Flags.Contains(option.Flag) && !Flags.Contains(option.SetFlag); break;
                 default: allowed = true; break;
             }
             return allowed ? null : string.IsNullOrEmpty(option.Hint)
@@ -156,6 +202,7 @@ namespace WorldTimeline
         internal IEnumerator ResolveRoutine(ActorState actor, int nodeId)
         {
             if (!actor.IsAlive || actor.LeaderId.HasValue || actor.HasJoinedChosen || world.IsEnded || !byNode.TryGetValue(nodeId, out var definition)) yield break;
+            if (suppressEncounter?.Invoke(actor, nodeId) == true) yield break;
             long key = ((long)(uint)actor.Id << 32) | (uint)definition.Id;
             visits.TryGetValue(key, out int occurrence);
             var options = Config.Options.Values.Where(x => x.EventId == definition.Id);
@@ -172,6 +219,11 @@ namespace WorldTimeline
                 : historicalChoices(actor.Id, definition.Id, occurrence);
             if (definition.IsMerchant)
             {
+                if(world.ExpeditionFor(actor.Id)?.Equipment.Modern==true)
+                {
+                    if(actor.Id==world.PlayerActorId && ExpeditionService!=null)yield return ExpeditionService(context);
+                    yield break;
+                }
                 yield return ResolveMerchant(context, interactive, remembered);
                 yield break;
             }
@@ -187,6 +239,9 @@ namespace WorldTimeline
             {
                 int? optionId = remembered?.FirstOrDefault()?.OptionId;
                 chosen = context.Options.FirstOrDefault(x => x.Id == optionId && UnavailableReason(actor, x) == null);
+                // Revisits can contain only player-selected choices with zero automatic weight.
+                if (chosen == null && occurrence > 1 && !definition.Repeatable && !context.Options.Any(x => x.Weight > 0))
+                    yield break;
                 if (chosen == null) chosen = Automatic(context);
             }
             var result = Apply(context, chosen);
@@ -198,6 +253,8 @@ namespace WorldTimeline
                 PendingResult = result;
                 while (PendingResult != null) yield return null;
             }
+            if(actor.Id==world.PlayerActorId && world.Expedition?.Equipment.Modern==true && ExpeditionService!=null)
+                yield return ExpeditionService(context);
         }
 
         private IEnumerator ResolveMerchant(StoryEncounter context, bool interactive, IEnumerable<RecordedStoryChoice> remembered)
@@ -252,6 +309,9 @@ namespace WorldTimeline
         private StoryOption Automatic(StoryEncounter context)
         {
             var available = context.Options.Where(x => x.Weight > 0 && UnavailableReason(context.Actor, x) == null).ToArray();
+            // A replay without a recorded choice follows the visible salt-channel progression.
+            if (available.Length > 0 && (context.Definition.NodeId == SaltChannel.Drain || context.Definition.NodeId == SaltChannel.Head))
+                return available[0];
             long total = available.Sum(x => (long)x.Weight);
             if (total == 0) throw new InvalidOperationException("Story has no available fallback.");
             // No runtime string hashes, Unity RNG, frame counters or history instance IDs.
@@ -268,6 +328,10 @@ namespace WorldTimeline
             if (UnavailableReason(actor, option) != null) throw new InvalidOperationException("Story conditions changed before resolution.");
             if (world.Year <= world.LegacyTradeThroughYear && !actor.TrySpendLegacySpiritStones(option.LegacyPrice))
                 throw new InvalidOperationException("Story purchase could not be paid.");
+            bool track = world.TracksBalance(actor);
+            long beforeXp = actor.Experience, beforeStones = actor.LegacySpiritStones +
+                (world.Year <= world.LegacyTradeThroughYear ? option.LegacyPrice : 0);
+            int healing = 0;
             var rewards = new List<string>();
             if (option.CostItemId != 0)
             {
@@ -286,16 +350,52 @@ namespace WorldTimeline
             {
                 int amount = Math.Min(option.Heal, actor.MaxHealth - actor.Health);
                 actor.Health += amount;
+                healing = amount;
                 rewards.Add(Config.Format("Timeline_UI_StoryHealed", "恢复气血 {0}", amount));
             }
             if (option.Experience > 0)
             {
-                CultivationSystem.Gain(actor, option.Experience, growth, world.Year, emit);
+                CultivationSystem.Gain(actor, option.Experience, growth, world.Year, emit, world, "story");
                 rewards.Add(Config.Format("Timeline_UI_StoryExperience", "经验 +{0}", option.Experience));
             }
-            if (!string.IsNullOrEmpty(option.SetFlag)) Flags.Add(option.SetFlag);
+            if (!string.IsNullOrEmpty(option.SetFlag) && Flags.Add(option.SetFlag) &&
+                guardianEffects.TryGetValue(option.SetFlag, out var guardian))
+                guardian.Node.MonsterAttack = Math.Max(1, guardian.Node.MonsterAttack - guardian.AttackReduction);
+            if (option.SetFlag == SaltChannel.DrainedFlag)
+                world.SaltChannelDrained = true;
+            if (option.Id == sluiceOpeningOptionId && !world.SluiceOpening.HasValue)
+            {
+                world.SluiceOpening = (actor.Id, world.Year);
+                if (world.SluiceDrainsBoss) FinalRitualSystem.ApplySluiceDrain(world);
+                emit(new WorldEvent(world.Year, WorldEventKind.SluiceOpened, actor.Id, context.Definition.NodeId,
+                    world.SluiceDrainsBoss ? "Boss drained" : null));
+            }
+            if (option.Id == restoreNorthRelayOptionId && !world.NorthRelayRestored.HasValue)
+            {
+                world.NorthRelayRestored = (actor.Id, world.Year);
+                FinalRitualSystem.RefreshBossAttack(world);
+                emit(new WorldEvent(world.Year, WorldEventKind.NorthRelayRestored, actor.Id, context.Definition.NodeId));
+            }
+            if (revokeContract is { } contract && option.Id == contract.OptionId)
+            {
+                bool removed = world.Nodes[contract.GateId].RemoveOneGuardian();
+                world.ContractRevoked = (actor.Id, world.Year);
+                emit(new WorldEvent(world.Year, WorldEventKind.ContractRevoked, actor.Id, contract.GateId,
+                    removed ? "Guardian disabled" : null));
+                rewards.Add(removed ? Config.Format("Timeline_QiStory_Removed", "双石傀关的一座石傀已停下。")
+                    : Config.Format("Timeline_QiStory_NoRemoval", "关口的副傀已被击败，撤契后也无法再起身。"));
+            }
             actor.StoryDelayYears = checked(actor.StoryDelayYears + option.TimeYears);
             if (option.TimeYears > 0) rewards.Add(Config.Format("Timeline_UI_StoryStay", "驻留 {0} 年", option.TimeYears));
+            if (track)
+                world.RecordBalance(actor, new BalanceSample
+                {
+                    type = "reward", source = context.Definition.IsMerchant ? "merchant" : "story",
+                    eventId = context.Definition.Id, eventName = context.Definition.Title, optionId = option.Id, nodeId = context.Definition.NodeId,
+                    items = option.ItemId == 0 ? Array.Empty<int>() : new[] { option.ItemId },
+                    experienceGain = actor.Experience - beforeXp, spiritStonesDelta = actor.LegacySpiritStones - beforeStones,
+                    healthCost = option.HealthCost, healing = healing, costItemId = option.CostItemId
+                });
             return new StoryResolution { Encounter = context, Option = option,
                 Text = option.Result + (rewards.Count == 0 ? "" : "\n\n" + string.Join("\n", rewards)) };
         }

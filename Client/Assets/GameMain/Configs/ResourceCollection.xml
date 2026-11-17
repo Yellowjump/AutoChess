@@ -328,6 +328,56 @@
       <Asset Guid="2673136a68024e1dbb327d53afb1c8e7" ResourceName="Sound" />
       <Asset Guid="1e7d00f101a34dd8a1db110faa00594b" ResourceName="Sound" />
       <Asset Guid="c413e9fb98584401a97e2b2426692347" ResourceName="dataTable" />
+      <Asset Guid="107cd6a8acf94e29a537370c9e2fab91" ResourceName="Sound" />
+      <Asset Guid="1536c9a5c8114343b964f7ceb9b206ac" ResourceName="Sound" />
+      <Asset Guid="33e72725639747a3b35601b43cff961e" ResourceName="Sound" />
+      <Asset Guid="366c860a7f0d400faa4f9e4ad1c57b89" ResourceName="Sound" />
+      <Asset Guid="389495986bc3439ea7fe812c0a4ec6f4" ResourceName="Sound" />
+      <Asset Guid="580534dc81664c4398d7c5b125f42b4a" ResourceName="Sound" />
+      <Asset Guid="6f28eae3c7494bc8ab29cf9ece0da755" ResourceName="Sound" />
+      <Asset Guid="74fa6be81a314f76abb65fb2426bab2b" ResourceName="Sound" />
+      <Asset Guid="95d67e5cdb4941ae9844ce4d2938bfd2" ResourceName="Sound" />
+      <Asset Guid="a0fae597e1a94c78b0d811de07b5c098" ResourceName="Sound" />
+      <Asset Guid="a74410756bed4a2db19127aa2f19fdce" ResourceName="Sound" />
+      <Asset Guid="cecfbd28bcdc406995fb65f99eab112a" ResourceName="Sound" />
+      <Asset Guid="db5994ae28c34d6398562fc98d49b071" ResourceName="Sound" />
+      <Asset Guid="ec15b3f1266e457696c2322d9ba8231a" ResourceName="Sound" />
+      <Asset Guid="f4a6c8145b864e1cb3a84de969194058" ResourceName="Sound" />
+      <Asset Guid="47930434e6ad4e1388d8bf9a598a8156" ResourceName="Sound" />
+      <Asset Guid="4a3a79a24fa440009f2c981f5f34eb8a" ResourceName="Sound" />
+      <Asset Guid="5a21c19a7e534c3d94134722950ebdc7" ResourceName="Sound" />
+      <Asset Guid="76780636237c4901b21c714fda08ccd0" ResourceName="Sound" />
+      <Asset Guid="79632b663f08428ab48f4c17c9cba503" ResourceName="Sound" />
+      <Asset Guid="92f799362011422b8ab420b92441632c" ResourceName="Sound" />
+      <Asset Guid="e0fcada6554b4860b61b1d82e60d4b58" ResourceName="Sound" />
+      <Asset Guid="04839596c9ac4eb2b98ba33ed362b779" ResourceName="Sound" />
+      <Asset Guid="08e4ddeff042433ebba1f8092dcddcf5" ResourceName="Sound" />
+      <Asset Guid="11d89e91ffd94739bf9ab45179b00b15" ResourceName="Sound" />
+      <Asset Guid="54b8b205af9544318931e95c3724c78e" ResourceName="Sound" />
+      <Asset Guid="5524ad71263f4b10a5284ae10839e3c8" ResourceName="Sound" />
+      <Asset Guid="56b281d0b0574c8bbd2c568c18b09d07" ResourceName="Sound" />
+      <Asset Guid="71ea96eba45e43d5aa30e15ae9f7ee6e" ResourceName="Sound" />
+      <Asset Guid="7d9182bf876148c88b2763379206f703" ResourceName="Sound" />
+      <Asset Guid="a3cb9523de0149cabea4a637f445ddf0" ResourceName="Sound" />
+      <Asset Guid="b44b4174cc594b88825c75d4923b26df" ResourceName="Sound" />
+      <Asset Guid="c16963cf64164200aad64b4c613bc0af" ResourceName="Sound" />
+      <Asset Guid="c6b182c57d144145a070ba9999615c27" ResourceName="Sound" />
+      <Asset Guid="cfb817c7d7c34ab8a98c9be2530757ce" ResourceName="Sound" />
+      <Asset Guid="dfd770d49c61440fb4624e4c7e15daa2" ResourceName="Sound" />
+      <Asset Guid="bcf0474156fa48ba8dded888e116cf02" ResourceName="dataTable" />
+      <Asset Guid="8a8a88dcb8649f847940a71e5fd44ebf" ResourceName="dataTable" />
+      <Asset Guid="6116135c031bd724ab12a00d8648217f" ResourceName="dataTable" />
+      <Asset Guid="19718b99e7d3f1c45ab22f7f3447fcd8" ResourceName="dataTable" />
+      <Asset Guid="7b641c7e39434a1eb329f5e28cc7e536" ResourceName="dataTable" />
+      <Asset Guid="9ca3a1edfa434b25a52643d6982d4753" ResourceName="dataTable" />
+      <Asset Guid="9e32f0e78eff461da2c34388c0e1c2f0" ResourceName="dataTable" />
+      <Asset Guid="35b3b771e9124ae69554759ff19d40d2" ResourceName="dataTable" />
+      <Asset Guid="931d5528abf8401ebac9aad9308cb64a" ResourceName="dataTable" />
+      <Asset Guid="5704e7e3b7874bb5895ce75c267eff63" ResourceName="dataTable" />
+      <Asset Guid="ed63e06d294f402ba0eb832506f942d2" ResourceName="UIPrefabs" />
+      <Asset Guid="aff92b86ff2f9bf40ae7004e3245c603" ResourceName="UIPrefabs" />
+      <Asset Guid="3e56e85929e03e5419369c0a599c651e" ResourceName="UIPrefabs" />
+      <Asset Guid="f066cada4d775ad4bb14b2f012135f21" ResourceName="UIPrefabs" />
     </Assets>
   </ResourceCollection>
 </UnityGameFramework>

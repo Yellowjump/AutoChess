@@ -33,7 +33,9 @@ public static class WorldTimelineInventoryAuthoring
         var techniqueIcons = new[] { "technique_icons", "technique_blood_icons", "technique_fire_icons", "technique_opening_icons", "technique_thunder_ward_icons" }
             .SelectMany(atlas => AssetDatabase.LoadAllAssetsAtPath($"Assets/GameMain/Image/WorldTimeline/{atlas}.png").OfType<Sprite>())
             .ToDictionary(sprite => sprite.name);
-        var portraits=AssetDatabase.LoadAllAssetsAtPath("Assets/GameMain/Image/WorldTimeline/Selection/cultivator_portraits.png").OfType<Sprite>().OrderBy(x=>x.name).ToArray();
+        var portraits=AssetDatabase.LoadAllAssetsAtPath("Assets/GameMain/Image/WorldTimeline/Selection/cultivator_portraits.png")
+            .OfType<Sprite>().OrderBy(x=>x.name)
+            .Append(AssetDatabase.LoadAssetAtPath<Sprite>(WorldTimelinePreparationAuthoring.QiMoPortraitPath)).ToArray();
         var theme=AssetDatabase.LoadAllAssetsAtPath("Assets/GameMain/Image/WorldTimeline/cultivation_ui_atlas.png").OfType<Sprite>().ToArray();
         paper=theme.Single(x=>x.name=="Paper");slate=theme.Single(x=>x.name=="Slate");
         font=AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/GameMain/Fonts/SIMHEI SDF.asset");

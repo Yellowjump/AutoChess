@@ -3,7 +3,7 @@
 #	int	string	int	int	int	string	int
 #	编号	名字	横坐标	纵坐标	道具ID	道具	攻击加成
 	1	Timeline_StartingCultivators_1_Name	0	-10	8101	Timeline_StartingCultivators_1_WeaponName	0
-	2	Timeline_StartingCultivators_2_Name	1	-10	8102	Timeline_StartingCultivators_2_WeaponName	195
+	2	Timeline_StartingCultivators_2_Name	1	-10	8102	Timeline_StartingCultivators_2_WeaponName	12
 	3	Timeline_StartingCultivators_3_Name	-1	-9	8103	Timeline_StartingCultivators_3_WeaponName	8
 	4	Timeline_StartingCultivators_4_Name	3	-10	8104	Timeline_StartingCultivators_4_WeaponName	12
 	5	Timeline_StartingCultivators_5_Name	10	-8	8105	Timeline_StartingCultivators_5_WeaponName	15
@@ -12,3 +12,4 @@
 	8	Timeline_StartingCultivators_8_Name	2	8	8108	Timeline_StartingCultivators_8_WeaponName	16
 	9	Timeline_StartingCultivators_9_Name	-4	10	8109	Timeline_StartingCultivators_9_WeaponName	9
 	10	Timeline_StartingCultivators_10_Name	-10	5	8110	Timeline_StartingCultivators_10_WeaponName	14
+	11	Timeline_QiMo_Name	-10	2	8111	ItemName_9145	8

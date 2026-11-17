@@ -14,14 +14,15 @@ public static class WorldTimelinePreparationAuthoring
 {
     public const string PrefabPath = "Assets/GameMain/Prefeb/UIPrefab/world_timeline_preparation.prefab";
     private const string PortraitAtlas = "Assets/GameMain/Image/WorldTimeline/Selection/cultivator_portraits.png";
+    internal const string QiMoPortraitPath = "Assets/GameMain/Image/WorldTimeline/Selection/qi-mo.png";
     private static TMP_FontAsset font;
     private static Sprite paper, slate;
     private static readonly Color Ink = new Color(.17f, .20f, .18f);
     private static readonly Color Gold = new Color(.73f, .59f, .36f);
     private static readonly Color Ivory = new Color(.95f, .89f, .73f);
     private static readonly Color Jade = new Color(.22f, .43f, .36f);
-    private static readonly string[] Names = { "青篁", "赤砾", "白溪", "鹤归", "玄砂", "重山", "闻潮", "照夜", "孤松", "逐星" };
-    private static readonly string[] Weapons = { "青竹剑", "斩妖刀", "寒溪剑", "飞羽针", "镇砂杵", "开山斧", "听潮剑", "照夜枪", "松纹剑", "逐星弓" };
+    private static readonly string[] Names = { "青篁", "赤砾", "白溪", "鹤归", "玄砂", "重山", "闻潮", "照夜", "孤松", "逐星", "祁墨" };
+    private static readonly string[] Weapons = { "青竹剑", "斩妖刀", "寒溪剑", "飞羽针", "镇砂杵", "开山斧", "听潮剑", "照夜枪", "松纹剑", "逐星弓", "寻隙笔" };
 
     [MenuItem("Tools/World Timeline/Build Character Selection Prefab %&F6")]
     public static void Build()
@@ -31,7 +32,8 @@ public static class WorldTimelinePreparationAuthoring
         font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/GameMain/Fonts/SIMHEI SDF.asset");
         var atlas = AssetDatabase.LoadAllAssetsAtPath("Assets/GameMain/Image/WorldTimeline/cultivation_ui_atlas.png").OfType<Sprite>().ToArray();
         paper = atlas.Single(s => s.name == "Paper"); slate = atlas.Single(s => s.name == "Slate");
-        var portraits = AssetDatabase.LoadAllAssetsAtPath(PortraitAtlas).OfType<Sprite>().OrderBy(s => s.name).ToArray();
+        var portraits = AssetDatabase.LoadAllAssetsAtPath(PortraitAtlas).OfType<Sprite>().OrderBy(s => s.name)
+            .Append(AssetDatabase.LoadAssetAtPath<Sprite>(QiMoPortraitPath)).ToArray();
         var root = new GameObject("world_timeline_preparation", typeof(RectTransform), typeof(CanvasGroup));
         root.layer = 5;
         var rootRect = (RectTransform)root.transform; rootRect.anchorMin = Vector2.zero; rootRect.anchorMax = Vector2.one;
@@ -50,17 +52,20 @@ public static class WorldTimelinePreparationAuthoring
             fit.FindProperty("content").objectReferenceValue = content; fit.ApplyModifiedPropertiesWithoutUndo();
             Label(content, "Eyebrow", "修 仙 轮 回", new Rect(660, 28, 600, 35), 25, Gold, TextAlignmentOptions.Center);
             Label(content, "Title", "择一人 · 入此世", new Rect(450, 66, 1020, 70), 54, Ink, TextAlignmentOptions.Center);
-            Label(content, "Subtitle", "十人轮转，前世同行", new Rect(660, 138, 600, 32), 24, Ink, TextAlignmentOptions.Center);
+            Label(content, "Subtitle", "Timeline_UI_CultivatorSubtitle", new Rect(660, 138, 600, 32), 24, Ink, TextAlignmentOptions.Center);
             Bind(binding, "returnMenu", Button(content, "返回主菜单", new Rect(1620, 52, 242, 57), "返回主菜单", 25));
             var left = Image(content, "本世修士_面板", paper, new Rect(40, 193, 1178, 735), Color.white).transform;
             Image(left, "标题底", slate, new Rect(12, 10, 1154, 68), Color.white);
             Label(left, "SectionTitle", "本 世 修 士", new Rect(44, 20, 400, 45), 32, Ivory);
-            Bind(binding, "cycle", Label(left, "Cycle", "第 1 轮 · 尚可选择 10 / 10", new Rect(630, 25, 500, 36), 23, Ivory, TextAlignmentOptions.Right));
-            var slots = binding.FindProperty("characters"); slots.arraySize = 10;
-            for (int i = 0; i < 10; i++)
+            Bind(binding, "cycle", Label(left, "Cycle", "", new Rect(630, 25, 500, 36), 23, Ivory, TextAlignmentOptions.Right));
+            var slots = binding.FindProperty("characters"); slots.arraySize = Names.Length;
+            for (int i = 0; i < Names.Length; i++)
             {
-                float x = 26 + i % 5 * 226, y = 92 + i / 5 * 311;
+                float x = i < 3 ? 70 + i * 357 : 26 + i % 6 * 190;
+                float y = i < 3 ? 160 : 110 + i / 6 * 308;
                 var card = Image(left, "修士_" + Names[i], slate, new Rect(x, y, 216, 298), Color.white);
+                float scale = i < 3 ? 1.5f : .84f;
+                card.rectTransform.localScale = new Vector3(scale, scale, 1);
                 var appearance = card.gameObject.AddComponent<CanvasGroup>();
                 var button = card.gameObject.AddComponent<Button>(); button.targetGraphic = card;
                 ConfigureButton(button);
@@ -87,12 +92,11 @@ public static class WorldTimelinePreparationAuthoring
             Bind(binding, "bonus", Label(profile.transform, "AttackBonus", "无额外攻击加成", new Rect(38, 226, 540, 26), 20, Ink));
             Label(profile.transform, "BirthRule", "固定出生点  ·  元年启程", new Rect(38, 263, 550, 24), 19, Ink);
             var history = Image(content, "前世同行_面板", slate, new Rect(1236, 510, 644, 418), Color.white).transform;
-            Bind(binding, "historyCount", Label(history, "Title", "前世同行  0 / 10", new Rect(32, 22, 390, 40), 30, Ivory));
+            Bind(binding, "historyCount", Label(history, "Title", "", new Rect(32, 22, 390, 40), 30, Ivory));
             Bind(binding, "clearHistories", Button(history, "清空路线", new Rect(472, 26, 137, 38), "清空", 19));
-            Label(history, "Hint", "选择本局重现的命途 · 同一修士仅一条", new Rect(34, 69, 565, 28), 19, Ivory);
             var empty = Rect(history, "尚无前世记录", new Rect(32, 110, 580, 242));
             Bind(binding, "emptyState", empty.gameObject);
-            Bind(binding, "emptyText", Label(empty, "Text", "尚无前世记录\n\n完成一世后，可在此选择前世路线。", new Rect(30, 42, 520, 150), 25, Ivory, TextAlignmentOptions.Center));
+            Bind(binding, "emptyText", Label(empty, "Text", "Timeline_UI_32", new Rect(30, 42, 520, 150), 25, Ivory, TextAlignmentOptions.Center));
             var entries = binding.FindProperty("histories"); entries.arraySize = 4;
             for (int i = 0; i < 4; i++)
             {
@@ -110,14 +114,14 @@ public static class WorldTimelinePreparationAuthoring
             Bind(binding, "previousPage", Button(history, "上一页", new Rect(300, 360, 90, 36), "上一页", 18));
             Bind(binding, "pageLabel", Label(history, "Page", "1 / 1", new Rect(396, 364, 100, 28), 19, Ivory, TextAlignmentOptions.Center));
             Bind(binding, "nextPage", Button(history, "下一页", new Rect(507, 360, 105, 36), "下一页", 18));
-            Label(content, "轮转规则", "十位修士皆历一世后，开启下一轮。", new Rect(72, 955, 1080, 32), 24, Ink);
-            Label(content, "同行规则", "同一修士仅可携带一条前世路线，且不能与本世身份重复。", new Rect(72, 999, 1140, 30), 20, Ink);
+            Label(content, "轮转规则", "Timeline_UI_CultivatorCycleRule", new Rect(72, 955, 1080, 32), 24, Ink);
+            Label(content, "同行规则", "Timeline_UI_26", new Rect(72, 999, 1140, 30), 20, Ink);
             Bind(binding, "issue", Label(content, "Notice", "", new Rect(1238, 934, 640, 31), 19, new Color(.62f, .22f, .16f)));
             Bind(binding, "begin", Button(content, "开启轮回", new Rect(1360, 974, 510, 76), "开 启 轮 回", 36, Jade));
             binding.ApplyModifiedPropertiesWithoutUndo();
             PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
             AssetDatabase.SaveAssets();
-            Debug.Log("选人预制体已保存：" + PrefabPath + "（10 个修士卡位、4 个分页路线位，原生 UGUI）");
+            Debug.Log("选人预制体已保存：" + PrefabPath);
         }
         finally { Object.DestroyImmediate(root); }
     }

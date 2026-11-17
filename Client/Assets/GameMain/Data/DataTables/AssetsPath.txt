@@ -65,17 +65,44 @@
 	6105	施法结束	Assets/GameMain/Animation/Skill/SpellCast_End.anim
 #Sound(10000			
 	10001	开始界面背景音乐	Assets/GameMain/Audio/Ambient_StartTitle.wav
-	10002	UI按钮音效	Assets/GameMain/Audio/SFX_UI_Button_Keyboard_Enter_Thick_2.wav
-	10003	提示界面出场音效	Assets/GameMain/Audio/SFX_UI_Click_Designed_Liquid_Negative_Close_1.wav
+	10002	UI按钮音效	Assets/GameMain/Audio/Ink_UI_Click.wav
+	10003	提示界面出场音效	Assets/GameMain/Audio/Ink_UI_Open.wav
 	10004	战斗音乐	Assets/GameMain/Audio/Action 3 (Loop).wav
 	10005	战斗胜利	Assets/GameMain/Audio/Victory.wav
-	10006	轮回普通战斗音乐	Assets/GameMain/Audio/Battle_Ford.wav
+	10006	轮回普通战斗音乐	Assets/GameMain/Audio/Battle_ACE_Step_00011.wav
 	10007	轮回精英战斗音乐	Assets/GameMain/Audio/Battle_BrokenGate.wav
 	10008	轮回Boss战斗音乐	Assets/GameMain/Audio/Battle_LastRite.wav
-	12001	飞剑生成音效	Assets/GameMain/Audio/SFX_UI_Click_Designed_Plastic_Metallic_Negative_Close_1.wav
-	12002	飞剑飞行音效	Assets/GameMain/Audio/electronic_01.wav
-	12003	飞剑命中音效	Assets/GameMain/Audio/cutting_with_a_katana.wav
-	12004	爆炸音效	Assets/GameMain/Audio/short_bomb.mp3
+	12001	飞剑生成音效	Assets/GameMain/Audio/Ink_FlySword_Summon.wav
+	12002	飞剑飞行音效	Assets/GameMain/Audio/Ink_FlySword_Flight.wav
+	12003	飞剑命中音效	Assets/GameMain/Audio/Ink_Hit_FlyingSword.wav
+	12004	爆炸音效	Assets/GameMain/Audio/Ink_Hit_Burst.wav
 	12005	电击声	Assets/GameMain/Audio/electronic_02.wav
-	12006	切割声	Assets/GameMain/Audio/SWORD_27.wav
-	12007	子弹命中声	Assets/GameMain/Audio/Bullet Impact 14.wav
+	12006	切割声	Assets/GameMain/Audio/Ink_Hit_Blade.wav
+	12007	子弹命中声	Assets/GameMain/Audio/Ink_Hit_Projectile.wav
+	12008	重击命中	Assets/GameMain/Audio/Ink_Hit_Heavy.wav
+	12009	火焰爆裂	Assets/GameMain/Audio/Ink_Hit_Ember.wav
+	12010	落雷命中	Assets/GameMain/Audio/Ink_Hit_Thunder.wav
+	12011	印诀命中	Assets/GameMain/Audio/Ink_Hit_Seal.wav
+	12012	水浪命中	Assets/GameMain/Audio/Ink_Hit_Water.wav
+	12013	护盾命中	Assets/GameMain/Audio/Ink_Hit_Shield.wav
+	12014	点墨命中	Assets/GameMain/Audio/Ink_Hit_Brush.wav
+	12015	岩獾碎石	Assets/GameMain/Audio/Ink_Badger_Rubble.wav
+	12016	岩獾扑咬	Assets/GameMain/Audio/Ink_Badger_Pounce.wav
+	12017	炉魈铜牌	Assets/GameMain/Audio/Ink_Kiln_Rattle.wav
+	12018	炉魈裂地	Assets/GameMain/Audio/Ink_Kiln_Crack.wav
+	12019	石傀抬印	Assets/GameMain/Audio/Ink_Contract_Lift.wav
+	12020	石傀盖印	Assets/GameMain/Audio/Ink_Contract_Stamp.wav
+	12021	盐针三叩蓄势	Assets/GameMain/Audio/Ink_SaltNeedle_Warning.wav
+	12022	盐针三叩出招	Assets/GameMain/Audio/Ink_SaltNeedle_Strike.wav
+	12023	断索拖步蓄势	Assets/GameMain/Audio/Ink_BridgeRope_Warning.wav
+	12024	断索拖步出招	Assets/GameMain/Audio/Ink_BridgeRope_Strike.wav
+	12025	续灯守夜蓄势	Assets/GameMain/Audio/Ink_WatchLamp_Warning.wav
+	12026	续灯守夜出招	Assets/GameMain/Audio/Ink_WatchLamp_Strike.wav
+	12027	折雪回身蓄势	Assets/GameMain/Audio/Ink_SnowStep_Warning.wav
+	12028	折雪回身出招	Assets/GameMain/Audio/Ink_SnowStep_Strike.wav
+	12029	借梁坠击蓄势	Assets/GameMain/Audio/Ink_SlateKite_Warning.wav
+	12030	借梁坠击出招	Assets/GameMain/Audio/Ink_SlateKite_Strike.wav
+	12031	合壳听潮蓄势	Assets/GameMain/Audio/Ink_TideShell_Warning.wav
+	12032	合壳听潮出招	Assets/GameMain/Audio/Ink_TideShell_Strike.wav
+	12033	借名成形蓄势	Assets/GameMain/Audio/Ink_ClerkPaper_Warning.wav
+	12034	借名成形出招	Assets/GameMain/Audio/Ink_ClerkPaper_Strike.wav

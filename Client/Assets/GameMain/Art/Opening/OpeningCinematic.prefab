@@ -856,6 +856,9 @@ MonoBehaviour:
   subtitles: {fileID: 3486752512016253805}
   skip: {fileID: 5393255047612429499}
   skipLabel: {fileID: 2470605657084994271}
+  endingPaintings: {fileID: 2800000, guid: 90965c469b7345a49acf050968a6352c, type: 3}
+  endingScore: {fileID: 8300000, guid: bace768847cd5a74287c15794b6e820a, type: 3}
+  endingAtmosphere: {fileID: 8300000, guid: b293ee2a454acbf41a3ff691cc768291, type: 3}
 --- !u!1 &5995019749889661024
 GameObject:
   m_ObjectHideFlags: 0

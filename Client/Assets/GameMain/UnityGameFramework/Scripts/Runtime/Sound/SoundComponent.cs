@@ -113,6 +113,7 @@ namespace UnityGameFramework.Runtime
         public List<SfxAudioWaitData> SfxAudioWaitList = new();
         public List<SfxAudioWaitData> SfxAudioPlayingList = new();
         private int sfxWaitIndex = 0;
+        private readonly Dictionary<int, float> nextSfxTime = new();
         /// <summary>
         /// 游戏框架组件初始化。
         /// </summary>
@@ -758,21 +759,31 @@ namespace UnityGameFramework.Runtime
                 }
             }
         }
-        public int PlaySfxSoundThisFrame(int soundId, Vector3 worldPos)
+        public int PlaySfxSoundThisFrame(int soundId, Vector3 worldPos, float minimumInterval = 0f)
         {
             foreach (var oneSfx in SfxAudioWaitList)
             {
                 if (oneSfx.SfxSoundID == soundId)
                 {
                     oneSfx.Count++;
-                    float volume = 1 + Mathf.Log(oneSfx.Count, 2) / Mathf.Log(16, 2);
-                    oneSfx.Volume = Mathf.Min(2, volume); // 限制最大值为 2
+                    if (minimumInterval <= 0f)
+                    {
+                        float volume = 1 + Mathf.Log(oneSfx.Count, 2) / Mathf.Log(16, 2);
+                        oneSfx.Volume = Mathf.Min(2, volume);
+                    }
                     if (Vector3.Distance(worldPos, oneSfx.Pos) > 5)
                     {
                         oneSfx.Pos = (oneSfx.Pos + worldPos) / 2;
                     }
                     return oneSfx.SfxWaitIndex;
                 }
+            }
+
+            if (minimumInterval > 0f)
+            {
+                float now = Time.unscaledTime;
+                if (nextSfxTime.TryGetValue(soundId, out float next) && now < next) return 0;
+                nextSfxTime[soundId] = now + minimumInterval;
             }
 
             var oneSfxAudioWaitData = ReferencePool.Acquire<SfxAudioWaitData>();

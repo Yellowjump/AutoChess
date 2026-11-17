@@ -8,6 +8,8 @@ internal static partial class WorldSimulationTests
 
     private static void Main()
     {
+        RunTacticalTrialTests();
+        RunExpeditionTests();
         RunStoryTests();
         Run("Cultivation advances everyone and pauses", () =>
         {
@@ -185,8 +187,20 @@ internal static partial class WorldSimulationTests
             var sim = CreateWithChosen(yearsPerStep: 1);
             sim.SubmitPlayerAction(WorldAction.Move(3));
             Check(sim.CanJoinChosen(1) && sim.WaitingForPlayer && !sim.Events.Any(e => e.Kind == WorldEventKind.Battle), "No forced battle");
+            var meeting = sim.Events.Single(e => e.Kind == WorldEventKind.ChosenEncounter);
+            Check(meeting.Year == 1 && meeting.NodeId == 3 && meeting.ActorId == 1 && meeting.OtherActorId == 20,
+                "Both arrivals produce one player encounter at their shared node");
             sim.SubmitPlayerAction(WorldAction.Move(1));
-            Check(sim.State.Actors[1].IsAlive && sim.State.Actors[1].NodeId == 1, "Can pass");
+            Check(sim.State.Actors[1].IsAlive && sim.State.Actors[1].NodeId == 1 &&
+                sim.Events.Count(e => e.Kind == WorldEventKind.ChosenEncounter) == 1, "Can pass without another encounter");
+        });
+        Run("Crossing the Chosen on a road does not create a node encounter", () =>
+        {
+            var sim = CreateWithChosen(yearsPerStep: 2);
+            sim.SubmitPlayerAction(WorldAction.Move(3));
+            sim.SubmitPlayerAction(WorldAction.Move(2));
+            Check(sim.State.Actors[1].NodeId == 2 && sim.State.Actors[20].NodeId == 3 &&
+                !sim.Events.Any(e => e.Kind == WorldEventKind.ChosenEncounter), "Different arrivals do not count as a meeting");
         });
         Run("Player joins, loses control and contributes frozen combat stats", () =>
         {
@@ -209,6 +223,7 @@ internal static partial class WorldSimulationTests
             sim.SubmitPlayerAction(WorldAction.Disguise());
             sim.SubmitPlayerAction(WorldAction.Wait());
             Check(!sim.State.Actors[1].IsAlive && sim.State.Actors[20].Attack == 101 && sim.State.Actors[20].MaxHealth == 210, "Disguised player defeated and absorbed");
+            Check(!sim.Events.Any(e => e.Kind == WorldEventKind.ChosenEncounter), "An ambush skips the peaceful encounter event");
             Check(!sim.State.PlayerKilledChosen, "Sacrifice does not end run");
         });
         Run("Disguise forbidden once chosen is already present", () =>
@@ -326,7 +341,10 @@ internal static partial class WorldSimulationTests
                 sim.State.Nodes[4].MonsterHealth == 100, "Reset restores full boss without permanent weakening");
             for (int i = 0; i < 5; i++) sim.AdvanceOneYear();
             Check(sim.State.Outcome == RunOutcome.Cleared && sim.State.Year == 6, "Observation continues to chosen victory");
-            Check(sim.RecordPlayerLife().EndYear == 1, "Observation preserves sacrifice year");
+            var life = sim.RecordPlayerLife();
+            Check(life.EndYear == 1 && life.RitualBreakYear == 1, "Observation preserves sacrifice year");
+            var restored = WorldTimelineSaveStore.Decode(WorldTimelineSaveStore.Encode(new[] { new SavedLife(1, life) })).Single().Record;
+            Check(restored.RitualBreakYear == 1, "Ritual break year remains available when selecting a saved history");
         });
         Run("Three historical sacrifices relay ritual until chosen arrives", () =>
         {
@@ -461,8 +479,8 @@ internal static partial class WorldSimulationTests
         Run("Growth CSV loads independent attributes and per-level experience", () =>
         {
             var config = GrowthConfig();
-            Check(config.Levels.Count == 10 && config.GetLevel(1).ExperienceToNext == 10 && config.GetLevel(2).ExperienceToNext == 20, "Editable costs");
-            Check(config.GetLevel(2).Range(GrowthAttribute.Attack, TalentGrade.S).Min == 90 && config.GetLevel(2).Range(GrowthAttribute.Attack, TalentGrade.A).Max == 91, "Overlapping upgrade increments");
+            Check(config.Levels.Count == 10 && config.GetLevel(1).ExperienceToNext == 6 && config.GetLevel(2).ExperienceToNext == 20, "Editable costs");
+            Check(config.GetLevel(2).Range(GrowthAttribute.Attack, TalentGrade.S).Min == 17 && config.GetLevel(2).Range(GrowthAttribute.Attack, TalentGrade.A).Max == 18, "Overlapping upgrade increments");
             foreach (var level in config.Levels)
                 foreach (GrowthAttribute attribute in Enum.GetValues(typeof(GrowthAttribute)))
                     for (int grade = 0; grade < 3; grade++)
@@ -523,7 +541,7 @@ internal static partial class WorldSimulationTests
             int oldHealth = actor.MaxHealth, oldAttack = actor.Attack, oldLifespan = actor.Lifespan;
             actor.Health -= 25;
             CultivationSystem.Gain(actor, 40, config, 1, _ => { });
-            Check(actor.Level == 3 && actor.LevelExperience == 10 && actor.Experience == 40, "Two breakthroughs and remainder");
+            Check(actor.Level == 3 && actor.LevelExperience == 14 && actor.Experience == 40, "Two breakthroughs and remainder");
             Check(actor.MaxHealth > oldHealth && actor.Attack > oldAttack && actor.Lifespan > oldLifespan && actor.MaxHealth - actor.Health == 25, "Additive stats keep missing health");
             Check(config.CumulativeRange(3, GrowthAttribute.Attack, actor.Talents.Attack.Grade).Min <= actor.Attack &&
                 actor.Attack <= config.CumulativeRange(3, GrowthAttribute.Attack, actor.Talents.Attack.Grade).Max, "Stats inside cumulative bounds");
@@ -562,6 +580,29 @@ internal static partial class WorldSimulationTests
             Check(sim.State.Outcome == RunOutcome.Cleared && sim.State.Year == 100, "New birth stats preserve the playable relay");
             Check(HexTimelineDemoFactory.CreateFateRecord(config).EndedInDeath, "Configured weak history still has a real death");
         });
+        Run("Table-driven Chosen route sets travel time, enemy formation, and ritual stats", () =>
+        {
+            int gate = HexWorldMap.Id(-1, 0);
+            var sim = HexTimelineDemoFactory.Create(
+                configureLocations: world => world.Nodes[gate].MonsterHealth = 999,
+                chosenRoute: new[]
+                {
+                    new ChosenRouteStage { Q = -2 },
+                    new ChosenRouteStage { Q = -1, TravelYears = 2, GuardianCount = 2,
+                        GuardianHealth = 15, GuardianAttack = 5, GuardianAppearance = "GateGolem" },
+                    new ChosenRouteStage { TravelYears = 5, GuardianCount = 1,
+                        GuardianHealth = 35, GuardianAttack = 10, RitualPeriod = 20 }
+                });
+            var guardian = sim.State.Nodes[gate];
+            Check(sim.Chosen.ArrivalYear == 7 && guardian.GuardianCount == 2 &&
+                guardian.MonsterHealth == 30 && guardian.GuardianAppearance == "GateGolem", "Route overrides general location enemies");
+            Check(sim.State.Ritual.DeadlineYear == 20 && sim.State.Ritual.BossHealth == 35 &&
+                sim.State.Ritual.BossAttack == 10, "Ritual reads the final stage");
+            sim.SubmitPlayerAction(WorldAction.Wait(2));
+            Check(sim.State.Actors[1000].NodeId == gate && guardian.MonsterHealth == 0, "First leg takes two years");
+            sim.SubmitPlayerAction(WorldAction.Wait(5));
+            Check(sim.State.Outcome == RunOutcome.Cleared && sim.State.Year == 7, "Second leg takes five years");
+        });
         Run("Living traveller keeps a map position throughout movement and terminal freeze", () =>
         {
             var sim = HexTimelineDemoFactory.Create();
@@ -582,6 +623,54 @@ internal static partial class WorldSimulationTests
             var player = ActorMapProjection.Position(sim.State, sim.State.Actors[1]);
             var chosen = ActorMapProjection.Position(sim.State, sim.State.Actors[20]);
             Check(player.IsMoving && player.Q == chosen.Q && player.R == chosen.R, "Moving companions remain projectable");
+        });
+        Run("Location arrivals follow remaining travel, recorded waits and joined actors", () =>
+        {
+            var sim = CreateWithChosen(yearsPerStep: 3);
+            var history = new LifeRecorder(new ActorState(10, 2));
+            history.RecordAction(0, WorldAction.Wait(2));
+            history.RecordAction(2, WorldAction.Move(3));
+            sim.AddHistory(history.Snapshot(9), 10);
+            var blocked = new LifeRecorder(new ActorState(11, 1));
+            blocked.RecordAction(0, WorldAction.Move(4));
+            blocked.RecordAction(1, WorldAction.Move(3));
+            sim.AddHistory(blocked.Snapshot(9), 11);
+            sim.State.Actors[1].NodeId = sim.State.Actors[20].NodeId;
+            sim.AssignAction(1, WorldAction.JoinChosen());
+
+            var arrival = ActorMapProjection.NextArrivals(sim, 3);
+            Check(arrival.SequenceEqual(new[] { (1, 3), (10, 3), (20, 3) }),
+                "Only actors with a valid route appear, sorted by time and ID");
+            sim.AdvanceOneYear();
+            Check(ActorMapProjection.NextArrivals(sim, 3).SequenceEqual(new[] { (1, 2), (10, 2), (20, 2) }),
+                "The countdown uses live remaining time");
+            sim.State.Actors[10].Die();
+            Check(ActorMapProjection.NextArrivals(sim, 3).SequenceEqual(new[] { (1, 2), (20, 2) }),
+                "A dead actor disappears from forecasts immediately");
+            sim.AdvanceOneYear();
+            sim.AdvanceOneYear();
+            Check(ActorMapProjection.NextArrivals(sim, 3).Count == 0, "Occupants are no longer incoming");
+        });
+        Run("Shared actor routes retain their own progress and skip blocked legs", () =>
+        {
+            var sim = CreateWithChosen(yearsPerStep: 3);
+            var history = new LifeRecorder(new ActorState(10, 2));
+            history.RecordAction(0, WorldAction.Move(3));
+            history.RecordAction(2, WorldAction.Move(4));
+            sim.AddHistory(history.Snapshot(9), 10);
+            var blocked = new LifeRecorder(new ActorState(11, 1));
+            blocked.RecordAction(0, WorldAction.Move(4));
+            blocked.RecordAction(1, WorldAction.Move(3));
+            sim.AddHistory(blocked.Snapshot(9), 11);
+
+            var before = ActorMapProjection.Routes(sim);
+            Check(before[10][(2, 3)] == ActorMapProjection.LegProgress.Planned &&
+                before[20][(2, 3)] == ActorMapProjection.LegProgress.Planned, "Both actors show their planned shared leg");
+            Check(before[11].Count == 0 && !before.ContainsKey(1), "Blocked routes stop at the missing connection");
+            sim.AdvanceOneYear();
+            var after = ActorMapProjection.Routes(sim);
+            Check(after[10][(2, 3)] == ActorMapProjection.LegProgress.Travelled &&
+                after[20][(2, 3)] == ActorMapProjection.LegProgress.Planned, "A shared leg progresses independently for each actor");
         });
         Run("Outer nest can be cleared before a recorded death", () =>
         {
@@ -675,6 +764,27 @@ internal static partial class WorldSimulationTests
                 "Companion and chosen retain their actual individual results");
             Check(world.Nodes[2].MonsterHealth == 0, "Monster result is applied");
         });
+        Run("Coastal formation preserves ranged and melee slots across arrivals", () =>
+        {
+            var world = new WorldState(1);
+            world.Nodes.Add(1, new NodeState(1));
+            var reef = new NodeState(2);
+            world.Nodes.Add(2, reef);
+            world.Nodes[1].Links.Add(2);
+            world.Nodes[2].Links.Add(1);
+            reef.SetCoastalFormation(meleeHealth: 11, rangedHealth: 8, attack: 2);
+            world.Actors.Add(1, new ActorState(1, 1, 100, 10));
+            world.Actors.Add(2, new ActorState(2, 1, 100, 10));
+            var resolver = new CoastalFormationResolver();
+            var sim = new WorldSimulation(world, resolver);
+
+            sim.SubmitPlayerAction(WorldAction.Move(2));
+            Check(reef.GuardianCount == 2 && reef.MonsterHealth == 19, "Only two original defenders survive");
+            world.Actors[2].CurrentAction = WorldAction.Move(2);
+            world.Actors[2].RemainingYears = 1;
+            sim.AdvanceOneYear();
+            Check(resolver.Calls == 2 && reef.GuardianCount == 0 && reef.MonsterHealth == 0, "Reef clears on the second visit");
+        });
         Run("Visible combat suspends annual settlement until its result returns", () =>
         {
             var world = new WorldState(1);
@@ -691,6 +801,29 @@ internal static partial class WorldSimulationTests
             Check(!pending.MoveNext(), "Action resumes and finishes after combat");
             Check(world.Year == 1 && world.Actors[1].Health == 40 && world.Nodes[2].MonsterHealth == 0
                 && sim.WaitingForPlayer, "Results apply once without advancing another year");
+        });
+        Run("Arrival presentation sees every mover before rewards are awarded", () =>
+        {
+            var world = new WorldState(1);
+            for (int id = 1; id <= 3; id++) world.Nodes.Add(id, new NodeState(id));
+            world.Nodes[1].Links.Add(2);
+            world.Nodes[3].Links.Add(2);
+            world.Nodes[2].Items.Add(9102);
+            var player = new ActorState(1, 1, 100, 10);
+            var chosen = new ActorState(20, 3, 100, 10);
+            world.Actors.Add(player.Id, player);
+            var sim = new WorldSimulation(world);
+            sim.ConfigureChosen(chosen, new[] { 3, 2 }, 1);
+            System.Collections.IEnumerator Present()
+            {
+                Check(world.Year == 1 && player.NodeId == 2 && chosen.NodeId == 2 &&
+                    world.Nodes[2].Items.Count == 1, "Both arrivals are staged before the claim");
+                yield return null;
+            }
+            using var routine = FlattenRoutine(sim.SubmitPlayerActionRoutine(WorldAction.Move(2), Present));
+            Check(routine.MoveNext() && !player.Items.Contains(9102), "Treasure waits for presentation");
+            Check(!routine.MoveNext() && player.Items.Contains(9102) && !chosen.Items.Contains(9102),
+                "Simultaneous arrival resolves the unique reward once");
         });
         Run("Battle settlement shows applied rewards and waits for confirmation", () =>
         {
@@ -798,6 +931,33 @@ internal static partial class WorldSimulationTests
                     Skills = new[] { new SkillBattleOutput(9153, 9153, 100, 20, 5) } }
             };
             completed(new[] { 40, 0 });
+        }
+    }
+
+    private sealed class CoastalFormationResolver : IWorldPartyBattleResolver
+    {
+        public int Calls { get; private set; }
+        public BattleResult Resolve(int firstHealth, int firstAttack, int secondHealth, int secondAttack) =>
+            throw new Exception("Coastal battles must receive individual guardians.");
+
+        public int[] ResolveParty(WorldState world, int nodeId,
+            System.Collections.Generic.IReadOnlyList<ActorState> first,
+            System.Collections.Generic.IReadOnlyList<ActorState> second)
+        {
+            Calls++;
+            if (Calls == 1)
+            {
+                Check(second.Count == 20 && second.Take(7).All(guard => guard.Health == 8 && guard.Attack == 1) &&
+                    second.Skip(7).All(guard => guard.Health == 11 && guard.Attack == 2), "Initial ranks and stats");
+                var health = new int[21];
+                health[3] = second[2].Health;
+                health[18] = second[17].Health;
+                return health;
+            }
+
+            Check(second.Select(guard => -nodeId - guard.Id).SequenceEqual(new[] { 2, 17 }) &&
+                second.Select(guard => guard.Attack).SequenceEqual(new[] { 1, 2 }), "Original slots and roles survive");
+            return new[] { first[0].Health, 0, 0 };
         }
     }
 

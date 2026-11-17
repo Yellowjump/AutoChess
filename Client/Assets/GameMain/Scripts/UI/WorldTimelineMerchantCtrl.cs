@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityGameFramework.Runtime;
 using WorldTimeline;
 using WorldTimelineDebug;
 
@@ -25,6 +26,7 @@ public sealed class WorldTimelineMerchantCtrl : MonoBehaviour
         foreach (var text in GetComponentsInChildren<TMP_Text>(true))
             if (text.text?.StartsWith("Timeline_", StringComparison.Ordinal) == true)
                 text.text = TimelineText(text.text);
+        UIFormLogic.BindButtonClickSound(leave);
         leave.onClick.AddListener(() => story?.Choose(leaveOption));
     }
 
@@ -60,6 +62,7 @@ public sealed class WorldTimelineMerchantCtrl : MonoBehaviour
             button.GetComponentInChildren<TMP_Text>().text = story.ClaimedItems.Contains(option.ItemId)
                 ? TimelineText("Timeline_MerchantSold") : reason ?? TimelineText("Timeline_MerchantBuy");
             button.onClick.RemoveAllListeners();
+            UIFormLogic.BindButtonClickSound(button);
             button.onClick.AddListener(() => { if (story.Choose(option.Id)) button.interactable = false; });
             row.gameObject.SetActive(true);
         }

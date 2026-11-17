@@ -20,8 +20,11 @@ namespace Procedure
         protected override void OnLeave(ProcedureOwner procedureOwner, bool isShutdown)
         {
             base.OnLeave(procedureOwner, isShutdown);
-            var title = GameEntry.UI.GetUIForm(UICtrlName.MainTitlePanel);
-            if (title != null) GameEntry.UI.CloseUIForm(title);
+            // The UI manager closes its own forms during framework shutdown.
+            if (isShutdown) return;
+            var ui = GameEntry.UI;
+            var title = ui?.GetUIForm(UICtrlName.MainTitlePanel);
+            if (title != null) ui.CloseUIForm(title);
         }
     }
 }

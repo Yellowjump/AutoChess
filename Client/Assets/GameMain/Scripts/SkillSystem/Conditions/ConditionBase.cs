@@ -35,7 +35,8 @@ namespace SkillSystem
 
         public virtual void Clear()
         {
-            
+            ParentTrigger = null;
+            ReverseResult = false;
         }
     }
 }

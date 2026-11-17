@@ -5,7 +5,7 @@
 	1	0	-10	Timeline_OuterLocations_1_Name	1	0	1	0	0	
 	2	1	-10	Timeline_OuterLocations_2_Name	1	0	1	0	0	
 	3	-1	-9	Timeline_OuterLocations_3_Name	1	0	1	0	0	
-	4	0	-9	Timeline_OuterLocations_4_Name	2	220	120	0	0	
+	4	0	-9	Timeline_OuterLocations_4_Name	2	220	90	0	0	
 	5	-1	-8	Timeline_OuterLocations_5_Name	8	0	1	0	0	
 	6	1	-9	Timeline_OuterLocations_6_Name	3	0	1	8201	18	Timeline_OuterLocations_6_LootName
 	7	-8	0	Timeline_OuterLocations_7_Name	4	180	28	0	0	
@@ -33,3 +33,71 @@
 	29	7	2	Timeline_Tide_Pier	3	0	1	0	0	
 	30	6	2	Timeline_Tide_Bend	5	118	13	0	0	
 	31	6	3	Timeline_Tide_Ledge	7	0	1	0	0	
+	32	-10	2	Timeline_QiMo_Birth	2	0	1	0	0	
+	33	-9	2	Timeline_QiMo_Post	4	150	14	0	0	
+	34	-8	2	Timeline_QiMo_Gallery	5	520	12	0	0	
+	35	6	-8	Timeline_Exploration_1_Place_1	3	0	1	0	0	
+	36	5	-7	Timeline_Exploration_1_Place_2	4	78	8	0	0	
+	37	5	-6	Timeline_Exploration_1_Place_3	5	155	13	0	0	
+	38	4	-5	Timeline_Exploration_1_Place_4	6	230	18	34047	5	Timeline_Exploration_1_Loot
+	39	5	-5	Timeline_Exploration_1_Place_5	8	0	1	0	0	
+	40	8	0	Timeline_Exploration_2_Place_1	3	0	1	0	0	
+	41	7	1	Timeline_Exploration_2_Place_2	4	85	9	0	0	
+	42	6	1	Timeline_Exploration_2_Place_3	5	170	14	0	0	
+	43	5	2	Timeline_Exploration_2_Place_4	6	245	18	34311	6	Timeline_Exploration_2_Loot
+	44	4	3	Timeline_Exploration_2_Place_5	8	0	1	0	0	
+	45	-4	8	Timeline_Exploration_3_Place_1	4	0	1	0	0	
+	46	-5	8	Timeline_Exploration_3_Place_2	4	90	9	0	0	
+	47	-5	7	Timeline_Exploration_3_Place_3	5	135	12	0	0	
+	48	-6	7	Timeline_Exploration_3_Place_4	5	165	13	31489	7	Timeline_Exploration_3_Loot
+	49	-6	6	Timeline_Exploration_3_Place_5	7	0	1	0	0	
+	50	-9	3	Timeline_Exploration_4_Place_1	3	0	1	0	0	
+	51	-8	3	Timeline_Exploration_4_Place_2	4	100	10	0	0	
+	52	-7	2	Timeline_Exploration_4_Place_3	5	155	13	0	0	
+	53	-7	3	Timeline_Exploration_4_Place_4	5	190	15	31228	7	Timeline_Exploration_4_Loot
+	54	-6	2	Timeline_Exploration_4_Place_5	8	0	1	0	0	
+	55	1	7	Timeline_Exploration_5_Place_1	4	0	1	0	0	
+	56	1	6	Timeline_Exploration_5_Place_2	5	105	11	0	0	
+	57	1	5	Timeline_Exploration_5_Place_3	6	195	16	0	0	
+	58	2	4	Timeline_Exploration_5_Place_4	7	285	22	33542	7	Timeline_Exploration_5_Loot
+	59	1	4	Timeline_Exploration_5_Place_5	8	0	1	0	0	
+	60	-4	-3	Timeline_Exploration_6_Place_1	6	0	1	0	0	
+	61	-3	-3	Timeline_Exploration_6_Place_2	7	210	17	0	0	
+	62	-3	-2	Timeline_Exploration_6_Place_3	7	245	21	0	0	
+	63	-2	-3	Timeline_Exploration_6_Place_4	7	290	23	32507	10	Timeline_Exploration_6_Loot
+	64	-2	-2	Timeline_Exploration_6_Place_5	9	0	1	0	0	
+	65	-3	7	Timeline_NorthRelay_HutTitle	6	0	1	0	0	
+	66	-3	5	Timeline_NorthRelay_ArrayTitle	6	220	19	0	0	
+	67	-3	4	Timeline_Cave_IceTrail	6	180	13	0	0	
+	68	-3	3	Timeline_Cave_IceHall	8	310	19	9178	0	Timeline_Cave_IceBead
+	69	-8	6	Timeline_Cave_LavaTrail	5	165	12	0	0	
+	70	-7	5	Timeline_Cave_LavaHall	7	280	18	9177	0	Timeline_Cave_EmberHeart
+	71	-6	1	Timeline_QiStory_Altar	6	225	15	0	0	
+	72	8	-9	Timeline_Salt_Ditch	3	0	1	0	0	
+	73	7	-8	Timeline_Salt_Beach	4	48	7	0	0	
+	74	6	-7	Timeline_Salt_Drain	5	0	1	0	0	
+	75	6	-6	Timeline_Salt_Head	6	185	16	0	0	
+	76	7	-10	Timeline_ExpandedMap_76	4	0	1	0	0	
+	77	7	-9	Timeline_ExpandedMap_77	4	88	10	0	0	
+	78	6	-9	Timeline_ExpandedMap_78	5	0	1	0	0	
+	79	5	-9	Timeline_ExpandedMap_79	7	0	1	0	0	
+	80	9	-5	Timeline_ExpandedMap_80	4	0	1	0	0	
+	81	9	-4	Timeline_ExpandedMap_81	5	117	13	0	0	
+	82	8	-4	Timeline_ExpandedMap_82	5	0	1	0	0	
+	83	8	-3	Timeline_ExpandedMap_83	8	0	1	0	0	
+	84	-8	9	Timeline_ExpandedMap_84	4	0	1	0	0	
+	85	-7	9	Timeline_ExpandedMap_85	5	146	15	0	0	
+	86	-7	8	Timeline_ExpandedMap_86	5	0	1	0	0	
+	87	-6	8	Timeline_ExpandedMap_87	8	0	1	0	0	
+	88	-3	-7	Timeline_ExpandedMap_88	4	0	1	0	0	
+	89	-2	-7	Timeline_ExpandedMap_89	5	128	14	0	0	
+	90	-1	-7	Timeline_ExpandedMap_90	5	0	1	0	0	
+	91	0	-5	Timeline_ExpandedMap_91	8	0	1	0	0	
+	92	4	-1	Timeline_ExpandedMap_92	6	0	1	0	0	
+	93	3	-1	Timeline_ExpandedMap_93	7	208	20	0	0	
+	94	2	-1	Timeline_ExpandedMap_94	7	0	1	0	0	
+	95	1	-1	Timeline_ExpandedMap_95	9	0	1	0	0	
+	96	-1	7	Timeline_ExpandedMap_96	5	0	1	0	0	
+	97	-1	6	Timeline_ExpandedMap_97	6	176	18	0	0	
+	98	-2	2	Timeline_ExpandedMap_98	8	272	24	0	0	
+	99	1	2	Timeline_ExpandedMap_99	8	0	1	0	0	

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DataTable;
+using Entity;
 using SkillSystem;
 using TMPro;
 using UnityEngine;
@@ -104,6 +105,7 @@ public sealed class WorldTimelineInventoryCtrl : UIFormLogic
     {
         int index = cards.Count;
         cards.Add(slot);
+        BindButtonClickSound(slot.button);
         slot.button.onClick.AddListener(() =>
         {
             if (index >= visible.Count || view == null) return;
@@ -229,7 +231,8 @@ public sealed class WorldTimelineInventoryCtrl : UIFormLogic
             if (item.SkillID != 0)
             {
                 entry.SkillItemId = nativeId;
-                entry.Kind = EquipmentKind.Art;
+                entry.Kind = entry.Id is TimelineCaveHazards.EmberHeart or TimelineCaveHazards.IceBead
+                    ? EquipmentKind.Relic : EquipmentKind.Art;
             }
             if (entry.Id < 0)
             {

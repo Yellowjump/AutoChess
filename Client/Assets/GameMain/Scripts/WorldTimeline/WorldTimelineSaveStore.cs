@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -20,7 +20,7 @@ namespace WorldTimeline
     public static class WorldTimelineSaveStore
     {
         private const int Signature = 0x574C4946;
-        private const int Version = 3;
+        private const int Version = 11;
         public const int Capacity = 15;
         private const int MaxEntriesPerLife = 100000;
 
@@ -107,6 +107,24 @@ namespace WorldTimeline
             { writer.Write(choice.EventId); writer.Write(choice.Occurrence); writer.Write(choice.OptionId); }
             writer.Write(life.GuardianDeathNodeId.HasValue);
             if (life.GuardianDeathNodeId is int nodeId) writer.Write(nodeId);
+            writer.Write(life.RitualBreakYear.HasValue);
+            if (life.RitualBreakYear is int breakYear) writer.Write(breakYear);
+            writer.Write(life.SluiceOpeningYear.HasValue);
+            if (life.SluiceOpeningYear is int openingYear) writer.Write(openingYear);
+            writer.Write(life.NorthRelayRestoredYear.HasValue);
+            if (life.NorthRelayRestoredYear is int restoreYear) writer.Write(restoreYear);
+            writer.Write(life.ContractRevokedYear.HasValue);
+            if (life.ContractRevokedYear is int contractYear) writer.Write(contractYear);
+            writer.Write(life.Expedition.Count);
+            foreach (var step in life.Expedition)
+            {
+                writer.Write(step.Year); writer.Write(step.NodeId); writer.Write(step.Battle);
+                writer.Write(step.Progression); writer.Write(step.CloseTaunt);
+                writer.Write(step.Recruited.Count); foreach (int role in step.Recruited) writer.Write(role);
+                foreach (int cell in step.Cells) writer.Write(cell);
+                writer.Write(step.Equipment.Count);
+                foreach(int value in step.Equipment)writer.Write(value);
+            }
         }
 
         private static SavedLife ReadLife(BinaryReader reader, int version)
@@ -145,7 +163,35 @@ namespace WorldTimeline
                 for (int i = ReadCount(reader, MaxEntriesPerLife); i > 0; i--)
                     choices.Add(new RecordedStoryChoice(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32()));
             int? deathNode = version >= 3 && reader.ReadBoolean() ? reader.ReadInt32() : null;
-            return new SavedLife(round, new LifeRecord(actor, items, actions, Array.Empty<WorldEvent>(), year, died, choices, deathNode));
+            int? breakYear = version >= 4 && reader.ReadBoolean() ? reader.ReadInt32() : null;
+            if (breakYear is int recordedYear && (!died || recordedYear < 1 || recordedYear != year))
+                throw new InvalidDataException("前世破仪年份无效。");
+            int? sluiceYear = version >= 5 && reader.ReadBoolean() ? reader.ReadInt32() : null;
+            if (sluiceYear is int opened && (opened < 1 || opened > year))
+                throw new InvalidDataException("前世开闸年份无效。");
+            int? northRelayYear = version >= 6 && reader.ReadBoolean() ? reader.ReadInt32() : null;
+            if (northRelayYear is int restored && (restored < 1 || restored > year))
+                throw new InvalidDataException("前世还名年份无效。");
+            int? contractYear = version >= 7 && reader.ReadBoolean() ? reader.ReadInt32() : null;
+            if (contractYear is int revoked && (revoked < 1 || revoked > year))
+                throw new InvalidDataException("前世撤契年份无效。");
+            var expedition = new List<RecordedExpedition>();
+            int expeditionCount = version >= 8 ? ReadCount(reader, MaxEntriesPerLife) : 0;
+            for (int i = 0; i < expeditionCount; i++)
+            {
+                int stepYear = reader.ReadInt32(), node = reader.ReadInt32(), battle = reader.ReadInt32();
+                bool progression = reader.ReadBoolean(), closeTaunt = reader.ReadBoolean();
+                var roles = new int[ReadCount(reader, 4)];
+                for (int r = 0; r < roles.Length; r++) roles[r] = reader.ReadInt32();
+                var cells = new int[6]; for (int c = 0; c < 6; c++) cells[c] = reader.ReadInt32();
+                if (stepYear > year || (i > 0 && stepYear < expedition[i - 1].Year))
+                    throw new InvalidDataException("前世队伍记录年份无效。");
+                var equipment=new int[version>=9?ReadCount(reader,ExpeditionEquipment.MaxSnapshot):0];
+                for(int e=0;e<equipment.Length;e++)equipment[e]=reader.ReadInt32();
+                expedition.Add(new RecordedExpedition(stepYear, node, battle, progression, closeTaunt, roles, cells, equipment));
+            }
+            return new SavedLife(round, new LifeRecord(actor, items, actions, Array.Empty<WorldEvent>(), year, died, choices,
+                deathNode, breakYear, sluiceYear, northRelayYear, contractYear, expedition));
         }
 
         private static int ReadCount(BinaryReader reader, int maximum)

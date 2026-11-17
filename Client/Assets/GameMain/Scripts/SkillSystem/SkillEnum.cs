@@ -73,7 +73,9 @@ namespace SkillSystem
         [InspectorName("道具相关")]
         RelateItem,
         [InspectorName("技能相关")]
-        RelateSkill
+        RelateSkill,
+        [InspectorName("召唤波次")]
+        SummonWave
     }
     public enum LogicOperator
     {

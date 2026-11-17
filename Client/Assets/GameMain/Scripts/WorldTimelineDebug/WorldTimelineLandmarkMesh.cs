@@ -376,7 +376,7 @@ namespace WorldTimelineDebug
             }
             Box(0, 1.28f, 0, 2.0f, .07f, .57f, Timber);
             foreach (float x in new[] { -.79f, -.62f, .62f, .79f })
-                Box(x, 1.28f, .28f, .085f, .070f, .17f, Timber);
+                Box(x, 1.288f, .28f, .085f, .070f, .17f, Timber);
             Roof(0, 1.32f, 0, 2.26f, .98f, .35f);
         }
 

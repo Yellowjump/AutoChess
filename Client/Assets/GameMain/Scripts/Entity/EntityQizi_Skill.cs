@@ -21,7 +21,11 @@ namespace Entity
             (BuffTag.HeavyDamage, "重伤", "Wounded", "#F5B5C0"),
             (BuffTag.Frozen, "冰冻", "Frozen", "#A6DBFF"),
             (BuffTag.Stunned, "眩晕", "Stunned", "#E8D59A"),
-            (default, "雷印", "Lightning Mark", "#C8C5FF")
+            (default, "雷印", "Lightning Mark", "#C8C5FF"),
+            (default, "契印", "Contract Seal", "#F3A07A"),
+            (default, "缠索", "Rope Snare", "#E2C381"),
+            (default, "合壳", "Closed Shell", "#90D7C7"),
+            (default, "霜缓", "Chill", "#A6DBFF")
         };
 
         internal static void Read(EntityQizi owner, long[] counts)
@@ -31,18 +35,36 @@ namespace Entity
             foreach (var buff in owner.CurBuffList)
             {
                 if (!buff.IsValid || buff.StackCount <= 0) continue;
-                for (int i = 0; i < Display.Length - 1; i++)
+                for (int i = 0; i < 7; i++)
                     if (buff.CheckBuffTag(Display[i].Tag)) counts[i] += buff.StackCount;
             }
             if (owner.LightningMarks != null)
                 foreach (int count in owner.LightningMarks.Values)
-                    counts[Display.Length - 1] += count;
+                    counts[7] += count;
+            if (owner.ContractSealSeconds > 0f) counts[8] = 1;
+            if (owner.RopeSnareSeconds > 0f) counts[9] = 1;
+            if (owner.OuterShellSeconds > 0f) counts[10] = 1;
+            if (owner.FrostSlowSeconds > 0f) counts[11] = 1;
         }
     }
 
     public partial class EntityQizi
     {
         private const int TideBellSkillId = 9104;
+        internal int RegionalGuardianAttacks;
+        internal bool RegionalPounceWarned;
+        internal float ContractSealSeconds;
+        internal int OuterAttackCount, LanternHitsLeft, MartenMeleeHits;
+        internal bool OuterGuardianUsed, IsPaperShadow, IsCoastalShooter, IsCoastalMelee;
+        internal int PaperShadowWaves;
+        internal float RopeSnareSeconds, OuterShellSeconds;
+        internal float FrostSlowSeconds, FrostShieldCooldown;
+        internal bool EmberHeartUsed;
+        internal bool SaltShieldUsed, SaltChannelDrained;
+        internal int SaltGuardianAttacks, SaltFirstAttackDelayMs;
+        internal int IceBeadHits;
+        internal Vector3 OuterShellForward;
+        internal List<EntityQizi> PaperShadows;
         public List<Skill> NormalSkillList = new List<Skill>();
         public int NextCastNormalSkillIndex = 0;
         public int CurCastNormalSkillIndex = 0;
@@ -439,6 +461,8 @@ namespace Entity
                 }
             }
             UpdateBuffTime(elapseSeconds, realElapseSeconds);
+            if (ContractSealSeconds > 0f)
+                ContractSealSeconds = Mathf.Max(0f, ContractSealSeconds - elapseSeconds);
             foreach (var oneNormalSkill in NormalSkillList)
             {
                 oneNormalSkill.LogicUpdateCD(elapseSeconds,realElapseSeconds);
@@ -447,10 +471,10 @@ namespace Entity
             foreach (var noAnimSkill in NoAnimAtkSkillList)
             {
                 noAnimSkill.LogicUpdateCD(elapseSeconds,realElapseSeconds);
-                if (!noAnimSkill.InCD)
+                if (!noAnimSkill.InCD && noAnimSkill.MeetsCastCondition())
                 { 
                     noAnimSkill.OnDestory();
-                    noAnimSkill.Cast();
+                    noAnimSkill.CastAfterConditionCheck();
                 }
             }
 
@@ -492,6 +516,15 @@ namespace Entity
             if (willCastSkill == null)
             {
                 return CheckCastSkillResult.Error;
+            }
+            if (!willCastSkill.MeetsCastCondition()) return CheckCastSkillResult.Error;
+            if (willCastSkill.CurSkillCastTargetType == SkillCastTargetType.NearestEnemy &&
+                PriorityAttackTarget is { IsValid: true } priority && priority.BelongCamp != BelongCamp)
+            {
+                target = priority;
+                var battle = HotGameEntry.HeroManager;
+                return battle.IsInSkillRange(battle.GetCombatDistanceSquare(this, priority), willCastSkill.SkillRange)
+                    ? CheckCastSkillResult.CanCast : CheckCastSkillResult.TargetOutRange;
             }
             var inAttackRange = false;
             if (willCastSkill.CurSkillCastTargetType != SkillCastTargetType.NoNeedTarget)
@@ -574,7 +607,7 @@ namespace Entity
                 {
                     NextCastNormalSkillIndex = 0;
                 }
-                NormalSkillList[normalSkillIndex].Cast();
+                NormalSkillList[normalSkillIndex].CastAfterConditionCheck();
             }
         }
 
@@ -591,7 +624,15 @@ namespace Entity
             {
                 var weakness = damageData.Caster.FindStatusBuff(BuffTag.Weakened, CommandWeaknessEffect.WeaknessBuffId);
                 if (weakness != null) damageData.DamageValue *= 1f - weakness.paramInt / 100f;
+                if (damageData.DamageValue >= 1f && damageData.Caster.ContractSealSeconds > 0f &&
+                    damageData.Caster.BelongCamp != BelongCamp)
+                {
+                    damageData.Caster.ContractSealSeconds = 0f;
+                    damageData.DamageValue *= .70f;
+                }
             }
+            bool blockedByShell = TimelineOuterGuardianCast.ShellBlocks(this, damageData);
+            if (blockedByShell) damageData.DamageValue *= .35f;
             var caster = damageData.Caster;
             bool techniqueHit = IsValid && caster != null && caster.BelongCamp != BelongCamp &&
                 caster.IsTechniqueSkill(damageData.SourceSkill);
@@ -602,6 +643,9 @@ namespace Entity
                 HotGameEntry.HeroManager.SeedPreviewBurnBeforeHit(this, damageData);
 #endif
             damageData.BurnStacksBeforeHit = damageData.TriggerDamageRelate ? FindStatusBuff(BuffTag.Burning, CommandBurnEffect.BurnBuffId)?.StackCount ?? 0 : 0;
+            damageData.OpeningStacksBeforeHit = damageData.TriggerDamageRelate
+                ? FindStatusBuff(BuffTag.Exposed, CommandWeaknessEffect.OpeningBuffId)?.StackCount ?? 0 : 0;
+            TimelineSaltChannelCast.ShieldBeforeFirstDirectHit(this, damageData);
             var shieldValue = (int)hudunAttr.GetFinalValue();
             bool stoneSmash = damageData.SourceSkill?.SkillID == StateAttack0.StoneSmashSkillId;
             int bellAbsorbed = 0;
@@ -678,14 +722,65 @@ namespace Entity
             int healthLost = System.Math.Max(0, healthBefore - healthAfter);
             int shieldLost = System.Math.Max(0, shieldValue - shieldAfter);
             int effectiveDamage = (int)System.Math.Min(int.MaxValue, (long)healthLost + shieldLost);
+            if (BattleOutput != null)
+            {
+                BattleDamageTaken += effectiveDamage;
+                BattleHealthLost += healthLost;
+            }
+            if (effectiveDamage > 0) TimelineOuterGuardianCast.TrackHit(this, damageData);
             var battle = HotGameEntry.HeroManager;
             var visuals = battle.BurnVisuals;
+            if (effectiveDamage > 0 && blockedByShell && GObj != null)
+                visuals?.ShellClash(GObj.transform.position + OuterShellForward * .70f + Vector3.up * .62f,
+                    OuterShellForward);
+            if (effectiveDamage > 0 && damageData.TriggerDamageRelate && visuals != null && caster != null)
+            {
+                var direction = LogicPosition - caster.LogicPosition;
+                direction.y = 0f;
+                direction = direction.normalized;
+                if (healthLost > 0 && ShowsPlayerHitFeedback && GObj != null &&
+                    caster.BelongCamp != BelongCamp)
+                {
+                    Vector3 impact = GObj.transform.position + LogicHitPosition - LogicPosition;
+                    visuals.PlayerHit(impact, direction);
+                }
+                if (TimelineAppearance == WorldTimeline.SaltChannel.BeastAppearance)
+                    PlaySaltImpactMotion(direction * .12f);
+                if (!damageData.HasSignatureImpactSound && damageData.SourceSkill?.SkillID == WorldTimeline.SaltChannel.BeastSkillId)
+                {
+                    PlaySaltImpactMotion(direction * .09f);
+                    visuals.SaltBiteImpact(LogicPosition);
+                }
+            }
+            if (effectiveDamage > 0 && damageData.TriggerDamageRelate && !damageData.HasSignatureImpactSound &&
+                battle.IsTimelineBattle && !battle.IsTimelineSimulation)
+            {
+                var impact = damageData.SourceSkill?.SkillID switch
+                {
+                    TimelineSlashVisuals.BasicSlashSkillId => EnumSound.Chop,
+                    TimelineSlashVisuals.LongSlashSkillId or 9190 or StateAttack0.StoneSmashSkillId or 9193 => EnumSound.HeavyImpact,
+                    9191 => EnumSound.WaterImpact,
+                    9147 => EnumSound.BrushImpact,
+                    TimelineRegionalGuardianCast.BadgerSkill or TimelineRegionalGuardianCast.KilnSkill
+                        or TimelineRegionalGuardianCast.ContractSkill => EnumSound.HeavyImpact,
+                    _ => EnumSound.None // Projectiles already have a hit cue in their skill templates.
+                };
+                if (impact == EnumSound.None && damageData.SourceSkill != null &&
+                    TimelineOuterGuardianCast.IsSkill(damageData.SourceSkill.SkillID)) impact = EnumSound.HeavyImpact;
+                if (impact != EnumSound.None)
+                {
+                    if (!blockedByShell)
+                    {
+                        if (shieldLost > 0 && (shieldAfter <= 0 || healthLost == 0)) impact = EnumSound.ShieldImpact;
+                        HotGameEntry.Sound.PlayTimelineCue(impact, LogicHitPosition);
+                    }
+                }
+            }
             if (shieldLost > 0 && shieldAfter <= 0)
                 visuals?.ShieldShattered(LogicPosition);
             if (effectiveDamage > 0 && stoneSmash && visuals != null)
             {
                 Vector3 position = GObj != null ? GObj.transform.position : LogicPosition;
-                visuals.StoneImpact(position);
                 bellAbsorbed = Mathf.Min(bellAbsorbed, shieldLost);
                 if (bellAbsorbed > 0)
                 {
@@ -708,6 +803,8 @@ namespace Entity
             if (damageData.TriggerDamageRelate)
             {
                 damageData.HealthLost = healthLost;
+                if (damageData.SourceSkill?.IsBasicAttack == true && caster != null && caster.BelongCamp != BelongCamp)
+                    TimelineCaveHazards.OnBasicHit(caster, this, effectiveDamage);
                 damageData.BrokenShieldValue = shieldValue > 0 && shieldAfter <= 0 ? shieldValue : 0;
                 damageData.Caster.OnTrigger(TriggerType.AfterCauseDamage,damageData);
                 OnTrigger(TriggerType.AfterBeCauseDamage,damageData);

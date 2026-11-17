@@ -12,7 +12,9 @@ namespace Entity
     {
         public int HeroID;//hero表中ID
         public string TimelineAppearance;
+        internal EntityQizi PriorityAttackTarget;
         internal bool UsesUndertow;
+        internal bool CanOpenWithPounce, IsPounceStrike;
         internal int FirstStoneSmashDelayMs;
         internal bool HasSwordRecall;
         internal int TechniqueSkillId;
@@ -20,6 +22,7 @@ namespace Entity
         internal Dictionary<int, int> LightningMarks;
         internal int LightningApplications, LightningTransfers, LightningJumps;
         internal Dictionary<int, WorldTimeline.SkillBattleOutput> BattleOutput;
+        internal long BattleDamageTaken, BattleHealthLost;
 
         internal static void RecordBattleOutput(Skill skill, long damage = 0, long shield = 0, long healing = 0,
             long shieldAbsorbed = 0)
@@ -56,7 +59,7 @@ namespace Entity
                 _logicPosition = value;
                 if (GObj != null)
                 {
-                    GObj.transform.position = HotGameEntry.HeroManager.GetTerrainMatchHeight(value);
+                    UpdateTimelineModelPosition();
                 }
             }
         }
@@ -64,17 +67,69 @@ namespace Entity
         public override Vector3 LogicHitPosition => LogicPosition + Vector3.up *
             (TimelineAppearance == TimelineMonsterAnimation.NamelessSteleAppearance ? 1.55f : ConstValue.EntityQiziHeight);
 
-        internal float HpBarHeight => TimelineAppearance == TimelineMonsterAnimation.NamelessSteleAppearance ? 3.1f : 2f;
+        private const float SaltPullSlideSeconds = .17f;
+        private Vector3 saltPullOffset;
+        private float saltPullRemaining;
+
+        internal void PlaySaltPullSlide(Vector3 from)
+        {
+            PlaySaltImpactMotion(from - LogicPosition);
+        }
+
+        internal void PlaySaltImpactMotion(Vector3 offset)
+        {
+            if (GObj == null) return;
+            saltPullOffset = offset;
+            saltPullRemaining = SaltPullSlideSeconds;
+            UpdateTimelineModelPosition();
+        }
+
+        private void UpdateTimelineModelPosition()
+        {
+            float fraction = saltPullRemaining / SaltPullSlideSeconds;
+            GObj.transform.position = HotGameEntry.HeroManager.GetTerrainMatchHeight(
+                LogicPosition + saltPullOffset * (fraction * fraction));
+        }
+
+        internal float HpBarHeight => IsPaperShadow ? 1.4f : IsCoastalMelee ? 1.15f :
+            IsCoastalShooter ? 1.55f : TimelineAppearance switch
+        {
+            TimelineMonsterAnimation.NamelessSteleAppearance => 3.1f,
+            TimelineOuterGuardianCast.ClerkAppearance => 2.15f,
+            _ => 2f
+        };
+
+        internal bool ShowsPlayerHitFeedback { get; set; }
 
         public void Init(int i,List<int> equipItem = null, bool recordBattleOutput = false)
         {
             IsValid = true;
+            ShowsPlayerHitFeedback = false;
+            PriorityAttackTarget = null;
             ReservedMoveAnchor = null;
             TechniqueKills = 0;
             LightningMarks?.Clear();
             LightningApplications = LightningTransfers = LightningJumps = 0;
             BattleOutput = recordBattleOutput ? new Dictionary<int, WorldTimeline.SkillBattleOutput>() : null;
+            BattleDamageTaken = BattleHealthLost = 0;
             UndertowAttackCount = 0;
+            RegionalGuardianAttacks = 0;
+            RegionalPounceWarned = false;
+            ContractSealSeconds = 0f;
+            OuterAttackCount = LanternHitsLeft = MartenMeleeHits = 0;
+            OuterGuardianUsed = IsPaperShadow = IsCoastalShooter = IsCoastalMelee = false;
+            PaperShadowWaves = 0;
+            OuterShellSeconds = RopeSnareSeconds = 0f;
+            FrostSlowSeconds = FrostShieldCooldown = 0f;
+            EmberHeartUsed = false;
+            SaltShieldUsed = SaltChannelDrained = false;
+            SaltGuardianAttacks = SaltFirstAttackDelayMs = 0;
+            saltPullRemaining = 0f;
+            saltPullOffset = Vector3.zero;
+            IceBeadHits = 0;
+            OuterShellForward = Vector3.zero;
+            PaperShadows?.Clear();
+            CanOpenWithPounce = IsPounceStrike = false;
             NamelessSteleAttackCount = 0;
             NamelessSteleSealed = false;
             FirstStoneSmashDelayMs = 0;
@@ -97,23 +152,37 @@ namespace Entity
 
         public override void InitGObj()
         {
-            //添加血条预制体到worldcanvas
-            HotGameEntry.HeroManager.AddHpBar(this);
-            if (!string.IsNullOrEmpty(TimelineAppearance))
+            var heroes = HotGameEntry.HeroManager;
+            heroes.AddHpBar(this);
+            if (heroes.IsTimelineBattle)
             {
-                var prefab = Resources.Load<GameObject>("StoryCharacters/" + TimelineAppearance);
-                if (prefab != null)
+                string defaultAppearance = BelongCamp == CampType.Friend ? "ShenYan" : "LuYing";
+                string appearance = string.IsNullOrEmpty(TimelineAppearance) ? defaultAppearance : TimelineAppearance;
+                var prefab = Resources.Load<GameObject>("StoryCharacters/" + appearance);
+                if (prefab == null && appearance != defaultAppearance)
                 {
-                    ownsTimelineModel = true;
-                    var model = UnityEngine.Object.Instantiate(prefab, HotGameEntry.HeroManager.InstanceRoot);
-                    if ((TimelineAppearance is "GateGolem" or TimelineMonsterAnimation.NamelessSteleAppearance) &&
-                        model.TryGetComponent<TimelineMonsterAnimation>(out var monster))
-                        monster.CombineRigidParts();
-                    OnGetHeroGObjCallback(model, null);
-                    return;
+                    Debug.LogWarning($"找不到轮回战斗外观 {appearance}，改用 {defaultAppearance}。");
+                    prefab = Resources.Load<GameObject>("StoryCharacters/" + defaultAppearance);
                 }
+                if (prefab == null)
+                    throw new System.InvalidOperationException($"找不到轮回战斗默认外观 {defaultAppearance}。");
+
+                ownsTimelineModel = true;
+                var model = UnityEngine.Object.Instantiate(prefab, heroes.InstanceRoot);
+                if ((appearance is "GateGolem" or TimelineMonsterAnimation.NamelessSteleAppearance or
+                    TimelineMonsterAnimation.QiMoAppearance or TimelineRegionalGuardianCast.BadgerAppearance or
+                    TimelineRegionalGuardianCast.KilnAppearance or TimelineRegionalGuardianCast.ContractAppearance ||
+                    appearance is WorldTimeline.SaltChannel.CrabAppearance or WorldTimeline.SaltChannel.BeastAppearance ||
+                    TimelineOuterGuardianCast.SkillFor(appearance) != 0 ||
+                    TimelineCaveHazards.SkillFor(appearance) != 0) &&
+                    model.TryGetComponent<TimelineMonsterAnimation>(out var monster))
+                    monster.CombineRigidParts();
+                if (IsCoastalMelee) model.transform.localScale *= .65f;
+                if (IsCoastalShooter) model.transform.localScale *= .82f;
+                OnGetHeroGObjCallback(model, null);
+                return;
             }
-            HotGameEntry.HeroManager.GetHeroObjByID(HeroID,OnGetHeroGObjCallback);
+            heroes.GetHeroObjByID(HeroID, OnGetHeroGObjCallback);
         }
 
         private void OnGetHeroGObjCallback(GameObject obj,string path)
@@ -204,6 +273,7 @@ namespace Entity
         }
         public void Remove()
         {
+            PriorityAttackTarget = null;
             HotGameEntry.HeroManager.ReleaseFootprint(this);
             ClearHpBar();
             RemoveAllSfx();
@@ -219,6 +289,7 @@ namespace Entity
                 ReferencePool.Release(oneItem);
             }
             EquipItemList.Clear();
+            PaperShadows?.Clear();
             BattleOutput = null;
             HotGameEntry.HeroManager.ReleaseEntityQizi(this);
         }
@@ -241,6 +312,12 @@ namespace Entity
                 return;
             }
             if (monsterAnimation != null) monsterAnimation.Advance(elapseSeconds);
+            if (RopeSnareSeconds > 0f) RopeSnareSeconds = Mathf.Max(0f, RopeSnareSeconds - elapseSeconds);
+            if (FrostSlowSeconds > 0f) FrostSlowSeconds = Mathf.Max(0f, FrostSlowSeconds - elapseSeconds);
+            if (FrostShieldCooldown > 0f) FrostShieldCooldown = Mathf.Max(0f, FrostShieldCooldown - elapseSeconds);
+            if (HotGameEntry.HeroManager.CaveHazards?.InFrost(this) == true)
+                FrostSlowSeconds = Mathf.Max(FrostSlowSeconds, .23f);
+            if (OuterShellSeconds > 0f) OuterShellSeconds = Mathf.Max(0f, OuterShellSeconds - elapseSeconds);
             if (stationaryTarget)
             {
                 UpdateBuffTime(elapseSeconds, realElapseSeconds);
@@ -251,6 +328,11 @@ namespace Entity
                 UpdateSkill(elapseSeconds, realElapseSeconds);
             }
             UpdateShowSlider();
+            if (saltPullRemaining > 0f)
+            {
+                saltPullRemaining = Mathf.Max(0f, saltPullRemaining - elapseSeconds);
+                if (GObj != null) UpdateTimelineModelPosition();
+            }
             UpdateAnimCommand();
         }
 
@@ -273,6 +355,9 @@ namespace Entity
         {
             RemoveGObj();
             IsValid = false;
+            if (PaperShadows != null)
+                foreach (var shadow in PaperShadows)
+                    if (shadow.IsValid) shadow.OnDead();
             CommandBurnEffect.SpreadOnDeath(this);
             CommandLightningEffect.SpreadOnDeath(this);
             HotGameEntry.HeroManager.OnEntityDead(this);

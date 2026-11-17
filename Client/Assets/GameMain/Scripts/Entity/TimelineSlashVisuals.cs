@@ -21,10 +21,13 @@ namespace Entity
 
         private ParticleSystem sparks;
         private Material material;
+        private TimelineCombatVfx combatVfx;
+        internal bool UseTidegateInk { get; set; }
 
-        internal void Initialize(Material strokeMaterial)
+        internal void Initialize(Material strokeMaterial, TimelineCombatVfx energy)
         {
             material = strokeMaterial;
+            combatVfx = energy;
             sparks = gameObject.AddComponent<ParticleSystem>();
             sparks.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = sparks.main;
@@ -60,9 +63,9 @@ namespace Entity
             trail.sharedMaterial = material;
             trail.shadowCastingMode = ShadowCastingMode.Off;
             trail.receiveShadows = false;
-            trail.time = arcDuration;
+            trail.time = UseTidegateInk ? .11f : arcDuration;
             trail.minVertexDistance = .035f;
-            trail.widthMultiplier = arcWidth;
+            trail.widthMultiplier = UseTidegateInk ? arcWidth * .65f : arcWidth;
             trail.widthCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
             trail.startColor = arcColor;
             trail.endColor = new Color(arcColor.r, arcColor.g, arcColor.b, 0f);
@@ -87,12 +90,19 @@ namespace Entity
                 yield return afterPose;
             }
             trail.emitting = false;
+            if (UseTidegateInk)
+            {
+                Destroy(trail.gameObject, trail.time);
+                yield break;
+            }
             trail.Clear();
             Destroy(trail.gameObject);
         }
 
         internal void Impact(Vector3 position, Vector3 direction)
         {
+            combatVfx?.SlashImpact(position, direction);
+            if (UseTidegateInk && combatVfx != null) return;
             direction.y = 0f;
             direction.Normalize();
             sparks.Emit(new ParticleSystem.EmitParams
@@ -118,19 +128,19 @@ namespace Entity
             }
         }
 
-        internal void StatusBurst(Vector3 position, Color color, float lift)
+        internal void StatusBurst(Vector3 position, Color color, float lift, float size = .063f, Vector3 drift = default)
         {
             for (int i = 0; i < 6; i++)
             {
                 float angle = i * Mathf.PI / 3f;
-                var velocity = new Vector3(Mathf.Cos(angle) * .8f, lift + i % 3 * .35f, Mathf.Sin(angle) * .8f);
+                var velocity = drift + new Vector3(Mathf.Cos(angle) * .8f, lift + i % 3 * .35f, Mathf.Sin(angle) * .8f);
                 sparks.Emit(new ParticleSystem.EmitParams
                 {
                     position = position,
                     velocity = velocity,
                     startColor = Color.Lerp(color, Color.white, i % 3 * .10f),
                     startLifetime = .22f + i % 3 * .045f,
-                    startSize = .063f + i % 2 * .026f
+                    startSize = size + i % 2 * .026f
                 }, 1);
             }
         }

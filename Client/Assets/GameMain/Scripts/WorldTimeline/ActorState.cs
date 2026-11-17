@@ -20,6 +20,8 @@ namespace WorldTimeline
     {
         public int ActorId { get; set; }
         public bool Allied { get; set; }
+        public long DamageTaken { get; set; }
+        public long HealthLost { get; set; }
         public IReadOnlyList<SkillBattleOutput> Skills { get; set; } = Array.Empty<SkillBattleOutput>();
     }
 

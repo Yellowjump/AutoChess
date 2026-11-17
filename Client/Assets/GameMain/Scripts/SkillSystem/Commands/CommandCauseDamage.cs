@@ -16,7 +16,9 @@ namespace SkillSystem
         public int BrokenShieldValue;
         public bool TargetWasBleeding;
         public int BurnStacksBeforeHit;
+        public int OpeningStacksBeforeHit;
         public bool BurnDetonated;
+        public bool HasSignatureImpactSound;
         public CauseDamageData()
         {
         }
@@ -32,7 +34,9 @@ namespace SkillSystem
             BrokenShieldValue = 0;
             TargetWasBleeding = false;
             BurnStacksBeforeHit = 0;
+            OpeningStacksBeforeHit = 0;
             BurnDetonated = false;
+            HasSignatureImpactSound = false;
         }
     }
 

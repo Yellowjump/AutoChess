@@ -77,7 +77,7 @@ namespace UnityGameFramework.Runtime
             m_SceneManager.UnloadSceneSuccess += OnUnloadSceneSuccess;
             m_SceneManager.UnloadSceneFailure += OnUnloadSceneFailure;
 
-            m_GameFrameworkScene = SceneManager.GetSceneAt(GameEntry.GameFrameworkSceneId);
+            m_GameFrameworkScene = gameObject.scene;
             if (!m_GameFrameworkScene.IsValid())
             {
                 Log.Fatal("Game Framework scene is invalid.");
@@ -87,14 +87,14 @@ namespace UnityGameFramework.Runtime
 
         private void Start()
         {
-            BaseComponent baseComponent = GameEntry.GetComponent<BaseComponent>();
+            BaseComponent baseComponent = FrameworkEntry.GetComponent<BaseComponent>();
             if (baseComponent == null)
             {
                 Log.Fatal("Base component is invalid.");
                 return;
             }
 
-            m_EventComponent = GameEntry.GetComponent<EventComponent>();
+            m_EventComponent = FrameworkEntry.GetComponent<EventComponent>();
             if (m_EventComponent == null)
             {
                 Log.Fatal("Event component is invalid.");

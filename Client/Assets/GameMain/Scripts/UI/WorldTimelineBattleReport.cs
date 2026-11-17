@@ -38,6 +38,8 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
     private float summaryHeight;
     private bool treasureMode;
     private float revealStarted;
+    private TMP_Text techniqueHeading;
+    private string regularTechniqueHeading;
 
     private void Awake()
     {
@@ -48,6 +50,10 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
             else if (!string.IsNullOrEmpty(key) && (key.StartsWith("Timeline_", StringComparison.Ordinal) || key == "Attr_HuDun"))
                 label.text = TimelineText(key);
         }
+        UIFormLogic.BindButtonClickSound(proceed);
+        techniqueHeading = techniqueSection.transform.Find("Technique Heading").GetComponent<TMP_Text>();
+        regularTechniqueHeading = techniqueHeading.text;
+        UIFormLogic.BindButtonClickSound(statsToggle);
         proceed.onClick.AddListener(() =>
         {
             proceed.interactable = false;
@@ -69,10 +75,13 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
         title.text = TimelineText(treasureMode ? "Timeline_TreasureOpened"
             : battle.Victory ? "Timeline_BattleVictory" : "Timeline_BattleDefeat");
         var world = view.Simulation.State;
+        bool vanguard = world.Nodes[battle.NodeId].IsExpeditionVanguard && !battle.IsTreasure;
+        techniqueHeading.text = vanguard ? "战术回顾" : regularTechniqueHeading;
         summaryHeight = battle.Victory || battle.Items.Count > 0 || battle.Techniques.Count > 0 ? 670f : 455f;
         string location = view.LocationName(world.Nodes[battle.NodeId]);
         if (battle.TrialItemId != 0) location += " · " + view.BattleDropName(battle.NodeId, battle.TrialItemId);
         caption.text = TimelineText("Timeline_UI_StoryCaption", world.Year, location);
+        if(battle.SpiritStones>0)caption.text+=$"  ·  灵石 +{battle.SpiritStones}";
         bool comparison = false;
 #if UNITY_EDITOR
         if (view.BattleComparisonLabel is string label)
@@ -90,6 +99,7 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
             return;
         }
         health.text = $"{battle.Health} / {battle.MaxHealth}";
+        if (battle.RecoveredHealth > 0) health.text += $"  <size=65%>战后 +{battle.RecoveredHealth}</size>";
         float remaining = battle.MaxHealth > 0 ? Mathf.Clamp01(battle.Health / (float)battle.MaxHealth) : 0f;
         healthFill.rectTransform.localScale = new Vector3(remaining, 1f, 1f);
         showBacklash = battle.RitualBacklash;
@@ -114,8 +124,23 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
             progressLines.Add(TimelineText("Timeline_BattleLightningCounts",
                 battle.Lightning.Applications, battle.Lightning.Transfers, battle.Lightning.Jumps));
         }
+        if (world.Nodes[battle.NodeId].IsExpeditionVanguard)
+        {
+            var shield = battle.CombatOutput.FirstOrDefault(actor => actor.ActorId == ExpeditionParty.FirstCompanionId);
+            var leader = battle.CombatOutput.FirstOrDefault(actor => actor.ActorId == world.PlayerActorId);
+            progressLines.Add(shield == null ? "岩舟未上阵：可尝试用前排盾卫保护主角。"
+                : $"岩舟承伤 {shield.DamageTaken:N0} · 护盾吸收 {shield.Skills.Sum(skill => skill.ShieldAbsorbed):N0}\n" +
+                  $"主角损失气血 {leader?.HealthLost ?? 0:N0}（战后恢复前）");
+            if (battle.Victory && view.Expedition?.HasRecruited(2) == false)
+                progressLines.Add("阿翎条件达成：前往同伴关卡。");
+        }
         showTechnique = progressLines.Count > 0;
         technique.text = string.Join("\n", progressLines);
+        technique.enableAutoSizing = true;
+        technique.fontSizeMin = 16;
+        technique.fontSizeMax = 23;
+        if (technique.font.atlasPopulationMode == AtlasPopulationMode.Dynamic)
+            technique.font.TryAddCharacters(technique.text + techniqueHeading.text);
         statsToggle.gameObject.SetActive(battle.CombatOutput.Count > 0);
         FillStats(view, battle);
         SetStatsOpen(false);
@@ -191,10 +216,11 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
         {
             string side = TimelineText(actor.Allied ? "Timeline_BattleAllied" : "Timeline_BattleEnemy");
             string name = actor.ActorId == state.PlayerActorId ? view.PlayerName
+                : ExpeditionParty.IsCompanion(actor.ActorId) ? view.CompanionName(ExpeditionParty.Role(actor.ActorId))
                 : actor.ActorId == state.ChosenActorId ? TimelineText("Timeline_UI_79")
                 : state.Actors.ContainsKey(actor.ActorId) ? TimelineText("Timeline_UI_139") + actor.ActorId
                 : TimelineText("Timeline_BattleGuardian", Math.Abs(actor.ActorId + battle.NodeId) + 1);
-            SetRow(side + " · " + name, actor.Skills.Sum(x => x.Damage), actor.Skills.Sum(x => x.Shield),
+            SetRow(side + " · " + name + $"  承伤 {actor.DamageTaken:N0}", actor.Skills.Sum(x => x.Damage), actor.Skills.Sum(x => x.Shield),
                 actor.Skills.Sum(x => x.ShieldAbsorbed),
                 actor.Skills.Sum(x => x.Healing), true);
             foreach (var skill in actor.Skills)

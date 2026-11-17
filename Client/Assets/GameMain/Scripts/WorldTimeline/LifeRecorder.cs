@@ -28,7 +28,8 @@ namespace WorldTimeline
             if (entry.Kind == WorldEventKind.Died && entry.ActorId == initial.Id) deathYear = entry.Year;
         }
 
-        public LifeRecord Snapshot(int currentYear) =>
-            new LifeRecord(initial, initialItems, actions, events, deathYear ?? currentYear, deathYear.HasValue, storyChoices);
+        public LifeRecord Snapshot(int currentYear, IEnumerable<RecordedExpedition> expedition = null) =>
+            new LifeRecord(initial, initialItems, actions, events, deathYear ?? currentYear, deathYear.HasValue, storyChoices,
+                expedition: expedition);
     }
 }

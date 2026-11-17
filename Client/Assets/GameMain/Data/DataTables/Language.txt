@@ -185,13 +185,13 @@
 	21112	轮回	Timeline_UI_23	十人轮回，前世同行	Ten Cultivators, One Cycle
 	21113	轮回	Timeline_UI_24	十位修士皆历一世后，开启下一轮。	A new cycle begins once all ten cultivators have lived a life.
 	21114	轮回	Timeline_UI_25	可获宝物	Available Loot
-	21115	轮回	Timeline_UI_26	同一修士仅可携带一条前世路线，且不能与本世身份重复。	Choose one path per cultivator. Your current cultivator cannot appear as a past life.
+	21115	轮回	Timeline_UI_26	前世自动登场。同一修士只回放最近一世，本世身份除外。	Past lives appear automatically. Only the latest life of each cultivator appears, excluding your current cultivator.
 	21116	轮回	Timeline_UI_27	固定出生点  ·  元年启程	Fixed Birthplace · Depart in Year One
 	21117	轮回	Timeline_UI_28	守怪攻击	Guardian Attack
 	21118	轮回	Timeline_UI_29	守怪生命	Guardian HP
 	21119	轮回	Timeline_UI_30	定位无名客	Find the Nameless
 	21120	轮回	Timeline_UI_31	定位本世	Find Current Life
-	21121	轮回	Timeline_UI_32	尚无前世记录\n\n完成一世后，可在此选择前世路线。	No past lives recorded.\n\nComplete a life to select its path here.
+	21121	轮回	Timeline_UI_32	尚无前世记录\n\n完成一世后，该修士会在后续轮回中自动登场。	No past lives recorded.\n\nComplete a life and that cultivator will appear automatically in future runs.
 	21122	轮回	Timeline_UI_33	山河众生	People of the Realm
 	21123	轮回	Timeline_UI_34	已历此世	Life Completed
 	21124	轮回	Timeline_UI_35	开启下一世	Begin Next Life
@@ -243,7 +243,7 @@
 	21170	轮回	Timeline_UI_81	已习得 · 随身功法	Learned Art
 	21171	轮回	Timeline_UI_82	入世未能完成，请检查游戏日志。	Could not begin this life. Check the game log.
 	21172	轮回	Timeline_UI_83	本世修士 · 不可同时作为前世登场	Your current cultivator cannot appear as a past life.
-	21173	轮回	Timeline_UI_84	同行	Accompanying
+	21173	轮回	Timeline_UI_84	将登场	Will appear
 	21174	轮回	Timeline_UI_85	本世	Current Life
 	21175	轮回	Timeline_UI_86	本世修士	Current Cultivator
 	21176	轮回	Timeline_UI_87	初始武器	Starting Weapon
@@ -265,7 +265,7 @@
 	21192	轮回	Timeline_UI_103	抵达后自动进入战斗。清除守怪可以改变后来者的命运。	Battle starts on arrival. Clearing the guardian can change the fate of later travelers.
 	21193	轮回	Timeline_UI_104	先到者取得宝物，后来者将面对取走宝物后的地点。	The first arrival claims the treasure. Later travelers find the site empty.
 	21194	轮回	Timeline_UI_105	驻留修炼可以积累经验，所有角色的时间会一同流逝。	Cultivating here grants experience. Time advances for everyone.
-	21195	轮回	Timeline_UI_106	尚无前世记录。完成本局后，路线会保存供下一局选择。	No past lives recorded. Finish this life to save its path for a future run.
+	21195	轮回	Timeline_UI_106	尚无前世记录。完成本局后，路线会保存，并在后续轮回中自动登场。	No past lives recorded. Finish this life to save its path for future runs.
 	21196	轮回	Timeline_UI_107	本局登场  	Active this run  
 	21197	轮回	Timeline_UI_108	未登场  	Inactive  
 	21198	轮回	Timeline_UI_109	山河初定，等待你的第一步。	The realm awaits your first move.
@@ -280,7 +280,7 @@
 	21207	轮回	Timeline_UI_118	结束	Ended
 	21208	轮回	Timeline_UI_119	选择相邻节点移动，或留在原地修炼。	Move to an adjacent node or stay here to cultivate.
 	21209	轮回	Timeline_UI_120	地图初始化失败，请检查地图布局、主相机和节点材质配置。	Could not initialize the map. Check its layout, main camera, and node materials.
-	21210	轮回	Timeline_UI_121	本局已载入勾选路线。无名客第100年抵达中心；初始仪式截止第35年。	Selected paths loaded. The Nameless reaches the center in year 100. The ritual initially ends in year 35.
+	21210	轮回	Timeline_UI_121	无名客第100年抵达中心，初始仪式截止第35年。	The Nameless reaches the center in year 100. The ritual initially ends in year 35.
 	21211	轮回	Timeline_UI_122	前世存档已满（15条）；本局仍可观察。	The past-life archive is full (15 records). You can still observe this run.
 	21212	轮回	Timeline_UI_123	前世存档读取失败：	Could not load past lives: 
 	21213	轮回	Timeline_UI_124	前世存档写入失败，可点返回主菜单重试：	Could not save past lives. Return to the main menu to retry: 
@@ -324,7 +324,7 @@
 	21251	轮回	Timeline_UI_Birthplace	出生于 · {0}\n外围坐标  ({1}, {2})	Birthplace · {0}\nOuter coordinates ({1}, {2})
 	21252	轮回	Timeline_UI_StartingItem	初始道具 · {0}	Starting Item · {0}
 	21253	轮回	Timeline_UI_StartingAttack	初始攻击加成  +{0}	Starting Attack +{0}
-	21254	轮回	Timeline_UI_HistoryCount	前世同行  {0} / 10	Past Lives  {0} / 10
+	21254	轮回	Timeline_UI_HistoryCount	自动登场  {0} 位	Past lives appearing  {0}
 	21255	轮回	Timeline_UI_StoryCaption	第 {0} 年 · {1} · 世界暂驻	Year {0} · {1} · World Paused
 	21256	轮回	Timeline_UI_StoryTimeCost	 · 驻留 {0} 年	 · Stay {0} yr
 	21257	轮回	Timeline_UI_StoryHealthCost	 · 气血 -{0}	 · HP -{0}
@@ -564,7 +564,7 @@
 	22432	北岭松径	Timeline_North_Pass	断索隘	Broken Rope Pass
 	22433	北岭松径	Timeline_North_Shelter	背风石窟	Lee-Side Grotto
 	22434	北岭松径	Timeline_North_Relic	裂霜楔	Frostsplit Wedge
-	22435	北岭松径	Timeline_North_RelicDesc	攻击 +9。楔上刻着一排深浅不一的指痕，最后一道最浅。	Attack +9. Finger marks line the wedge, each cut to a different depth. The last is the shallowest.
+	22435	北岭松径	Timeline_North_RelicDesc	普攻命中霜缓目标时获得相当于最大气血 8% 的护盾，持续 3 秒。每 4 秒最多触发一次。	Basic attacks against chilled targets grant a shield equal to 8% of maximum HP for 3 seconds. Can trigger once every 4 seconds.
 	22436	北岭松径	Timeline_North_PineText	松根裹住一块倒碑，碑下卡着一枚铁楔。伸手进去，霜气便顺着指节往上爬。碑背还留着几行字，站在外面也能读清。	Pine roots cradle a fallen stele, with an iron wedge caught underneath. Reach in and frost creeps up your knuckles. A few lines on the back can still be read from outside.
 	22437	北岭松径	Timeline_North_PineTake	探手拔楔（消耗 45 气血）	Reach in and pull the wedge (costs 45 HP)
 	22438	北岭松径	Timeline_North_PineTakeResult	楔子落入掌中，手指却一时张不开。等血色回来，山风已经吹干了碑上的霜。	The wedge drops into your palm, but your fingers will not open. By the time color returns to them, the wind has dried the frost on the stele.
@@ -632,3 +632,527 @@
 	22553	潮回旧栈	Timeline_Tide_LedgeText	台沿刻满横线，每道线旁都有一个年份。最下面那行没有年号，只写着：今年的水，比去年高了一寸。	Lines cover the edge of the ledge, each marked with a year. The lowest line has no date. It reads: the water rose an inch higher than last year.
 	22554	潮回旧栈	Timeline_Tide_Mark	按刻线推演潮汐（修为 +12）	Read the tide from the marks (+12 Cultivation)
 	22555	潮回旧栈	Timeline_Tide_MarkResult	有几道线重叠在一起。你沿石面辨出涨落的次序，记下它们之间的间隔。	Several lines overlap. You work out the order of the tides and note the intervals between them.
+	22561	白沫湾	Timeline_Whitefoam_Title	白沫湾捞骨	Salvage at Whitefoam Bend
+	22562	白沫湾	Timeline_Whitefoam_Intro	守怪倒下后，白沫顺着礁背打转。一枚压舱骨针卡在石缝里，针尖始终指着回水最急的地方。潮声里夹着一长两短的回音。	After the guardian falls, foam circles the reef. A bone sounding pin is wedged in a crack, its tip pointing into the fiercest backwash. One long echo and two short ones ride above the tide.
+	22563	白沫湾	Timeline_Whitefoam_Listen	借回潮螺听准回流，取出潮骨针	Read the backwash with the Ebbtide Shell and retrieve the pin
+	22564	白沫湾	Timeline_Whitefoam_ShellNeeded	需要持有回潮螺，可在断潮栈取得	Requires the Ebbtide Shell from Broken-Tide Jetty
+	22565	白沫湾	Timeline_Whitefoam_ListenResult	你把螺口贴近礁背。短响之后，回水果然停了一息，骨针落进掌中。回潮螺仍可留在身边。	You hold the shell close to the reef. After the short echoes, the backwash pauses and the pin drops into your palm. You keep the shell.
+	22566	白沫湾	Timeline_Whitefoam_Dive	趁浪头未落潜下去（消耗 28 气血）	Dive before the wave breaks (costs 28 HP)
+	22567	白沫湾	Timeline_Whitefoam_DiveResult	你抢在浪头落下前拔出骨针。回水把你推过一截碎礁，手臂上多了几道伤口。	You wrench the pin free before the wave breaks. The backwash drags you across broken reef and cuts your arm.
+	22568	白沫湾	Timeline_Whitefoam_Wait	守候退潮再取骨针（驻留 1 年）	Wait for the low tide and take the pin (stay 1 year)
+	22569	白沫湾	Timeline_Whitefoam_WaitResult	你在礁上守候，直到潮水终于退过石缝。骨针还在，礁边又多了一层晒白的盐。	You wait on the reef until the water finally drops below the crack. The pin is still there, and another layer of salt has dried on the rocks.
+	22570	白沫湾	Timeline_Whitefoam_Study	观察礁外回流（修为 +8）	Study the backwash (+8 Cultivation)
+	22571	白沫湾	Timeline_Whitefoam_StudyResult	你记下礁外的水怎样绕过石背。再动身时，已能从水面分出明流和暗流。	You watch how the water turns behind the reef. By the time you leave, you can tell the surface current from the undertow.
+	22572	白沫湾	Timeline_Whitefoam_Pin	潮骨针	Tidebone Pin
+	22573	白沫湾	Timeline_Whitefoam_PinDesc	攻击 +8。针柄刻着一长两短三道痕，可在记潮台与旧刻线相互印证。	Attack +8. One long notch and two short ones on the grip match the old tide marks at Tidemark Ledge.
+	22574	白沫湾	Timeline_Whitefoam_Align	用潮骨针对照旧刻线（修为 +24）	Match the Tidebone Pin to the old marks (+24 Cultivation)
+	22575	白沫湾	Timeline_Whitefoam_PinNeeded	需要持有潮骨针，可在白沫湾取得	Requires the Tidebone Pin from Whitefoam Bend
+	22576	白沫湾	Timeline_Whitefoam_AlignResult	针柄上的短痕恰好嵌进最浅的两道刻线。你循着长痕吐纳，终于听懂了那几次没有刻下年号的潮声。	The short notches fit the two shallowest marks. You breathe in time with the long mark and make sense of the tides that were never given a date.
+	22581	落石峡	Timeline_Gorge_Brace	依巡山木牌固定卸石桩（消耗 12 气血，落石隘守怪攻击 -7）	Set the rock brace as shown on the patrol sign (costs 12 HP, pass guardian attack -7)
+	22582	落石峡	Timeline_Gorge_BraceHint	卸石桩已经固定，或落石隘的守怪已被击败。	The brace is already set, or the pass guardian has already been defeated.
+	22583	落石峡	Timeline_Gorge_BraceResult	你推着木桩滑进石槽，肩上擦出一道血痕。悬石的重量落进山壁，落石隘的守怪少了一处能借力的石梁。此后进隘的人也能受益。	You shove the brace into its groove and scrape your shoulder raw. The cliff takes the weight of the hanging rock, leaving the guardian without a ledge to push off. Everyone who enters after you gains the same advantage.
+	22601	灰脊口	Timeline_Ashridge_Title	灰脊口·守炉匠薛灯	Ashridge Pass: Xue Deng, the Kiln Keeper
+	22602	灰脊口	Timeline_Ashridge_Intro	守怪倒下后，薛灯从一堵黑砖矮墙后钻出来。他以前给余火炉烧铜名牌。归墟征名之后，家家户户都说没丢过人，他却还记得哪一块牌是自己铸错过的。薛灯拨开一捧炉灰：“余火炉那块炭还在，就拿来照一照。我教你怎么让藏在灰下的火早点翻上来。”	After the guardian falls, Xue Deng emerges from behind a low brick wall. He used to cast copper nameplates at Last Ember Kiln. After the names were taken, every family said nobody was missing. He still remembers the plates he had to cast twice. He brushes the ash aside. “Bring the kiln ember close. I can show you how to bring the fire up through the ash.”
+	22603	灰脊口	Timeline_Ashridge_ShowEmber	出示余火炭，习得回炉诀	Show the Live Ember and learn Rekindle
+	22604	灰脊口	Timeline_Ashridge_EmberNeeded	需要持有余火炭，可在余火炉取得。	Requires the Live Ember from Last Ember Kiln.
+	22605	灰脊口	Timeline_Ashridge_ShowResult	薛灯借炭火照出炉壁上的旧纹，只让你记住火将要翻起的那一息。他把余火炭推回你手里。	Xue Deng lights up the old marks on the kiln wall and shows you the moment just before the flame turns. He hands your ember back.
+	22606	灰脊口	Timeline_Ashridge_Apprentice	留下看炉，习得回炉诀（驻留 1 年）	Tend the kiln and learn Rekindle (stay 1 year)
+	22607	灰脊口	Timeline_Ashridge_ApprenticeResult	你跟着薛灯开风口、压炉灰。学到最后，你终于能隔着炉壁听出哪一簇火快要翻上来。	You work the vents and bank the ash with Xue Deng. In time you can hear which flame is about to turn through the kiln wall.
+	22608	灰脊口	Timeline_Ashridge_Tinder	向薛灯借一张引火符	Ask Xue Deng for a Kindling Talisman
+	22609	灰脊口	Timeline_Ashridge_TinderResult	薛灯从围裙里抽出一张油纸：“先学会点着火。回炉那一步，等你想学了再来。”	Xue Deng pulls an oiled slip from his apron. “Learn to light the fire first. Come back when you are ready for the next step.”
+	22610	灰脊口	Timeline_Ashridge_Names	帮薛灯辨认旧名牌（修为 +8）	Help identify the old nameplates (+8 Cultivation)
+	22611	灰脊口	Timeline_Ashridge_NamesResult	你帮薛灯擦净最后一块铜牌。牌上只剩一个偏旁。他把它挂回墙上，和其余几块排成一行。	You clean the last plate with Xue Deng. Only one part of a character remains. He hangs it back in the row with the others.
+	22612	灰脊口	ItemName_9135	回炉诀	Rekindle
+	22613	灰脊口	ItemDesc_9135	主动技能命中已有至少 4 层燃烧的存活目标时，引爆其全部燃烧。对目标及其周围 2.5 格内的敌人造成每层 18% 攻击力的伤害。	An active skill hit detonates all Burn stacks on a surviving target with at least 4 stacks, dealing 18% attack damage per stack to the target and enemies within 2.5 world units.
+	22614	灰脊口	Timeline_Flavor_Item_9135	炉火翻上来的那一息，薛灯从来不用数。	Xue Deng never needed to count the breath before the flame turned.
+	22631	祁墨	Timeline_QiMo_Name	祁墨	Qi Mo
+	22632	祁墨	Timeline_QiMo_Birth	晒契坡	Contract-Drying Slope
+	22633	祁墨	Timeline_QiMo_Post	旧契驿	Old Contract Post
+	22634	祁墨	Timeline_QiMo_Gallery	残印回廊	Gallery of Broken Seals
+	22635	祁墨	Timeline_QiMo_Title	旧契驿·补写末行	Old Contract Post: The Final Line
+	22636	祁墨	Timeline_QiMo_Intro	契纹石傀倒下，驿站里传出一声落印的闷响。祁墨从前在这里抄过一份卖契。契上第一行写着价钱，最后一行本该写买主的名字。如今只剩一块空白，印却还在反复落下。案下压着抄契人留下的笔记，批注只有六个字：三处错，方可落印。	The contract golem falls. A stamp thuds inside the post. Qi Mo once copied a deed here. Its first line named the price, and its last should have named the buyer. The line is blank, but the stamp keeps falling. A copyist left a note under the desk: find three errors before you stamp.
+	22637	祁墨	Timeline_QiMo_Learn	用寻隙笔补写末行，习得封隙印	Complete the last line with the Opening Brush and learn Opening Seal
+	22638	祁墨	Timeline_QiMo_NeedBrush	需要持有祁墨的起手功法「寻隙笔」。	Requires Opening Brush, Qi Mo’s starting art.
+	22639	祁墨	Timeline_QiMo_LearnResult	你用寻隙笔指出三处改过的笔画，空白的末行终于显出墨迹。落印之后，纸上的价钱再也压不住那个名字。	With the Opening Brush, you point out three altered strokes. Ink returns to the last line. Once you stamp the deed, the price on the paper can no longer cover the name.
+	22640	祁墨	Timeline_QiMo_Study	抄下旧契上的批注（修为 +12）	Copy the notes on the old deed (+12 Cultivation)
+	22641	祁墨	Timeline_QiMo_StudyResult	你把几处涂改原样抄下。笔记里有一句，留空有时候比写错更要紧。	You copy every alteration as you find it. One note says there are times when a blank matters more than a mistake.
+	22642	祁墨	ItemName_9145	寻隙笔	Opening Brush
+	22643	祁墨	ItemDesc_9145	普攻命中存活的敌人时施加虚弱并累积 1 层破绽，最多 3 层。虚弱持续 4 秒，使目标造成的直接伤害降低 15%。	Basic attacks against surviving enemies apply Weakness and build one Opening, up to three. Weakness lasts 4 seconds and reduces direct damage dealt by 15%.
+	22644	祁墨	ItemName_9146	封隙印	Opening Seal
+	22645	祁墨	ItemDesc_9146	普攻命中前，若目标已有 3 层破绽且命中后仍存活，则消耗全部破绽并追加 85% 攻击力伤害。	If a target already has three Openings before a basic attack and survives the hit, consume all Openings and deal an extra 85% attack power as damage.
+	22646	祁墨	Timeline_UI_CultivatorSubtitle	修士轮转，前世同行	Cultivators in Rotation
+	22647	祁墨	Timeline_UI_CultivatorCycleRule	所有修士皆历一世后，开启下一轮。	A new cycle begins after every cultivator has lived a life.
+	22651	祁墨	ItemName_9147	点墨	Ink Jab
+	22652	祁墨	ItemDesc_9147	以竹笔点向最近的敌人，造成 20 + 100% 攻击力伤害。	Strike the nearest enemy with the bamboo brush for 20 + 100% attack power as damage.
+	22660	破仪接力	Timeline_Relay_Prepare	破仪接力 · 第 30、60、90 年\n第一棒推荐 {0}。	Ritual relay · Years 30, 60, 90\nStart with {0}.
+	22661	破仪接力	Timeline_Relay_Plan	破仪接力 · 第 30、60、90 年	Ritual relay · Years 30, 60, 90
+	22662	破仪接力	Timeline_Relay_Target	破仪第一棒 · 第 {0} 年挑战无名碑	First relay · Challenge the Nameless Stele in year {0}
+	22663	破仪接力	Timeline_Relay_Late	第 {0} 年目标已过 · 仪式第 {1} 年完成	Year {0} target missed · Ritual ends in year {1}
+	22664	破仪接力	Timeline_Relay_Recommend	首棒路线推荐 {0}。	Suggested cultivator for the first relay: {0}.
+	22665	破仪接力	Timeline_Relay_Next	下一站 · {0}（{1}, {2}）{3} · 点击定位	Next: {0} ({1}, {2}){3} · Click to locate
+	22666	破仪接力	Timeline_Relay_Blade	 · 拔出割脉刃	 · Take the Vein-Cutting Blade
+	22667	破仪接力	Timeline_Relay_Gate	 · 记下掌印，暂且离开	 · Note the handprint and leave
+	22668	破仪接力	Timeline_Relay_Train	洗剑泉修炼至第 {0} 年，建议达到第 5 层。	Train at Swordwash Spring through year {0}. Aim for Layer 5.
+	22669	破仪接力	Timeline_Relay_Wait	在此等到第 {0} 年，下一步进内坛。	Wait here until year {0}, then enter the inner altar.
+	22670	破仪接力	Timeline_Relay_Record	第 {0} 年破仪	Ritual broken in year {0}
+	22671	破仪接力	Timeline_Relay_Observe	第 {0} 年破仪成功 · 加速观察至本世结束，保存前世路线。	Ritual broken in year {0} · Observe to the end to save this life.
+	22672	破仪接力	Timeline_Relay_Completed	第 {0} 年破仪已记录 · 该前世将在下一世自动登场。	Year {0} ritual break recorded · This past life will appear automatically next run.
+	22673	破仪接力	Timeline_Relay_TargetSecond	破仪第二棒 · 第 {0} 年挑战无名碑	Second relay · Challenge the Nameless Stele in year {0}
+	22674	破仪接力	Timeline_Relay_TargetThird	破仪第三棒 · 第 {0} 年挑战无名碑	Third relay · Challenge the Nameless Stele in year {0}
+	22675	破仪接力	Timeline_Relay_NextLife	下一棒 · 推荐 {1}，第 {0} 年挑战无名碑。	Next relay · Pick {1} for the year {0} challenge.
+	22676	破仪接力	Timeline_Relay_Unavailable	下一棒目标第 {0} 年 · {1} 本轮无法选择。	Next relay: year {0} · {1} is unavailable this cycle.
+	22677	破仪接力	Timeline_Relay_RecommendLater	这条路线推荐由 {0} 接棒。	Suggested cultivator for this relay: {0}.
+	22678	破仪接力	Timeline_Relay_TrainHere	在此修炼至第 {0} 年，建议达到第 {1} 层。	Train here through year {0}. Aim for Layer {1}.
+	22679	破仪接力	Timeline_Relay_Wedge	 · 探手拔楔（消耗 45 气血）	 · Pull the wedge (45 HP)
+	22680	破仪接力	Timeline_Relay_Grotto	 · 留在洞中参悟（耗时 1 年）	 · Stay and study (1 year)
+	22681	破仪接力	Timeline_Relay_Seal	 · 用寻隙笔补写末行，习得封隙印	 · Complete the deed to learn Opening Seal
+	22682	破仪接力	Timeline_Relay_ShortDeadline	前世未能争取足够时间 · 仪式第 {0} 年完成。	The relay fell short · The ritual ends in year {0}.
+	22690	石门开场	Timeline_Opening_Gate	古修石门	Ancient Stone Gate
+	22691	石门开场	Timeline_Opening_Deadline	无名客第 {0} 年到石门	The Nameless reaches the gate in year {0}
+	22692	石门开场	Timeline_Opening_Short	近路 · {0} 年	Shortcut · {0} years
+	22693	石门开场	Timeline_Opening_Detour	绕路 · {0} 年	Detour · {0} years
+	22694	石门开场	Timeline_Opening_Intro	赶在第 {0} 年前助无名客击败阵主。结算后，前世会在往后的轮回重演走过的路和做过的选择。\n先去石门争夺残剑：近路有守怪，绕路更安全。	Help the Nameless win before year {0}. Past lives replay their choices.\nRace for the sword: the shortcut is guarded, and the detour is safer.
+	22695	石门开场	Timeline_Opening_Travel	赶往古修石门 · 无名客预计第 {0} 年抵达。	Heading to the stone gate · The Nameless is due in year {0}.
+	22696	石门开场	Timeline_Opening_Won	你在第 {0} 年抢先到达，取得古修残剑。\n下一场战斗中，残剑会自动放出飞剑。	You arrived first in year {0} and took the Ancient Broken Sword.\nIt launches flying swords in your next battle.
+	22697	石门开场	Timeline_Opening_Lost	无名客在第 {0} 年先到，取走了古修残剑。\n那柄剑现在会随他上阵。	The Nameless arrived first in year {0} and took the Ancient Broken Sword.\nHe will carry it into battle.
+	22698	石门开场	Timeline_Opening_Continue	继续赶路	Continue on
+	22699	石门开场	Timeline_Opening_Explore	继续探索	Explore
+	22700	地域守怪	ItemName_9194	伏牙追扑	Ambush Pounce
+	22701	地域守怪	ItemDesc_9194	黑牙岩獾压低身形，拨动碎石后扑咬最近的对手。	The badger crouches behind loose stones, then lunges at the nearest opponent.
+	22702	地域守怪	ItemName_9195	翻炉裂地	Kilnfire Fissure
+	22703	地域守怪	ItemDesc_9195	驮炉灰魈抖响铜名牌，沿地上亮起的裂纹喷出炉火，并叠加两层燃烧。	The ash macaque rattles its nameplates and sends flame along a fissure, applying two Burn stacks.
+	22704	地域守怪	ItemName_9196	催契盖印	Contract Stamp
+	22705	地域守怪	ItemDesc_9196	契纹石傀在目标脚下划出朱砂方框，落印伤敌，使下一次直接攻击伤害降低 30%。契印最多持续 6 秒。	The golem marks the ground and stamps it, weakening the victim’s next direct attack by 30%. The mark lasts up to 6 seconds.
+	22706	地域守怪	ItemName_9197	盐针三叩	Three Salt Needles
+	22707	地域守怪	ItemDesc_9197	盐脊鳗抬起盐脊，对同一目标依次射出三枚盐针。	The eel raises its salt crest and fires three successive needles at the same target.
+	22708	地域守怪	ItemName_9198	断索拖步	Broken Rope Pull
+	22709	地域守怪	ItemDesc_9198	拖索猿甩出石坠，把目标拉近一格，并降低其接下来三秒内发起的普攻频率。	The ape pulls the target one cell closer and slows new basic attacks for three seconds.
+	22710	地域守怪	ItemName_9199	续灯守夜	Tend the Watch Lamp
+	22711	地域守怪	ItemDesc_9199	负灯纸卒低血量时捧灯恢复最多 20% 气血。蓄势中受到三次直接命中会熄灯。	At low health the sentinel tends its lamp and heals up to 20% max HP. Three direct hits during windup extinguish the lamp.
+	22712	地域守怪	ItemName_9200	折雪回身	Snowfold Counter
+	22713	地域守怪	ItemDesc_9200	踏雪白貂连续受到两次近战命中后，伏进雪里，绕到目标侧面反咬。	After two consecutive melee hits, the marten dips into the snow and reappears at the target’s flank for a counterbite.
+	22714	地域守怪	ItemName_9201	借梁坠击	Ledgefall Dive
+	22715	地域守怪	ItemDesc_9201	峡梁石鸢抛下碎石预警，俯冲砸向锁定的小范围。固定卸石桩会削弱坠击。	The kite sheds warning stones and dives into a marked area. Bracing the pass weakens the dive.
+	22716	地域守怪	ItemName_9202	合壳听潮	Listen from the Shell
+	22717	地域守怪	ItemDesc_9202	潮骨蟹合壳 2.1 秒，降低 65% 来自正面的直接伤害。燃烧和流血照常生效。	The crab closes its shell for 2.1 seconds, reducing direct frontal damage by 65%. Burn and Bleed still apply.
+	22718	地域守怪	ItemName_9203	借名成形	Borrow a Name
+	22719	地域守怪	ItemDesc_9203	失名纸吏交战后抖开废簿，召出最多三只纸影。气血降至45%且上一批纸影全部消散后再召一批。纸吏倒下时纸影随之消散。	The Nameless Clerk opens its register upon engaging, summoning up to three paper shadows. Once it reaches 45% health and every shadow from the first group is gone, it can summon a second group. The shadows vanish when the clerk falls.
+	22720	轮回	Timeline_ChosenEncounter_Notice	与无名客相遇 · 可与他同行，也可继续赶路。	You met the Nameless. Join him or continue on your way.
+	22721	轮回	Timeline_ChosenEncounter_Log	与无名客相遇	Met the Nameless
+	22722	破仪角色剧情	Timeline_RelayStory_Chisel_Title	泉底的凿痕	Chisel Marks Beneath the Spring
+	22723	破仪角色剧情	Timeline_RelayStory_Chisel_Intro	洗剑泉底压着半块试凿石。赤砾用手拂去青苔，摸到了自己留下的记号。铸碑那年，监工命他把上工的人都改记成号数。轮到师父时，他少凿了一横。那人从此在名册上成了个错号。	Half a practice stone lies beneath Swordwash Spring. Chili brushes away the moss and finds his own chisel mark. When he worked on the stele, the foreman made him replace every worker’s name with a number. At his master’s entry, Chili left out a stroke. From then on, the man was a wrong number in the register.
+	22724	破仪角色剧情	Timeline_RelayStory_Chisel_Option	循着旧凿痕补上一横	Follow the old cut and add the missing stroke
+	22725	破仪角色剧情	Timeline_RelayStory_Chisel_Result	那一横补上了。赤砾想起师父收他为徒那天，曾让他把自己的名字刻在第一件活计上。这块试凿石的背面还留着师父刻的水纹。若想知道这些纹路通往哪里，可以去封泥窑查旧模。	Chili restores the stroke. He remembers his master telling him to sign his first piece of work. On the back of the practice stone, his master carved a pattern of flowing water. The old molds at Sealmud Kiln might show where it leads.
+	22726	破仪角色剧情	Timeline_RelayStory_Trail_Title	旧松下的路签	The Pine Trail Markers
+	22727	破仪角色剧情	Timeline_RelayStory_Trail_Intro	风雪把小径盖住了，老松背风的一面却还钉着三片木签。孤松认得那些字。北岭封路那晚，有人把脚夫的名字从路簿上划去。他趁巡夜的人换班，把自己记得的名字刻在了这里。	Snow has covered the trail, but three wooden tags still hang on the sheltered side of an old pine. Gusong knows the writing. The night the northern pass closed, someone crossed the porters’ names out of the trail book. During the change of watch, he carved the names he could remember into these tags.
+	22728	破仪角色剧情	Timeline_RelayStory_Trail_Option	翻看最后一片木签	Turn over the last tag
+	22729	破仪角色剧情	Timeline_RelayStory_Trail_Result	背面添了一道新凿痕，是石匠的记号。孤松把被风吹反的木签拨正。碑前既然有人去过，他记得的那条背山路，就该再走一次。	There is a fresh cut on the back, a stonecutter’s mark. Gusong turns the wind-twisted tag the right way up. Someone has already reached the stele. It is time to take the path behind the mountain again.
+	22730	破仪角色剧情	Timeline_RelayStory_Ledger_Title	廊下的废簿	The Discarded Register
+	22731	破仪角色剧情	Timeline_RelayStory_Ledger_Intro	旧契驿外的长廊漏着雨。祁墨在石傀脚边找到一本被划销的通行簿。石工一栏全是号数，北岭一栏只剩半页。那笔划销的墨，他一眼就认出是自己写的。	Rain leaks through the gallery outside the old contract post. At the golem’s feet, Qi Mo finds a cancelled travel register. The stoneworkers are listed by number, and the northern pass has half a page left. He recognizes the stroke that crossed out the entries. It was his own.
+	22732	破仪角色剧情	Timeline_RelayStory_Ledger_Option	用寻隙笔对照被划掉的两栏	Compare the cancelled entries with the Opening Brush
+	22733	破仪角色剧情	Timeline_RelayStory_Ledger_Result	号数下浮出被磨掉的笔画，北岭那半页也洇出了刻在松木上的名字。两栏末尾都盖着同一方印，押送的去处只有两个字：内坛。祁墨等墨干透，将废簿收进袖中。	The strokes erased beneath the numbers emerge. The half page from the north bleeds out names carved on pinewood. Both lists bear the same seal and the same destination: the inner altar. Qi Mo waits for the ink to dry and slips the register into his sleeve.
+	22734	山河支线	Timeline_Exploration_1_Loot	旧槽铁楔	Channel Wedge
+	22735	山河支线	Timeline_Exploration_1_Place_1	封泥窑	Sealmud Kiln
+	22736	山河支线	Timeline_Exploration_1_Place_2	冷灰槽	Cold Ash Channel
+	22737	山河支线	Timeline_Exploration_1_Place_3	弃印场	Discarded Seal Yard
+	22738	山河支线	Timeline_Exploration_1_Place_4	断脉坎	Broken Vein Step
+	22739	山河支线	Timeline_Exploration_1_Place_5	收灰塘	Ashsettle Pool
+	22740	山河支线	Timeline_Exploration_Relic_9171_Name	补脉镇泥	Veinmending Clay
+	22741	山河支线	Timeline_Exploration_Relic_9171_Desc	最大气血 +35。旧阵的封泥上留着一道拇指纹，除此之外，什么也没刻。	Max HP +35. A thumbprint remains in the clay seal from the old array.
+	22742	山河支线	Timeline_Exploration_1_Hint	先到封泥窑查明线索。	Investigate Sealmud Kiln first.
+	22743	山河支线	Timeline_Exploration_Event_31_Intro	封泥窑里的火早熄了。旧泥模只压水纹和户记，末一炉却换成了刻姓名的模子。窑工在砖背留下一张补漏图，画出灰槽后面的引气旧路。	The fire at Sealmud Kiln went out long ago. Old clay molds bear water lines and household marks. The last firing used molds cut with full names. Behind a brick, a kiln worker left a repair sketch showing the old air channel beyond the ash trough.
+	22744	山河支线	Timeline_Exploration_Choice_3101	拓下补漏图	Take a rubbing of the repair sketch
+	22745	山河支线	Timeline_Exploration_Result_3101	你拭去图上的灰，用湿纸取了一份拓片。图角标着弃印场，旁边写道：塞回旧缺口，再开下游。 你把线索抄在路牌背面，留给后来的人。	You dust off the sketch and take a rubbing on damp paper. An arrow points to the Discarded Seal Yard. Beside it is a note: plug the old breach, then open the downstream channel. You copy the clue onto the back of the waypost for whoever comes next.
+	22746	山河支线	Timeline_Exploration_Choice_3102	检查最后一炉的泥模	Examine the molds from the last firing
+	22747	山河支线	Timeline_Exploration_Result_3102	几块新模来不及入窑，指甲一掐就掉土。它们原本要替换一批早已烧得坚实的镇物。	Several new molds never reached the fire and crumble under your nail. They were meant to replace a set of stabilizers already baked hard.
+	22748	山河支线	Timeline_Exploration_Event_32_Intro	守怪倒下后，场里的余灰被缝隙吸去。裂口下堵着一枚烧裂的姓名印，再往里摸还有一道原先用于导浊的石槽。	After the guardian falls, ash drifts into a crack in the yard. A scorched name seal clogs the opening. Beneath it lies a stone channel once used to drain impurities.
+	22749	山河支线	Timeline_Exploration_Choice_3201	按拓片疏通旧槽，取回镇泥	Follow the rubbing, clear the old channel, and recover the clay
+	22750	山河支线	Timeline_Exploration_Result_3201	气流终于沿旧槽走通，带走积在裂口的灰。一片原封的镇泥露了出来，泥面还留着窑工试印时按下的拇指纹。	Air flows through the old channel and carries away the ash packed in the breach. A piece of the original clay seal comes loose, still marked by the kiln worker’s thumbprint.
+	22751	山河支线	Timeline_Exploration_Choice_3202	暂歇在外沿，借暖灰调息	Rest at the edge and breathe in the warmth
+	22752	山河支线	Timeline_Exploration_Result_3202	你在外沿歇了一阵。呼吸渐渐平稳，坑底的余灰仍慢慢往裂口里陷。	You rest by the edge until your breathing steadies. Below, the ash continues to slip into the crack.
+	22753	山河支线	Timeline_Exploration_2_Loot	浸潮铜环	Tidesoaked Ring
+	22754	山河支线	Timeline_Exploration_2_Place_1	漏数滩	Miscount Shoal
+	22755	山河支线	Timeline_Exploration_2_Place_2	沉册礁	Sunken Register Reef
+	22756	山河支线	Timeline_Exploration_2_Place_3	辨声渡	Echo Ferry
+	22757	山河支线	Timeline_Exploration_2_Place_4	缆骨堤	Ropebone Dike
+	22758	山河支线	Timeline_Exploration_2_Place_5	听棹湾	Oarcall Bay
+	22759	山河支线	Timeline_Exploration_Relic_9172_Name	余位船坠	Last Berth Weight
+	22760	山河支线	Timeline_Exploration_Relic_9172_Desc	最大气血 +40。渡船收缆时总给这枚船坠腾一个位置。	Max HP +40. A space was always left for this weight when the ferry ropes were stowed.
+	22761	山河支线	Timeline_Exploration_2_Hint	先到漏数滩查明线索。	Investigate Miscount Shoal first.
+	22762	山河支线	Timeline_Exploration_Event_33_Intro	晒干的渡绳上有十二个结，船簿的乘客却只剩十一名。摆渡人解了最细的结，潮一退，他又下意识把它系了回来。	Twelve knots mark the sun-dried ferry rope. Only eleven passengers remain in the register. The ferryman unties the smallest knot. When the tide recedes, his hands tie it again without thinking.
+	22763	山河支线	Timeline_Exploration_Choice_3301	记住摆渡人的数法	Learn how the ferryman counts
+	22764	山河支线	Timeline_Exploration_Result_3301	他数到十一便把指节压低，轻轻敲了一下船帮。你记下那一拍。辨声渡的铜扣，要等那一拍才开。 你把线索抄在路牌背面，留给后来的人。	At eleven, he lowers a knuckle and taps the side of the boat. You remember that last beat. The brass latch at Echo Ferry opens on that beat. You copy the clue onto the back of the waypost for whoever comes next.
+	22765	山河支线	Timeline_Exploration_Choice_3302	替他把缆绳拖上岸	Help haul the rope ashore
+	22766	山河支线	Timeline_Exploration_Result_3302	绳上沾了海盐。你们把绳子盘好，最小的结恰好露在外面。	Salt clings to the rope. You coil it together and the smallest knot ends up resting on top.
+	22767	山河支线	Timeline_Exploration_Event_34_Intro	渡口守怪沉入水里。柜门上的机关还在按拍子敲响，每响十一声便停一下。木柜背面凿着一处专给小手推的浅窝。	The ferry guardian sinks beneath the water. The mechanism in the cabinet door knocks eleven times, then pauses. A shallow hollow on the back of the cabinet is just wide enough for a small hand.
+	22768	山河支线	Timeline_Exploration_Choice_3401	在停顿时补敲一下	Tap once in the silence
+	22769	山河支线	Timeline_Exploration_Result_3401	铜扣弹开，柜里只有一枚磨得发亮的船坠。登记册上缺的那行仍是空的，柜门却还记得那只手。	The brass latch clicks open. Inside is a polished ferry weight. The missing line in the register is still blank. The door remembers the hand.
+	22770	山河支线	Timeline_Exploration_Choice_3402	在渡棚歇息，等潮水回落	Rest in the shelter and wait for the tide to fall
+	22771	山河支线	Timeline_Exploration_Result_3402	潮水回落后，棚边的淡水槽露了出来。你喝了几口水，柜门的敲击声也远了。	When the tide falls, the freshwater trough beside the shelter emerges. You take a few drinks as the cabinet’s knocking fades.
+	22772	山河支线	Timeline_Exploration_3_Loot	柴屋旧楔	Woodhouse Wedge
+	22773	山河支线	Timeline_Exploration_3_Place_1	空灶村	Cold-Hearth Village
+	22774	山河支线	Timeline_Exploration_3_Place_2	封灶坡	Sealed Hearth Slope
+	22775	山河支线	Timeline_Exploration_3_Place_3	挂名木	Name-Tag Tree
+	22776	山河支线	Timeline_Exploration_3_Place_4	背风柴屋	Leeward Woodhouse
+	22777	山河支线	Timeline_Exploration_3_Place_5	余温石席	Warmstone Rest
+	22778	山河支线	Timeline_Exploration_Relic_9174_Name	留火灶砖	Ember-Holding Brick
+	22779	山河支线	Timeline_Exploration_Relic_9174_Desc	气血上限 +45。灶冷了，砖缝还留着一点烟味。	Max HP +45. The stove is cold, but the brick still smells faintly of smoke.
+	22780	山河支线	Timeline_Exploration_3_Hint	先到空灶村查明线索。	Investigate Cold-Hearth Village first.
+	22781	山河支线	Timeline_Exploration_Event_35_Intro	屋里只住着一位老人，灶旁却摆着四双筷子。她说自己一向如此，转身便把最大的一只碗端向门口。四只碗底都有同一种缺口。	An old woman lives alone, but four pairs of chopsticks lie by her stove. She says it has always been this way, then carries the largest bowl to the door. Each bowl has the same notch underneath.
+	22782	山河支线	Timeline_Exploration_Choice_3501	替她把四只碗摆好	Help her set out all four bowls
+	22783	山河支线	Timeline_Exploration_Result_3501	她按缺口把碗转向门前的山路。封灶坡后的挂名木上，也挂着同样刻痕的木牌。 你把线索抄在路牌背面，留给后来的人。	She turns the notches toward the mountain path. Beyond Sealed Hearth Slope, the Name-Tag Tree bears wooden tags with those same marks. You copy the clue onto the back of the waypost for whoever comes next.
+	22784	山河支线	Timeline_Exploration_Choice_3502	在灶旁烘干衣裳	Dry your clothes by the hearth
+	22785	山河支线	Timeline_Exploration_Result_3502	老人添了一把柴。天色暗下去时，门口那只碗还留在那里。	She adds another stick to the fire. By nightfall, the bowl is still at the door.
+	22786	山河支线	Timeline_Exploration_Event_36_Intro	树上木牌已经磨白，背面的缺口却还认得出来。山下的村子从舆图上消失后，有人每天往这里挂一片新木，免得连自己也忘记家里有几个人。	The tags have weathered white, but the notches on their backs remain. After the village vanished from the map, someone hung a fresh piece of wood here every day to remember how many people belonged at home.
+	22787	山河支线	Timeline_Exploration_Choice_3601	依四只碗的次序理好木牌	Arrange the tags in the order of the four bowls
+	22788	山河支线	Timeline_Exploration_Result_3601	最里一片木牌压着一块仍带烟味的灶砖。你把木牌留在树上，把灶砖收入行囊。	The innermost tag holds a hearth brick that still smells of smoke. You leave the tags on the tree and take the brick.
+	22789	山河支线	Timeline_Exploration_Choice_3602	把散落的木牌挂回原处	Hang the fallen tags back up
+	22790	山河支线	Timeline_Exploration_Result_3602	你把木牌系紧。山下灶烟还在，辨认缺口的人也还在。	You tie the tags firmly. Smoke still rises below, and someone still knows how to read the notches.
+	22791	山河支线	Timeline_Exploration_4_Loot	废印铜边	Discarded Seal Rim
+	22792	山河支线	Timeline_Exploration_4_Place_1	退印渡棚	Returned-Seal Shelter
+	22793	山河支线	Timeline_Exploration_4_Place_2	压契堤	Deedbank
+	22794	山河支线	Timeline_Exploration_4_Place_3	退契柜	Returned Deed Cabinet
+	22795	山河支线	Timeline_Exploration_4_Place_4	废印坡	Discarded Seal Slope
+	22796	山河支线	Timeline_Exploration_4_Place_5	青砚潭	Inkstone Pool
+	22797	山河支线	Timeline_Exploration_Relic_9175_Name	还契木符	Returned Deed Token
+	22798	山河支线	Timeline_Exploration_Relic_9175_Desc	攻击 +8。两枚指纹合在一起，才认得出这张契。	Attack +8. The two prints make sense only when put together.
+	22799	山河支线	Timeline_Exploration_4_Hint	先到退印渡棚查明线索。	Investigate Returned-Seal Shelter first.
+	22800	山河支线	Timeline_Exploration_Event_37_Intro	渡棚墙上挂着旧契驿退回的空信封。收件处都盖着朱印，唯独封口的泥上留下不同的指纹。最早寄来的人用指纹认信。	Empty envelopes returned by the old contract post hang on the shelter wall. Every address bears a red seal, but the clay on each flap has a different fingerprint. The first senders recognized their letters by touch.
+	22801	山河支线	Timeline_Exploration_Choice_3701	拓下封泥上的指纹	Take rubbings of the fingerprints
+	22802	山河支线	Timeline_Exploration_Result_3701	柜钥匙的轮廓印在最深的一道纹里。顺压契堤上去，退契柜还有一排抽屉没有盖印。 你把线索抄在路牌背面，留给后来的人。	The outline of a key lies in the deepest print. Past Deedbank, one row in the returned-deed cabinet remains unstamped. You copy the clue onto the back of the waypost for whoever comes next.
+	22803	山河支线	Timeline_Exploration_Choice_3702	查看水位刻痕	Read the old water marks
+	22804	山河支线	Timeline_Exploration_Result_3702	泥线在水涨之前便停了。最早一批退件是在堤还完好时送来的。	The mud marks stop short of the flood line. The first batch of returned letters arrived while the bank still stood.
+	22805	山河支线	Timeline_Exploration_Event_38_Intro	退契柜有两列，左边写「寄」，右边写「还」。右边全是空抽屉。柜底压着一张赎契，字迹尚在，收件人的姓名被印泥盖住。	The cabinet has two columns, Sent and Returned. Every drawer on the right is empty. A redemption deed lies underneath. The writing is intact except where seal paste covers the addressee’s name.
+	22806	山河支线	Timeline_Exploration_Choice_3801	按指纹打开未盖印的抽屉	Open the unstamped drawer using the fingerprints
+	22807	山河支线	Timeline_Exploration_Result_3801	一块木契从抽屉背后掉了下来。背面是两个人各按半枚手印时留下的纹路。	A wooden deed falls from behind the drawer. Two people once pressed half a print each into its back.
+	22808	山河支线	Timeline_Exploration_Choice_3802	把尚能辨认的契纸晒干	Dry the deeds that can still be read
+	22809	山河支线	Timeline_Exploration_Result_3802	太阳落下前，最旧的一页终于展开。姓名仍被印泥遮着，赎回的日期却很清楚。	The oldest page unfurls before sunset. The name is still covered, but the date of redemption is clear.
+	22810	山河支线	Timeline_Exploration_5_Loot	哨旗骨针	Watch Banner Needle
+	22811	山河支线	Timeline_Exploration_5_Place_1	空哨台	Empty Watchtower
+	22812	山河支线	Timeline_Exploration_5_Place_2	风笺隘	Windletter Pass
+	22813	山河支线	Timeline_Exploration_5_Place_3	背灯亭	Sheltered Lantern Pavilion
+	22814	山河支线	Timeline_Exploration_5_Place_4	折旗坡	Broken Banner Slope
+	22815	山河支线	Timeline_Exploration_5_Place_5	候晓崖	Dawnwatch Bluff
+	22816	山河支线	Timeline_Exploration_Relic_9173_Name	听风扣	Windlistening Clasp
+	22817	山河支线	Timeline_Exploration_Relic_9173_Desc	攻击 +10。铜扣上缠着一截补旗的红线，线头还打着个结。	Attack +10. A knotted length of red thread for mending the banner is wrapped around the clasp.
+	22818	山河支线	Timeline_Exploration_5_Hint	先到空哨台查明线索。	Investigate Empty Watchtower first.
+	22819	山河支线	Timeline_Exploration_Event_39_Intro	巡旗正面绣着换岗的号数。翻过来，每个号数后都有两三针不该露头的彩线。哨台的木梯上刻着一行小字：收灯后，翻旗点名。	Watch numbers are stitched into the face of the patrol banner. Behind each number, a few colored stitches show through. Small letters on the tower ladder read: after dousing the lamp, turn the banner and call the roll.
+	22820	山河支线	Timeline_Exploration_Choice_3901	翻旗认出绣在背面的名字	Turn the banner and read the names
+	22821	山河支线	Timeline_Exploration_Result_3901	你把旗角一寸寸挑开，记下藏在缝里的几个名字。最后一人的针脚格外深，像是在赶着交班时缝完的。 你把线索抄在路牌背面，留给后来的人。	You turn back the edge an inch at a time and memorize the names hidden in the seam. The last name is stitched tight, as if someone finished it in a hurry before the change of watch. You copy the clue onto the back of the waypost for whoever comes next.
+	22822	山河支线	Timeline_Exploration_Choice_3902	抄下木梯上的巡哨步法	Copy the patrol footwork from the ladder
+	22823	山河支线	Timeline_Exploration_Result_3902	木梯上的刻痕刚好够一人错身。你照着踏了几步，掌握了风急时落脚的节奏。	The marks leave just enough room for one person to slip by. You follow them until you find steady footing in the rising wind.
+	22824	山河支线	Timeline_Exploration_Event_40_Intro	灯亭的守怪倒下后，风把门吹开半尺。门后的小匣刻着巡哨号数。底下另有一行浅字：请叫值夜人的名字。	After the pavilion guardian falls, the wind pushes the door ajar. A small case behind it bears patrol numbers. Below them is a faint instruction: call the night watch by name.
+	22825	山河支线	Timeline_Exploration_Choice_4001	照旗背绣字为值夜人点名	Call the names stitched behind the banner
+	22826	山河支线	Timeline_Exploration_Result_4001	你念完最后一个名字，亭里无人应声。旧锁却松了。盒底的听风扣仍缠着一根用来补旗的红线。	Nobody answers the last name, but the lock gives way. A wind clasp at the bottom of the case still carries a strand of red mending thread.
+	22827	山河支线	Timeline_Exploration_Choice_4002	熄灯守到天亮，调息养伤	Douse the lantern and rest until dawn
+	22828	山河支线	Timeline_Exploration_Result_4002	风停时你把灯罩扶正。亭子又亮了一会儿，足够看清坡上通往内圈的路。	When the wind stops, you straighten the lantern shade. The pavilion glows long enough to show the slope leading inward.
+	22829	山河支线	Timeline_Exploration_6_Loot	废槽压石	Trench Weight
+	22830	山河支线	Timeline_Exploration_6_Place_1	镇石工棚	Anchorstone Workshop
+	22831	山河支线	Timeline_Exploration_6_Place_2	散镇石列	Scattered Anchorstones
+	22832	山河支线	Timeline_Exploration_6_Place_3	阵渠旧闸	Old Array Sluice
+	22833	山河支线	Timeline_Exploration_6_Place_4	废镇石槽	Spent Anchor Trench
+	22834	山河支线	Timeline_Exploration_6_Place_5	浊气沉潭	Siltbreath Pool
+	22835	山河支线	Timeline_Exploration_Relic_9176_Name	沉渠石扣	Sluice Anchor Clasp
+	22836	山河支线	Timeline_Exploration_Relic_9176_Desc	战斗攻击 +6%。扣眼上只刻着水流的方向。	Combat attack +6%. The eye of the clasp marks only the direction of the current.
+	22837	山河支线	Timeline_Exploration_6_Hint	先到镇石工棚查明线索。	Investigate Anchorstone Workshop first.
+	22838	山河支线	Timeline_Exploration_Event_41_Intro	工棚桌上有两张叠放的阵渠图。下层纸画着石槽，上层纸把每座石槽的编号换成了名字。靠墙的旧凿还粘着石粉。	Two plans lie on the workshop table. The lower sheet shows stone channels. On the upper sheet, names replace every channel number. The chisel against the wall still holds stone dust.
+	22839	山河支线	Timeline_Exploration_Choice_4101	临摹下层的阵渠图	Copy the older channel plan
+	22840	山河支线	Timeline_Exploration_Result_4101	旧图有一条泄浊的旁渠，后来被墨涂掉了。纸角写着旧闸的位置，你把图折入袖中。 你把线索抄在路牌背面，留给后来的人。	The old plan shows a side channel for draining impurities, later painted over. The corner gives the location of the old sluice. You fold the copy into your sleeve. You copy the clue onto the back of the waypost for whoever comes next.
+	22841	山河支线	Timeline_Exploration_Choice_4102	在工棚里调息	Rest in the workshop
+	22842	山河支线	Timeline_Exploration_Result_4102	半夜水声响起，隔壁石槽却一滴水也没有。	Water murmurs at midnight, though the trough outside is dry.
+	22843	山河支线	Timeline_Exploration_Event_42_Intro	一整排石槽已经灌满浊水，只有闸边留了一指宽的缝。旁边的名签泡得看不清，石头上的旧水线仍在。	Black water fills the row of channels, leaving a finger-wide gap at the sluice. The name slips have soaked through, but the old waterline remains on the stone.
+	22844	山河支线	Timeline_Exploration_Choice_4201	照旧图从旁渠泄水	Drain the water through the old side channel
+	22845	山河支线	Timeline_Exploration_Result_4201	水沿原来的槽退下去，露出一枚废弃的镇石扣。石头下面只有石头。	Water recedes through the original channel, uncovering a discarded anchor clasp. There is only stone beneath the stone.
+	22846	山河支线	Timeline_Exploration_Choice_4202	沿旧水线辨认阵纹	Read the pattern along the old waterline
+	22847	山河支线	Timeline_Exploration_Result_4202	你在潮痕上读到两道流向。最早的一道朝着远离内坛的方向。	You trace two directions in the stains. The older one leads away from the inner altar.
+	22848	开闸主线	Timeline_Sluice_Prepare	赤砾旧事 · 查清旧渠的去向，打开阵渠旧闸。	Chili’s story · Trace the old channel and open the sluice.
+	22849	开闸主线	Timeline_Sluice_Select	本世可以探索山河。无名客仍会沿自己的路线前行。	Explore the land while the Nameless follows his own route.
+	22850	开闸主线	Timeline_Sluice_Spring	赤砾旧事 · 到洗剑泉查看师父留下的试凿石。	Chili’s story · Examine your master’s practice stone at Swordwash Spring.
+	22851	开闸主线	Timeline_Sluice_CopyKiln	赤砾旧事 · 去封泥窑查旧模，拓下补漏图。	Chili’s story · Examine the old molds at Sealmud Kiln and copy the repair sketch.
+	22852	开闸主线	Timeline_Sluice_CopyPlan	赤砾旧事 · 去镇石工棚，临摹下层的阵渠图。	Chili’s story · Copy the older channel plan at Anchorstone Workshop.
+	22853	开闸主线	Timeline_Sluice_Open	赤砾旧事 · 打过阵渠旧闸的守怪，照旧图从旁渠泄水。	Chili’s story · Defeat the guardian at the Old Array Sluice and drain the side channel.
+	22854	开闸主线	Timeline_Sluice_YourResult	第 {0} 年已开闸 · 无名碑无法施展封山归墟。\n可继续探索，或记录本世。	Sluice opened in year {0} · The Nameless Stele loses its mountain-sealing attack.\nKeep exploring or record this life.
+	22855	开闸主线	Timeline_Sluice_WorldResult	第 {0} 年已开闸 · 无名碑无法施展封山归墟。	Sluice opened in year {0} · The Nameless Stele loses its mountain-sealing attack.
+	22856	开闸主线	Timeline_Sluice_PrepareReplay	赤砾前世第 {0} 年开闸。本世可在地图上定位旧闸。	Chili opened the sluice in year {0} of his past life. Locate it on this run’s map.
+	22857	开闸主线	Timeline_Sluice_ReplayPlanned	赤砾前世正在重走路线 · 预计第 {0} 年开闸 · 点击定位旧闸	Chili is retracing his past life · Sluice planned for year {0} · Locate the sluice
+	22858	开闸主线	Timeline_Sluice_ReplayDelayed	赤砾原定第 {0} 年开闸，旧闸仍未打开 · 点击定位	Chili planned to open the sluice in year {0}. It is still closed · Locate the sluice
+	22859	开闸主线	Timeline_Sluice_ReplayInterrupted	赤砾原定第 {0} 年开闸，前世路线已中断 · 点击定位旧闸	Chili’s route was interrupted before the planned opening in year {0} · Locate the sluice
+	22860	开闸主线	Timeline_Sluice_Record	第 {0} 年打开阵渠旧闸	Opened the sluice in year {0}
+	22861	开闸主线	Timeline_Sluice_LogOpened	打开阵渠旧闸，断开内坛阵法的一处回流。	Opened the sluice and cut a return flow into the inner altar.
+	22862	开闸主线	Timeline_Sluice_NextLife	记录本世	Record This Life
+	22863	开闸主线	Timeline_Sluice_LifeRecorded	本世已记入前世	This life was recorded
+	22864	孤松主线	Timeline_NorthRelay_Prepare	孤松旧事 · 找回北岭脚夫的姓名，让荒废的接山阵重新认路。	Gusong’s story · Recover the northern porters’ names and restore the abandoned ridge array.
+	22865	孤松主线	Timeline_NorthRelay_Trail	孤松旧事 · 去旧松下的路签，拓下当年留下的名字。	Gusong’s story · Copy the names from the tags beneath the old pine.
+	22866	孤松主线	Timeline_NorthRelay_ReadRoster	孤松旧事 · 去巡山旧棚，把路签与旧值簿对照。	Gusong’s story · Match the trail tags to the duty book at the Trailkeepers’ Hut.
+	22867	孤松主线	Timeline_NorthRelay_Restore	孤松旧事 · 击败断脉台守傀，把脚夫的名字刻回阵石。	Gusong’s story · Defeat the golem at the Severed Array and carve the porters’ names back into the stones.
+	22868	孤松主线	Timeline_NorthRelay_YourResult	第 {0} 年已还名 · 无名碑攻击降低 {1}%。\n可继续探索，或记录本世。	Names restored in year {0} · The Nameless Stele’s attack is reduced by {1}%.\nKeep exploring or record this life.
+	22869	孤松主线	Timeline_NorthRelay_WorldResult	孤松已在第 {0} 年还名 · 无名碑攻击降低 {1}%。 · 点击定位	Gusong restored the names in year {0} · The Nameless Stele’s attack is reduced by {1}%. · Locate the array
+	22870	孤松主线	Timeline_NorthRelay_PrepareReplay	孤松前世第 {0} 年在断脉台还名。本世可在地图上定位。	Gusong restored the names at the Severed Array in year {0} of his past life. Locate the array on this run’s map.
+	22871	孤松主线	Timeline_NorthRelay_ReplayPlanned	孤松前世正在重走路线 · 预计第 {0} 年在断脉台还名 · 点击定位	Gusong is retracing his past life · Names planned for year {0} · Locate the array
+	22872	孤松主线	Timeline_NorthRelay_ReplayDelayed	孤松原定第 {0} 年还名，接山阵仍未恢复 · 点击定位	Gusong planned to restore the names in year {0}. The array remains dormant · Locate the array
+	22873	孤松主线	Timeline_NorthRelay_ReplayInterrupted	孤松原定第 {0} 年还名，前世路线已中断 · 点击定位	Gusong’s route was interrupted before the planned restoration in year {0} · Locate the array
+	22874	孤松主线	Timeline_NorthRelay_Record	第 {0} 年在断脉台还名	Restored the names at the Severed Array in year {0}
+	22875	孤松主线	Timeline_NorthRelay_LogRestored	把名字刻回接山阵，断了无名碑从北岭取力的阵脉。	Restored the names to the ridge array and cut the flow of power from the northern ridge to the Nameless Stele.
+	22876	孤松主线	Timeline_NorthRelay_CopyNames	拓下三片路签上的名字	Copy the names from the three trail tags
+	22877	孤松主线	Timeline_NorthRelay_CopiedNames	第三片木签刻的是「周小满」。孤松记得封路那晚，这孩子替他送过最后一趟灯油。三个名字都抄齐了。去巡山旧棚翻一翻值簿，便能查出他们原来守在哪几块阵石旁。	The third tag reads Zhou Xiaoman. On the night the pass closed, the boy made one last delivery of lamp oil for Gusong. With all three names copied, the old duty book should tell him which stones the porters used to tend.
+	22878	孤松主线	Timeline_NorthRelay_HutTitle	巡山旧棚	Trailkeepers’ Hut
+	22879	孤松主线	Timeline_NorthRelay_HutIntro	值簿被一盏空油灯压着。封路之前，每趟巡山都要在簿上记下当值脚夫和照看的阵石。那晚的纸页被刮得发白，灯油却早把上一页的笔迹印到了封底。	An empty oil lamp weighs down the duty book. Before the pass closed, every patrol recorded the porters on duty and the stones in their care. The final page was scraped clean, but spilled oil left a copy of the writing inside the back cover.
+	22880	孤松主线	Timeline_NorthRelay_ReadNames	用路签核对值簿	Check the duty book against the tags
+	22881	孤松主线	Timeline_NorthRelay_MatchedNames	三个人的名字都对上了，照看的阵石也都在断脉台。孤松认出了自己盖的封路印。那晚是他奉命落印的。他把值簿夹到衣襟里，这回亲自把名字送到。	All three names match, and all three stones stand at the Severed Array. Gusong recognizes the mark that closed the pass. It was his seal, placed under orders. He tucks the book inside his robe. This time he will deliver the names himself.
+	22882	孤松主线	Timeline_NorthRelay_NeedTags	先到旧松下拓下三个名字。	First copy the three names from the tags beneath the old pine.
+	22883	孤松主线	Timeline_NorthRelay_LeaveHut	合上值簿	Close the duty book
+	22884	孤松主线	Timeline_NorthRelay_LeftHut	孤松把空油灯放回原处。封底的笔迹还辨得出，找到路签之后可以回来。	Gusong puts the lamp back. The writing inside the cover is still legible. He can return with the tags.
+	22885	孤松主线	Timeline_NorthRelay_ArrayTitle	断脉台	Severed Array
+	22886	孤松主线	Timeline_NorthRelay_ArrayIntro	守台的石傀倒在阵圈边。台上三块阵石的姓名都被凿去，山气正沿着缺口往无名碑流。石脚的旧槽还在，照值簿刻回人名，便能让山气重新循旧槽走。	The stone guardian lies fallen at the edge of the array. Names have been chiseled off three stones, and the ridge’s power flows through the gaps toward the Nameless Stele. The old channels are intact. Restoring the names from the duty book will turn the flow back.
+	22887	孤松主线	Timeline_NorthRelay_CarveNames	把名字刻回三块阵石	Carve the names back into the three stones
+	22888	孤松主线	Timeline_NorthRelay_CarvedNames	最后一笔落下，山气掉头沿旧槽回流。远处的无名碑沉沉响了一声。孤松在「周小满」三个字旁点亮一盏灯，灯油是从旧棚一路提来的。	On the last stroke, the ridge’s power turns back through the old channels. Far away, the Nameless Stele gives a low groan. Gusong lights a lamp beside Zhou Xiaoman’s name with oil he carried from the old hut.
+	22889	孤松主线	Timeline_NorthRelay_NeedRoster	先在巡山旧棚核对姓名与阵石。	First match the names to their stones at the Trailkeepers’ Hut.
+	22890	孤松主线	Timeline_NorthRelay_LeaveArray	先离开阵台	Leave the array for now
+	22891	孤松主线	Timeline_NorthRelay_LeftArray	台上还留着能落刀的地方。带着核过的值簿回来，便能补刻。	There is still room to carve. Bring the checked duty book back to restore the names.
+	22892	孤松主线	Timeline_NorthRelay_AlreadyRestored	名字已经刻回阵石。	The names have already been restored.
+	22893	洞窟战场	Timeline_Cave_IceTrail	寒髓洞口	Coldcore Cave Mouth
+	22894	洞窟战场	Timeline_Cave_IceHall	寒髓洞深处	Coldcore Cavern
+	22895	洞窟战场	Timeline_Cave_LavaTrail	熔脉窟外沿	Magma Vein Ledge
+	22896	洞窟战场	Timeline_Cave_LavaHall	熔脉窟炉心	Magma Vein Furnace
+	22897	洞窟战场	Timeline_Cave_EmberHeart	余烬胆	Ember Heart
+	22898	洞窟战场	Timeline_Cave_EmberHeartDesc	每场战斗首次由你把敌人的燃烧叠到 3 层时，灼伤目标及附近敌人，造成 45% 攻击力的伤害。	The first time each battle you bring an enemy to 3 Burn stacks, deal 45% Attack damage to it and nearby enemies.
+	22899	洞窟战场	Timeline_Cave_IceBead	寒髓珠	Coldcore Bead
+	22900	洞窟战场	Timeline_Cave_IceBeadDesc	每第 3 次普攻命中施加 2 秒霜缓，移速降低 35%。可触发裂霜楔。	Every third basic attack hit inflicts Chill for 2 seconds, slowing movement by 35%. This can trigger Frostsplit Wedge.
+	22901	洞窟战场	Timeline_Cave_LegacyWedgeDesc	攻击 +9。楔上刻着一排深浅不一的指痕，最后一道最浅。	Attack +9. Finger marks line the wedge, each cut to a different depth. The last is the shallowest.
+	22902	洞窟战场	Timeline_Cave_9204	踏雪留痕	Frostfang Trail
+	22903	洞窟战场	Timeline_Cave_9204_Desc	霜牙貂扑击后，在目标脚下留下冰痕预警。冰痕使经过的单位移速降低 35%。	The frostfang marten pounces and marks the target’s cell. Ice slows units crossing it by 35%.
+	22904	洞窟战场	Timeline_Cave_9205	寒髓碎地	Coldcore Slam
+	22905	洞窟战场	Timeline_Cave_9205_Desc	寒髓石傀重砸目标附近的冰面。预警过后，冰痕爆裂，对已霜缓的敌人造成更高伤害。	The coldcore golem slams the ice around its target. The marked cells burst after a warning, dealing extra damage to chilled enemies.
+	22906	洞窟战场	Timeline_Cave_9206	熔息喷火	Cinder Breath
+	22907	洞窟战场	Timeline_Cave_9206_Desc	熔壳蜥喷火点亮目标脚下的熔隙。熔隙短暂预警后喷发，伤害其中任意阵营的单位并叠加燃烧。	The lavascale lizard lights a fissure under its target. After a brief warning it erupts, damaging and burning units on either side.
+	22908	洞窟战场	Timeline_Cave_9207	翻炉喷脉	Furnace Fissure
+	22909	洞窟战场	Timeline_Cave_9207_Desc	驮炉灰魈沿目标方向砸开多处熔隙。喷发伤害任意阵营的单位，并叠加两层燃烧。	The kilnback macaque opens a line of fissures. Eruptions damage units on either side and apply two Burn stacks.
+	22910	祁墨主线	Timeline_QiStory_Prepare	祁墨旧事 · 找出自己补写的副契，停下一座守隘石傀。	Qi Mo’s story · Find the duplicate deed you signed and stop one pass guardian.
+	22911	祁墨主线	Timeline_QiStory_Learn	祁墨旧事 · 去旧契驿习得封隙印。	Qi Mo’s story · Learn Opening Seal at the Old Contract Post.
+	22912	祁墨主线	Timeline_QiStory_Read	祁墨旧事 · 建议先在旧契驿修炼至第 3 层，再去残印回廊击败守怪、核对废簿。	Qi Mo’s story · Train to Layer 3 at the Old Contract Post before defeating the gallery guardian and checking the register.
+	22913	祁墨主线	Timeline_QiStory_Revoke	祁墨旧事 · 去照契台撤掉副契，为无名客停下一座石傀。	Qi Mo’s story · Revoke the duplicate at the Deed Altar to stop one guardian on the Nameless route.
+	22914	祁墨主线	Timeline_QiStory_Altar	照契台	Deed Altar
+	22915	祁墨主线	Timeline_QiStory_AltarIntro	守印石傀倒在台阶下。案上两张守关契分列左右，右边那张多出一笔，正是祁墨当年替人补写的。台下有两道石纹通往山隘。右边那道还在震。	The seal guardian has fallen at the foot of the steps. Two deeds lie on the desk. The one on the right bears an extra stroke, the one Qi Mo added years ago. Two channels run toward the pass. The right-hand channel is still trembling.
+	22916	祁墨主线	Timeline_QiStory_Compare	用封隙印核对两份守关契	Compare both deeds with Opening Seal
+	22917	祁墨主线	Timeline_QiStory_Compared	两份契上写的是同一个名字。第二座石傀每次抬手，都会照着祁墨补写的那一笔。把废簿带到照契台，就能找到对应的副契。	Both deeds bear the same name. Whenever the second guardian raises an arm, it follows the stroke Qi Mo added. The register identifies which duplicate to revoke at the Deed Altar.
+	22918	祁墨主线	Timeline_QiStory_NeedSeal	先去旧契驿习得封隙印。	Learn Opening Seal at the Old Contract Post first.
+	22919	祁墨主线	Timeline_QiStory_NeedLedger	先去残印回廊核对废簿。	Compare the deeds at the Gallery of Broken Seals first.
+	22920	祁墨主线	Timeline_QiStory_Withdraw	用封隙印撤销副契	Revoke the duplicate with Opening Seal
+	22921	祁墨主线	Timeline_QiStory_Withdrawn	祁墨把印盖在自己补写的笔画上，墨顺着石纹退回案边。他把原件和副契一起压在砚下，留给后来的人查验。	Qi Mo stamps the stroke he once added. Ink runs back through the stone channel. He leaves both deeds under the inkstone for whoever comes after him.
+	22922	祁墨主线	Timeline_QiStory_Leave	暂时离开	Leave for now
+	22923	祁墨主线	Timeline_QiStory_Left	等查清来龙去脉，还可以回来。	You can return once you have traced the deeds.
+	22924	祁墨主线	Timeline_QiStory_Already	副契已经撤销。	The duplicate deed has already been revoked.
+	22925	祁墨主线	Timeline_QiStory_Removed	双石傀关的一座石傀已停下。	One guardian at the Twin Golem Pass has shut down.
+	22926	祁墨主线	Timeline_QiStory_NoRemoval	关口已至多剩一座石傀，撤契已记入本世。	At most one guardian remains at the pass. The revocation has been recorded.
+	22927	祁墨主线	Timeline_QiStory_Result	第 {0} 年已撤契 · 点击查看双石傀关。可继续探索，或记录本世。	Deed revoked in year {0} · Locate Twin Golem Pass. Keep exploring or record this life.
+	22928	祁墨主线	Timeline_QiStory_WorldResult	祁墨前世已在第 {0} 年撤契 · 点击查看双石傀关。	Qi Mo revoked the deed in year {0} · Locate Twin Golem Pass.
+	22929	祁墨主线	Timeline_QiStory_Forecast	祁墨前世预计第 {0} 年到照契台撤契。	Qi Mo is expected to revoke the deed at the Deed Altar in year {0}.
+	22930	祁墨主线	Timeline_QiStory_Delayed	祁墨原定第 {0} 年撤契，副契仍在生效。	Qi Mo planned to revoke the deed in year {0}. It remains active.
+	22931	祁墨主线	Timeline_QiStory_Interrupted	祁墨原定第 {0} 年撤契，前世路线已中断。	Qi Mo’s route was interrupted before the planned revocation in year {0}.
+	22932	祁墨主线	Timeline_QiStory_Record	第 {0} 年在照契台撤契	Revoked the deed at the Deed Altar in year {0}
+	22933	祁墨主线	Timeline_QiStory_Pass	双石傀关	Twin Golem Pass
+	22934	接山泉	Timeline_NorthRelay_Spring	接山泉	Ridge Spring
+	22935	接山泉	Timeline_NorthRelay_WreckBeastPass	回潮兽关	Undertow Beast Pass
+	22936	接山泉	Timeline_NorthRelay_SpringDry	石槽已经干了。若有人在断脉台把旧名刻回阵石，山泉便会流回这里。无名客到达时可借泉水回满气血。	The channels are dry. Restoring the old names at the Severed Array will bring the water back. The Nameless can drink here to recover all health on arrival.
+	22937	接山泉	Timeline_NorthRelay_SpringFlowing	山泉已沿旧槽流回这里。无名客经过时可回满气血，再去迎战回潮兽。	The spring flows through the old channels again. The Nameless can recover all health here before facing the Undertow Beast.
+	22938	接山泉	Timeline_NorthRelay_SpringUsed	饮下接山泉的水，恢复了 {0} 点气血。	Drank from the Ridge Spring and recovered {0} health.
+	22939	接山泉	Timeline_NorthRelay_SpringYourResult	第 {0} 年已还名。接山泉复流，无名碑攻击降低 {1}%。可继续探索，或记录本世。	Names restored in year {0}. The Ridge Spring flows again and the Nameless Stele’s attack is reduced by {1}%. Keep exploring or record this life.
+	22940	接山泉	Timeline_NorthRelay_SpringWorldResult	孤松在第 {0} 年还名。无名客经过接山泉时可回满气血，无名碑攻击降低 {1}%。	Gusong restored the names in year {0}. The Nameless can recover all health at the Ridge Spring, and the Nameless Stele’s attack is reduced by {1}%.
+	22941	接山泉	Timeline_NorthRelay_BothReady	副契已撤，接山泉已复流。无名客过了双石傀关，就能在泉边恢复气血。	The duplicate deed is revoked and the Ridge Spring flows. Once past the Twin Golem Pass, the Nameless can recover at the spring.
+	22942	接山泉	Timeline_NorthRelay_BothPlanned	祁墨和孤松的前世都将登场。撤契可停下一座石傀，还名可让接山泉复流。	Qi Mo and Gusong will both retrace their past lives. Revoking the deed stops one golem, and restoring the names brings back the Ridge Spring.
+	22943	接山泉	Timeline_NorthRelay_SpringMapResult	无名客在接山泉恢复了 {0} 点气血 · 点击定位	The Nameless recovered {0} health at the Ridge Spring · Locate the spring
+	22944	开闸主线	Timeline_Sluice_DrainYourResult	第 {0} 年已开闸。护碑阵失去水源，无名碑气血降低，封山归墟失效。可继续探索，或记录本世。	Sluice opened in year {0}. The ward loses its water supply, reducing the Nameless Stele’s health and disabling its mountain-sealing attack. Keep exploring or record this life.
+	22945	开闸主线	Timeline_Sluice_DrainWorldResult	赤砾第 {0} 年开闸。护碑阵已经失效。	Chili opened the sluice in year {0}. The Stele’s ward is down.
+	22946	开闸主线	Timeline_Sluice_DrainedBossHint	旧闸已开，护碑阵失去水源。无名碑的气血上限降低，无法施展封山归墟。	The open sluice has drained the ward. The Nameless Stele has less maximum health and cannot use its mountain-sealing attack.
+	22947	开闸主线	Timeline_Sluice_LogDrained	打开阵渠旧闸，泄掉护碑阵的水，断了封山归墟。	Opened the sluice, drained the Stele’s ward, and disabled its mountain-sealing attack.
+	22948	开闸主线	Timeline_Sluice_FinalePrepare	青篁 · 可留在外围观望，或继续探索。	Qinghuang · Watch from the outskirts or keep exploring.
+	22949	开闸主线	Timeline_Sluice_FinalePlanned	三条前世都会重走各自的路。选青篁可保留三条记录同时登场。	All three past lives can retrace their routes when you play as Qinghuang.
+	22950	开闸主线	Timeline_Sluice_FinaleReady	无名客已过回潮兽关。旧闸泄掉了护碑阵的水，他正前往无名碑。	The Nameless has passed the Undertow Beast. The sluice has drained the Stele’s ward. He is heading to the Stele.
+	22951	通关结局	Timeline_Ending_Caption	山河旧事 · 终章 · 第 {0} 年	Tales of the Old Rivers · Epilogue · Year {0}
+	22952	通关结局	Timeline_Ending_Page	终章  {0} / {1}	Epilogue  {0} / {1}
+	22953	通关结局	Timeline_Ending_Next	翻开下一页	Turn the page
+	22954	通关结局	Timeline_Ending_Close	合上值簿	Close the ledger
+	22955	通关结局	Timeline_Ending_SteleTitle	碑倒之后	After the Stele Fell
+	22956	通关结局	Timeline_Ending_SteleBody	无名碑倒下后，没有人来给无名客立碑。\n\n他在碎石上坐了一会儿。山下有人推开了门，隔着雾问，路通了吗？	After the Nameless Stele fell, no one came to raise a monument for the Nameless.\n\nHe sat on the rubble for a while. Down the mountain, someone opened a door and called through the mist. Was the road open?
+	22957	通关结局	Timeline_Ending_DeedTitle	关口的空位	The Empty Post
+	22958	通关结局	Timeline_Ending_DeedBody	照契台的砚下压着两张守关契。祁墨撤掉了自己当年补写的那一张。\n\n无名客过关时，只听见一座石傀抬脚。另一座站在原地，手里的石槌从头到尾没有举起来。	Two deeds lay beneath the inkstone at the Deed Altar. Qi Mo revoked the one he had signed all those years ago.\n\nAt the pass, the Nameless heard only one golem stir. The other stood at its post, its hammer hanging at its side.
+	22959	通关结局	Timeline_Ending_DeedsKeptTitle	砚下的副契	The Deed Under the Inkstone
+	22960	通关结局	Timeline_Ending_DeedsKeptBody	祁墨把两份守关契都留在照契台。后来巡山的人翻开副契，在末尾找到了那一笔补写的字。它再也不能叫醒守关的石傀。	Qi Mo left both deeds at the altar. When the patrol opened the duplicate, they found the stroke he had added. It would never wake a guardian again.
+	22961	通关结局	Timeline_Ending_SpringTitle	接山泉里的倒影	The Ridge Spring
+	22962	通关结局	Timeline_Ending_SpringBody	孤松把周小满和另外两个脚夫的名字刻回阵石。水沿旧槽流下去，接山泉又满了。\n\n无名客在泉边洗去手上的血，喝足了水，才起身去见回潮兽。	Gusong carved Zhou Xiaoman’s name and the names of two other porters back into the stones. Water followed the old channels and filled the Ridge Spring.\n\nThe Nameless washed the blood from his hands, drank his fill, and went on to face the Undertow Beast.
+	22963	通关结局	Timeline_Ending_NamesTitle	刻回去的名字	The Names Restored
+	22964	通关结局	Timeline_Ending_NamesBody	孤松把周小满和另外两个脚夫的名字刻回阵石，在石脚点了一盏灯。\n\n山气重新循旧槽走，无名碑再也借不到北岭的那股力。	Gusong carved the names of Zhou Xiaoman and two other porters back into the stones, then lit a lamp at their feet.\n\nThe ridge’s power returned to its old channels. The Stele could draw on it no longer.
+	22965	通关结局	Timeline_Ending_SluiceTitle	石底是空的	Beneath the Stone
+	22966	通关结局	Timeline_Ending_SluiceBody	赤砾照着工棚里的旧图扳开闸杆。水顺旁渠退去，内坛的护碑阵一寸寸暗下来。\n\n决战时，碑底最后一道阵纹亮了半截便熄了。无名客赶在它重新亮起前落下最后一击。	Chili opened the sluice by following the old plan from the workshop. Water drained down the side channel, and the Stele’s ward dimmed inch by inch.\n\nIn the final battle, the last rune flickered and went out. The Nameless struck before it could light again.
+	22967	通关结局	Timeline_Ending_ChannelTitle	旧水归渠	The Old Channel
+	22968	通关结局	Timeline_Ending_ChannelBody	赤砾按旧图打开了阵渠旧闸。决战时，无名碑试着唤起封山归墟，碑底只传出一声干响。	Chili opened the sluice by following the old plan. In the final battle, the Stele tried to seal the mountain. A dry crack was all that came from beneath it.
+	22969	通关结局	Timeline_Ending_BookTitle	山河旧事	Tales of the Old Rivers
+	22970	通关结局	Timeline_Ending_BookBody	无名客下山时，把副契夹进巡山值簿，在那三个名字后画了一条线。线从接山泉出发，沿着赤砾开过的旧渠，一直画到山下。\n\n有人问他要不要在末尾留个名字。他把笔搁回砚边。\n\n「先记路吧。明早有人要过山。」	On his way down, the Nameless tucked the duplicate deed into the patrol ledger. After the three names he drew a line from the Ridge Spring, along the channel Chili had opened, all the way down the mountain.\n\nSomeone asked if he wanted to sign. He set the brush beside the inkstone.\n\n“Mark the road first. People will need it in the morning.”
+	22971	通关结局	Timeline_Ending_RoadTitle	山路通了	The Road Is Open
+	22972	通关结局	Timeline_Ending_RoadBody	无名客下到山脚，把走过的路画给等消息的人看。有人去取灯，有人去搬路上的碎石。\n\n第二天一早，山上有了往来的人声。	At the foot of the mountain, the Nameless drew the road for those waiting for news. Some fetched lamps. Others went to clear stones from the way.\n\nBy morning, voices could be heard on the mountain again.
+	22973	潮退之后	Timeline_Salt_Ditch	倒流盐沟	Backflow Salt Ditch
+	22974	潮退之后	Timeline_Salt_Beach	晒牌滩	Nameboard Flat
+	22975	潮退之后	Timeline_Salt_Drain	回水槽	Spillway Trough
+	22976	潮退之后	Timeline_Salt_Head	封名渠首	Name-Sealing Headworks
+	22977	潮退之后	Timeline_Salt_DitchText	白盐泉的淡水泛起了盐沫。沟里一块木牌顶着退潮往上游漂，正面是盐工的姓名，背面是旧渠的刻记。	Salt foam has reached White Salt Spring. A wooden tally moves upstream against the ebb, with a worker’s name on its face and an old channel mark on its back.
+	22978	潮退之后	Timeline_Salt_BeachText	盐蟹倒下后，晒架下露出一排木牌。牌上的名字，与封泥窑最后一批泥模刻的是同一批人。	Under the drying racks lie the nameboards the crabs were carrying. The names match those pressed into the last molds at Sealmud Kiln.
+	22979	潮退之后	Timeline_Salt_DrainText	石槽旁有一根卡死的横闩。闩上的记号磨得太浅，得对照旧木牌背面的刻痕，才能认出泄水的方向。	A crossbar is wedged beside the trough. Its marks are worn. The back of the old tally shows which way the spillway opens.
+	22980	潮退之后	Timeline_Salt_HeadText	铜兽口中的名牌落在石渠里。牌堆下面夹着半片薄铜，记的是从前盐工在急水里稳住身形的法子。	The beast’s tally falls into the stone channel. Beneath the boards lies a thin bronze leaf that records how salt workers braced against a sudden current.
+	22981	潮退之后	Timeline_Salt_DitchChoice	捞起木牌，记下泄水槽的位置	Fish out the tally and note the spillway
+	22982	潮退之后	Timeline_Salt_DitchResult	木牌背面有一道回折的箭头。沿晒架向内走，就能找到回水槽。	A bent arrow marks the back of the tally. Follow the drying racks inland to the spillway.
+	22983	潮退之后	Timeline_Salt_BeachChoice	翻看晒架底下的名牌	Examine the nameboards beneath the racks
+	22984	潮退之后	Timeline_Salt_BeachResult	有几块牌还带着未干的泥。水正沿石槽往渠首流，把一块块木牌送进去。	Wet clay still clings to several boards. The stone channels carry them one by one toward the headworks.
+	22985	潮退之后	Timeline_Salt_DrainChoice	照木牌的刻记打开泄水槽	Open the spillway using the tally’s marks
+	22986	潮退之后	Timeline_Salt_DrainHint	需要先查看倒流盐沟里的木牌。	Examine the tally at Backflow Salt Ditch first.
+	22987	潮退之后	Timeline_Salt_DrainResult	横闩松开后，水沿旁槽落了下去，露出一道白色盐线。渠首再抽水，也卷不动岸上的人了。	The crossbar gives. Water drops into the side channel, revealing a white salt line. The headworks can still throw water, but the current can no longer pull anyone in.
+	22988	潮退之后	Timeline_Salt_DryChoice	沿露出的盐线走	Follow the exposed salt line
+	22989	潮退之后	Timeline_Salt_DryHint	泄水槽尚未打开。	The spillway is still closed.
+	22990	潮退之后	Timeline_Salt_DryResult	横闩已经拨开，石上露出两道高低不同的水痕。	The spillway is open. Two waterlines are visible on the stone.
+	22991	潮退之后	Timeline_Salt_Leave	先记下位置	Mark the spot for now
+	22992	潮退之后	Timeline_Salt_LeaveResult	你还认不清闩上的刻记。渠首仍可通行，水却没有退。	The marks on the bar are too worn to read. The headworks can still be reached, though the water has not receded.
+	22993	潮退之后	Timeline_Salt_RewardChoice	收起薄铜上的截流诀	Take the Currentbreak Art
+	22994	潮退之后	Timeline_Salt_RewardResult	铜片末尾只有一句话：先站稳，再过水。	Only one line closes the inscription. Find your footing before you cross.
+	22995	潮退之后	Timeline_Salt_EmptyChoice	沿渠边离开	Leave along the channel
+	22996	潮退之后	Timeline_Salt_EmptyResult	牌堆下面已经空了，渠里还留着铜兽倒下的印子。	Nothing remains beneath the boards. The fallen beast has left its mark in the channel.
+	22997	潮退之后	Timeline_Salt_Guide_Ditch	潮退之后 · 前往倒流盐沟，看看是谁的木牌逆水漂来。	After the Ebb · Investigate the tally at Backflow Salt Ditch.
+	22998	潮退之后	Timeline_Salt_Guide_Beach	潮退之后 · 沿盐沟去晒牌滩。	After the Ebb · Follow the ditch to Nameboard Flat.
+	22999	潮退之后	Timeline_Salt_Guide_Drain	潮退之后 · 去回水槽打开泄水槽。	After the Ebb · Open the spillway at the trough.
+	23000	潮退之后	Timeline_Salt_Guide_Dry	潮退之后 · 水位已降，前往封名渠首。	After the Ebb · The water has fallen. Head to the name-sealing headworks.
+	23001	潮退之后	Timeline_Salt_Guide_Beast	潮退之后 · 可直接去封名渠首。也可先回盐沟查木牌。	After the Ebb · Go straight to the headworks, or investigate the tally first.
+	23002	潮退之后	Timeline_Salt_RewardName	截流诀	Currentbreak Art
+	23003	潮退之后	Timeline_Salt_RewardDesc	每场战斗首次受到直接伤害前，获得相当于最大气血 10% 的护盾，持续 4 秒。	Before taking direct damage for the first time each battle, gain a shield equal to 10% of your maximum HP for 4 seconds.
+	23004	潮退之后	Timeline_Salt_Clamp	夹脚	Ankle Clamp
+	23005	潮退之后	Timeline_Salt_ClampDesc	每第三次攻击夹向最近的敌人，命中时尝试将其拉近一格。	Every third attack clamps at the nearest enemy and attempts to pull them one cell closer.
+	23006	潮退之后	Timeline_Salt_Draw	抽潮	Draw the Tide
+	23007	潮退之后	Timeline_Salt_DrawDesc	每第三次攻击预警 1 秒后打出直线水浪，造成 110% 攻击力伤害并尝试拉近目标一格。泄水槽打开后取消拖拽。	Every third attack warns for 1 second before dealing 110% Attack damage along a line and attempting to pull targets one cell. An open spillway removes the pull.
+	23008	潮退之后	Timeline_Flavor_Item_9180	盐工教徒弟的第一课，是看见水来之前先站稳。	The salt workers’ first lesson was to find your footing before the water comes.
+	23009	预计抵达	Timeline_Arrival_Title	预计抵达	Expected arrivals
+	23010	预计抵达	Timeline_Arrival_None	暂无角色预计抵达	No arrivals expected
+	23011	预计抵达	Timeline_Arrival_NextYear	{0} · 下回合抵达	{0} · arrives next turn
+	23012	预计抵达	Timeline_Arrival_Years	{0} · {1} 回合后抵达	{0} · arrives in {1} turns
+	23100	山河探索	Timeline_ExpandedMap_76	雁回沙嘴	Wild Goose Spit
+	23101	山河探索	Timeline_ExpandedMap_77	泊灯浅滩	Lantern Shoal
+	23102	山河探索	Timeline_ExpandedMap_78	空舟坞	Empty Boat Reach
+	23103	山河探索	Timeline_ExpandedMap_79	浮灯水眼	Lantern Spring
+	23104	山河探索	Timeline_ExpandedMap_Event_50_Intro	船缆栓着一只空舟。水漫过船舷，唯有船灯还亮着。	A loose line holds an empty boat. Water laps over the gunwale, but its lantern is still lit.
+	23105	山河探索	Timeline_ExpandedMap_Event_50_Choice	将船灯挂回岸边	Hang the lantern on the bank
+	23106	山河探索	Timeline_ExpandedMap_Event_50_Result	灯一上岸，河里散乱的倒影便连成一线。	On the bank, the lantern draws the scattered reflections into a single line.
+	23107	山河探索	Timeline_ExpandedMap_80	白蒲滩	White Reed Flats
+	23108	山河探索	Timeline_ExpandedMap_81	倒潮石梁	Backtide Crossing
+	23109	山河探索	Timeline_ExpandedMap_82	白蒲汀	White Reed Islet
+	23110	山河探索	Timeline_ExpandedMap_83	息浪泉	Stillwater Spring
+	23111	山河探索	Timeline_ExpandedMap_Event_51_Intro	汀上的石碗盛着晴天接来的雨。碗底刻着一行小字，水静时才读得清。	A stone bowl holds rain gathered on a clear day. Its inscription is legible only in still water.
+	23112	山河探索	Timeline_ExpandedMap_Event_51_Choice	待水静下来	Wait for the water to settle
+	23113	山河探索	Timeline_ExpandedMap_Event_51_Result	碗中没有倒影，只有疏疏几笔，教人平息浮躁的气息。	There is no reflection, only a few strokes showing how to calm a restless breath.
+	23114	山河探索	Timeline_ExpandedMap_84	北荒石圩	Northern Stone Bank
+	23115	山河探索	Timeline_ExpandedMap_85	背雪堤	Snow-Lee Dyke
+	23116	山河探索	Timeline_ExpandedMap_86	补堤石窟	Dyke Menders’ Niche
+	23117	山河探索	Timeline_ExpandedMap_87	松风背坡	Pinewind Lee
+	23118	山河探索	Timeline_ExpandedMap_Event_52_Intro	石窟里嵌着一排旧木楔。村人每补一寸破堤，便在其中一枚楔上添一道刻痕。	Old wedges line the niche. Each inch of repaired dyke earned a notch on one of them.
+	23119	山河探索	Timeline_ExpandedMap_Event_52_Choice	把松动的木楔敲实	Drive the loose wedges home
+	23120	山河探索	Timeline_ExpandedMap_Event_52_Result	堤脚不再透风，炉灰下还留着一点暖意。	The draft at the base of the dyke dies away. A little warmth lingers beneath the ash.
+	23121	山河探索	Timeline_ExpandedMap_88	西南旧坞	Old Southwest Mooring
+	23122	山河探索	Timeline_ExpandedMap_89	折橹湾	Broken Oar Bend
+	23123	山河探索	Timeline_ExpandedMap_90	回声桩	Echo Mooring
+	23124	山河探索	Timeline_ExpandedMap_91	薄雾台	Thinmist Terrace
+	23125	山河探索	Timeline_ExpandedMap_Event_53_Intro	船早已不在，系缆桩却还深扎在石缝里。夜里敲它，水下会传来另一次敲击。	The boat is gone, but its post is wedged deep in the stone. Tap it at night and a second knock answers from below.
+	23126	山河探索	Timeline_ExpandedMap_Event_53_Choice	循着回声调息	Breathe in time with the echo
+	23127	山河探索	Timeline_ExpandedMap_Event_53_Result	等到第三声，你听清了水脉回转的方向。	By the third knock, you can hear which way the current turns beneath the stone.
+	23128	山河探索	Timeline_ExpandedMap_92	东岭界桩	Eastern Ridge Marker
+	23129	山河探索	Timeline_ExpandedMap_93	回碑坳	Returning Stele Hollow
+	23130	山河探索	Timeline_ExpandedMap_94	风蚀石室	Windworn Chamber
+	23131	山河探索	Timeline_ExpandedMap_95	听虚台	Listening Terrace
+	23132	山河探索	Timeline_ExpandedMap_Event_54_Intro	壁上有两行没有字的凿痕。石屑落在地上，排成与门外完全相反的方向。	Two chiseled lines bear no words. The stone chips on the floor point opposite to the entrance.
+	23133	山河探索	Timeline_ExpandedMap_Event_54_Choice	从末笔倒着辨认	Read back from the last stroke
+	23134	山河探索	Timeline_ExpandedMap_Event_54_Result	你懂了凿字的人为何留下一面空墙，也记住了石上的运气法。	You understand why the carver left a wall bare and remember the breathing pattern he put into the stone.
+	23135	山河探索	Timeline_ExpandedMap_96	北泽古驿	North Marsh Post
+	23136	山河探索	Timeline_ExpandedMap_97	裂碑坡	Split Stele Slope
+	23137	山河探索	Timeline_ExpandedMap_98	沉灯阶	Sunken Lantern Steps
+	23138	山河探索	Timeline_ExpandedMap_99	无名碑林	Nameless Stone Grove
+	23139	山河探索	Timeline_ExpandedMap_Event_55_Intro	矮碑朝向内坛，碑下却放着一盏朝外的灯。刻字的痕迹还在，名字已经没了。	The low stones face the inner altar. A single lamp points outward. The chisel marks remain, but the names are gone.
+	23140	山河探索	Timeline_ExpandedMap_Event_55_Choice	把灯拨向来路	Turn the lamp toward the way back
+	23141	山河探索	Timeline_ExpandedMap_Event_55_Result	光照回石阶，照出一条仍可回头的小径。	The lamplight falls back across the steps, revealing a path you can still take home.
+	23142	标题界面	Title_QuitGame	退出游戏	Quit Game
+	23143	标题界面	Title_ConfirmNewGame	开始新局将覆盖未完成的本世进度。已结算的前世记录会保留。\n确定开始新局吗？	Starting a new game will overwrite the unfinished life. Completed past lives will be kept.\nStart a new game?
+	23144	轮回引导	Timeline_Guide_AfterRitual	第 {0} 年，灭世仪式完成。点「开启下一世」，让前世重演。\n试着让修士接力挑战阵主，延长时限，等无名客赶到。	The ritual ended the world in year {0}. Choose Begin Next Life.\nHave your past lives take turns defeating the guardian to buy time.
+	23145	轮回引导	Timeline_Guide_AfterKillingChosen	无名客已死，本世无法阻止仪式。点「开启下一世」。\n前世会重演旧路，试着提前抵达交战地点，改变这场相遇。	The Nameless fell. Choose Begin Next Life.\nReach the battle site before your past self to change the encounter.
+	23146	轮回引导	Timeline_Guide_AfterDeath	本世修士已倒下。可继续观战，看看无名客能否阻止仪式。\n结算后点「开启下一世」，前世会重演本世走过的路。	Your cultivator fell. Keep watching to see if the Nameless can stop the ritual.\nAfter the run ends, choose Begin Next Life to replay this life.
+	23147	山河探索	Timeline_ExpandedMap_Event_56_Intro	沙嘴上倒插着三根缆桩。迎潮的一面各系一种绳结，指向泊灯浅滩。	Three mooring posts lean out of the sand. Their tideward knots point toward Lantern Shoal.
+	23148	山河探索	Timeline_ExpandedMap_Option_5601_Choice	记下三种绳结	Memorize the three knots
+	23149	山河探索	Timeline_ExpandedMap_Option_5601_Result	这是渔人辨认灯罩的记号。先解靠岸的结，灯里的东西才不会被潮水卷走。	Fishers use these marks on their lanterns. Undo the shoreward knot first, or the tide takes what is inside.
+	23150	山河探索	Timeline_ExpandedMap_Event_62_Intro	盐脊鳗退入深水。浅滩上漂来一盏破灯，灯口的绳结已经泡胀。	The saltspine eel slips into deep water. A broken lantern drifts into the shallows, its knots swollen shut.
+	23151	山河探索	Timeline_ExpandedMap_Relic_9181_Name	泊灯铜片	Mooring Lantern Charm
+	23152	山河探索	Timeline_ExpandedMap_Relic_9181_Desc	最大气血 +24。薄铜上留着泊灯人打结的记号。	Max HP +24. The thin copper bears a lamplighter’s knot marks.
+	23153	山河探索	Timeline_ExpandedMap_Option_6201_Choice	照缆桩记号拆开灯罩	Open the lantern using the mooring marks
+	23154	山河探索	Timeline_ExpandedMap_Option_6201_Hint	先到雁回沙嘴辨认缆桩上的绳结。	Read the mooring knots at Wild Goose Spit first.
+	23155	山河探索	Timeline_ExpandedMap_Option_6201_Result	你先解靠岸的结，接住了灯底滑出的护心铜片。	You undo the shoreward knot and catch a copper charm sliding from the base.
+	23156	山河探索	Timeline_ExpandedMap_Option_6202_Choice	把浅滩的灯扶稳	Set the shoal lantern upright
+	23157	山河探索	Timeline_ExpandedMap_Option_6202_Result	灯照出一行踏脚石。你顺着石头走到干处，稍作调息。	The light reveals stepping stones. You follow them to dry ground and catch your breath.
+	23158	山河探索	Timeline_ExpandedMap_Event_57_Intro	白蒲之间立着一块量潮石。水线旁刻着一排小孔，最深的一孔朝向倒潮石梁。	A tide stone stands among the white reeds. A row of holes marks the waterline, the deepest facing Backtide Crossing.
+	23159	山河探索	Timeline_ExpandedMap_Option_5701_Choice	摸出最低的一道潮线	Trace the lowest tide mark
+	23160	山河探索	Timeline_ExpandedMap_Option_5701_Result	退潮时，石梁第三孔会露出一个铁环。蒲滩人用它拉起水下的石板。	At low tide, an iron ring shows in the third hole. The reed cutters used it to lift a submerged slab.
+	23161	山河探索	Timeline_ExpandedMap_Event_63_Intro	两只潮骨蟹让开石梁。水刚退下，梁侧露出一排形状相似的小孔。	The two tidebone crabs leave the crossing. As the water recedes, a row of near-identical holes emerges along the beam.
+	23162	山河探索	Timeline_ExpandedMap_Relic_9182_Name	倒潮短钩	Backtide Hook
+	23163	山河探索	Timeline_ExpandedMap_Relic_9182_Desc	攻击 +6。蒲滩人用这种短钩勾住湿滑的石梁。	Attack +6. Reed cutters used these hooks to grip slippery beams.
+	23164	山河探索	Timeline_ExpandedMap_Option_6301_Choice	从第三孔拉起铁环	Pull the ring in the third hole
+	23165	山河探索	Timeline_ExpandedMap_Option_6301_Hint	到白蒲滩查看量潮石。	Check the tide stone at White Reed Flats.
+	23166	山河探索	Timeline_ExpandedMap_Option_6301_Result	石板转开，露出蒲滩人藏在梁腹的短钩。	The slab pivots open around a short hook hidden inside the beam.
+	23167	山河探索	Timeline_ExpandedMap_Option_6302_Choice	循水痕练步	Practice footwork along the tide marks
+	23168	山河探索	Timeline_ExpandedMap_Option_6302_Result	趁石面尚干，你把顺潮与逆潮的两种步法各走了一遍。	Before the stone gets wet again, you practice moving both with and against the current.
+	23169	山河探索	Timeline_ExpandedMap_Event_58_Intro	北荒石圩的旧堤被风掀开一角。石砖背面刻着木楔的顺序，最末一枚画着松枝。	Wind has torn away a corner of the dyke. The backs of the bricks show the wedge order, ending with a pine sprig.
+	23170	山河探索	Timeline_ExpandedMap_Option_5801_Choice	照着堤砖记下补堤顺序	Learn the repair order from the bricks
+	23171	山河探索	Timeline_ExpandedMap_Option_5801_Result	有松枝印记的木楔藏在背雪堤上。拔它之前，得先压住它左边那块石砖。	The pine wedge is set into Snow-Lee Dyke. Press the brick to its left before pulling it free.
+	23172	山河探索	Timeline_ExpandedMap_Event_64_Intro	两只牵索猿逃进山林。你拨开堤背积雪，摸到一排松动的旧楔。	The two rope apes flee into the woods. Brushing snow off the back of the dyke reveals a line of loose wedges.
+	23173	山河探索	Timeline_ExpandedMap_Relic_9183_Name	守堤暖布	Dyke Mender’s Wrap
+	23174	山河探索	Timeline_ExpandedMap_Relic_9183_Desc	最大气血 +36。围上它，堤背的风雪也吹不透。	Max HP +36. The dyke winds cannot cut through this wrap.
+	23175	山河探索	Timeline_ExpandedMap_Option_6401_Choice	顶住堤砖，取出松枝楔	Brace the brick and free the pine wedge
+	23176	山河探索	Timeline_ExpandedMap_Option_6401_Hint	先在北荒石圩查看堤砖背面的刻痕。	Read the marks on the bricks at Northern Stone Bank first.
+	23177	山河探索	Timeline_ExpandedMap_Option_6401_Result	旧楔退出，堤砖却没有松动。它裹着补堤人留下的一截暖布。	The wedge slides out without shifting the brick. A strip of warm fabric is wrapped around it.
+	23178	山河探索	Timeline_ExpandedMap_Option_6402_Choice	在堤背避一阵风雪	Shelter from the snow behind the dyke
+	23179	山河探索	Timeline_ExpandedMap_Option_6402_Result	堤背挡住了风。你裹紧衣襟，等手指暖起来再走。	The dyke cuts the wind. You pull your coat close and wait for warmth to return to your fingers.
+	23180	山河探索	Timeline_ExpandedMap_Event_59_Intro	西南旧坞还挂着一块货牌。最后一笔货是运往折橹湾的，旁边画了三支短桨。	A cargo tally still hangs at Old Southwest Mooring. Its last consignment, marked with three short oars, was bound for Broken Oar Bend.
+	23181	山河探索	Timeline_ExpandedMap_Option_5901_Choice	辨认货牌上的三支短桨	Read the three oars on the tally
+	23182	山河探索	Timeline_ExpandedMap_Option_5901_Result	第三支桨的桨柄上画着一道暗扣。船夫把随身磨石藏在那里面。	The third oar has a hidden catch drawn on its handle. The boatman kept a whetstone inside.
+	23183	山河探索	Timeline_ExpandedMap_Event_65_Intro	沉舟兽伏倒，撞裂的船板浮上水面。三支断橹卡在一处，随水起伏。	The wreck beast falls and splintered planks rise to the surface. Three broken oars bob together in the current.
+	23184	山河探索	Timeline_ExpandedMap_Relic_9184_Name	断橹磨石	Broken Oar Whetstone
+	23185	山河探索	Timeline_ExpandedMap_Relic_9184_Desc	攻击 +8。船夫将它藏在桨柄里，用来磨快刃口。	Attack +8. A boatman kept this in an oar handle to hone his blade.
+	23186	山河探索	Timeline_ExpandedMap_Option_6501_Choice	拨开第三支断橹的暗扣	Release the catch in the third oar
+	23187	山河探索	Timeline_ExpandedMap_Option_6501_Hint	西南旧坞的货牌记着暗扣的位置。	The cargo tally at Old Southwest Mooring shows where the catch is.
+	23188	山河探索	Timeline_ExpandedMap_Option_6501_Result	桨柄吐出一块灰青磨石。过了这些年，磨面还锋利得能刮下铁屑。	A blue-grey whetstone slips from the handle. After all these years, it can still shave iron.
+	23189	山河探索	Timeline_ExpandedMap_Option_6502_Choice	把散木拖上岸	Pull the wreckage to shore
+	23190	山河探索	Timeline_ExpandedMap_Option_6502_Result	你从散木间理出一道干净水道，顺手记下回流的走向。	You clear a passage through the wreckage and note how the backwater turns.
+	23191	山河探索	Timeline_ExpandedMap_Event_60_Intro	东岭界桩的阳面刻着地界，背阴处却留着一段反字，抬头便能望见回碑坳。	Boundaries are cut into the sunny side of the ridge marker. Mirror writing on the shaded side faces Returning Stele Hollow.
+	23192	山河探索	Timeline_ExpandedMap_Option_6001_Choice	拓下界桩背面的反字	Take a rubbing of the mirror writing
+	23193	山河探索	Timeline_ExpandedMap_Option_6001_Result	纸上一翻，反字成了「先右后左」。这两字之间，还嵌着一枚铜簧的图样。	Turned over, the rubbed characters read ‘right before left’. An etched bronze spring lies between them.
+	23194	山河探索	Timeline_ExpandedMap_Event_66_Intro	两尊石傀碎在碑座前。碑座左右各有一条槽，里面淤着薄薄的石粉。	Two stone guardians lie broken before the stele. A groove on each side of the base is lined with stone dust.
+	23195	山河探索	Timeline_ExpandedMap_Relic_9185_Name	回碑铜簧	Returning Stele Spring
+	23196	山河探索	Timeline_ExpandedMap_Relic_9185_Desc	战斗攻击 +5%。收剑时，铜簧能替下一击蓄住一寸劲。	Combat attack +5%. The bronze spring stores a little force as your blade returns.
+	23197	山河探索	Timeline_ExpandedMap_Option_6601_Choice	照拓文先按右槽，再按左槽	Press the right groove, then the left
+	23198	山河探索	Timeline_ExpandedMap_Option_6601_Hint	东岭界桩的背面刻着机关的次序。	The back of the Eastern Ridge Marker shows the order.
+	23199	山河探索	Timeline_ExpandedMap_Option_6601_Result	碑身向前错开一寸，松开了背面压着的回碑铜簧。	The stele slides forward an inch and releases a bronze spring from its back.
+	23200	山河探索	Timeline_ExpandedMap_Option_6602_Choice	用石傀碎片试剑	Test your blade on the broken guardians
+	23201	山河探索	Timeline_ExpandedMap_Option_6602_Result	石屑散开时，你看清了出剑最浪费力气的那一段。	As the chips scatter, you see where your sword stroke was wasting effort.
+	23202	山河探索	Timeline_ExpandedMap_Event_61_Intro	北泽古驿的门上钉着一条旧驿规：过裂碑坡时，独行的驿卒要把灯举到眉上。	An old rule hangs at North Marsh Post: a courier alone on Split Stele Slope must raise their lantern to their brow.
+	23203	山河探索	Timeline_ExpandedMap_Option_6101_Choice	读完驿规最后一行	Read the last line of the courier rule
+	23204	山河探索	Timeline_ExpandedMap_Option_6101_Result	若守坡人的灯已灭，就拿他的灯补上，替他把这班岗交完。	If the watchman’s light is out, take his lantern and finish his watch in his place.
+	23205	山河探索	Timeline_ExpandedMap_Event_67_Intro	巡灯守倒在裂碑下，手里的灯尚未全灭。坡外的驿道已经看不清了。	The lantern watch falls beneath the split stele. Its light still flickers, but the road beyond has faded into dark.
+	23206	山河探索	Timeline_ExpandedMap_Relic_9186_Name	换岗灯芯	Watch-Change Wick
+	23207	山河探索	Timeline_ExpandedMap_Relic_9186_Desc	最大气血 +20，攻击 +5。灯芯上还缠着旧驿卒的腰绳。	Max HP +20 and attack +5. A courier’s cord is still wrapped around the wick.
+	23208	山河探索	Timeline_ExpandedMap_Option_6701_Choice	举起守坡人的灯，替他交岗	Raise the watchman’s light and finish his watch
+	23209	山河探索	Timeline_ExpandedMap_Option_6701_Hint	去北泽古驿查看交岗的旧规。	Read the old watch rule at North Marsh Post.
+	23210	山河探索	Timeline_ExpandedMap_Option_6701_Result	路重新亮了。灯柄松开一截，你从夹层里取出一根驿卒换岗时佩戴的灯芯。	The road lights up again. Part of the handle clicks free, revealing a wick worn by couriers at the change of watch.
+	23211	山河探索	Timeline_ExpandedMap_Option_6702_Choice	借余火烘干衣袖	Dry your sleeves over the embers
+	23212	山河探索	Timeline_ExpandedMap_Option_6702_Result	你把灯放在碑脚，借着余火暖了回来。	You set the lamp at the stele’s foot and warm yourself over what remains of the flame.
+	23213	山河探索	Timeline_ExpandedMap_Event_68_Intro	录名吏散成纸屑，阶下的灯却仍烧着。灯盘托着一截无主的笔锋，底下压着一张写了一半的退名帖。	The register clerk dissolves into scraps. The lamp below still burns over an ownerless brush tip and a half-written withdrawal slip.
+	23214	山河探索	Timeline_ExpandedMap_Option_6801_Choice	以气血续完退名帖	Finish the withdrawal slip with your blood
+	23215	山河探索	Timeline_ExpandedMap_Option_6801_Result	最后一笔落定，纸上浮出几道退名时护住心脉的运气法。你赶在纸烧尽前记了下来。	The last stroke reveals how to protect the pulse during a name withdrawal. You memorize it before the paper burns.
+	23216	山河探索	Timeline_ExpandedMap_Option_6802_Choice	捻灭灯芯，原地调息	Snuff the wick and recover on the steps
+	23217	山河探索	Timeline_ExpandedMap_Option_6802_Result	灯焰熄了，灼痛随之退去，你终于能听到自己的呼吸。	The flame goes out and the burning pain ebbs. At last you can hear your own breathing.
+	23218	战斗推演	Timeline_LanternForecastPending	按当前状态推演这一战…	Simulating with your current loadout…
+	23219	战斗推演	Timeline_LanternForecastUnavailable	暂时无法推演这一战。	Battle forecast unavailable.
+	23220	战斗推演	Timeline_LanternForecastLoss	高危 · 按当前状态推演，预计战败。	High risk. The forecast predicts defeat.
+	23221	战斗推演	Timeline_LanternForecastRiskyWin	高危 · 预计险胜，剩余气血 {0}。	High risk. Forecast win with {0} HP left.
+	23222	战斗推演	Timeline_LanternForecastWin	预计能赢 · 剩余气血 {0}。	Forecast win · {0} HP left.
+	23223	战斗推演	Timeline_LanternForecastFight	继续闯关 · 1年	Fight anyway · 1y
+	23224	战斗推演	Timeline_LanternForecastDetour	浮灯水眼 · +{0}年	Lantern Spring +{0}y
+	23225	战斗推演	Timeline_LanternDetourInterrupted	前路有变，已在当前地点停下。	The route changed. You stop at your current location.

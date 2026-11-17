@@ -26,7 +26,8 @@ namespace WorldTimelineDebug
         {
             var entry = new EquipmentEntry { Id = id, Kind = EquipmentKind.Relic, Icon = 13,
                 Name = TimelineText("Timeline_UI_RelicNumber", id), Description = TimelineText("Timeline_UI_110") };
-            if (scenarioData?.Stories != null && scenarioData.Stories.Items.TryGetValue(id, out var story))
+            var stories = simulation?.Stories?.Config ?? scenarioData?.Stories;
+            if (stories != null && stories.Items.TryGetValue(id, out var story))
             {
                 entry.Name = story.Name;
                 entry.Description = story.Description;

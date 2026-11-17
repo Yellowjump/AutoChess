@@ -8,7 +8,7 @@ using UnityGameFramework.Runtime;
 namespace Entity
 {
     // Owned by the foreground battle camera, so all effects leave with the battle.
-    public sealed class TimelineBurnVisuals : MonoBehaviour
+    public sealed partial class TimelineBurnVisuals : MonoBehaviour
     {
         private const int ImpulseChannel = 128;
         private const int Segments = 48;
@@ -26,6 +26,7 @@ namespace Entity
         private readonly List<Stroke> strokes = new List<Stroke>();
         private Material material;
         internal TimelineSlashVisuals Slash { get; private set; }
+        private TimelineCombatVfx combatVfx;
         private CinemachineImpulseDefinition impulse;
         private float nextSwordChimeTime;
         private float nextStoneImpulseTime;
@@ -41,8 +42,15 @@ namespace Entity
             public Color Color;
         }
 
+        internal void SetTidegatePresentation(IReadOnlyList<EntityQizi> fighters, float boardHeight)
+        {
+            if (combatVfx != null) combatVfx.SetTidegatePresentation(fighters, boardHeight);
+            if (Slash != null) Slash.UseTidegateInk = true;
+        }
+
         private void Awake()
         {
+            combatVfx = TimelineCombatVfx.Create(transform);
             var shader = Resources.Load<Shader>("TimelineBurnStroke");
             if (shader != null && shader.isSupported) material = new Material(shader);
             if (material != null)
@@ -52,7 +60,7 @@ namespace Entity
                 if (slashTemplate != null)
                 {
                     Slash = Instantiate(slashTemplate, transform);
-                    Slash.Initialize(material);
+                    Slash.Initialize(material, combatVfx);
                 }
             }
             var listener = gameObject.AddComponent<CinemachineImpulseListener>();
@@ -69,35 +77,38 @@ namespace Entity
 
         public void Detonate(Vector3 position, float radius)
         {
-            Ring(position, radius, .48f, .15f, Ember);
-            Ring(position, radius * .89f, .34f, .065f, Flame);
-            HotGameEntry.Sound.PlaySfxSoundThisFrame((int)EnumSound.ShortBoom, position);
+            if (combatVfx != null) combatVfx.FireDetonation(position, radius);
+            else
+            {
+                Ring(position, radius, .48f, .15f, Ember);
+                Ring(position, radius * .89f, .34f, .065f, Flame);
+            }
+            HotGameEntry.Sound.PlayTimelineCue(EnumSound.EmberImpact, position);
             impulse.CreateEvent(position, new Vector3(.07f, -.14f, 0f));
         }
 
         internal void ShieldRaised(Vector3 position)
         {
-            Ring(position, .56f, .29f, .07f, Water);
+            if (combatVfx != null) combatVfx.ShieldRise(position);
+            else Ring(position, .56f, .29f, .07f, Water);
         }
 
-        internal LineRenderer StoneWarning(Transform owner)
+        internal LineRenderer StoneWarning(Transform owner, Vector3 position, float radius)
         {
             if (material == null) return null;
             var line = CreateLine("断碑重砸·蓄力", owner, true);
             line.loop = true;
             line.positionCount = 24;
-            UpdateStoneWarning(line, owner.position, 0f);
+            UpdateStoneWarning(line, position, radius, 0f);
             return line;
         }
 
-        internal static void UpdateStoneWarning(LineRenderer line, Vector3 position, float progress)
+        internal static void UpdateStoneWarning(LineRenderer line, Vector3 position, float radius, float progress)
         {
-            float radius = Mathf.Lerp(.90f, .36f, progress);
             for (int i = 0; i < line.positionCount; i++)
             {
                 float angle = i * (2f * Mathf.PI / line.positionCount);
-                float edge = i % 4 == 0 ? radius * 1.24f : radius;
-                line.SetPosition(i, position + new Vector3(Mathf.Cos(angle) * edge, .085f, Mathf.Sin(angle) * edge));
+                line.SetPosition(i, position + new Vector3(Mathf.Cos(angle) * radius, .085f, Mathf.Sin(angle) * radius));
             }
             var color = Color.Lerp(StoneDust, StoneGold, progress);
             color.a = Mathf.Lerp(.65f, 1f, progress);
@@ -105,13 +116,16 @@ namespace Entity
             line.widthMultiplier = Mathf.Lerp(.045f, .095f, progress);
         }
 
-        internal void StoneImpact(Vector3 position)
+        internal void StoneImpact(Vector3 position, float radius)
         {
-            Ring(position, 1.15f, .28f, .18f, StoneDust);
-            Ring(position, .70f, .17f, .10f, StoneGold);
+            if (combatVfx != null) combatVfx.StoneCrash(position, radius);
+            else
+            {
+                Ring(position, radius * .92f, .28f, .18f, StoneDust);
+                Ring(position, radius * .58f, .17f, .10f, StoneGold);
+            }
             if (Time.time < nextStoneImpulseTime) return;
             nextStoneImpulseTime = Time.time + .19f;
-            HotGameEntry.Sound.PlaySfxSoundThisFrame((int)EnumSound.ShortBoom, position);
             impulse.CreateEvent(position, new Vector3(.035f, -.135f, 0f));
         }
 
@@ -132,6 +146,12 @@ namespace Entity
             point.AddSfx(BlueBurstSfxId);
         }
 
+        internal void PlayerHit(Vector3 position, Vector3 direction)
+        {
+            if (combatVfx != null) combatVfx.PlayerHit(position, direction);
+            else Slash?.StatusBurst(position, new Color(1f, .32f, .17f), .52f, drift: direction * 1.35f);
+        }
+
         internal void BleedApplied(Vector3 position) =>
             Slash?.StatusBurst(position + Vector3.up * .74f, new Color(.73f, .09f, .14f), .44f);
 
@@ -141,8 +161,79 @@ namespace Entity
         internal void OpeningStruck(Vector3 position) =>
             Slash?.StatusBurst(position + Vector3.up * .78f, new Color(.91f, .80f, .52f), .75f);
 
+        internal void OpeningSealStamped(Vector3 position)
+        {
+            if (combatVfx != null)
+            {
+                combatVfx.StampSeal(position);
+                StartCoroutine(PlaySealImpact(position));
+            }
+            else if (material != null) StartCoroutine(AnimateOpeningSeal(position));
+        }
+
+        private IEnumerator PlaySealImpact(Vector3 position)
+        {
+            yield return new WaitForSeconds(TimelineCombatVfx.SealDropTime);
+            HotGameEntry.Sound.PlayTimelineCue(EnumSound.SealImpact, position);
+        }
+
+        private IEnumerator AnimateOpeningSeal(Vector3 position)
+        {
+            var stamp = new GameObject("封隙印").transform;
+            stamp.SetParent(transform, false);
+            var border = CreateLine("印框", stamp, true);
+            border.useWorldSpace = false;
+            border.loop = true;
+            border.widthMultiplier = .05f;
+            border.positionCount = 4;
+            border.SetPositions(new[]
+            {
+                new Vector3(-.36f, -.36f), new Vector3(.36f, -.36f),
+                new Vector3(.36f, .36f), new Vector3(-.36f, .36f)
+            });
+            var mark = CreateLine("印纹", stamp, true);
+            mark.useWorldSpace = false;
+            mark.widthMultiplier = .045f;
+            mark.positionCount = 9;
+            mark.SetPositions(new[]
+            {
+                new Vector3(-.23f, .22f), new Vector3(.23f, .22f), new Vector3(.23f, -.22f),
+                new Vector3(-.23f, -.22f), new Vector3(-.23f, .08f), new Vector3(.08f, .08f),
+                new Vector3(.08f, -.08f), new Vector3(-.08f, -.08f), new Vector3(-.08f, .22f)
+            });
+            stamp.rotation = Quaternion.Euler(0, -16, 0);
+            var cinnabar = new Color(.94f, .25f, .15f, .9f);
+            border.startColor = border.endColor = mark.startColor = mark.endColor = cinnabar;
+            Vector3 ground = position + Vector3.up * .12f;
+            const float fallTime = .12f;
+            for (float age = 0; age < fallTime; age += Time.deltaTime)
+            {
+                float t = age / fallTime;
+                stamp.position = ground + Vector3.up * (.86f * (1f - t * t));
+                stamp.localScale = Vector3.one * Mathf.Lerp(1.22f, 1f, t);
+                yield return null;
+            }
+            stamp.position = ground;
+            stamp.localScale = Vector3.one;
+            Ring(position, .66f, .28f, .055f, cinnabar);
+            HotGameEntry.Sound.PlayTimelineCue(EnumSound.SealImpact, position);
+            const float holdTime = .42f;
+            for (float age = 0; age < holdTime; age += Time.deltaTime)
+            {
+                cinnabar.a = .96f * (1f - Mathf.SmoothStep(0, 1, age / holdTime));
+                border.startColor = border.endColor = mark.startColor = mark.endColor = cinnabar;
+                yield return null;
+            }
+            Destroy(stamp.gameObject);
+        }
+
         public void Spread(Vector3 from, Vector3 to)
         {
+            if (combatVfx != null)
+            {
+                combatVfx.FireSpread(from, to);
+                return;
+            }
             AddStroke(from + Vector3.up * .35f, to + Vector3.up * .35f, 0f,
                 Mathf.Clamp(Vector3.Distance(from, to) * .085f, .25f, .58f), .12f, Flame);
         }
@@ -152,7 +243,7 @@ namespace Entity
             Ring(position, .48f, .27f, .075f, new Color(.54f, .89f, 1f));
             if (Time.time < nextSwordChimeTime) return;
             nextSwordChimeTime = Time.time + .32f;
-            HotGameEntry.Sound.PlaySfxSoundThisFrame((int)EnumSound.GenFlySword, position);
+            HotGameEntry.Sound.PlayTimelineCue(EnumSound.GenFlySword, position);
         }
 
         internal LineRenderer WaterWarning(Transform owner, Vector3 origin, Vector3 direction,
@@ -179,34 +270,33 @@ namespace Entity
             return line;
         }
 
-        internal void WaterSweep(Vector3 origin, Vector3 direction, Vector3 side, float length, float halfWidth)
-        {
-            if (material != null) StartCoroutine(AnimateWaterSweep(origin, direction, side, length, halfWidth));
-        }
-
-        private IEnumerator AnimateWaterSweep(Vector3 origin, Vector3 direction, Vector3 side,
+        internal LineRenderer ReleaseUndertow(Transform owner, Vector3 origin, Vector3 forward,
             float length, float halfWidth)
         {
-            var line = CreateLine("逆流浪锋", transform, false);
+            HotGameEntry.Sound.PlayTimelineCue(EnumSound.WaterImpact, origin);
+            if (combatVfx != null)
+            {
+                combatVfx.Undertow(origin, forward, length, halfWidth);
+                return null;
+            }
+            if (material == null) return null;
+            var line = CreateLine("逆流浪锋", owner, false);
             line.positionCount = 9;
             line.widthMultiplier = .17f;
-            for (float age = 0f; age < .32f; age += Time.deltaTime)
+            return line;
+        }
+
+        internal static void UpdateWaterCrest(LineRenderer line, Vector3 center, Vector3 side, float halfWidth, float progress)
+        {
+            for (int i = 0; i < line.positionCount; i++)
             {
-                float progress = age / .32f;
-                Vector3 center = origin + direction * (length * progress);
-                for (int i = 0; i < line.positionCount; i++)
-                {
-                    float across = i / (float)(line.positionCount - 1) * 2f - 1f;
-                    float crest = 1f - across * across;
-                    line.SetPosition(i, center + side * (across * halfWidth) +
-                        Vector3.up * (.12f + crest * .22f));
-                }
-                var color = Water;
-                color.a = 1f - progress;
-                line.startColor = line.endColor = color;
-                yield return null;
+                float across = i / (float)(line.positionCount - 1) * 2f - 1f;
+                float crest = 1f - across * across;
+                line.SetPosition(i, center + side * (across * halfWidth) + Vector3.up * (.12f + crest * .22f));
             }
-            Destroy(line.gameObject);
+            var color = Water;
+            color.a = Mathf.Lerp(1f, .55f, progress);
+            line.startColor = line.endColor = color;
         }
 
         internal void WaterSplash(Vector3 position)
@@ -217,64 +307,226 @@ namespace Entity
 
         internal void WaterImpact(Vector3 position)
         {
-            HotGameEntry.Sound.PlaySfxSoundThisFrame((int)EnumSound.ConfirmTipShow, position);
+            HotGameEntry.Sound.PlayTimelineCue(EnumSound.WaterImpact, position);
             impulse.CreateEvent(position, new Vector3(.04f, -.08f, 0f));
         }
 
-        internal LineRenderer NamelessWarning(Transform owner, Vector3 origin, Vector3 direction,
-            float radius, float length)
-        {
-            return NamelessOutline(owner, origin, direction, radius, length, .065f,
-                new Color(.72f, .18f, .12f, .9f));
-        }
-
-        internal void NamelessImpact(Vector3 origin, Vector3 direction, float radius, float length, bool hit)
-        {
-            var cinnabar = new Color(.95f, .36f, .19f);
-            var outline = NamelessOutline(transform, origin, direction, radius, length, .18f, cinnabar);
-            if (outline != null) StartCoroutine(FadeNamelessOutline(outline, cinnabar));
-            if (length == 0f) Ring(origin, radius, .42f, .12f, StoneGold);
-            HotGameEntry.Sound.PlaySfxSoundThisFrame((int)EnumSound.ShortBoom, origin);
-            if (hit) impulse.CreateEvent(origin, new Vector3(.06f, -.16f, 0f));
-        }
-
-        private LineRenderer NamelessOutline(Transform parent, Vector3 origin, Vector3 direction, float radius,
-            float length, float width, Color color)
+        internal LineRenderer SaltSurgeWarning(Transform owner, Vector3 origin, Vector3 direction,
+            Vector3 side, float length, float halfWidth, bool drained)
         {
             if (material == null) return null;
-            var line = CreateLine(length > 0f ? "无名碑·封名裁线" : "无名碑·封山归墟", parent, true);
+            var line = CreateLine("抽潮·渠线", owner, true);
             line.loop = true;
-            line.widthMultiplier = width;
-            line.startColor = line.endColor = color;
-            origin += Vector3.up * .105f;
-            if (length > 0f)
-            {
-                var edge = Vector3.Cross(Vector3.up, direction) * radius;
-                var end = origin + direction * length;
-                line.positionCount = 4;
-                line.SetPositions(new[] { origin - edge, end - edge, end + edge, origin + edge });
-            }
-            else
-            {
-                line.positionCount = 36;
-                for (int i = 0; i < line.positionCount; i++)
-                {
-                    float angle = i * 2f * Mathf.PI / line.positionCount;
-                    line.SetPosition(i, origin + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius);
-                }
-            }
+            line.positionCount = 4;
+            var start = origin + Vector3.up * .09f;
+            var end = start + direction * length;
+            var edge = side * halfWidth;
+            line.SetPositions(new[] { start - edge, end - edge, end + edge, start + edge });
+            UpdateSaltSurgeWarning(line, 0f, drained);
+            Ring(origin, .8f, .32f, .085f, StoneGold);
             return line;
         }
 
-        private static IEnumerator FadeNamelessOutline(LineRenderer outline, Color color)
+        internal static void UpdateSaltSurgeWarning(LineRenderer line, float progress, bool drained)
         {
-            for (float age = 0f; age < .32f; age += Time.deltaTime)
+            var color = Color.Lerp(drained ? StoneDust : Water, StoneGold, Mathf.SmoothStep(0f, 1f, progress));
+            color.a = Mathf.Lerp(.55f, 1f, progress);
+            line.startColor = line.endColor = color;
+            line.widthMultiplier = Mathf.Lerp(.055f, .13f, progress);
+        }
+
+        internal void SaltSurgeRelease(Vector3 origin, Vector3 direction, Vector3 side,
+            float length, float halfWidth, bool drained)
+        {
+            if (material == null) return;
+            StartCoroutine(AnimateSaltSurge(origin, direction, side, length, halfWidth, drained));
+        }
+
+        private IEnumerator AnimateSaltSurge(Vector3 origin, Vector3 direction, Vector3 side,
+            float length, float halfWidth, bool drained)
+        {
+            var crest = CreateLine("抽潮·浪锋", transform, false);
+            crest.positionCount = 13;
+            const float duration = .33f;
+            for (float age = 0f; age < duration; age += Time.deltaTime)
             {
-                color.a = 1f - age / .32f;
-                outline.startColor = outline.endColor = color;
+                float t = age / duration;
+                float along = drained ? Mathf.Sqrt(t) : 1f - Mathf.Pow(t, .72f);
+                float height = drained ? .22f : .54f;
+                var center = origin + direction * (along * length);
+                crest.widthMultiplier = Mathf.Lerp(drained ? .17f : .32f, .05f, t);
+                var color = Color.Lerp(drained ? new Color(.71f, .76f, .68f) : Water, Color.white, .33f);
+                color.a = 1f - t;
+                crest.startColor = crest.endColor = color;
+                for (int i = 0; i < crest.positionCount; i++)
+                {
+                    float u = 2f * i / (crest.positionCount - 1) - 1f;
+                    crest.SetPosition(i, center + side * (u * halfWidth) +
+                        Vector3.up * (.08f + height * (1f - u * u)));
+                }
                 yield return null;
             }
-            Destroy(outline.gameObject);
+            Destroy(crest.gameObject);
+        }
+
+        internal void SaltSurgeImpact(Vector3 position, Vector3 direction, bool drained)
+        {
+            Ring(position, drained ? .75f : 1.15f, .24f, .14f, StoneGold);
+            Slash?.StatusBurst(position + Vector3.up * .35f, drained ? StoneGold : Water, 1.7f);
+            HotGameEntry.Sound.PlayTimelineCue(EnumSound.WaterImpact, position);
+            HotGameEntry.Sound.PlayTimelineCue(EnumSound.HeavyImpact, position);
+            impulse?.CreateEvent(position, (drained ? direction : -direction) * .08f + Vector3.down * .14f);
+        }
+
+        internal void SaltBiteImpact(Vector3 position)
+        {
+            Slash?.StatusBurst(position + Vector3.up * .55f, StoneGold, 1.1f);
+            HotGameEntry.Sound.PlayTimelineCue(EnumSound.HeavyImpact, position);
+        }
+
+        internal void SaltPullTrail(Vector3 from, Vector3 to)
+        {
+            if (material == null) return;
+            StartCoroutine(AnimateSaltPullTrail(from, to));
+        }
+
+        private IEnumerator AnimateSaltPullTrail(Vector3 from, Vector3 to)
+        {
+            var trail = CreateLine("盐渠·拖痕", transform, true);
+            trail.positionCount = 2;
+            var lift = Vector3.up * .13f;
+            trail.SetPosition(1, to + lift);
+            const float duration = .23f;
+            for (float age = 0f; age < duration; age += Time.deltaTime)
+            {
+                float t = age / duration;
+                trail.SetPosition(0, Vector3.Lerp(from, to, t * .8f) + lift);
+                FadeBrush(trail, Water, .24f, t, .95f);
+                yield return null;
+            }
+            Destroy(trail.gameObject);
+        }
+
+        internal LineRenderer NamelessWarning(Transform owner, TimelineNamelessSteleCast.Pattern pattern,
+            TimelineNamelessSteleCast.ImpactArea area, out LineRenderer buildup)
+        {
+            buildup = null;
+            if (material == null) return null;
+            var outline = NamelessOutline(owner, pattern, area);
+            buildup = CreateLine("无名碑·蓄势", outline.transform, true);
+            buildup.loop = area.Length <= 0f;
+            buildup.positionCount = buildup.loop ? area.OutlinePoints : 2;
+            UpdateNamelessWarning(outline, buildup, pattern, area, 0f);
+            return outline;
+        }
+
+        internal static void UpdateNamelessWarning(LineRenderer outline, LineRenderer buildup,
+            TimelineNamelessSteleCast.Pattern pattern, TimelineNamelessSteleCast.ImpactArea area, float progress)
+        {
+            var color = NamelessColor(pattern);
+            color.a = Mathf.Lerp(.60f, 1f, progress);
+            outline.startColor = outline.endColor = color;
+            outline.widthMultiplier = Mathf.Lerp(.047f, .095f, progress);
+
+            var lift = Vector3.up * .11f;
+            if (area.Length > 0f)
+            {
+                // The outline is the full hit corridor. Its center stroke shows the locked direction.
+                buildup.SetPosition(0, area.Origin + lift);
+                buildup.SetPosition(1, area.Origin + area.Forward * area.Length * progress + lift);
+                buildup.widthMultiplier = .17f;
+            }
+            else
+            {
+                float scale = pattern == TimelineNamelessSteleCast.Pattern.Seal
+                    ? Mathf.Lerp(.18f, .96f, progress * progress) : Mathf.Lerp(.90f, .22f, progress);
+                for (int i = 0; i < buildup.positionCount; i++)
+                    buildup.SetPosition(i, Vector3.Lerp(area.Origin, area.OutlinePoint(i), scale) + lift);
+                buildup.widthMultiplier = Mathf.Lerp(.04f, .15f, progress);
+            }
+            color.a *= .65f;
+            buildup.startColor = buildup.endColor = color;
+        }
+
+        internal void NamelessImpact(TimelineNamelessSteleCast.Pattern pattern,
+            TimelineNamelessSteleCast.ImpactArea area, bool hit)
+        {
+            bool seal = pattern == TimelineNamelessSteleCast.Pattern.Seal;
+            if (material != null)
+            {
+                var outline = NamelessOutline(transform, pattern, area);
+                var color = NamelessColor(pattern);
+                outline.widthMultiplier = seal ? .22f : .14f;
+                StartCoroutine(FadeCombatStroke(outline, color, seal ? .62f : .28f));
+
+                if (seal)
+                {
+                    // Eight fractures rise inside the same disk that applied damage.
+                    for (int i = 0; i < area.OutlinePoints; i += 6)
+                    {
+                        var end = area.OutlinePoint(i);
+                        var fracture = CreateLine("封山归墟·地脉", outline.transform, false);
+                        fracture.positionCount = 3;
+                        fracture.widthMultiplier = .095f;
+                        fracture.SetPosition(0, area.Origin + Vector3.up * .10f);
+                        fracture.SetPosition(1, Vector3.Lerp(area.Origin, end, .58f) + Vector3.up * .44f);
+                        fracture.SetPosition(2, end + Vector3.up * .10f);
+                        StartCoroutine(FadeCombatStroke(fracture, new Color(1f, .76f, .55f), .43f));
+                    }
+                }
+                else if (area.Length > 0f)
+                {
+                    var slash = CreateLine("封名裁线·碑光", outline.transform, true);
+                    slash.positionCount = 2;
+                    slash.widthMultiplier = area.Radius * 2f;
+                    slash.SetPosition(0, area.Origin + Vector3.up * .115f);
+                    slash.SetPosition(1, area.Origin + area.Forward * area.Length + Vector3.up * .115f);
+                    StartCoroutine(FadeCombatStroke(slash, color, .22f, .54f));
+                }
+                else
+                {
+                    Ring(area.Origin, area.Radius * .92f, .24f, .08f, StoneGold);
+                }
+            }
+
+            HotGameEntry.Sound.PlayTimelineCue(seal ? EnumSound.SealImpact : EnumSound.HeavyImpact, area.Origin);
+            if (hit || seal)
+                impulse.CreateEvent(area.Origin, seal ? new Vector3(.09f, -.21f, 0f) : new Vector3(.04f, -.11f, 0f));
+        }
+
+        private LineRenderer NamelessOutline(Transform parent, TimelineNamelessSteleCast.Pattern pattern,
+            TimelineNamelessSteleCast.ImpactArea area)
+        {
+            string name = pattern switch
+            {
+                TimelineNamelessSteleCast.Pattern.Smash => "无名碑·碎印冲击",
+                TimelineNamelessSteleCast.Pattern.Line => "无名碑·封名裁线",
+                _ => "无名碑·封山归墟"
+            };
+            var line = CreateLine(name, parent, true);
+            line.loop = true;
+            line.positionCount = area.OutlinePoints;
+            for (int i = 0; i < line.positionCount; i++)
+                line.SetPosition(i, area.OutlinePoint(i) + Vector3.up * .105f);
+            return line;
+        }
+
+        private static Color NamelessColor(TimelineNamelessSteleCast.Pattern pattern) => pattern switch
+        {
+            TimelineNamelessSteleCast.Pattern.Smash => new Color(1f, .69f, .30f),
+            TimelineNamelessSteleCast.Pattern.Line => new Color(.96f, .83f, .61f),
+            _ => new Color(1f, .32f, .25f)
+        };
+
+        private static IEnumerator FadeCombatStroke(LineRenderer line, Color color, float duration, float alpha = 1f)
+        {
+            for (float age = 0f; age < duration && line != null; age += Time.deltaTime)
+            {
+                color.a = alpha * (1f - age / duration);
+                line.startColor = line.endColor = color;
+                yield return null;
+            }
+            if (line != null) Destroy(line.gameObject);
         }
 
         internal void LightningTransfer(Vector3 from, Vector3 to)
@@ -305,7 +557,15 @@ namespace Entity
 
         internal void LightningStrike(Vector3 from, Vector3 to, int hop)
         {
-            if (material != null) StartCoroutine(AnimateLightningStrike(from, to, hop));
+            if (combatVfx != null)
+            {
+                combatVfx.LightningStrike(from, to, hop);
+                if (hop == 0) LightningImpact(to);
+            }
+            else if (material != null)
+            {
+                StartCoroutine(AnimateLightningStrike(from, to, hop));
+            }
         }
 
         private IEnumerator AnimateLightningStrike(Vector3 from, Vector3 to, int hop)
@@ -332,8 +592,7 @@ namespace Entity
             if (hop == 0)
             {
                 Ring(to + Vector3.up * .015f, .49f, .20f, .075f, ThunderSilver);
-                HotGameEntry.Sound.PlaySfxSoundThisFrame((int)EnumSound.ShortBoom, to);
-                impulse.CreateEvent(to, new Vector3(.035f, -.085f, 0f));
+                LightningImpact(to);
             }
             for (float age = 0f; age < .25f; age += Time.deltaTime)
             {
@@ -344,6 +603,12 @@ namespace Entity
             }
             Destroy(ink.gameObject);
             Destroy(core.gameObject);
+        }
+
+        private void LightningImpact(Vector3 position)
+        {
+            HotGameEntry.Sound.PlayTimelineCue(EnumSound.ThunderImpact, position);
+            impulse.CreateEvent(position, new Vector3(.035f, -.085f, 0f));
         }
 
         internal void LightningMark(Vector3 position, int count, float delay = 0f)
@@ -469,6 +734,9 @@ namespace Entity
 
         private void OnDestroy()
         {
+            if (shellShieldMesh != null) Destroy(shellShieldMesh);
+            if (lavaMesh != null) Destroy(lavaMesh);
+            if (lavaMaterial != null) Destroy(lavaMaterial);
             if (material != null) Destroy(material);
         }
     }

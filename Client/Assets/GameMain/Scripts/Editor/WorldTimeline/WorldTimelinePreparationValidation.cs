@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -47,72 +48,72 @@ public static class WorldTimelinePreparationValidation
                 case 0:
                     var menu = Object.FindFirstObjectByType<MainTitlePanelCtrl>();
                     if (menu == null || !menu.Available) return;
+                    var data = WorldTimelineTableConfig.Create();
+                    var lives = new List<SavedLife>();
+                    int[] items = { 8102, 8109, 8111, 8102, 8104 };
+                    for (int i = 0; i < items.Length; i++)
+                    {
+                        var character = data.Cultivators.Single(candidate => candidate.Item == items[i]);
+                        var sim = HexTimelineDemoFactory.Create(playerNode: character.Birth, cultivation: data.Cultivation,
+                            startingItem: character.Item, weaponAttack: character.Attack);
+                        if (i == 3) sim.SubmitPlayerAction(WorldAction.Wait());
+                        lives.Add(new SavedLife(i + 1, sim.RecordPlayerLife()));
+                    }
+                    WorldTimelineSaveStore.Save(Path.Combine(report.saveDirectory, "cultivator-lives.dat"), lives);
                     Click(menu, "_btnStart"); break;
                 case 1:
                     panel = Object.FindFirstObjectByType<WorldTimelinePreparationCtrl>();
                     if (panel == null || panel.Session == null) return;
                     session = panel.Session;
-                    Check(session.IsPreparing && session.Simulation == null, "首次开局先选人，不创建模拟");
-                    Check(session.PreparationCharacterCount == 10 && session.PreparationHistoryCount == 0, "十张修士卡与前世空状态");
-                    Check(session.SelectPreparationCharacter(4) && session.GetPreparationCharacter(4).Selected, "可切换修士与固定装备详情");
-                    Click(panel, "characters", 0, "button");
-                    Check(session.PreparationSelectedIndex == 0, "原生卡片 Button 正确绑定选择");
-                    ScreenCapture.CaptureScreenshot(Path.Combine(output, "SelectionEmpty.png")); break;
-                case 2: session.ReturnToMenu(); break;
-                case 3:
-                    if (Object.FindFirstObjectByType<WorldTimelineDebugView>() != null) return;
-                    var data = WorldTimelineTableConfig.Create();
-                    var lives = new List<SavedLife>();
-                    for (int i = 0; i < 12; i++)
-                    {
-                        var character = data.Cultivators[i % 10];
-                        var sim = HexTimelineDemoFactory.Create(playerNode: character.Birth, cultivation: data.Cultivation,
-                            startingItem: character.Item, weaponAttack: character.Attack);
-                        lives.Add(new SavedLife(i + 1, sim.RecordPlayerLife()));
-                    }
-                    WorldTimelineSaveStore.Save(Path.Combine(report.saveDirectory, "cultivator-lives.dat"), lives);
-                    Click(Object.FindFirstObjectByType<MainTitlePanelCtrl>(), "_btnStart"); break;
-                case 4:
-                    panel = Object.FindFirstObjectByType<WorldTimelinePreparationCtrl>();
-                    if (panel == null || panel.Session == null) return;
-                    session = panel.Session;
-                    Check(session.PreparationCycle == 2 && session.PreparationAvailableCount == 8, "第二轮已使用的两名修士禁用");
-                    Check(!session.SelectPreparationCharacter(0) && session.SelectPreparationCharacter(2), "规则层拒绝重复使用修士");
-                    Check(!session.SelectPreparationHistory(2, true), "本世不能同时作为前世登场");
-                    session.SelectPreparationHistory(0, true); session.SelectPreparationHistory(10, true);
-                    Check(session.PreparationSelectedCount == 1 && !session.GetPreparationHistory(0).Selected, "同一修士多条路线互斥");
-                    session.SelectPreparationHistory(3, true); session.SelectPreparationCharacter(3);
-                    Check(!session.GetPreparationHistory(3).Selected, "切换本世会取消同身份前世");
-                    session.SelectPreparationCharacter(2);
-                    Click(panel, "nextPage");
-                    Check(ReadButton(panel, "previousPage").interactable, "多页历史路线可翻页");
-                    Click(panel, "previousPage");
+                    Check(session.IsPreparing && session.Simulation == null, "选人时尚未创建模拟");
+                    Check(session.PreparationCharacterCount == 3 && session.PreparationHistoryCount == 4,
+                        "三个可选修士，重复前世归并");
+                    Check(session.PreparationCycle == 2 && session.PreparationAvailableCount == 2 &&
+                        !session.SelectPreparationCharacter(0), "本轮已使用的修士禁用");
+                    Check(session.SelectPreparationCharacter(1) && !session.GetPreparationHistory(0).JoinsRun,
+                        "选择孤松排除孤松的前世");
+                    Click(panel, "characters", 2, "button");
+                    Check(session.GetPreparationCharacter(2).Name == "祁墨" && session.PreparationSelectedIndex == 2,
+                        "祁墨的原生卡片可以选中");
+                    Check(session.PreparationCompanionCount == 3 && !session.GetPreparationHistory(1).JoinsRun &&
+                        session.GetPreparationHistory(0).JoinsRun && !ReadButton(panel, "clearHistories").gameObject.activeSelf,
+                        "切换本世后自动更新登场名单，清空按钮隐藏");
                     ScreenCapture.CaptureScreenshot(Path.Combine(output, "SelectionHistory.png")); break;
-                case 5: Click(panel, "begin"); break;
-                case 6:
+                case 2: Click(panel, "begin"); break;
+                case 3:
                     if (session.IsPreparing || Object.FindFirstObjectByType<WorldTimelinePanelCtrl>() == null) return;
-                    Check(session.Simulation.State.Year == 0 && session.PlayerName == "白溪", "开启轮回进入元年地图");
-                    Check(session.Simulation.State.Actors.Count == 3, "本世、天选和唯一选中前世同时载入");
-                    Check(session.Simulation.State.Actors[1].Items.Contains(8103), "初始道具从框架配置表载入");
+                    Check(session.Simulation.State.Year == 0 && session.PlayerName == "祁墨", "开启轮回进入元年地图");
+                    Check(session.Simulation.State.Actors.Count == 5, "本世、天选和三条合资格前世同时载入");
+                    var histories = session.Simulation.Histories.Select(history => history.Record).ToArray();
+                    Check(histories.Single(life => life.InitialItems.Contains(8102)).Actions.Count == 1 &&
+                        histories.Any(life => life.InitialItems.Contains(8104)), "保留最近的赤砾路线和旧角色的前世");
+                    Check(session.Simulation.State.Actors[1].Items.Contains(8111), "初始道具从框架配置表载入");
+                    Check(new[] { 28, 29, 30 }.All(session.Simulation.Stories.Config.Events.ContainsKey), "三条角色剧情已载入");
+                    var nodes = session.Simulation.State.Nodes;
+                    Check(session.LocationName(nodes[HexWorldMap.Id(-8, 2)]) == "廊下的废簿" &&
+                        session.LocationName(nodes[HexWorldMap.Id(0, -7)]) == "洗剑泉",
+                        "祁墨可看到自己的剧情节点，其他角色的节点保留地名");
                     ScreenCapture.CaptureScreenshot(Path.Combine(output, "MapStarted.png")); break;
-                case 7: session.ReturnToMenu(); break;
-                case 8:
+                case 4: session.ReturnToMenu(); break;
+                case 5:
                     if (Object.FindFirstObjectByType<WorldTimelineDebugView>() != null) return;
                     Check(WorldTimelineDebugView.HasUnfinishedRun, "未完成角色保存续玩存档");
                     Click(Object.FindFirstObjectByType<MainTitlePanelCtrl>(), "_btnContinue"); break;
-                case 9:
+                case 6:
                     session = Object.FindFirstObjectByType<WorldTimelineDebugView>();
                     if (session == null || session.IsPreparing || session.Simulation == null) return;
-                    Check(session.PlayerName == "白溪" && session.Simulation.State.Year == 0, "继续游戏绕过选人恢复同一角色");
-                    session.CultivateYears(40); break;
-                case 10:
+                    Check(session.PlayerName == "祁墨" && session.Simulation.State.Year == 0 &&
+                        session.Simulation.Histories.Count == 3, "续玩恢复同一角色与三条前世");
+                    typeof(WorldTimelineDebugView).GetMethod("Submit", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                        .Invoke(session, new object[] { WorldAction.Wait(40) }); break;
+                case 7:
                     if (session.IsBusy || !session.Simulation.State.IsEnded) return;
                     Click(Object.FindFirstObjectByType<WorldTimelinePanelCtrl>(), "nextLife"); break;
-                case 11:
+                case 8:
                     panel = Object.FindFirstObjectByType<WorldTimelinePreparationCtrl>();
                     if (panel == null || panel.Session == null) return;
                     session = panel.Session;
-                    Check(session.IsPreparing && session.GetPreparationCharacter(2).Used, "结算下一世重开选人并禁用刚使用的角色");
+                    Check(session.IsPreparing && session.PreparationAvailableCount == 3, "下一轮的三位角色重新可选");
                     Click(panel, "returnMenu"); break;
                 default: Finish(null); return;
             }

@@ -11,17 +11,21 @@ namespace WorldTimeline
 
         public static WorldSimulation Create(int? playerNode = null, int health = 220, int attack = 100, int period = 35,
             CultivationConfig cultivation = null, int talentSeed = 1, int initialLevel = 1, TalentProfile talents = null,
-            int startingItem = 0, int weaponAttack = 0, Action<WorldState> configureLocations = null, IWorldBattleResolver battle = null)
+            int startingItem = 0, int weaponAttack = 0, Action<WorldState> configureLocations = null, IWorldBattleResolver battle = null,
+            ChosenRouteStage[] chosenRoute = null, int? initialRitualDeadline = null)
         {
             var world = new WorldState(1);
             foreach (var pair in HexWorldMap.Create()) world.Nodes.Add(pair.Key, pair.Value);
             // Keep the relay corridor predictable; exploration elsewhere remains populated.
             for (int r = 1; r <= 10; r++) world.Nodes[HexWorldMap.Id(0, r)].MonsterHealth = 0;
-            for (int q = -10; q < 0; q++)
+            if (chosenRoute == null)
             {
-                var node = world.Nodes[HexWorldMap.Id(q, 0)];
-                node.MonsterHealth = q % 2 == 0 ? 60 + (q + 10) * 8 : 0;
-                node.MonsterAttack = 6 + q + 10;
+                for (int q = -10; q < 0; q++)
+                {
+                    var node = world.Nodes[HexWorldMap.Id(q, 0)];
+                    node.MonsterHealth = q % 2 == 0 ? 60 + (q + 10) * 8 : 0;
+                    node.MonsterAttack = 6 + q + 10;
+                }
             }
             world.Nodes[PlayerStart].MonsterHealth = 0;
             world.Nodes[HexWorldMap.Id(1, -10)].MonsterHealth = 0;
@@ -32,14 +36,48 @@ namespace WorldTimeline
             if (startingItem != 0) player.Items.Add(startingItem);
             player.Attack += weaponAttack;
             configureLocations?.Invoke(world);
+            if (chosenRoute != null) ConfigureRouteGuardians(world, chosenRoute);
             world.Actors.Add(1, player);
             var simulation = new WorldSimulation(world, battle, cultivation);
-            var chosen = new ActorState(1000, HexWorldMap.Id(-10, 0), 900, 100, 200);
+            var chosen = new ActorState(1000, chosenRoute?[0].NodeId ?? HexWorldMap.Id(-10, 0), 900, 100, 200);
             if (cultivation != null) CultivationSystem.Initialize(chosen, cultivation, TalentProfile.Generate(1000), Math.Min(3, cultivation.Levels.Count));
-            simulation.ConfigureChosen(chosen,
-                Enumerable.Range(-10, 11).Select(q => HexWorldMap.Id(q, 0)));
-            simulation.ConfigureFinalRitual(360, 30, period);
+            if (chosenRoute == null)
+            {
+                simulation.ConfigureChosen(chosen, Enumerable.Range(-10, 11).Select(q => HexWorldMap.Id(q, 0)));
+                simulation.ConfigureFinalRitual(360, 30, period, initialRitualDeadline);
+            }
+            else
+            {
+                simulation.ConfigureChosen(chosen, chosenRoute.Select(stage => stage.NodeId),
+                    travelYears: chosenRoute.Skip(1).Select(stage => stage.TravelYears));
+                var final = chosenRoute[chosenRoute.Length - 1];
+                simulation.ConfigureFinalRitual(final.GuardianHealth, final.GuardianAttack, final.RitualPeriod, initialRitualDeadline);
+            }
             return simulation;
+        }
+
+        private static void ConfigureRouteGuardians(WorldState world, ChosenRouteStage[] route)
+        {
+            if (route.Length < 2 || route.Any(stage => stage == null) ||
+                route.Select(stage => stage.NodeId).Distinct().Count() != route.Length)
+                throw new ArgumentException("The Chosen route needs at least two distinct locations.");
+            for (int i = 0; i < route.Length; i++)
+            {
+                var stage = route[i];
+                bool first = i == 0, final = i == route.Length - 1;
+                if (stage.Q < -HexWorldMap.Radius || stage.Q > HexWorldMap.Radius ||
+                    stage.R < -HexWorldMap.Radius || stage.R > HexWorldMap.Radius ||
+                    !world.Nodes.TryGetValue(stage.NodeId, out var node) ||
+                    (first ? stage.TravelYears != 0 || stage.GuardianCount != 0 : stage.TravelYears <= 0) ||
+                    (final ? stage.RitualPeriod <= 0 || stage.GuardianCount != 1 : stage.RitualPeriod != 0) ||
+                    stage.GuardianCount < 0 || stage.GuardianCount > 28 ||
+                    (stage.GuardianCount == 0 ? stage.GuardianHealth != 0 || stage.GuardianAttack != 0 :
+                        stage.GuardianHealth <= 0 || stage.GuardianAttack <= 0))
+                    throw new ArgumentException($"Invalid Chosen route stage {i + 1}.");
+                node.SetGuardianFormation(stage.GuardianAttack,
+                    Enumerable.Repeat(stage.GuardianHealth, stage.GuardianCount).ToArray());
+                node.GuardianAppearance = stage.GuardianAppearance;
+            }
         }
 
         public static LifeRecord CreateRelayRecord(int year, CultivationConfig cultivation = null)
