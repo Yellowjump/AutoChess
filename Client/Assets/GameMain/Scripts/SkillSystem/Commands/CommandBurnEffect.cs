@@ -116,7 +116,8 @@ namespace SkillSystem
         }
 #endif
 
-        internal static void Apply(EntityQizi caster, EntityQizi target, int layers, Skill source = null)
+        internal static void Apply(EntityQizi caster, EntityQizi target, int layers, Skill source = null,
+            WorldTimeline.ArtifactBattleOutput tinder = null)
         {
             if (layers <= 0) return;
             var row = GameEntry.DataTable.GetDataTable<DRBuff>("Buff")[BurnBuffId];
@@ -135,11 +136,12 @@ namespace SkillSystem
             }
             int attack = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
             int tick = Mathf.Max(1, (int)((long)attack * row.IntParam1 / 100));
-            for (int i = 0; i < layers; i++) burn.AddDamageLayer(tick, source);
+            for (int i = 0; i < layers; i++) burn.AddDamageLayer(tick, source, tinder);
+            if (tinder != null) tinder.TinderLayers += burn.StackCount - previousLayers;
             if (isNew)
             {
                 target.AddBuff(burn);
-                if (source != null)
+                if (source != null || tinder != null)
                     HotGameEntry.HeroManager.BurnVisuals?.Ignited(target.LogicPosition);
             }
             TimelineCaveHazards.OnBurnApplied(caster, target, previousLayers, burn);

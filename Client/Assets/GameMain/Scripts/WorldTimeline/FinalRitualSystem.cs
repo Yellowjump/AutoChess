@@ -63,7 +63,7 @@ namespace WorldTimeline
         }
 
         // Called only after the challenger wins the battle. Reset immediately restores the boss.
-        internal void BossDefeated(WorldState world, ActorState challenger, Action<WorldEvent> emit)
+        internal void BossDefeated(WorldState world, ActorState challenger, Action<WorldEvent> emit, bool applyBacklash = true)
         {
             var ritual = world.Ritual;
             if (challenger.Id == world.ChosenActorId)
@@ -82,6 +82,7 @@ namespace WorldTimeline
             RefreshBossAttack(world);
             emit(new WorldEvent(world.Year, WorldEventKind.RitualReset, challenger.Id, ritual.NodeId,
                 "Deadline year " + ritual.DeadlineYear));
+            if (!applyBacklash) return;
             challenger.Die();
             emit(new WorldEvent(world.Year, WorldEventKind.Died, challenger.Id, ritual.NodeId, "Ritual backlash"));
         }

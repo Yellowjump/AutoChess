@@ -29,7 +29,7 @@ namespace SkillSystem
             {
                 case Effect.ApplyBleed:
                     if (hit.SourceSkill?.IsBasicAttack == true && (int)hit.Target.GetAttribute(AttributeType.Hp).GetFinalValue() > 0)
-                        ApplyBleed(hit, source);
+                        ApplyBleed(hit.Caster, hit.Target, Param.Value, source);
                     break;
                 case Effect.Amplify:
                     if (hit.Target.HasBleeding)
@@ -40,19 +40,34 @@ namespace SkillSystem
                     {
                         var health = hit.Caster.GetAttribute(AttributeType.Hp);
                         int before = (int)health.GetFinalValue();
-                        health.AddNum((int)(hit.HealthLost * (long)Param.Value / 100));
+                        hit.Caster.ReceiveHealing((int)(hit.HealthLost * (long)Param.Value / 100));
                         EntityQizi.RecordBattleOutput(source, healing: (int)health.GetFinalValue() - before);
                     }
                     break;
             }
         }
 
-        private void ApplyBleed(CauseDamageData hit, Skill source)
+        internal static void OnMeridianHit(EntityQizi attacker, EntityQizi target, WorldTimeline.ArtifactBattleOutput output)
+        {
+            const int bleedId = 30201;
+            var bleed = target.FindBleedingBuff(bleedId);
+            if (bleed != null && bleed.TryConsumeMeridianLayers(out long damage))
+            {
+                output.MeridianBursts++;
+                output.MeridianBurstDamage += CommandCauseDamage.DealSecondaryDamage(target, damage);
+                return;
+            }
+            ApplyBleed(attacker, target, bleedId, artifact: output);
+            output.MeridianLayers++;
+        }
+
+        private static void ApplyBleed(EntityQizi caster, EntityQizi target, int id, Skill source = null,
+            WorldTimeline.ArtifactBattleOutput artifact = null)
         {
             var rows = GameEntry.DataTable.GetDataTable<DRBuff>("Buff");
             var templates = GameEntry.DataTable.GetDataTable<DRBuffTemplate>("BuffTemplate");
-            var row = rows[Param.Value];
-            var bleed = hit.Target.FindBleedingBuff(row.Id);
+            var row = rows[id];
+            var bleed = target.FindBleedingBuff(row.Id);
             bool isNew = bleed == null;
             if (isNew)
             {
@@ -60,14 +75,14 @@ namespace SkillSystem
                 templates[row.TemplateID].BuffTemplate.Clone(bleed);
                 bleed.BuffID = row.Id;
                 bleed.DurationMs = row.Duration;
-                bleed.Owner = hit.Target;
+                bleed.Owner = target;
             }
-            int attack = (int)hit.Caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
-            bleed.AddDamageLayer(Math.Max(1, (int)(attack * (long)row.IntParam1 / 100)), source);
+            int attack = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
+            bleed.AddDamageLayer(Math.Max(1, (int)(attack * (long)row.IntParam1 / 100)), source, artifact);
             if (isNew)
             {
-                hit.Target.AddBuff(bleed);
-                HotGameEntry.HeroManager.BurnVisuals?.BleedApplied(hit.Target.LogicPosition);
+                target.AddBuff(bleed);
+                HotGameEntry.HeroManager.BurnVisuals?.BleedApplied(target.LogicPosition);
             }
         }
 

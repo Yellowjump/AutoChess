@@ -26,33 +26,60 @@ namespace SkillSystem
                     {
                         continue;
                     }
-                    var caster = trigger.ParentTriggerList.ParentSkill.Caster;
+                    var skill = trigger.ParentTriggerList.ParentSkill;
                     int bulletId = CurBulletID.Value;
-                    var newBullet = HotGameEntry.HeroManager.CreateBullet(bulletId,
-                        caster.HasSwordRecall && bulletId is 6 or 7);
-                    newBullet.Caster = caster;
-                    newBullet.BelongCamp = newBullet.Caster.BelongCamp;
-                    newBullet.Target = oneTarget as EntityQizi;
-                    newBullet.Owner = trigger.ParentTriggerList.Owner;
-                    var forward = oneTarget.LogicPosition - newBullet.Owner.LogicPosition;
-                    var rotateQ = Quaternion.LookRotation(forward, Vector3.up);
-                    newBullet.LogicPosition = newBullet.Owner.LogicPosition + rotateQ * PosOffset.Value;
-                    if (BulletTrigger != null)
+                    var owner = trigger.ParentTriggerList.Owner;
+                    if (bulletId is 6 or 7 && !skill.ExtraSwordReleased && skill.Caster.BambooActive?.Invoke() == true)
                     {
-                        var newTriggerList = SkillFactory.CreateNewEmptyTriggerList();
-                        BulletTrigger.Clone(newTriggerList);
-                        newTriggerList.ParentSkill = trigger.ParentTriggerList.ParentSkill;
-                        newTriggerList.Owner = newBullet;
-                        newBullet.OwnerTriggerList = newTriggerList;
-                        newTriggerList.OnTrigger(TriggerType.OnActive);
+                        skill.ExtraSwordReleased = true;
+                        if (skill.SkillID == 8)
+                        {
+                            // Channel commands can belong to a short-lived buff. Keep the projectile template until recovery.
+                            skill.FinishingSword = (CommandCreateBullet)SkillFactory.CreateCommand(CommandType.CreateBullet);
+                            Clone(skill.FinishingSword);
+                        }
+                        else Launch(skill,bulletId,owner,oneTarget,trigger.ParentTriggerList.CombatCast);
                     }
-                    List<TableParamInt> paramIntArray = ListPool<TableParamInt>.Get();
-                    paramIntArray.Add(ParamInt1);
-                    newBullet.SetParamValue(paramIntArray);
-                    ListPool<TableParamInt>.Release(paramIntArray);
-                    newBullet.InitGObj();
+                    Launch(skill,bulletId,owner,oneTarget,trigger.ParentTriggerList.CombatCast);
                 }
             }
+        }
+
+        internal void FinishVolley(Skill skill)
+        {
+            var caster = skill.Caster;
+            if (caster == null || !caster.IsValid || caster.BambooActive?.Invoke() != true) return;
+            if (HotGameEntry.HeroManager.GetNearestTarget(caster,CampType.Enemy,out var aim,skill.SkillRange))
+                Launch(skill,CurBulletID.Value,caster,aim,skill.CombatCast);
+        }
+
+        private void Launch(Skill skill,int bulletId,EntityBase owner,EntityBase target,WorldTimeline.CombatCast combatCast)
+        {
+            var caster = skill.Caster;
+            var newBullet = HotGameEntry.HeroManager.CreateBullet(bulletId,
+                caster.HasSwordRecall && bulletId is 6 or 7);
+            newBullet.Caster = caster;
+            newBullet.BelongCamp = newBullet.Caster.BelongCamp;
+            newBullet.Target = target as EntityQizi;
+            newBullet.Owner = owner;
+            var forward = target.LogicPosition - newBullet.Owner.LogicPosition;
+            var rotateQ = Quaternion.LookRotation(forward, Vector3.up);
+            newBullet.LogicPosition = newBullet.Owner.LogicPosition + rotateQ * PosOffset.Value;
+            if (BulletTrigger != null)
+            {
+                var newTriggerList = SkillFactory.CreateNewEmptyTriggerList();
+                BulletTrigger.Clone(newTriggerList);
+                newTriggerList.ParentSkill = skill;
+                newTriggerList.CombatCast = combatCast;
+                newTriggerList.Owner = newBullet;
+                newBullet.OwnerTriggerList = newTriggerList;
+                newTriggerList.OnTrigger(TriggerType.OnActive);
+            }
+            List<TableParamInt> paramIntArray = ListPool<TableParamInt>.Get();
+            paramIntArray.Add(ParamInt1);
+            newBullet.SetParamValue(paramIntArray);
+            ListPool<TableParamInt>.Release(paramIntArray);
+            newBullet.InitGObj();
         }
 
         public override void Clone(CommandBase copy)

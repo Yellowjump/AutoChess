@@ -28,3 +28,4 @@ MonoBehaviour:
   - {fileID: -6649422510708814, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
   - {fileID: 4780058990054923755, guid: 209d149ba5318114eb54f9401e2143fc, type: 3}
   - {fileID: 21300000, guid: 6832649786e24297a4e903b933593eaa, type: 3}
+  TitleFont: {fileID: 11400000, guid: 6bb2c6bf064f37f4788e1c1e29b62b40, type: 2}

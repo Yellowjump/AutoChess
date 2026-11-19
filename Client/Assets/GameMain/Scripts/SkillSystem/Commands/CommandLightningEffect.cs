@@ -52,6 +52,20 @@ namespace SkillSystem
             }
         }
 
+        internal static void OnThunderBellHit(EntityQizi caster, EntityQizi primary, WorldTimeline.ArtifactBattleOutput output)
+        {
+            // Marks on an enemy can only be applied by members of the opposing camp.
+            bool marked = primary.LightningMarks is { Count: > 0 };
+            int attack = (int)caster.GetAttribute(AttributeType.AttackDamage).GetFinalValue();
+            int power = output.ThunderBellPower(marked, attack);
+            if (power == 0) return;
+            var next = Nearest(caster, primary, primary, null, JumpRangeSquared);
+            if (next == null) return;
+            HotGameEntry.HeroManager.BurnVisuals?.LightningStrike(primary.LogicPosition, next.LogicPosition, 1);
+            output.ThunderBellJumps++;
+            output.ThunderBellDamage += CommandCauseDamage.DealSecondaryDamage(next, power);
+        }
+
         private static bool AddMark(EntityQizi caster, EntityQizi target, int amount, float visualDelay = 0f)
         {
             if (amount <= 0) return false;

@@ -182,7 +182,7 @@ namespace UnityGameFramework.Runtime
                     int rowCount = Mathf.Min(shown - row * BadgesPerRow, BadgesPerRow);
                     badge.anchoredPosition = new Vector2((slot % BadgesPerRow - (rowCount - 1) * .5f) * 47f, row * 24f);
                     slot++;
-                    badge.GetChild(0).GetComponent<Text>().text = counts[i] > 99 ? "99+" : counts[i].ToString();
+                    badge.GetChild(0).GetComponent<Text>().text = i == 12 ? "!" : counts[i] > 99 ? "99+" : counts[i].ToString();
                 }
             }
 
@@ -227,10 +227,12 @@ namespace UnityGameFramework.Runtime
                 {
                     var atlas = Resources.Load<Texture2D>("BattleStatusBadges");
                     if (atlas == null) return null;
-                    int size = atlas.width / counts.Length;
+                    // The last badge reuses the opening glyph with a gold tint.
+                    const int atlasColumns = 12;
+                    int size = atlas.width / atlasColumns;
                     statusSprites = new Sprite[counts.Length];
                     for (int i = 0; i < statusSprites.Length; i++)
-                        statusSprites[i] = Sprite.Create(atlas, new Rect(i * size, 0, size, atlas.height), new Vector2(.5f, .5f));
+                        statusSprites[i] = Sprite.Create(atlas, new Rect((i < atlasColumns ? i : 3) * size, 0, size, atlas.height), new Vector2(.5f, .5f));
                 }
                 var row = NewRect(StatusRowName, HpBarObj.transform);
                 row.anchoredPosition = new Vector2(0f, 25f);
@@ -241,6 +243,7 @@ namespace UnityGameFramework.Runtime
                     badge.sizeDelta = new Vector2(44f, 22f);
                     var image = badge.gameObject.AddComponent<Image>();
                     image.sprite = statusSprites[i];
+                    if (i == 12) image.color = new Color(1f, .83f, .36f);
                     image.raycastTarget = false;
                     var number = NewRect("Stacks", badge);
                     number.sizeDelta = new Vector2(24f, 11f);
@@ -336,7 +339,7 @@ namespace UnityGameFramework.Runtime
         public class DamageNumber:IReference
         {
             public int num;
-            public bool IsShieldAbsorb;
+            public bool IsShieldAbsorb, IsCritical;
             public bool Playing = false;
             public EntityQizi Owner;
             public GameObject NumberObj;
@@ -351,7 +354,7 @@ namespace UnityGameFramework.Runtime
                 animDuration = -1;
                 allAnimDuration = -2;
                 num = 0;
-                IsShieldAbsorb = false;
+                IsShieldAbsorb = false; IsCritical = false;
                 TextSize = 0;
                 Owner = null;
                 HotGameEntry.HeroManager.ReleaseGameObject(DamageNumberPerfabPath, NumberObj);
@@ -387,18 +390,19 @@ namespace UnityGameFramework.Runtime
         private List<DamageNumber> WaitDmgNumberList = new List<DamageNumber>();
         private List<DamageNumber> PlayingDmgNumberList = new List<DamageNumber>();
         public void ShowDamageNum(CauseDamageData data, int? displayedDamage = null) =>
-            EnqueueCombatNumber(data.Target, displayedDamage ?? (int)data.DamageValue, false);
+            EnqueueCombatNumber(data.Target, displayedDamage ?? (int)data.DamageValue, false, data.CriticalHit);
 
         internal void ShowShieldAbsorbNum(EntityQizi target, int amount) =>
             EnqueueCombatNumber(target, amount, true);
 
-        private void EnqueueCombatNumber(EntityQizi target, int amount, bool shieldAbsorb)
+        private void EnqueueCombatNumber(EntityQizi target, int amount, bool shieldAbsorb, bool critical = false)
         {
             if (IsTimelineSimulation) return;
             var newDamageNumber = ReferencePool.Acquire<DamageNumber>();
             var numPerfabPath = DamageNumberPerfabPath;
             newDamageNumber.num = amount;
             newDamageNumber.IsShieldAbsorb = shieldAbsorb;
+            newDamageNumber.IsCritical = critical;
             newDamageNumber.Owner = target;
             newDamageNumber.targetPos = target.LogicPosition + Vector3.up * (shieldAbsorb ? .95f : .5f);
             WaitDmgNumberList.Add(newDamageNumber);
@@ -420,12 +424,15 @@ namespace UnityGameFramework.Runtime
                 oneDmg.NumberObj.transform.position = oneDmg.targetPos;
                 //设置 text
                 oneDmg.damageNumText = oneDmg.NumberObj.GetComponent<Text>();
-                oneDmg.damageNumText.text = oneDmg.IsShieldAbsorb ? "◇ " + oneDmg.num : oneDmg.num.ToString();
+                string prefix = oneDmg.IsShieldAbsorb ? "◇ " : string.Empty;
+                if (oneDmg.IsCritical)
+                    prefix = GameEntry.Localization.Language == GameFramework.Localization.Language.English ? "CRIT " : "暴击 ";
+                oneDmg.damageNumText.text = prefix + oneDmg.num;
                 oneDmg.TextSize = oneDmg.damageNumText.fontSize;
-                oneDmg.damageNumText.fontSize += 20;
+                oneDmg.damageNumText.fontSize += oneDmg.IsCritical ? 28 : 20;
                 oneDmg.damageNumText.color = oneDmg.IsShieldAbsorb
                     ? new Color(.22f, .90f, .91f)
-                    : new Color(190/255f,86/255f,11/255f);
+                    : oneDmg.IsCritical ? new Color(1f,.78f,.16f) : new Color(190/255f,86/255f,11/255f);
                 //设置动画参数
                 oneDmg.animDuration = 0f;
                 oneDmg.allAnimDuration = 0.8f;

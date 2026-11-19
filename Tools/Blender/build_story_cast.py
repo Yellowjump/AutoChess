@@ -19,8 +19,9 @@ if "--preview-only" not in sys.argv:
     for identity, _, _ in CAST:
         builder = str(Path(__file__).with_name("build_cultivator_sample.py"))
         expression = f"import runpy; runpy.run_path({builder!r}, init_globals={{'CHARACTER': {identity!r}}})"
-        subprocess.run([bpy.app.binary_path, "--background", "--python-expr", expression], check=True)
+        subprocess.run([bpy.app.binary_path, "--background", "--python-exit-code", "1", "--python-expr", expression], check=True)
 
+bpy.context.preferences.filepaths.save_version = 0
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
 font = bpy.data.fonts.load("C:/Windows/Fonts/msyh.ttc")
@@ -74,4 +75,8 @@ scene.render.resolution_y = 1080
 scene.render.resolution_percentage = 100
 scene.render.filepath = str(SOURCE / "StoryCast_Preview.png")
 bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE / "StoryCast.blend"))
+# Publish only a complete frame; Blender on Windows may fail to truncate an existing PNG.
+preview = Path(scene.render.filepath)
+scene.render.filepath = str(preview.with_suffix(".render.png"))
 bpy.ops.render.render(write_still=True)
+Path(scene.render.filepath).replace(preview)

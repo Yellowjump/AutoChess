@@ -10,6 +10,12 @@ namespace Entity.Bullet
 {
     public class BulletBase:EntityBase,IReference
     {
+        internal System.Action<EntityQizi> ArtifactSwordHit;
+        protected void Hit(EntityQizi target)
+        {
+            ArtifactSwordHit?.Invoke(target);
+            OwnerTriggerList?.OnTrigger(TriggerType.OnBulletHitTarget,target);
+        }
         public int BulletID;
         public EntityQizi Caster;//创建者
         public EntityBase Owner;//持有者也就是 子弹发射的地方
@@ -47,7 +53,7 @@ namespace Entity.Bullet
 
         public virtual void OnHitTarget(EntityQizi target)
         {
-            OwnerTriggerList?.OnTrigger(TriggerType.OnBulletHitTarget,target);
+            Hit(target);
             OnDead();
         }
 
@@ -61,6 +67,7 @@ namespace Entity.Bullet
         public virtual void Clear()
         {
             HotGameEntry.HeroManager.ReleaseBulletGameObject(BulletID,GObj,m_GetObjCallback);
+            ArtifactSwordHit = null;
             BulletID = 0;
             GObj = null;
             IsValid = true;

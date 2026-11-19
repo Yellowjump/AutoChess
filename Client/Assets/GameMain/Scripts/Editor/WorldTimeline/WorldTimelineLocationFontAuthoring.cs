@@ -47,22 +47,30 @@ public static class WorldTimelineLocationFontAuthoring
         // Use one page so the prefab can share the same font material for every detail label.
         var baked = TMP_FontAsset.CreateFontAsset(source, 56, 7, GlyphRenderMode.SDFAA,
             2048, 2048, AtlasPopulationMode.Dynamic, false);
+        SaveStaticFont(baked, characters, FontPath);
+    }
+
+    internal static TMP_FontAsset SaveStaticFont(TMP_FontAsset baked, string characters, string path, TMP_FontAsset fallback = null)
+    {
+        string name = Path.GetFileNameWithoutExtension(path);
         var atlas = baked.atlasTexture;
         var material = baked.material;
         try
         {
-            if (!baked.TryAddCharacters(characters, out string missing) || !baked.HasCharacters(characters))
-                throw new InvalidOperationException("Could not bake all location characters. Missing: " + missing);
+            baked.TryAddCharacters(characters, out string missing);
+            if (!string.IsNullOrEmpty(missing) && (fallback == null || !missing.All(c => fallback.HasCharacter(c, true))))
+                throw new InvalidOperationException("Could not bake all characters. Missing: " + missing);
 
             baked.atlasPopulationMode = AtlasPopulationMode.Static;
-            baked.name = "WorldTimelineLocation SDF";
-            atlas.name = "WorldTimelineLocation Atlas";
-            material.name = "WorldTimelineLocation Material";
+            baked.name = name;
+            baked.fallbackFontAssetTable = fallback == null ? new List<TMP_FontAsset>() : new List<TMP_FontAsset> { fallback };
+            atlas.name = name + " Atlas";
+            material.name = name + " Material";
 
-            var existing = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+            var existing = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
             if (existing == null)
             {
-                AssetDatabase.CreateAsset(baked, FontPath);
+                AssetDatabase.CreateAsset(baked, path);
                 AssetDatabase.AddObjectToAsset(atlas, baked);
                 AssetDatabase.AddObjectToAsset(material, baked);
             }
@@ -83,16 +91,23 @@ public static class WorldTimelineLocationFontAuthoring
             }
 
             AssetDatabase.SaveAssets();
-            AssetDatabase.ImportAsset(FontPath, ImportAssetOptions.ForceSynchronousImport);
-            var saved = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+            var saved = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
             saved.ReadFontAssetDefinition();
-            if (saved.atlasPopulationMode != AtlasPopulationMode.Static || !saved.HasCharacters(characters))
-                throw new InvalidOperationException("The saved location font failed glyph coverage validation.");
+            if (saved.atlasPopulationMode != AtlasPopulationMode.Static || !characters.All(c => saved.HasCharacter(c, true)))
+                throw new InvalidOperationException("The saved font failed glyph coverage validation: " + path);
 
-            Debug.Log($"Baked and verified {characters.Length} location characters in {FontPath}.");
+            Debug.Log($"Baked and verified {characters.Length} characters in {path}.");
+            return saved;
         }
         finally
         {
+            // TMP destroys its atlas and material with the font. Detach the saved sub-assets first.
+            if (baked != null && !EditorUtility.IsPersistent(baked))
+            {
+                baked.atlasTextures = Array.Empty<Texture2D>();
+                baked.material = null;
+            }
             foreach (var obj in new UnityEngine.Object[] { baked, material, atlas })
                 if (obj != null && !EditorUtility.IsPersistent(obj))
                     UnityEngine.Object.DestroyImmediate(obj);

@@ -1,5 +1,5 @@
 using static WorldTimelineDebug.WorldTimelineDebugView;
-﻿using System;
+using System;
 using System.Collections;
 using System.Linq;
 using TMPro;
@@ -24,7 +24,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     [SerializeField] private ScrollRect locationArrivalScroll;
     [SerializeField] private Button relayNotice;
     [SerializeField] private Image healthFill, experienceFill, ritualFill, locationArt;
-    [SerializeField] private Button move, cultivate, cultivateFive, wait, disguise, join;
+    [SerializeField] private Button move, cultivate, rest, wait, disguise, join;
     [SerializeField] private Button observeStep, observeToggle, speed, nextLife, returnMenu;
     [SerializeField] private Button overview, focusPlayer, focusChosen, zoomIn, zoomOut;
     [SerializeField] private Button roles, history, logs, growth, closePopup, previousPage, nextPage;
@@ -34,6 +34,16 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     [SerializeField] private Button[] actorButtons;
     [SerializeField] private TMP_Text[] actorLabels;
     private WorldTimelineDebugView view;
+    private RectTransform hudFrame, journeyCard;
+    private int displayedLeader = -2;
+    private Image leaderPortrait;
+    private Sprite originalPortrait;
+    private readonly TMP_Text[] companionCards = new TMP_Text[ExpeditionParty.Capacity - 1];
+    private bool restoreDebugger;
+    private Vector2 lastHudSize;
+    private RectTransform[] locationRows;
+    private bool compactLocation;
+    private TMP_Text rosterLabel, recruitmentLabel;
     private Button expeditionButton;
     private Button recruitButton;
     private GameObject companionStageCard;
@@ -49,6 +59,8 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     private bool locationOpen, offerLanternDetour;
     private int arrivalNodeId;
     private GameObject mapLegend;
+    private readonly System.Collections.Generic.List<(MapMarkerKind? Kind, Image Background, TMP_Text Label)> legendRows = new();
+    private MapMarkerKind? displayedFilter;
     private TMP_Text moveLabel, cultivateLabel;
     private TMP_FontAsset regularLocationHintFont;
     private TMP_Text nextLifeLabel;
@@ -86,7 +98,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         regularLocationHintFont = hint.font;
         nextLifeLabel = nextLife.GetComponentInChildren<TMP_Text>(true);
         regularNextLife = nextLifeLabel.text;
-        regularMove = moveLabel.text;
+        regularMove = TimelineText("Timeline_UI_DetailMove");
         regularCultivate = cultivateLabel.text;
         regularMoveColor = moveLabel.color;
         regularCultivateColor = cultivateLabel.color;
@@ -94,6 +106,9 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         BuildMapLegend();
         BuildExpeditionButton();
         BuildCompanionStageCard();
+        ArrangeMapHud();
+        leaderPortrait = heroName.transform.parent.Find("CultivatorPortrait").GetComponent<Image>();
+        originalPortrait = leaderPortrait.sprite;
         BindOpeningPreview(move, 1);
         BindOpeningPreview(cultivate, 2);
         move.onClick.AddListener(() =>
@@ -106,9 +121,12 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
             if (view.OpeningOfferRoutes) view.SelectOpeningRoute(true);
             else if (offerLanternDetour) view.TakeLanternDetour();
         });
-        cultivateFive.GetComponentInChildren<TMP_Text>(true).text = "成长来源";
+        var restLabel = rest.GetComponentInChildren<TMP_Text>(true);
+        restLabel.font = cultivateLabel.font;
+        restLabel.text = $"休整一年\n全队气血 +{ExpeditionParty.RestPercent}%";
+        rest.onClick.AddListener(() => view.RestYear());
         growth.GetComponentInChildren<TMP_Text>(true).text = "成长";
-        cultivateFive.onClick.AddListener(() => OpenPopup(3));
+
         wait.onClick.AddListener(() =>
         {
             if (view.OpeningActive) view.StayAtOpeningStop();
@@ -148,11 +166,16 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
             GameEntry.UI.CloseUIForm(UIForm);
             return;
         }
+        restoreDebugger = HotGameEntry.Debugger != null && HotGameEntry.Debugger.ActiveWindow;
+        if (restoreDebugger) HotGameEntry.Debugger.ActiveWindow = false;
         view.UsesPrefabHud = true;
         view.BattleFormationPresenter = PresentExpeditionFormation;
+        view.PastInvitationPresenter = PresentPastInvitation;
+        view.SuccessorPresenter = PresentSuccessor;
         view.TeamRewardPresenter=()=>ExpeditionRewardPanel.Present(view,moveLabel.font);
         view.EquipmentServicePresenter=()=>ExpeditionWorkshopPanel.Present(view,moveLabel.font);
         view.Closed += OnSessionClosed;
+        RefreshMapLegend();
         locationOpen = false;
         arrivalNodeId = 0;
         selectedTechnique = 0;
@@ -168,6 +191,8 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         if (view != null)
         {
             view.BattleFormationPresenter = null;
+            view.PastInvitationPresenter = null;
+            view.SuccessorPresenter = null;
             view.TeamRewardPresenter=null;
             view.EquipmentServicePresenter=null;
             view.ExpeditionPanelOpen = false;
@@ -176,6 +201,8 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
             view.UsesPrefabHud = false;
         }
         view = null;
+        if (restoreDebugger && HotGameEntry.Debugger != null) HotGameEntry.Debugger.ActiveWindow = true;
+        restoreDebugger = false;
         base.OnClose(isShutdown, userData);
     }
 
@@ -189,7 +216,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     public void OpenEquipment()
     {
         if (view == null || view.IsPreparing || view.IsBusy || view.InventoryOpen) return;
-        if(view.Expedition?.Equipment.Modern!=true)return;
+        if (!CanInteractWithMap || view.Expedition?.Equipment.Modern != true || !view.Expedition.Owns(view.Expedition.LeaderId)) return;
         ClearHover();
         ExpeditionEquipmentPanel.Open(view,moveLabel.font,RefreshDisplay);
     }
@@ -245,28 +272,24 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         bool showMap = state == DisplayState.Map && (view == null || !view.InventoryOpen && !view.ExpeditionPanelOpen);
         expeditionButton.gameObject.SetActive(showMap && view?.Expedition != null && !popup.activeSelf);
         recruitButton.gameObject.SetActive(expeditionButton.gameObject.activeSelf);
-        if (view?.Expedition != null)
-        {
-            expeditionButton.GetComponentInChildren<TMP_Text>().text = $"队伍·同伴  {view.Expedition.DeployedCount}/3";
-            expeditionButton.interactable = !view.IsBusy && view.Simulation.WaitingForPlayer;
-            recruitButton.GetComponentInChildren<TMP_Text>().text = view.PendingVanguard.HasValue
-                ? "盾卫首战 · 查看关卡" : "同伴关卡 · 查看地图";
-            recruitButton.interactable = expeditionButton.interactable;
-        }
         foreach (var section in mapSections) section.SetActive(showMap);
         locationSection.SetActive(showMap && locationOpen);
+        journeyCard.gameObject.SetActive(showMap && !locationOpen && !string.IsNullOrWhiteSpace(notice.text));
         mapLegend.SetActive(showMap && view != null && !view.OpeningActive && !popup.activeSelf);
+        if (mapLegend.activeSelf && displayedFilter != view.MapMarkerFilter) RefreshMapLegend();
     }
 
     private void BuildExpeditionButton()
     {
-        recruitButton = CreateMapButton("同伴关卡", -170, 360, new Color(.61f, .40f, .14f));
-        expeditionButton = CreateMapButton("队伍·同伴", 180, 300, new Color(.19f, .38f, .32f));
+        recruitButton = CreateMapButton("同伴关卡", 212, 186, new Color(.61f, .40f, .14f));
+        expeditionButton = CreateMapButton("队伍·同伴", 28, 178, new Color(.19f, .38f, .32f));
+        rosterLabel = expeditionButton.GetComponentInChildren<TMP_Text>();
+        recruitmentLabel = recruitButton.GetComponentInChildren<TMP_Text>();
         recruitButton.onClick.AddListener(() =>
         {
             if (!CanInteractWithMap || !view.Simulation.WaitingForPlayer) return;
             if (view.FocusVanguard()) { ShowLocationDetails(true); return; }
-            var next = new[] { 0, 2, 3, 1 }.Where(candidate => view.Expedition.RecruitmentSites.ContainsKey(candidate) &&
+            var next = new[] { 0, 2, 3, 1, ExpeditionParty.SandSite, ExpeditionParty.TideSite }.Where(candidate => view.Expedition.RecruitmentSites.ContainsKey(candidate) &&
                 !view.Expedition.HasRecruited(candidate)).Select(candidate => (int?)candidate).FirstOrDefault();
             if (next is int role && view.FocusRecruitmentSite(role)) ShowLocationDetails(true);
             else OpenExpedition();
@@ -278,11 +301,13 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
             var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
             var rect = (RectTransform)go.transform;
             rect.SetParent(transform, false);
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f, 1);
-            rect.anchoredPosition = new Vector2(x, -110);
-            rect.sizeDelta = new Vector2(width, 64);
+            rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.up;
+            rect.anchoredPosition = new Vector2(x, -114);
+            rect.sizeDelta = new Vector2(width, 52);
             go.GetComponent<Image>().color = color;
             var button = go.GetComponent<Button>();
+            button.targetGraphic = go.GetComponent<Image>();
+            go.layer = gameObject.layer;
             var label = Instantiate(moveLabel, rect);
             label.rectTransform.anchorMin = Vector2.zero; label.rectTransform.anchorMax = Vector2.one;
             label.rectTransform.offsetMin = label.rectTransform.offsetMax = Vector2.zero;
@@ -292,6 +317,132 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
             BindButtonClickSound(button);
             return button;
         }
+    }
+
+    private void ArrangeMapHud()
+    {
+        var root = (RectTransform)transform;
+        hudFrame = MapLegendRect("MapHud", root, Vector2.zero, Vector2.zero);
+        hudFrame.anchorMin = hudFrame.anchorMax = hudFrame.pivot = new Vector2(.5f, .5f);
+        // Leave the map input stretched across the actual viewport.
+        foreach (var section in root.Cast<Transform>().ToArray())
+            if (section != hudFrame && section.GetComponent<WorldTimelineMapInput>() == null)
+                section.SetParent(hudFrame, false);
+        ResizeHud();
+
+        var commandDock = (RectTransform)move.transform.parent;
+        commandDock.anchorMin = commandDock.anchorMax = commandDock.pivot = new Vector2(.5f, 0);
+        commandDock.anchoredPosition = new Vector2(0, 28);
+        commandDock.sizeDelta = new Vector2(914, 80);
+        ArrangeRow(commandDock, 16, 12);
+        var observationDock = (RectTransform)status.transform.parent;
+        observationDock.anchorMin = observationDock.anchorMax = observationDock.pivot = commandDock.pivot;
+        observationDock.anchoredPosition = new Vector2(0, 115);
+        ArrangeRow(observationDock, 14, 5);
+        status.gameObject.AddComponent<LayoutElement>().flexibleWidth = 2;
+        status.enableAutoSizing = true;
+        status.fontSizeMin = 16;
+        status.fontSizeMax = status.fontSize;
+        BuildJourneyCard();
+        var playerCard = heroName.transform.parent;
+        for (int i = 0; i < companionCards.Length; i++)
+        {
+            var strip = MapLegendRect("DeployedCompanion" + i, (RectTransform)playerCard,
+                new Vector2(0, (i + 1) * 50), new Vector2(472, 46));
+            strip.gameObject.AddComponent<Image>().color = new Color(.13f, .19f, .19f, .96f);
+            var label = Instantiate(heroLevel, strip);
+            label.rectTransform.anchorMin = Vector2.zero;
+            label.rectTransform.anchorMax = Vector2.one;
+            label.rectTransform.offsetMin = new Vector2(16, 2);
+            label.rectTransform.offsetMax = new Vector2(-16, -2);
+            label.alignment = TextAlignmentOptions.MidlineLeft;
+            label.fontSize = 22;
+            label.raycastTarget = false;
+            companionCards[i] = label;
+            strip.gameObject.SetActive(false);
+        }
+        popup.transform.SetAsLastSibling();
+        FitLabel(closeLocation.GetComponentInChildren<TMP_Text>());
+        var rewardSpace = Vector2.up * 28;
+        loot.rectTransform.sizeDelta += rewardSpace;
+        hint.rectTransform.anchoredPosition -= rewardSpace;
+        ((RectTransform)locationSection.transform).sizeDelta += rewardSpace;
+        locationRows = locationSection.transform.Cast<RectTransform>()
+            .Where(row => row.anchoredPosition.y <= -300).ToArray();
+    }
+
+    private void BuildJourneyCard()
+    {
+        journeyCard = MapLegendRect("Journey", hudFrame, new Vector2(-28, -114), new Vector2(416, 198));
+        journeyCard.anchorMin = journeyCard.anchorMax = journeyCard.pivot = Vector2.one;
+        var paper = journeyCard.gameObject.AddComponent<Image>();
+        var source = locationSection.GetComponent<Image>();
+        paper.sprite = source.sprite;
+        paper.type = source.type;
+        paper.pixelsPerUnitMultiplier = source.pixelsPerUnitMultiplier;
+        paper.color = source.color;
+        paper.raycastTarget = false;
+
+        var title = Instantiate(locationName, journeyCard);
+        title.text = "当前行程";
+        title.rectTransform.anchoredPosition = new Vector2(26, -16);
+        title.rectTransform.sizeDelta = new Vector2(360, 46);
+        title.fontSize = 30;
+        title.raycastTarget = false;
+
+        var guide = notice.rectTransform;
+        guide.SetParent(journeyCard, false);
+        guide.anchorMin = Vector2.zero;
+        guide.anchorMax = Vector2.one;
+        guide.offsetMin = new Vector2(26, 18);
+        guide.offsetMax = new Vector2(-26, -65);
+        notice.alignment = TextAlignmentOptions.TopLeft;
+        notice.enableAutoSizing = true;
+        notice.fontSizeMin = 16;
+        notice.fontSizeMax = 23;
+    }
+
+    private static void ArrangeRow(RectTransform row, int horizontalPadding, int verticalPadding)
+    {
+        var layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+        layout.padding = new RectOffset(horizontalPadding, horizontalPadding, verticalPadding, verticalPadding);
+        layout.spacing = 8;
+        layout.childControlWidth = layout.childControlHeight = true;
+        layout.childForceExpandWidth = layout.childForceExpandHeight = true;
+        foreach (var button in row.GetComponentsInChildren<Button>(true))
+            FitLabel(button.GetComponentInChildren<TMP_Text>(true));
+    }
+
+    private static void FitLabel(TMP_Text label)
+    {
+        var rect = label.rectTransform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = new Vector2(6, 2);
+        rect.offsetMax = new Vector2(-6, -2);
+        label.fontSizeMax = label.fontSize;
+        label.fontSizeMin = Mathf.Min(16, label.fontSize);
+        label.enableAutoSizing = true;
+        label.alignment = TextAlignmentOptions.Center;
+    }
+
+    private void ResizeHud()
+    {
+        Vector2 size = ((RectTransform)transform).rect.size;
+        if (size == lastHudSize || size.x <= 0 || size.y <= 0) return;
+        lastHudSize = size;
+        float scale = Mathf.Min(size.x / 1920f, size.y / 1080f);
+        hudFrame.localScale = Vector3.one * scale;
+        hudFrame.sizeDelta = size / scale;
+    }
+
+    private void SetLocationCompact(bool compact)
+    {
+        if (compactLocation == compact) return;
+        compactLocation = compact;
+        var offset = Vector2.up * (compact ? 172 : -172);
+        foreach (var row in locationRows) row.anchoredPosition += offset;
+        ((RectTransform)locationSection.transform).sizeDelta -= offset;
     }
 
     private void BuildCompanionStageCard()
@@ -330,7 +481,6 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
 
     public void OpenExpedition()
     {
-        if(view?.Expedition?.Equipment.Enabled==true){OpenEquipment();return;}
         if (view?.Expedition == null || !CanInteractWithMap || !view.Simulation.WaitingForPlayer || expeditionPanel != null) return;
         ClearHover();
         expeditionPanel = ExpeditionPartyPanel.Open(view, moveLabel.font, false, view.SelectedNodeId,
@@ -339,6 +489,81 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
                 if (view.FocusRecruitmentSite(role)) ShowLocationDetails(true);
             });
         RefreshDisplay();
+    }
+
+    private IEnumerator PresentPastInvitation(int id,Action<bool> choose)
+    {
+        var actor = view.Simulation.State.Actors[id];
+        var former = view.Simulation.State.ExpeditionFor(id);
+        var gear = former.Equipment;
+        var bag = view.InvitationBag(id).ToArray();
+        var lines = bag.GroupBy(i => i).OrderBy(g => g.Key.Definition).ThenBy(g => g.Key.Level)
+            .Select(g => $"{ExpeditionEquipment.Definition(g.Key.Definition).Name}  {g.Key.Level}阶  ×{g.Count()}").ToArray();
+        var root = ExpeditionPaperUi.Canvas("前世相遇");
+        var ui = new ExpeditionPaperUi(root,moveLabel.font);
+        bool? accepted = null;
+        try
+        {
+            ui.Box("Backdrop",0,0,1920,1080,new Color(.08f,.09f,.08f,.85f));
+            ui.Page("Invitation",290,175,1340,730);
+            ui.Text("Heading","遇见" + view.ClearOwner(id),365,225,1200,76,48);
+            ui.Line(365,318,1190);
+            ui.Text("Member","加入的前世主角",365,355,520,52,33);
+            ui.Text("Stats",$"{view.ClearOwner(id)}  ·  {actor.Level}级\n气血 {actor.Health} / {actor.MaxHealth}    攻击 {actor.CombatAttack}",365,425,575,101,29);
+            var worn = gear.Instances.Where(i => i.Owner == 0).OrderBy(i => i.Slot)
+                .Select(i => i.Definition.Name + " " + i.Level + "阶").ToList();
+            if (gear.Innate(id) is ArtifactDefinition innate) worn.Insert(0,innate.Name + " " + gear.InnateLevel(id) + "阶");
+            ui.Text("Loadout","随身穿戴  " + string.Join("、",worn),365,538,540,140,24);
+            ui.Text("Assets","带入的全队资产",982,355,550,52,33);
+            ui.Text("Stones",$"灵石 {gear.SpiritStones}    入囊装备 {bag.Length}件",982,425,560,50,28);
+            var listed = ui.Text("Bag","",982,489,540,174,24);
+            int page = 0;
+            int pages = Math.Max(1,(lines.Length+4)/5);
+            void Display() => listed.text = lines.Length == 0 ? "行囊空" : string.Join("\n",lines.Skip(page*5).Take(5));
+            Display();
+            if (pages > 1)
+            {
+                ui.Button("Previous","上一页",982,662,145,46,()=>{ page=(page+pages-1)%pages; Display(); });
+                ui.Button("Next","下一页",1147,662,145,46,()=>{ page=(page+1)%pages; Display(); });
+            }
+            ui.Text("Companions","其余存活的关卡同伴会带着当前气血返回各自关卡。",365,706,1190,49,24);
+            ui.Button("Decline","不邀请，迎战",785,795,310,68,()=>accepted=false);
+            ui.Button("Accept","邀请主角入队",1120,795,390,68,()=>accepted=true,ExpeditionPaperUi.Jade);
+            while (!accepted.HasValue) yield return null;
+            choose(accepted.Value);
+        }
+        finally { ui.Dispose(); Destroy(root); }
+    }
+
+    private IEnumerator PresentSuccessor(System.Collections.Generic.IReadOnlyList<int> candidates, Action<int> choose)
+    {
+        var root = ExpeditionPaperUi.Canvas("选择接任队长");
+        var ui = new ExpeditionPaperUi(root, moveLabel.font);
+        int selected = -1;
+        try
+        {
+            ui.Box("Backdrop",0,0,1920,1080,new Color(.08f,.09f,.08f,.85f));
+            ui.Page("Succession",350,255,1220,570);
+            ui.Text("Heading","选择接任队长",425,315,1060,72,50);
+            ui.Text("Loss",view.PlayerName + "已阵亡，装备已放入行囊。选择一位存活的同伴继续带队。",425,411,1070,80,28);
+            int columns = Math.Min(4, candidates.Count);
+            float width = 1050f / columns;
+            int height = candidates.Count > columns ? 100 : 204;
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                int role = candidates[i];
+                var button = ui.Button("Successor" + role, "",425 + (i%columns)*width,525 + (i/columns)*(height+8),width-14,height,()=>{ selected=role; root.SetActive(false); },ExpeditionPaperUi.Jade);
+                ui.Picture("Portrait",view.PastPortrait(view.Expedition,role) ?? ui.Portrait(role),8,12,70,height-28,button.transform);
+                var label = button.GetComponentInChildren<TMP_Text>();
+                label.rectTransform.anchorMin = Vector2.zero; label.rectTransform.anchorMax = Vector2.one;
+                label.rectTransform.offsetMin = new Vector2(78,8); label.rectTransform.offsetMax = new Vector2(-8,-8);
+                label.fontSize = 25;
+                label.text = view.CompanionName(role) + "\n气血 " + view.Expedition.CompanionHealth(role) + "/" + view.Expedition.CompanionMaxHealth(role);
+            }
+            while (selected < 0) yield return null;
+            choose(selected);
+        }
+        finally { ui.Dispose(); Destroy(root); }
     }
 
     private IEnumerator PresentExpeditionFormation(int nodeId)
@@ -350,23 +575,45 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
 
     private void BuildMapLegend()
     {
-        var card = MapLegendRect("关卡图例", (RectTransform)transform, new Vector2(28, -162), new Vector2(370, 173));
+        var card = MapLegendRect("关卡图例", (RectTransform)transform, new Vector2(28, -174), new Vector2(370, 203));
         mapLegend = card.gameObject;
         var paper = mapLegend.AddComponent<Image>();
         paper.color = new Color(.98f, .95f, .88f, .92f);
-        paper.raycastTarget = false;
+        paper.raycastTarget = true;
         var border = mapLegend.AddComponent<Outline>();
         border.effectColor = new Color(.37f, .31f, .21f, .35f);
         border.effectDistance = new Vector2(1f, -1f);
         mapLegend.SetActive(false);
-        for (int i = 0; i < WorldTimelineMapMarker.Count; i++)
+        var ownership = MapLegendRect("首通归属",card,new Vector2(12,-165),new Vector2(346,30)).gameObject.AddComponent<TextMeshProUGUI>();
+        ownership.font = cultivateLabel.font;
+        ownership.fontSize = 16;
+        ownership.color = ExpeditionPaperUi.Ink;
+        ownership.text = "首通圆环 · 青色为当世，其余与队伍路线同色";
+        ownership.raycastTarget = false;
+        // Keep the existing legend order and use the spare cell for the reset action.
+        for (int i = 0; i <= WorldTimelineMapMarker.Count; i++)
         {
-            var kind = i == 0 ? MapMarkerKind.Companion : (MapMarkerKind)i;
-            var position = new Vector2(12 + i / 5 * 178, -9 - i % 5 * 31);
-            var icon = MapLegendRect(kind.ToString(), card, position, new Vector2(26, 26)).gameObject.AddComponent<Image>();
-            icon.sprite = WorldTimelineMapMarker.GetSprite(kind);
-            icon.raycastTarget = false;
-            var label = MapLegendRect("Label", card, position + new Vector2(31, 0), new Vector2(143, 26))
+            MapMarkerKind? kind = i == WorldTimelineMapMarker.Count ? null :
+                i == 0 ? MapMarkerKind.Companion : (MapMarkerKind)i;
+            var position = new Vector2(8 + i / 5 * 178, -8 - i % 5 * 31);
+            var row = MapLegendRect(kind?.ToString() ?? "All", card, position, new Vector2(174, 29));
+            var background = row.gameObject.AddComponent<Image>();
+            var button = row.gameObject.AddComponent<Button>();
+            button.targetGraphic = background;
+            button.onClick.AddListener(() =>
+            {
+                if (!CanInteractWithMap || view.OpeningActive) return;
+                view.MapMarkerFilter = view.MapMarkerFilter == kind ? null : kind;
+                RefreshMapLegend();
+            });
+            BindButtonClickSound(button);
+            if (kind.HasValue)
+            {
+                var icon = MapLegendRect("Icon", row, new Vector2(4, -2), new Vector2(25, 25)).gameObject.AddComponent<Image>();
+                icon.sprite = WorldTimelineMapMarker.GetSprite(kind.Value);
+                icon.raycastTarget = false;
+            }
+            var label = MapLegendRect("Label", row, new Vector2(kind.HasValue ? 35 : 0, 0), new Vector2(kind.HasValue ? 136 : 174, 29))
                 .gameObject.AddComponent<TextMeshProUGUI>();
             label.font = cultivateLabel.font;
             label.fontSize = 18;
@@ -374,10 +621,21 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
             label.fontSizeMax = 18;
             label.enableAutoSizing = true;
             label.textWrappingMode = TextWrappingModes.NoWrap;
-            label.alignment = TextAlignmentOptions.MidlineLeft;
-            label.color = new Color(.27f, .24f, .19f);
+            label.alignment = kind.HasValue ? TextAlignmentOptions.MidlineLeft : TextAlignmentOptions.Center;
             label.raycastTarget = false;
-            label.text = kind == MapMarkerKind.Companion ? "同伴关卡" : TimelineText(WorldTimelineMapMarker.LabelKey(kind));
+            label.text = !kind.HasValue ? "显示全部" : kind == MapMarkerKind.Companion ? "同伴关卡" : TimelineText(WorldTimelineMapMarker.LabelKey(kind.Value));
+            legendRows.Add((kind, background, label));
+        }
+    }
+
+    private void RefreshMapLegend()
+    {
+        displayedFilter = view.MapMarkerFilter;
+        foreach (var row in legendRows)
+        {
+            bool selected = row.Kind == displayedFilter;
+            row.Background.color = selected ? new Color(.23f, .36f, .30f) : new Color(.83f, .79f, .68f, .24f);
+            row.Label.color = selected ? new Color(.99f, .96f, .85f) : new Color(.27f, .24f, .19f);
         }
     }
 
@@ -412,12 +670,20 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     {
         base.OnUpdate(elapseSeconds, realElapseSeconds);
         if (view == null) return;
+        ResizeHud();
         SetDisplayState(ReadDisplayState());
         bool forecastChanged = locationOpen && CanInteractWithMap && view.UpdateLanternForecast();
         if (!locationOpen || !CanInteractWithMap) view.CancelLanternForecast();
         if (!forecastChanged && Time.unscaledTime < nextRefresh) return;
         nextRefresh = Time.unscaledTime + .15f;
         Refresh();
+    }
+
+    private static void SetGauge(Image gauge, float fraction)
+    {
+        gauge.fillAmount = fraction;
+        if (gauge.sprite == null)
+            gauge.rectTransform.localScale = new Vector3(fraction, 1f, 1f);
     }
 
     private void Refresh()
@@ -432,25 +698,44 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         ritualFill.transform.parent.gameObject.SetActive(!showingBattle && !view.OpeningActive);
         int ritualDuration = world.Ritual.DeadlineYear == world.Ritual.InitialDeadlineYear
             ? world.Ritual.InitialDeadlineYear : world.Ritual.PeriodYears;
-        ritualFill.fillAmount = Mathf.Clamp01(remaining / (float)ritualDuration);
+        SetGauge(ritualFill, Mathf.Clamp01(remaining / (float)ritualDuration));
         status.text = view.CurrentStatus+(view.Expedition?.Equipment.Modern==true?$"  ·  灵石 {player.LegacySpiritStones}":"");
         returnMenu.interactable = !view.IsBusy;
         roles.interactable = history.interactable = logs.interactable = !view.InventoryOpen && !view.IsBusy;
+        RefreshCompanionCards(player);
+        int leaderRole = view.Expedition?.LeaderRole ?? -1;
+        if (displayedLeader != leaderRole)
+        {
+            displayedLeader = leaderRole;
+            leaderPortrait.sprite = leaderRole < 0 ? originalPortrait : leaderRole >= ExpeditionParty.StageRoles ? view.PastPortrait(view.Expedition,leaderRole) : Resources.Load<Sprite>("FormationReference/Detail" +
+                new[] { "Shield", "Swordsman", "Archer", "Healer" }[leaderRole]);
+        }
         heroName.text = view.PlayerName;
         heroLevel.text = TimelineText("Timeline_UI_Realm", player.Level);
         health.text = $"{Math.Max(0, player.Health)} / {player.MaxHealth}";
-        healthFill.fillAmount = Mathf.Clamp01(player.Health / (float)player.MaxHealth);
+        SetGauge(healthFill, Mathf.Clamp01(player.Health / (float)player.MaxHealth));
         var levels = view.Simulation.Cultivation;
         long required = levels.GetLevel(player.Level).ExperienceToNext;
         experience.text = required == 0 ? TimelineText("Timeline_UI_75") : $"{player.LevelExperience} / {required}";
-        experienceFill.fillAmount = required == 0 ? 1 : Mathf.Clamp01(player.LevelExperience / (float)required);
+        SetGauge(experienceFill, required == 0 ? 1 : Mathf.Clamp01(player.LevelExperience / (float)required));
         if (locationOpen) RefreshLocationDetails();
         var mapNotice = view.MapNotice;
         notice.text = mapNotice.Text;
         if (relayNotice != null)
-            relayNotice.interactable = notice.raycastTarget = mapNotice.NodeId.HasValue && CanInteractWithMap;
+            relayNotice.interactable = notice.raycastTarget = mapNotice.NodeId.HasValue && CanInteractWithMap && !view.OpeningActive;
         bool waiting = view.Simulation.WaitingForPlayer && !view.IsBusy;
-        cultivateFive.interactable = waiting;
+        if (view.Expedition != null)
+        {
+            rosterLabel.text = $"队伍  {view.Expedition.DeployedCount}/{ExpeditionParty.Capacity}";
+            recruitmentLabel.text = view.PendingVanguard.HasValue ? "定位首战关卡" : "查找同伴";
+            expeditionButton.interactable = recruitButton.interactable = waiting;
+        }
+        focusChosen.interactable = world.ChosenActorId.HasValue && !view.IsBusy;
+        bool observing = view.CanObserve || view.AutoObserving;
+        observeStep.gameObject.SetActive(observing);
+        observeToggle.gameObject.SetActive(observing);
+        speed.gameObject.SetActive(observing);
+        equipment?.gameObject.SetActive(player.IsAlive && view.Expedition?.Equipment.Modern == true);
         bool canJoin = waiting && view.Simulation.CanJoinChosen(world.PlayerActorId);
         join.interactable = canJoin;
         disguise.interactable = waiting && !canJoin;
@@ -465,6 +750,28 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         if (popup.activeSelf) RefreshPopup();
     }
 
+    private void RefreshCompanionCards(ActorState player)
+    {
+        int index = 0;
+        var party = view.Expedition;
+        if (party != null)
+        {
+            var cells = party.Cells;
+            for (int cell = 0; cell < cells.Count; cell++)
+            {
+                if (!ExpeditionParty.IsCompanion(cells[cell])) continue;
+                int role = ExpeditionParty.Role(cells[cell]);
+                var label = companionCards[index++];
+                string readiness = player.IsAlive && !view.Simulation.State.IsEnded
+                    ? $"气血 {party.CompanionHealth(role)}/{party.CompanionMaxHealth(role)}" : "本世已结束";
+                label.text = $"{(cell < 3 ? "前排" : "后排")}   {view.CompanionName(role)}     {readiness}";
+                label.transform.parent.gameObject.SetActive(true);
+            }
+        }
+        for (; index < companionCards.Length; index++)
+            companionCards[index].transform.parent.gameObject.SetActive(false);
+    }
+
     private void RefreshLocationDetails()
     {
         var node = view.SelectedLocation;
@@ -473,27 +780,34 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         locationKind.font = cultivateLabel.font;
         locationHealth.text = node.MonsterHealth > 0 ? node.MonsterHealth.ToString() : TimelineText("Timeline_UI_76");
         locationAttack.text = node.MonsterHealth > 0 ? node.MonsterAttack.ToString() : "—";
-        locationSpirit.text = view.Expedition?.HasExplored(node.Id) == true ? "已领取"
+        locationSpirit.text = node.FirstClear.HasValue || view.Expedition?.HasExplored(node.Id) == true ? "已领取"
             : "+" + (view.Expedition?.ExplorationExperience(view.Simulation.Cultivation) ?? 0);
         locationArt.enabled = !node.CompanionStageRole.HasValue && (node.MonsterHealth > 0 || view.HasClearedGuardian(node));
         companionStageCard.SetActive(node.CompanionStageRole.HasValue);
+        SetLocationCompact(!locationArt.enabled && !companionStageCard.activeSelf);
         if (node.CompanionStageRole is int role)
         {
             bool owned = view.Expedition.HasRecruited(role);
             bool local = view.Simulation.State.Actors[view.Simulation.State.PlayerActorId].NodeId == node.Id;
             companionStageText.text = "<b>" + view.CompanionName(role) + "</b>\n" +
-                (owned ? "已完成招募\n" + (view.Expedition.CellOf(ExpeditionParty.FirstCompanionId + role) >= 0
-                    ? "已上阵 · 可前往队伍调整站位" : "已加入候补 · 可前往队伍上阵") : view.RecruitmentConditions(role));
+                (view.Expedition.IsFallen(role) ? "已阵亡 · 本世无法再次招募" : owned ? "已完成招募\n" + (view.Expedition.CellOf(view.Expedition.FieldId(view.Expedition.SiteMember(role))) >= 0
+                    ? "已上阵 · 战前可调整站位" : "已加入候补 · 战前可安排上阵") : view.RecruitmentConditions(role));
+            int? stageOwner = view.Simulation.State.StageOwner(role);
+            bool claimedByOther = stageOwner.HasValue && stageOwner != view.Expedition.LeaderId;
+            int? returned = view.Simulation.State.ReturnedStageHealth(role);
+            if (returned > 0) companionStageText.text += "\n归来气血 " + returned;
+            if (claimedByOther) companionStageText.text = view.CompanionName(role) + "\n已随" + view.ClearOwner(stageOwner.Value) + "同行";
+            if (returned == 0) companionStageText.text = view.CompanionName(role) + "\n已阵亡";
             companionStageRecruit.interactable = CanInteractWithMap && view.Expedition.CanRecruit(role);
-            companionStageAction.text = owned ? "已招募" : !local ? "请先抵达此关卡" : node.MonsterHealth > 0
+            companionStageAction.text = returned == 0 ? "已阵亡" : claimedByOther ? "已被招募" : view.Expedition.IsFallen(role) ? "已阵亡" : owned ? "已招募" : !local ? "请先抵达此关卡" : node.MonsterHealth > 0
                 ? "请先清除守军" : !view.Expedition.RecruitmentConditionMet(role) ? "招募条件未满足"
                 : view.Expedition.DeployedCount >= ExpeditionParty.Capacity ? "招募至候补" : "招募入队";
-            if (cultivateLabel.font.atlasPopulationMode == AtlasPopulationMode.Dynamic)
-                cultivateLabel.font.TryAddCharacters(companionStageText.text + companionStageAction.text + locationKind.text);
-            companionStageText.ForceMeshUpdate();
-            companionStageAction.ForceMeshUpdate();
         }
-        loot.text = view.LocationLoot(node);
+        loot.font = cultivateLabel.font;
+        loot.enableAutoSizing = true;
+        loot.fontSizeMin = 14;
+        loot.fontSizeMax = 22;
+        loot.text = view.MapRewardDetails(node);
         bool showingForecast = view.CanForecastLanternShoal;
         hint.font = showingForecast ? cultivateLabel.font : regularLocationHintFont;
         hint.text = showingForecast ? LanternForecastHint() : view.LocationHint;
@@ -502,9 +816,6 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         if (!string.IsNullOrEmpty(recruitment) || view.Expedition?.ProgressionEnabled == true)
         {
             hint.font = cultivateLabel.font;
-            if (hint.font.atlasPopulationMode == AtlasPopulationMode.Dynamic)
-                hint.font.TryAddCharacters(hint.text + "首次历练已领取");
-            hint.ForceMeshUpdate();
         }
         if (locationArrivals != null && locationArrivalScroll != null)
         {
@@ -558,11 +869,13 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         moveLabel.color = offerRoutes || highRisk ? new Color(1f, .71f, .54f) : regularMoveColor;
         cultivateLabel.color = offerRoutes || detourYears.HasValue ? WorldTimelineBoard.OpeningDetourColor : regularCultivateColor;
         cultivate.gameObject.SetActive(offerRoutes || detourYears.HasValue);
-        cultivateFive.gameObject.SetActive(!opening);
-        wait.gameObject.SetActive(!opening || atStop);
-        disguise.gameObject.SetActive(!opening);
-        join.gameObject.SetActive(!opening);
-        nextLife.gameObject.SetActive(!opening);
+        rest.gameObject.SetActive(!opening && view.Simulation.WaitingForPlayer && view.Expedition?.AttritionEnabled == true);
+        rest.interactable = view.CanRest;
+        wait.gameObject.SetActive(view.Simulation.WaitingForPlayer && (!opening || atStop));
+        disguise.gameObject.SetActive(!opening && view.Simulation.WaitingForPlayer && !view.Simulation.CanJoinChosen(view.Simulation.State.PlayerActorId));
+        join.gameObject.SetActive(!opening && view.Simulation.WaitingForPlayer && view.Simulation.CanJoinChosen(view.Simulation.State.PlayerActorId));
+        nextLife.gameObject.SetActive(!opening && (view.Simulation.State.IsEnded || view.CanRecordPersonalLife));
+        move.gameObject.SetActive(opening || view.Simulation.WaitingForPlayer);
         move.interactable = opening ? view.CanAdvanceOpening(false)
             : view.CanMoveSelected && (!locationOpen || !view.LanternForecastPending);
         cultivate.interactable = offerRoutes ? view.CanAdvanceOpening(true) : waiting && detourYears.HasValue;
@@ -594,9 +907,11 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
 
     private void RefreshPopup()
     {
-        roleList.SetActive(popupTab == 0);
-        textPage.SetActive(popupTab != 0);
-        if (popupTab == 0 && techniqueRoute != null) techniqueRoute.gameObject.SetActive(false);
+        bool historyRows = popupTab == 1 && view.Simulation.Histories.Count > 0;
+        bool actorRows = popupTab == 0 || historyRows;
+        roleList.SetActive(actorRows);
+        textPage.SetActive(!actorRows);
+        if (actorRows && techniqueRoute != null) techniqueRoute.gameObject.SetActive(false);
         popupTitle.text = TimelineText(popupTab switch
         {
             0 => "Timeline_UI_33",
@@ -606,21 +921,37 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
             _ => "Timeline_UI_78"
         });
         if (popupTab == 3) popupTitle.text = "成长与属性";
-        if (popupTab == 0)
+        if (actorRows)
         {
-            previousPage.gameObject.SetActive(false);
-            nextPage.gameObject.SetActive(false);
-            pageLabel.gameObject.SetActive(false);
-            var actors = view.Simulation.State.Actors.Values.Where(actor => actor.IsAlive).OrderBy(actor => actor.Id).ToArray();
+            var world = view.Simulation.State;
+            var actors = historyRows ? view.Simulation.Histories.Select(h => world.Actors[h.ActorId]).ToArray()
+                : world.Actors.Values.Where(actor => actor.OnWorldMap).OrderBy(actor => actor.Id).ToArray();
+            var inactive = historyRows ? view.InactiveHistoryNames() : Array.Empty<string>();
+            int rowCount = actors.Length + inactive.Length;
+            int pages = Math.Max(1,(rowCount + actorButtons.Length - 1)/actorButtons.Length);
+            page = Math.Min(page,pages-1);
+            previousPage.gameObject.SetActive(pages>1);
+            nextPage.gameObject.SetActive(pages>1);
+            pageLabel.gameObject.SetActive(pages>1);
+            previousPage.interactable = page>0;
+            nextPage.interactable = page+1<pages;
+            pageLabel.text = $"{page+1} / {pages}";
             for (int i = 0; i < actorButtons.Length; i++)
             {
                 var button = actorButtons[i];
-                button.gameObject.SetActive(i < actors.Length);
-                if (i >= actors.Length) continue;
-                var actor = actors[i];
-                var point = ActorMapProjection.Position(view.Simulation.State, actor);
+                int index = page*actorButtons.Length+i;
+                button.gameObject.SetActive(index < rowCount);
+                if (index >= rowCount) continue;
+                if (index >= actors.Length)
+                {
+                    button.interactable = false;
+                    actorLabels[i].text = TimelineText("Timeline_UI_108") + inactive[index-actors.Length];
+                    continue;
+                }
+                var actor = actors[index];
+                button.interactable = actor.OnWorldMap;
                 string name = actor.Id == view.Simulation.State.PlayerActorId ? view.PlayerName
-                    : actor.Id == view.Simulation.State.ChosenActorId ? TimelineText("Timeline_UI_79") : TimelineText("Timeline_UI_PastLife", actor.Id);
+                    : actor.Id == view.Simulation.State.ChosenActorId ? TimelineText("Timeline_UI_79") : view.ClearOwner(actor.Id);
                 bool showRouteColor = actor.Id != view.Simulation.State.PlayerActorId;
                 actorLabels[i].richText = showRouteColor;
                 if (showRouteColor)
@@ -628,7 +959,13 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
                     var tint = WorldTimelineBoard.ActorRouteColor(actor.Id, view.Simulation.State.ChosenActorId);
                     name = $"<color=#{ColorUtility.ToHtmlStringRGB(tint)}>{name}</color>";
                 }
-                actorLabels[i].text = TimelineText("Timeline_UI_ActorSummary", name, actor.Level, actor.Health, actor.Attack, point.Q, point.R);
+                actorLabels[i].font = cultivateLabel.font;
+                actorLabels[i].enableAutoSizing = true;
+                actorLabels[i].fontSizeMin = 15;
+                actorLabels[i].fontSizeMax = 21;
+                actorLabels[i].text = actor.OnWorldMap
+                    ? $"{name} · {actor.Level}级 · 气血 {actor.Health}/{actor.MaxHealth}\n{view.MapActorLocation(actor)}"
+                    : name + " · " + view.MapActorLocation(actor);
                 button.onClick.RemoveAllListeners();
                 BindButtonClickSound(button);
                 int id = actor.Id;

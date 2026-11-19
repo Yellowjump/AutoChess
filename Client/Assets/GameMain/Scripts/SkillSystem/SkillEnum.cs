@@ -291,6 +291,10 @@ namespace SkillSystem
         CooldownReduce = 7,
         [InspectorName("攻击力")]
         AttackDamage = 8,
+        [InspectorName("暴击率")]
+        CriticalChance = 9,
+        [InspectorName("暴击伤害")]
+        CriticalDamage = 10,
     }
     public enum BulletType
     {

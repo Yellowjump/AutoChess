@@ -253,6 +253,10 @@ namespace WorldTimeline
                 PendingResult = result;
                 while (PendingResult != null) yield return null;
             }
+            if (world.SharedClears && world.Nodes[nodeId].FirstClear?.ActorId != actor.Id) yield break;
+            if (world.SharedClears && actor.Id != world.PlayerActorId &&
+                world.ExpeditionFor(actor.Id)?.Equipment is ExpeditionEquipment gear && gear.VisitEvent(nodeId))
+                gear.Upgrade(-1,true);
             if(actor.Id==world.PlayerActorId && world.Expedition?.Equipment.Modern==true && ExpeditionService!=null)
                 yield return ExpeditionService(context);
         }
@@ -353,8 +357,11 @@ namespace WorldTimeline
                 healing = amount;
                 rewards.Add(Config.Format("Timeline_UI_StoryHealed", "恢复气血 {0}", amount));
             }
-            if (option.Experience > 0)
+            var location = world.Nodes[context.Definition.NodeId];
+            if (option.Experience > 0 && (!world.SharedClears || context.Definition.IsMerchant ||
+                (location.FirstClear?.ActorId == actor.Id && !location.StoryExperienceTaken)))
             {
+                location.StoryExperienceTaken = true;
                 CultivationSystem.Gain(actor, option.Experience, growth, world.Year, emit, world, "story");
                 rewards.Add(Config.Format("Timeline_UI_StoryExperience", "经验 +{0}", option.Experience));
             }

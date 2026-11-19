@@ -46,7 +46,8 @@ namespace WorldTimeline
                 int attack = config.GrowAttack(actor.BaseAttack, actor.Talents.Attack, next.Level);
                 int lifespan = checked(actor.BaseLifespan + next.Range(GrowthAttribute.Lifespan, actor.Talents.Lifespan.Grade).SampleAtLevel(actor.Talents.Lifespan, next.Level));
                 // Keep missing health and any external bonuses; a breakthrough is not a full heal.
-                actor.Health = checked(actor.Health + health - actor.BaseHealth);
+                if (world?.ExpeditionFor(actor.Id)?.AttritionEnabled != true)
+                    actor.Health = checked(actor.Health + health - actor.BaseHealth);
                 actor.MaxHealth = checked(actor.MaxHealth + health - actor.BaseHealth);
                 actor.Attack = checked(actor.Attack + attack - actor.BaseAttack);
                 actor.Lifespan = checked(actor.Lifespan + lifespan - actor.BaseLifespan);

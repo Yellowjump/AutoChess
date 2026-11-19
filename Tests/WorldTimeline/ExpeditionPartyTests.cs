@@ -8,6 +8,427 @@ internal static partial class WorldSimulationTests
 {
     private static void RunExpeditionTests()
     {
+        RunCampaignRoutes();
+        foreach (bool accept in new[] {true,false})
+        {
+            Run(accept ? "Map invitation merges exactly one protagonist, current assets and wounded stage survivors" :
+                "Declining a historical invitation leaves both inventories separate and resolves the encounter", () =>
+            {
+                var sim = ExpeditionFixture(new RecordedPartyResolver(),birth:3);
+                var world = sim.State;
+                var player = world.Expedition;
+                player.EnableAttrition(); player.Equipment.EnableArtifacts();
+                world.PlayableBirths.UnionWith(new[]{1,3});
+                sim.EnablePastInvitations();
+                var source = ExpeditionFixture();
+                source.SubmitPlayerAction(WorldAction.Move(2));
+                var history = sim.AddHistory(source.RecordPlayerLife(),10);
+                var former = world.ExpeditionFor(10);
+                var gear = former.Equipment;
+                former.Recruit(0);
+                var worn = gear.Instances.First(i=>i.DefinitionId==5);
+                gear.EquipInstance(10,worn.Id,4); gear.Upgrade(worn.Id,true);
+                var allyGear = gear.Instances.First(i=>i.DefinitionId==7);
+                gear.EquipInstance(former.CompanionId(0),allyGear.Id,2);
+                gear.Upgrade(allyGear.Id,true);
+                former.SetCompanionHealth(0,19);
+                world.Actors[10].Health=31;
+                world.Actors[10].AwardLegacySpiritStones(57);
+                int encounters=0;
+                IEnumerator Choose(int id,Action<bool> choose)
+                {
+                    Check(id==10 && world.Actors[id].NodeId==2 && player.RoleCount==4 &&
+                        player.Equipment.SpiritStones==0,"Meeting precedes asset transfer and combat");
+                    encounters++; choose(accept); yield break;
+                }
+                sim.SetPastInvitationPresenter(Choose);
+                sim.SubmitPlayerAction(WorldAction.Move(2));
+                Check(encounters==1,"One choice per meeting");
+                if (!accept)
+                {
+                    Check(player.RoleCount==4 && player.Equipment.Instances.Count==3 && !world.Actors[10].IsAlive &&
+                        world.Actors[10].LegacySpiritStones==57,"Decline follows the original actor battle");
+                    return;
+                }
+                int member=player.CompanionId(4);
+                Check(history.Status==HistoryReplayStatus.JoinedPlayer && !world.Actors[10].OnWorldMap &&
+                    world.ExpeditionFor(10)==null && player.RoleCount==5 && player.CompanionHealth(4)==31 &&
+                    player.Equipment.Worn(member,4)?.Level==2 && !player.HasRecruited(0),"Only former protagonist enters the formation");
+                Check(player.Equipment.SpiritStones==57 && gear.SpiritStones==0 && gear.Instances.Count==0 &&
+                    player.Equipment.Instances.Count==7 && player.Equipment.Instances.Any(item=>item.DefinitionId==7 && item.Level==2 && item.Owner<0) &&
+                    player.Equipment.Instances.Any(item=>item.DefinitionId==3 && item.Owner<0),
+                    "Captain loadout, bag, ally worn equipment, innate and stones transferred exactly once");
+                Check(world.ReturnedStageHealth(0)==19 && world.StageOwner(0)==null,"Living shield returns to its stage wounded");
+                sim.SubmitPlayerAction(WorldAction.Move(3));
+                Check(player.Recruit(0) && player.CompanionHealth(0)==19 && player.Equipment.InnateLevel(player.CompanionId(0))==0 &&
+                    world.ReturnedStageHealth(0)==null,"Recruiting the returned member cannot recreate transferred gear");
+                sim.SubmitPlayerAction(WorldAction.Move(2));
+                var frozen = WorldTimelineSaveStore.Decode(WorldTimelineSaveStore.Encode(new[]{new SavedLife(1,sim.RecordPlayerLife())})).Single().Record;
+                Check(encounters==1 && player.Equipment.SpiritStones==57 && player.Equipment.Instances.Count==7 &&
+                    frozen.Expedition.Last().Equipment.SequenceEqual(player.Equipment.Snapshot()),
+                    "Passing through the meeting site again grants nothing and the merged loadout serializes");
+            });
+        }
+        Run("A past captain joins reserves when deployed slots are full and a fallen stage stays lost", () =>
+        {
+            var sim = ExpeditionFixture(birth:3);
+            var world = sim.State;
+            var party = world.Expedition;
+            party.EnableAttrition(); party.Equipment.EnableArtifacts();
+            sim.EnablePastInvitations();
+            world.PlayableBirths.UnionWith(new[]{5,3});
+            var source = ExpeditionFixture(birth:5);
+            source.SubmitPlayerAction(WorldAction.Wait(4));
+            source.SubmitPlayerAction(WorldAction.Move(4)); source.SubmitPlayerAction(WorldAction.Move(3));
+            sim.AddHistory(source.RecordPlayerLife(),10);
+            var former = world.ExpeditionFor(10);
+            Check(former.Recruit(0),"Former team recruits the shield at birth");
+            former.SetCompanionHealth(0,0);
+            int site2 = party.RecruitmentSites[2], site3 = party.RecruitmentSites[3];
+            foreach (int node in WorldPathfinder.FindRoute(world,3,new[]{site2})) sim.SubmitPlayerAction(WorldAction.Move(node));
+            Check(party.Recruit(2),"Deploy archer");
+            foreach (int node in WorldPathfinder.FindRoute(world,site2,new[]{site3})) sim.SubmitPlayerAction(WorldAction.Move(node));
+            Check(party.Recruit(3),"Deploy healer");
+            IEnumerator Accept(int id,Action<bool> choose) { choose(true); yield break; }
+            sim.SetPastInvitationPresenter(Accept);
+            foreach (int node in WorldPathfinder.FindRoute(world,site3,new[]{3})) sim.SubmitPlayerAction(WorldAction.Move(node));
+            if (world.Year < 6) sim.SubmitPlayerAction(WorldAction.Wait(6-world.Year));
+            Check(party.HasRecruited(4) && party.CellOf(party.CompanionId(4)) < 0 &&
+                party.DeployedCount==3 && world.ReturnedStageHealth(0)==0 && !party.CanRecruit(0),
+                "Past hero is a real reserve and disbanding does not revive the shield");
+        });
+        Run("Historical planning keeps actual wounds, rest, succession and cleared equipment through archive replay", () =>
+        {
+            var source = ExpeditionFixture(new RecordedPartyResolver());
+            var original = source.State.Expedition;
+            original.EnableAttrition(); original.Equipment.EnableArtifacts(); original.Recruit(0);
+            source.EnableSharedClears();
+            source.State.Nodes[2].MonsterHealth = source.State.Nodes[3].MonsterHealth = 5;
+            source.SubmitPlayerAction(WorldAction.Move(2));
+            original.Equipment.EquipInstance(1,original.Equipment.Instances.Last().Id,2);
+            source.SubmitPlayerAction(WorldAction.Rest());
+            source.SubmitPlayerAction(WorldAction.Move(3));
+            original.RecordFormation();
+            var archive = WorldTimelineSaveStore.Decode(WorldTimelineSaveStore.Encode(
+                new[] {new SavedLife(1,source.RecordPlayerLife())})).Single().Record;
+
+            var sim = ExpeditionFixture(new AttritionResolver(),birth:5);
+            sim.EnableHistoricalGrowth();
+            sim.State.Nodes[2].MonsterHealth = sim.State.Nodes[3].MonsterHealth = 5;
+            sim.AddHistory(archive,10);
+            var party = sim.State.ExpeditionFor(10);
+            var actor = sim.State.Actors[10];
+            sim.SubmitPlayerAction(WorldAction.Wait(1));
+            Check(actor.Health == 60 && party.CompanionHealth(0) == 20 && party.Equipment.RewardsTaken == 1 &&
+                party.Equipment.Worn(10,2) != null, "Archived full-health edits retain current wounds and equip an earned drop");
+            int rested = 20 + party.CompanionMaxHealth(0)/4;
+            sim.SubmitPlayerAction(WorldAction.Wait(1));
+            Check(party.CompanionHealth(0) == rested, "The recorded year of rest heals the actual injury");
+            long xp = actor.Experience, stones = actor.LegacySpiritStones;
+            sim.SubmitPlayerAction(WorldAction.Wait(1));
+            Check(party.IsFallen(-1) && party.LeaderRole == 0 && actor.Health == 8 &&
+                actor.Experience > xp && actor.LegacySpiritStones > stones && party.Equipment.RewardsTaken == 2,
+                "Recorded healthy protagonist cannot replace the real successor or erase current rewards");
+        });
+        Run("Third and eighth year historical growth depends on real progress, including after save decoding", () =>
+        {
+            var growth = GrowthConfig();
+            var source = ExpeditionFixture(growth:growth);
+            source.SubmitPlayerAction(WorldAction.Cultivate(3));
+            source.SubmitPlayerAction(WorldAction.Move(2));
+            source.SubmitPlayerAction(WorldAction.Move(3));
+            source.SubmitPlayerAction(WorldAction.Wait(3));
+            var bytes = WorldTimelineSaveStore.Encode(new[] {new SavedLife(1,source.RecordPlayerLife())});
+            foreach (bool preempted in new[] {false,true})
+            {
+                var sim = ExpeditionFixture(growth:growth,birth:5);
+                sim.EnableHistoricalGrowth();
+                sim.AddHistory(WorldTimelineSaveStore.Decode(bytes).Single().Record,10);
+                foreach (int site in new[] {2,3})
+                {
+                    if (preempted) sim.State.Nodes[site].ClaimClear(1,1,true);
+                    else sim.State.Nodes[site].MonsterHealth = 1;
+                }
+                var actor = sim.State.Actors[10];
+                sim.SubmitPlayerAction(WorldAction.Wait(3));
+                Check(actor.Level == 1 && actor.Experience == 0 && actor.LegacySpiritStones == 0,
+                    "Three archived cultivation years preserve the itinerary without farming experience");
+                sim.SubmitPlayerAction(WorldAction.Wait(5));
+                Check(sim.State.Year == 8 && actor.NodeId == 3 && (actor.Level > 1) == !preempted &&
+                    (actor.LegacySpiritStones > 0) == !preempted &&
+                    sim.State.ExpeditionFor(10).Equipment.RewardsTaken == (preempted ? 0 : 2),
+                    "Later meeting reflects only the two sites that were actually available");
+            }
+        });
+        Run("Historical merchant plans spend only current funds and an obsolete reward cannot enter the bag", () =>
+        {
+            var source = ExpeditionFixture(new RecordedPartyResolver());
+            var gear = source.State.Expedition.Equipment;
+            gear.EnableArtifacts(); source.EnableSharedClears();
+            source.State.Nodes[2].MonsterHealth = 1;
+            source.SubmitPlayerAction(WorldAction.Move(2));
+            source.State.Nodes[3].IsMerchant = true;
+            source.SubmitPlayerAction(WorldAction.Move(3));
+            source.State.Actors[1].AwardLegacySpiritStones(200);
+            Check(gear.Buy(6) && gear.Upgrade(gear.Instances.Last().Id), "Record a purchase and paid upgrade");
+            var record = source.RecordPlayerLife();
+            foreach (bool wins in new[] {true,false})
+            {
+                var sim = ExpeditionFixture(birth:5);
+                sim.EnableHistoricalGrowth(); sim.AddHistory(record,10);
+                var site = sim.State.Nodes[2];
+                if (wins) { site.MonsterHealth = 1; site.CultivationPerYear = 100; }
+                else site.ClaimClear(1,0,true);
+                sim.State.Nodes[3].IsMerchant = true;
+                sim.SubmitPlayerAction(WorldAction.Wait(2));
+                var current = sim.State.ExpeditionFor(10).Equipment;
+                int spend = ExpeditionEquipment.Definition(6).Price + ExpeditionEquipment.Definition(6).UpgradePrice(1);
+                Check(current.RewardsTaken == (wins ? 1 : 0) && current.Instances.Count == (wins ? 5 : 3) &&
+                    current.SpiritStones == (wins ? 200-spend : 0) && (!wins || current.Instances.Last().Level == 2),
+                    "Both reward and merchant activity depend on the simulated journey");
+            }
+        });
+        foreach (bool historyFirst in new[] { true, false })
+        {
+            Run(historyFirst ? "Historical first clear survives a later player visit" :
+                "Player first clear removes the obsolete award from historical equipment replay", () =>
+            {
+                var source = ExpeditionFixture();
+                source.State.Expedition.EnableProgression();
+                source.State.Expedition.Equipment.EnableArtifacts();
+                source.EnableSharedClears();
+                source.State.Nodes[2].MonsterHealth = 5;
+                if (!historyFirst) source.SubmitPlayerAction(WorldAction.Wait(1));
+                source.SubmitPlayerAction(WorldAction.Move(2));
+                source.SubmitPlayerAction(WorldAction.Move(1));
+                var record = WorldTimelineSaveStore.Decode(WorldTimelineSaveStore.Encode(
+                    new[] { new SavedLife(1,source.RecordPlayerLife()) })).Single().Record;
+
+                var sim = ExpeditionFixture(birth:3);
+                var state = sim.State;
+                var node = state.Nodes[2];
+                node.MonsterHealth = 5;
+                node.Items.Add(1234);
+                state.Expedition.EnableProgression();
+                state.Expedition.Equipment.EnableArtifacts();
+                sim.AddHistory(record,10);
+                sim.EnableSharedClears();
+                sim.SubmitPlayerAction(historyFirst ? WorldAction.Wait(1) : WorldAction.Move(2));
+                sim.SubmitPlayerAction(historyFirst ? WorldAction.Move(2) : WorldAction.Move(3));
+                sim.SubmitPlayerAction(WorldAction.Wait(1));
+                int owner = historyFirst ? 10 : 1, other = historyFirst ? 1 : 10;
+                Check(node.FirstClear == (owner,1) && node.FirstArtifact > 0 &&
+                    state.Actors[owner].Items.Contains(1234) && !state.Actors[other].Items.Contains(1234),
+                    "First clearer owns the site and its loot");
+                Check(sim.Events.Count(e => e.Kind == WorldEventKind.Explored && e.NodeId == 2) == 1 &&
+                    state.Actors[owner].LegacySpiritStones > state.Actors[other].LegacySpiritStones &&
+                    state.ExpeditionFor(owner).Equipment.RewardsTaken == 1 && state.ExpeditionFor(other).Equipment.RewardsTaken == 0 &&
+                    state.ExpeditionFor(owner).Equipment.Instances.Count == 4 && state.ExpeditionFor(other).Equipment.Instances.Count == 3,
+                    "Only one exploration, stone payout and real equipment instance after archived formations replay");
+                Check(state.ExpeditionFor(other).Equipment.OfferReward(2).Count == 0 &&
+                    state.ExpeditionFor(owner).Equipment.OfferReward(2).Count == 0,"Neither team can reopen the award");
+            });
+        }
+        Run("A simultaneous arrival settles the duel before awarding the surviving party the guardian clear", () =>
+        {
+            var old = ExpeditionFixture();
+            old.SubmitPlayerAction(WorldAction.Move(2));
+            var sim = ExpeditionFixture(birth:3);
+            sim.State.Actors[1].Health = 1;
+            sim.State.Nodes[2].MonsterHealth = 1;
+            sim.AddHistory(old.RecordPlayerLife(),10);
+            sim.EnableSharedClears();
+            sim.SubmitPlayerAction(WorldAction.Move(2));
+            Check(sim.State.Nodes[2].FirstClear == (10,1) && sim.State.ExpeditionFor(10).Equipment.RewardsTaken == 1,
+                "Earlier actor ID cannot claim before the winning party defeats the guard");
+        });
+        Run("A failed historical attempt leaves the first clear and treasure available to the player", () =>
+        {
+            var old = ExpeditionFixture();
+            old.SubmitPlayerAction(WorldAction.Move(2));
+            var sim = ExpeditionFixture(birth:3);
+            var state = sim.State;
+            var node = state.Nodes[2];
+            node.MonsterHealth = 150;
+            node.MonsterAttack = 110;
+            node.Items.Add(701);
+            state.Expedition.EnableProgression();
+            state.Expedition.Equipment.EnableArtifacts();
+            sim.AddHistory(old.RecordPlayerLife(),10);
+            sim.EnableSharedClears();
+            sim.SubmitPlayerAction(WorldAction.Wait(1));
+            Check(!node.FirstClear.HasValue && node.MonsterHealth > 0 && node.Items.Contains(701),
+                "Arriving and losing does not reserve a reward");
+            state.Actors[1].Attack = 1000;
+            sim.SubmitPlayerAction(WorldAction.Move(2));
+            Check(node.FirstClear == (1,2) && state.Actors[1].Items.Contains(701) &&
+                state.Expedition.Equipment.RewardsTaken == 1, "Next party can finish the guard and receive the full clear");
+        });
+        Run("Artifact links use worn effects, ignore duplicate triggers and preserve old combat snapshots", () =>
+        {
+            var sim = ExpeditionFixture();
+            var party = sim.State.Expedition;
+            var gear = party.Equipment;
+            gear.EnableArtifacts(); party.Recruit(0);
+            var legacy = party.Records.Last();
+            gear.EnableLinks();
+            Check(gear.BattleTriggers(1) == ArtifactTrigger.Pursuit, "Bag items never grant a combat trigger");
+            gear.VisitEvent(0); gear.VisitEvent(1); gear.Buy(8);
+            foreach(var copy in gear.Instances.Where(i=>i.DefinitionId==8).ToArray())
+                gear.EquipInstance(1,copy.Id,gear.FirstFreeSlot(1));
+            Check(gear.BattleTriggers(1) == ArtifactTrigger.Pursuit, "Duplicate pursuit grants one trigger");
+            gear.EquipInstance(party.CompanionId(0),gear.Instances.First(i=>i.DefinitionId==5).Id,0);
+            var archive = WorldTimelineSaveStore.Decode(WorldTimelineSaveStore.Encode(new[]{new SavedLife(1,sim.RecordPlayerLife())})).Single().Record;
+            var replay = ExpeditionFixture(); replay.AddHistory(archive,10);
+            var historic = replay.State.ExpeditionFor(10);
+            Check(historic.Equipment.BattleTriggers(historic.CompanionId(0)) == (ArtifactTrigger.ShieldOpening | ArtifactTrigger.Recovery),
+                "Historical member retains the shield and healing combination");
+            historic.Restore(legacy);
+            Check(!historic.Equipment.LinksEnabled && historic.Equipment.BattleTriggers(10)==ArtifactTrigger.None,
+                "Pre-activation history replays without new combat effects");
+        });
+        Run("Only distinct playable past protagonists retain their own growth, skills and attire as teammates", () =>
+        {
+            var sim = ExpeditionFixture();
+            var party = sim.State.Expedition;
+            party.EnableAttrition(); party.Equipment.EnableArtifacts(); party.Recruit(0);
+            var world = sim.State;
+            var sourceWorld = new WorldState(1);
+            sourceWorld.Nodes.Add(2, new NodeState(2));
+            sourceWorld.Actors.Add(1, new ActorState(1, 2, 372, 46));
+            sourceWorld.EnableExpedition();
+            var oldSim = new WorldSimulation(sourceWorld);
+            var gear = sourceWorld.Expedition.Equipment;
+            gear.EnableArtifacts();
+            var robe = gear.Instances.First(item => item.DefinitionId == 5);
+            gear.EquipInstance(1, robe.Id, 4); gear.Upgrade(robe.Id, true);
+            sim.AddHistory(oldSim.RecordPlayerLife(), 10);
+            var old = world.Actors[10];
+            old.Level = 6; old.Experience = 905; old.LevelExperience = 39; old.Health = 17;
+            old.Items.Add(8109);
+            old.LearnTechnique(new TechniqueDefinition(1, new[] { new TechniqueStage(80),
+                new TechniqueStage(81, TechniqueRequirement.BattleExperience, 10) }));
+            old.SettleTechniqueBattle(1, 1, 4, 0);
+            Check(!sim.TryAddPastLeaderToRoster(10), "A history outside the selection roster cannot join");
+            world.PlayableBirths.UnionWith(new[]{1,2,3});
+            sim.AddHistory(sim.RecordPlayerLife(), 11);
+            Check(!sim.TryAddPastLeaderToRoster(11) && sim.TryAddPastLeaderToRoster(10) &&
+                !sim.TryAddPastLeaderToRoster(10), "Original identity and duplicates are excluded");
+            int role = ExpeditionParty.StageRoles, id = party.CompanionId(role);
+            var member = party.CreateCombatants(1).Single(actor => actor.Id == id);
+            Check(member.BirthNodeId == 2 && member.Health == 17 && member.MaxHealth == old.MaxHealth &&
+                member.CombatAttack == old.CombatAttack && member.Level == 6 && member.LevelExperience == 39 &&
+                member.Experience == 905 && member.Techniques[1].Progress == 4 && member.Items.Contains(8109) &&
+                party.Equipment.Worn(id, 4)?.Level == 2, "Current stats and equipped instance preserved without doubling bonuses");
+            Check(party.Bench(id), "Past leader can be benched");
+            sim.SubmitPlayerAction(WorldAction.Rest());
+            Check(party.CompanionHealth(role) == 17 + member.MaxHealth/4 && party.Place(id, 3),
+                "Reserve recovers and can deploy again");
+            var archive = WorldTimelineSaveStore.Decode(WorldTimelineSaveStore.Encode(new[]{new SavedLife(1,sim.RecordPlayerLife())})).Single();
+            var replay = ExpeditionFixture(); replay.AddHistory(archive.Record, 10);
+            var restored = replay.State.ExpeditionFor(10);
+            restored.Restore(archive.Record.Expedition.Last());
+            var fighter = restored.CreateCombatants(1).Single(a => a.Id == restored.CompanionId(role));
+            Check(fighter.Level == 6 && fighter.Health == party.CompanionHealth(role) && fighter.Techniques[1].Progress == 4 &&
+                restored.Equipment.Worn(fighter.Id,4)?.Level == 2 && fighter.Id != id,
+                "Archived roster remaps combat IDs and preserves wounds, skills and equipped levels");
+            party.RemoveFallen(-1, 1); party.Promote(role);
+            Check(world.Actors[1].Level == 6 && world.Actors[1].Techniques[1].Progress == 4 &&
+                world.Actors[1].Health == fighter.Health && party.Equipment.Worn(1,4)?.Level == 2,
+                "A past protagonist succeeds with their own cultivation and equipped gear");
+            party.RemoveFallen(role,1);
+            Check(party.Equipment.Instances.Any(item => item.Owner < 0 && item.DefinitionId == 5 && item.Level == 2),
+                "The dead captain returns the upgraded item to the bag");
+        });
+        Run("One year of rest heals living deployed and reserve members and leaves casualties dead", () =>
+        {
+            var sim = ExpeditionFixture();
+            var party = sim.State.Expedition;
+            var captain = sim.State.Actors[1];
+            party.EnableAttrition();
+            party.Recruit(0);
+            sim.SubmitPlayerAction(WorldAction.Move(2)); party.Recruit(2);
+            sim.SubmitPlayerAction(WorldAction.Move(3)); party.Recruit(3);
+            party.Bench(party.CompanionId(2));
+            captain.Health = captain.MaxHealth - 1;
+            party.SetCompanionHealth(0, 4);
+            party.SetCompanionHealth(2, 2);
+            party.SetCompanionHealth(3, 0);
+            int year = sim.State.Year;
+            sim.SubmitPlayerAction(WorldAction.Wait());
+            Check(party.CompanionHealth(2) == 2 && captain.Health == captain.MaxHealth - 1, "Ordinary waiting preserves wounds");
+            sim.SubmitPlayerAction(WorldAction.Rest());
+            Check(sim.State.Year == year + 2 && captain.NodeId == 3 && captain.Health == captain.MaxHealth &&
+                party.CompanionHealth(0) == 4 + party.CompanionMaxHealth(0) / 4 &&
+                party.CompanionHealth(2) == 2 + party.CompanionMaxHealth(2) / 4 &&
+                party.CompanionHealth(3) == 0 && party.IsFallen(3), "Rest heals at year end, caps HP and skips the fallen");
+            var life = WorldTimelineSaveStore.Decode(WorldTimelineSaveStore.Encode(new[] { new SavedLife(1, sim.RecordPlayerLife()) })).Single().Record;
+            Check(life.Actions.Last().Action.Kind == WorldActionKind.Rest && life.Actions.Last().Action.Years == 1,
+                "Life archive distinguishes one year of rest from waiting");
+            for (int i = 0; i < 5; i++) sim.SubmitPlayerAction(WorldAction.Rest());
+            Check(!party.NeedsRest && party.IsFallen(3), "Full parties and fallen members never consume another rest from the HUD");
+        });
+        Run("Persistent wounds, permanent losses and a chosen reserve captain survive successive battles", () =>
+        {
+            var resolver = new AttritionResolver();
+            var sim = ExpeditionFixture(resolver);
+            var party = sim.State.Expedition;
+            var gear = party.Equipment;
+            party.EnableAttrition(); gear.EnableArtifacts(); party.Recruit(0);
+            sim.SubmitPlayerAction(WorldAction.Move(2)); party.Recruit(2);
+            sim.SubmitPlayerAction(WorldAction.Move(3)); party.Recruit(3);
+            int shield = party.CompanionId(0), archer = party.CompanionId(2);
+            var relic = gear.Instances.First();
+            Check(gear.EquipInstance(archer, relic.Id, 5) && gear.Upgrade(relic.Id, true) &&
+                gear.Upgrade(gear.InnateKey(archer), true), "Equip upgraded items before casualty");
+            int choices = 0;
+            sim.SetSuccessorPresenter((roles, choose) => Pick(roles, choose));
+            IEnumerator Pick(IReadOnlyList<int> roles, Action<int> choose)
+            {
+                Check(roles.SequenceEqual(new[] { 0, 3 }), "Both the wounded fighter and living reserve can lead");
+                choices++; choose(3); yield break;
+            }
+            BattleSettlement report = null;
+            sim.SetBattleSettlementPresenter(result => Capture(result));
+            IEnumerator Capture(BattleSettlement result) { report = result; yield break; }
+            void Fight(int destination)
+            {
+                sim.State.Nodes[destination].MonsterHealth = 50;
+                sim.SubmitPlayerAction(WorldAction.Move(destination));
+            }
+            Fight(4);
+            Check(party.CompanionHealth(0) == 20 && party.IsFallen(2) && !party.Owns(archer) &&
+                party.CellOf(archer) < 0 && relic.Owner == -1 && relic.Slot == -1 && relic.Level == 2 &&
+                gear.Instances.Any(item => item.Owner == -1 && item.DefinitionId == 2 && item.Level == 2),
+                "Fallen archer permanently leaves, returning equipped instance and upgraded innate artifact");
+            int reserveHp = party.CompanionHealth(3);
+            Fight(3);
+            Check(resolver.StartHealth.SequenceEqual(new[] { 60, 20 }) && choices == 1 && party.LeaderRole == 3 &&
+                sim.State.Actors[1].Health == reserveHp && party.CompanionHealth(0) == 8 && party.CellOf(shield) >= 0 &&
+                report.SuccessorRole == 3 && party.IsFallen(-1) && gear.Innate(1).Id == 4 && sim.WaitingForPlayer,
+                "Wounds persist and selected reserve assumes command with her own health and innate artifact");
+            sim.SubmitPlayerAction(WorldAction.Move(2));
+            Check(!party.CanRecruit(2), "Returning to the dead companion's site cannot recruit again");
+            party.RecordFormation();
+            var archive = WorldTimelineSaveStore.Decode(WorldTimelineSaveStore.Encode(new[] {new SavedLife(1, sim.RecordPlayerLife())})).Single().Record;
+            Check(archive.Expedition.Any(step => step.Successor == 3) &&
+                archive.Expedition.Last().Vitality[0] == 3, "History preserves the succession choice and roster");
+            Fight(1);
+            Check(!sim.State.Actors[1].IsAlive && party.IsFallen(3) && party.IsFallen(0) && !sim.WaitingForPlayer && choices == 1,
+                "With no living reserve the final wipe ends control");
+        });
+        Run("A surviving reserve can succeed after a lost battle without clearing the enemy", () =>
+        {
+            var sim = ExpeditionFixture(new RecordedPartyResolver { Lose = true });
+            var party = sim.State.Expedition;
+            party.EnableAttrition(); party.Equipment.EnableArtifacts(); party.Recruit(0);
+            party.Bench(party.CompanionId(0));
+            sim.State.Nodes[2].MonsterHealth = 40;
+            sim.State.Nodes[2].Items.Add(99);
+            sim.SubmitPlayerAction(WorldAction.Move(2));
+            Check(sim.WaitingForPlayer && party.LeaderRole == 0 && sim.State.Nodes[2].MonsterHealth == 40 &&
+                sim.State.Nodes[2].Items.Contains(99), "Reserve continues on a defeat without victory loot");
+        });
         Run("Innate artifacts are fixed and six universal slots accept independent copies",()=>
         {
             var sim=ExpeditionFixture();var party=sim.State.Expedition;party.Recruit(0);var gear=party.Equipment;gear.EnableArtifacts();
@@ -17,10 +438,15 @@ internal static partial class WorldSimulationTests
             for(int i=1;i<ExpeditionEquipment.CommonSlots;i++)Check(gear.Buy(5),"Multiple copies of one item can be purchased");
             var robes=gear.Instances.Where(i=>i.DefinitionId==5).ToArray();
             for(int s=0;s<ExpeditionEquipment.CommonSlots;s++)Check(gear.EquipInstance(shield,robes[s].Id,s),"All six slots accept the same item type on any role");
+            Check(gear.FirstFreeSlot(shield)==-1,"A full loadout has no automatic destination");
             Check(!gear.EquipInstance(shield,gear.Instances.First(i=>i.Owner<0).Id,6),"Seventh ordinary slot does not exist");
             Check(!gear.EquipInstance(1,robes[0].Id,0),"One instance cannot be worn by two actors");
             Check(gear.Upgrade(robes[0].Id,true)&&robes[0].Level==2&&robes[1].Level==1,"Upgrading a copy leaves identical copies unchanged");
-            Check(gear.Unequip(shield,0)&&gear.EquipInstance(1,robes[0].Id,2)&&robes[0].Level==2&&leader.Health==originalHp,"Transfers retain level and do not heal");
+            var displaced=gear.Instances.First(i=>i.Owner<0);
+            Check(gear.EquipInstance(1,displaced.Id,2),"Destination can already have an item");
+            Check(gear.EquipInstance(1,robes[0].Id,2,true)&&robes[0].Level==2&&leader.Health==originalHp,"Confirmed transfers retain level and do not heal");
+            Check(gear.Worn(shield,0)==null&&gear.Worn(1,2)==robes[0]&&displaced.Owner==-1&&displaced.Slot==-1,"Transfer clears the source slot and returns the replaced instance to the bag");
+            Check(gear.Unequip(shield,4)&&gear.FirstFreeSlot(shield)==0,"Several gaps resolve to the lowest slot index");
             Check(gear.Innate(shield).Id==3&&gear.InnateLevel(shield)==1,"Removing ordinary gear cannot remove the fixed artifact");
         });
         Run("Table prices, upgrade caps and event rewards reject duplicate or unpaid operations",()=>
@@ -273,13 +699,27 @@ internal static partial class WorldSimulationTests
             sim.State.Nodes[2].MonsterHealth = 50;
             var player = sim.State.Actors[1];
             int expected = party.VictoryExperience(2, sim.Cultivation);
+            int startingHealth = --player.Health;
             Check(expected >= sim.Cultivation.GetLevel(5).ExperienceToNext / 2, "Late victories remain meaningful");
             BattleSettlement settlement = null;
             sim.SetBattleSettlementPresenter(result => Capture(result));
             sim.SubmitPlayerAction(WorldAction.Move(2));
             Check(settlement.Experience == expected && settlement.RecoveredHealth == player.MaxHealth / 4 &&
                 settlement.Health == 1 + settlement.RecoveredHealth, "Settlement includes growth and post-victory recovery");
+            var members = settlement.PartyAtBattleEnd;
+            Check(members.Count == 2 && members.Single(m => m.ActorId == player.Id).StartHealth == startingHealth &&
+                members.Single(m => m.ActorId == player.Id).Health == 0 &&
+                members.Single(m => m.ActorId == party.CompanionId(0)).Health == party.CompanionMaxHealth(0) / 2,
+                "Report preserves the individual combat result before rescue and recovery");
+            Check(party.CreateCombatants(2)[1].Health == party.CompanionMaxHealth(0), "Next battle restores the companion");
             Check(player.Experience == expected + party.ExplorationExperience(sim.Cultivation), "Cleared new node also grants exploration once");
+            Check(party.Recruit(2), "Archer joins the next battle");
+            sim.State.Nodes[3].MonsterHealth = 50;
+            sim.SubmitPlayerAction(WorldAction.Move(3));
+            int archer = party.CompanionId(2);
+            Check(settlement.PartyAtBattleEnd.Single(m => m.ActorId == archer).Health == 0 &&
+                party.CreateCombatants(3).Single(a => a.Id == archer).Health == party.CompanionMaxHealth(2),
+                "A fallen companion remains deployed and starts the next fight at full health");
             IEnumerator Capture(BattleSettlement result) { settlement = result; yield break; }
         });
         Run("Failed encounters do not grant exploration, levels or victory recovery", () =>
@@ -359,7 +799,7 @@ internal static partial class WorldSimulationTests
         });
     }
 
-    private static WorldSimulation ExpeditionFixture(IWorldBattleResolver resolver = null, CultivationConfig growth = null, int level = 1)
+    private static WorldSimulation ExpeditionFixture(IWorldBattleResolver resolver = null, CultivationConfig growth = null, int level = 1, int birth = 1)
     {
         var world = new WorldState(1);
         for (int i = 1; i <= 5; i++)
@@ -367,7 +807,7 @@ internal static partial class WorldSimulationTests
             world.Nodes.Add(i, new NodeState(i));
             if (i > 1) { world.Nodes[i - 1].Links.Add(i); world.Nodes[i].Links.Add(i - 1); }
         }
-        world.Actors.Add(1, new ActorState(1, 1, 100, 20));
+        world.Actors.Add(1, new ActorState(1, birth, 100, 20));
         if (growth != null) CultivationSystem.Initialize(world.Actors[1], growth, TalentProfile.Generate(1), level);
         world.EnableExpedition();
         return new WorldSimulation(world, resolver, growth);
@@ -383,6 +823,25 @@ internal static partial class WorldSimulationTests
             var result = new int[first.Count + second.Count];
             result[1] = first[1].Health / 2;
             return result;
+        }
+    }
+
+    private sealed class AttritionResolver : IWorldPartyBattleResolver
+    {
+        private int fight;
+        public int[] StartHealth;
+        public BattleResult Resolve(int a, int b, int c, int d) => throw new InvalidOperationException();
+        public int[] ResolveParty(WorldState world, int node, IReadOnlyList<ActorState> first, IReadOnlyList<ActorState> second)
+        {
+            StartHealth = first.Select(a => a.Health).ToArray();
+            int[] hp = new int[first.Count + second.Count];
+            switch (++fight)
+            {
+                case 1: hp[0] = 60; hp[1] = 20; break;
+                case 2: hp[1] = 8; break;
+                default: hp[first.Count] = 1; break;
+            }
+            return hp;
         }
     }
 

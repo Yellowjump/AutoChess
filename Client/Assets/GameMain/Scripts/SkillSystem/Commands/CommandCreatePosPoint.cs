@@ -69,6 +69,7 @@ namespace SkillSystem
                         var newTriggerList = SkillFactory.CreateNewEmptyTriggerList();
                         PosPointTrigger.Clone(newTriggerList);
                         newTriggerList.ParentSkill = trigger.ParentTriggerList.ParentSkill;
+                        newTriggerList.CombatCast = trigger.ParentTriggerList.CombatCast;
                         newTriggerList.Owner = newPosPoint;
                         newPosPoint.OwnerTriggerList = newTriggerList;
                         newTriggerList.OnTrigger(TriggerType.OnActive);

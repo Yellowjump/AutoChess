@@ -29,7 +29,8 @@ namespace SkillSystem
                     int before = track ? (int)targetAttr.GetFinalValue() : 0;
                     if (AddOrReduce)
                     {
-                        targetAttr.AddNum(ParamInt1.Value);
+                        if (type == AttributeType.Hp && ParamInt1.Value > 0) target.ReceiveHealing(ParamInt1.Value, trigger.ParentTriggerList.ParentSkill?.Caster);
+                        else targetAttr.AddNum(ParamInt1.Value);
                     }
                     else
                     {

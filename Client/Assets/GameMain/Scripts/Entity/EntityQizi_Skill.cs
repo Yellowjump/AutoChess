@@ -25,7 +25,8 @@ namespace Entity
             (default, "契印", "Contract Seal", "#F3A07A"),
             (default, "缠索", "Rope Snare", "#E2C381"),
             (default, "合壳", "Closed Shell", "#90D7C7"),
-            (default, "霜缓", "Chill", "#A6DBFF")
+            (default, "霜缓", "Chill", "#A6DBFF"),
+            (default, "死隙", "Fatal Opening", "#FFD35C")
         };
 
         internal static void Read(EntityQizi owner, long[] counts)
@@ -45,6 +46,7 @@ namespace Entity
             if (owner.RopeSnareSeconds > 0f) counts[9] = 1;
             if (owner.OuterShellSeconds > 0f) counts[10] = 1;
             if (owner.FrostSlowSeconds > 0f) counts[11] = 1;
+            if (owner.Critical?.HasMark(HotGameEntry.HeroManager.TimelineBattleSeconds) == true) counts[12] = 1;
         }
     }
 
@@ -611,6 +613,8 @@ namespace Entity
             }
         }
 
+        private static int RollCritical() => GameFramework.Utility.Random.GetRandom(100);
+
         public int BeCauseDamage(CauseDamageData damageData)
         {
             if (damageData == null)
@@ -631,13 +635,29 @@ namespace Entity
                     damageData.DamageValue *= .70f;
                 }
             }
+            var battle = HotGameEntry.HeroManager;
+            var caster = damageData.Caster;
+            bool opened = false;
+            if (damageData.TriggerDamageRelate && damageData.DamageValue >= 1 && damageData.CombatCast != null &&
+                caster?.Critical != null && caster.BelongCamp != BelongCamp && IsValid && (int)hpAttr.GetFinalValue() > 0)
+            {
+                int chance = (int)caster.GetAttribute(AttributeType.CriticalChance).GetFinalValue();
+                damageData.CriticalHit = damageData.CombatCast.IsCriticalHit(Critical, battle.TimelineBattleSeconds,
+                    chance, RollCritical, out opened);
+                if (damageData.CriticalHit)
+                {
+                    int percent = (int)caster.GetAttribute(AttributeType.CriticalDamage).GetFinalValue();
+                    damageData.DamageValue = (float)System.Math.Min(1000000000d, (double)damageData.DamageValue * percent / 100);
+                }
+            }
             bool blockedByShell = TimelineOuterGuardianCast.ShellBlocks(this, damageData);
             if (blockedByShell) damageData.DamageValue *= .35f;
-            var caster = damageData.Caster;
             bool techniqueHit = IsValid && caster != null && caster.BelongCamp != BelongCamp &&
                 caster.IsTechniqueSkill(damageData.SourceSkill);
             int healthBefore = (int)hpAttr.GetFinalValue();
             damageData.TargetWasBleeding = damageData.TriggerDamageRelate && HasBleeding;
+            damageData.TargetWasWeakened = OnArtifactHit != null && damageData.TriggerDamageRelate &&
+                damageData.SourceSkill?.IsBasicAttack == true && FindStatusBuff(BuffTag.Weakened, CommandWeaknessEffect.WeaknessBuffId) != null;
 #if UNITY_EDITOR
             if (damageData.TriggerDamageRelate)
                 HotGameEntry.HeroManager.SeedPreviewBurnBeforeHit(this, damageData);
@@ -649,7 +669,9 @@ namespace Entity
             var shieldValue = (int)hudunAttr.GetFinalValue();
             bool stoneSmash = damageData.SourceSkill?.SkillID == StateAttack0.StoneSmashSkillId;
             int bellAbsorbed = 0;
-            if (shieldValue >= 0)
+            if (damageData.SharedLoss)
+                hpAttr.AddNum(-(int)damageData.DamageValue);
+            else if (shieldValue >= 0)
             {
                 if (shieldValue<=(int)damageData.DamageValue)//护盾值小于伤害值
                 {
@@ -660,12 +682,16 @@ namespace Entity
                             RecordBattleOutput(curbuff.ParentSkill, shieldAbsorbed: curbuff.paramInt);
                             if (stoneSmash && curbuff.ParentSkill?.SkillID == TideBellSkillId)
                                 bellAbsorbed += curbuff.paramInt;
+                            if (curbuff.TideReport != null && curbuff.IsValid && curbuff.paramInt > 0 &&
+                                damageData.TriggerDamageRelate && caster != null && caster.BelongCamp != BelongCamp)
+                                curbuff.TideReport.TideBreaks++;
                             curbuff.paramInt = 0;
                             curbuff.OnDestory();
                         }
                     }
                     hudunAttr.AddNum(-shieldValue);
-                    hpAttr.AddNum(-(int)(damageData.DamageValue-shieldValue));
+                    int loss = (int)damageData.DamageValue-shieldValue;
+                    hpAttr.AddNum(-(RedirectHealthLoss?.Invoke(this,loss) ?? loss));
                 }
                 else 
                 {
@@ -689,6 +715,9 @@ namespace Entity
                             RecordBattleOutput(nerBuff.ParentSkill, shieldAbsorbed: absorbed);
                             if (stoneSmash && nerBuff.ParentSkill?.SkillID == TideBellSkillId)
                                 bellAbsorbed += absorbed;
+                            if (nerBuff.TideReport != null && absorbed > 0 && absorbed == nerBuff.paramInt &&
+                                damageData.TriggerDamageRelate && caster != null && caster.BelongCamp != BelongCamp)
+                                nerBuff.TideReport.TideBreaks++;
                             if (curDamageValue>nerBuff.paramInt)
                             {
                                 curDamageValue -= nerBuff.paramInt;
@@ -700,6 +729,7 @@ namespace Entity
                             {
                                 nerBuff.paramInt -= curDamageValue;
                                 curDamageValue = 0;
+                                if (nerBuff.TideReport != null && nerBuff.paramInt == 0) nerBuff.OnDestory();
                             }
                         }
                         else
@@ -728,8 +758,15 @@ namespace Entity
                 BattleHealthLost += healthLost;
             }
             if (effectiveDamage > 0) TimelineOuterGuardianCast.TrackHit(this, damageData);
-            var battle = HotGameEntry.HeroManager;
             var visuals = battle.BurnVisuals;
+            if (damageData.CriticalHit && effectiveDamage > 0)
+            {
+                caster.Critical.CriticalHits++;
+                if (opened) visuals?.OpeningStruck(LogicPosition);
+                if (healthAfter > 0 && damageData.SourceSkill?.IsBasicAttack == true && Critical != null &&
+                    caster.Critical.TryMark(Critical, battle.TimelineBattleSeconds))
+                    visuals?.OpeningSealStamped(LogicPosition);
+            }
             if (effectiveDamage > 0 && blockedByShell && GObj != null)
                 visuals?.ShellClash(GObj.transform.position + OuterShellForward * .70f + Vector3.up * .62f,
                     OuterShellForward);
@@ -814,6 +851,9 @@ namespace Entity
             if (bellAbsorbed <= 0 || healthLost > 0)
                 battle.ShowDamageNum(damageData, bellAbsorbed > 0 ? healthLost : null);
             
+            if (effectiveDamage > 0 && damageData.TriggerDamageRelate && caster != null && caster.BelongCamp != BelongCamp)
+                OnArtifactHit?.Invoke(caster, this, damageData, shieldLost, shieldValue > 0 && shieldAfter == 0);
+            if (healthLost > 0 && healthAfter > 0) ArtifactHealthLost?.Invoke(this,healthBefore,healthAfter);
             var curHp = (int)hpAttr.GetFinalValue();
             if (curHp == 0 && IsValid)
             {

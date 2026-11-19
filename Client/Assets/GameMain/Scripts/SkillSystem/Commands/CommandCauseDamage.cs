@@ -9,12 +9,16 @@ namespace SkillSystem
     {
         public EntityQizi Caster;
         public Skill SourceSkill;
+        internal WorldTimeline.CombatCast CombatCast;
+        internal bool CriticalHit;
         public EntityQizi Target;
         public float DamageValue;
         public bool TriggerDamageRelate;
         public int HealthLost;
+        internal bool SharedLoss;
         public int BrokenShieldValue;
         public bool TargetWasBleeding;
+        public bool TargetWasWeakened;
         public int BurnStacksBeforeHit;
         public int OpeningStacksBeforeHit;
         public bool BurnDetonated;
@@ -28,11 +32,14 @@ namespace SkillSystem
             TriggerDamageRelate = true;
             Caster = null;
             SourceSkill = null;
+            CombatCast = null;
+            CriticalHit = false;
             Target = null;
             DamageValue = 0;
-            HealthLost = 0;
+            HealthLost = 0; SharedLoss = false;
             BrokenShieldValue = 0;
             TargetWasBleeding = false;
+            TargetWasWeakened = false;
             BurnStacksBeforeHit = 0;
             OpeningStacksBeforeHit = 0;
             BurnDetonated = false;
@@ -42,13 +49,14 @@ namespace SkillSystem
 
     public class CommandCauseDamage : CommandBase
     {
-        internal static int DealSecondaryDamage(EntityQizi target, long damage, Skill source = null)
+        internal static int DealSecondaryDamage(EntityQizi target, long damage, Skill source = null, bool sharedLoss = false)
         {
             if (damage <= 0) return 0;
             var hit = ReferencePool.Acquire<CauseDamageData>();
             try
             {
                 hit.Target = target;
+                hit.SharedLoss = sharedLoss;
                 hit.DamageValue = System.Math.Min(damage, 1000000000L);
                 hit.TriggerDamageRelate = false;
                 int effective = target.BeCauseDamage(hit);
@@ -104,6 +112,7 @@ namespace SkillSystem
                     CauseDamageData beforeCauseDamageData = ReferencePool.Acquire<CauseDamageData>();
                     beforeCauseDamageData.Caster = caster;
                     beforeCauseDamageData.SourceSkill = trigger.ParentTriggerList.ParentSkill;
+                    beforeCauseDamageData.CombatCast = trigger.ParentTriggerList.CombatCast;
                     beforeCauseDamageData.Target = target;
                     beforeCauseDamageData.DamageValue = finalDamage;
                     beforeCauseDamageData.TriggerDamageRelate = TriggerDamageRelate;

@@ -423,6 +423,14 @@ public class BattleMainCtrl : UIFormLogic
                 .Append(statusCounts[i]).Append("</color>");
             any = true;
         }
+        if (qizi.Critical?.PearlBonus > 0)
+        {
+            if (any) statusText.Append("  ·  ");
+            int chance = (int)qizi.GetAttribute(AttributeType.CriticalChance).GetFinalValue();
+            statusText.Append(english ? "Next basic crit " : "下次普攻暴击率 ")
+                .Append(Mathf.Min(100, chance + qizi.Critical.PearlBonus)).Append('%');
+            any = true;
+        }
         if (!any) statusText.Append('—');
         string next = statusText.ToString();
         if (statusSummary.text != next) statusSummary.text = next;

@@ -20,6 +20,8 @@ namespace SkillSystem
         public int DurationMs;//总持续时间，无限是0
         public float RemainMs;//剩余时间
         public bool IsValid = true;
+        internal bool ArtifactShield;
+        internal WorldTimeline.ArtifactBattleOutput TideReport;
         public int StackCount { get; private set; } = 1;
         internal bool CanMergeStacks => BuffID > 0 && MaxLayerNum > 0
             && OwnBuffTag == BuffTag.None && CurTriggerList.Count == 0;
@@ -30,6 +32,7 @@ namespace SkillSystem
             public int PaidTicks;
             public int DamagePerTick;
             public Skill Source;
+            public WorldTimeline.ArtifactBattleOutput Artifact;
         }
 
         private List<DamageLayer> damageLayers;
@@ -37,22 +40,31 @@ namespace SkillSystem
         public float BurnFeedCooldownMs { get; set; }
         public int BurnSourceId { get; set; }
 
-        public void AddDamageLayer(int damagePerTick, Skill source = null)
+        public void AddDamageLayer(int damagePerTick, Skill source = null,
+            WorldTimeline.ArtifactBattleOutput artifact = null)
         {
             damageLayers ??= ListPool<DamageLayer>.Get();
             if (MaxLayerNum > 0 && damageLayers.Count >= MaxLayerNum) return;
             damageLayers.Add(new DamageLayer
             {
-                DamagePerTick = damagePerTick, Source = source?.Caster?.BattleOutput != null ? source : null
+                DamagePerTick = damagePerTick, Source = source?.Caster?.BattleOutput != null ? source : null, Artifact = artifact
             });
             StackCount = damageLayers.Count;
+        }
+
+        internal bool TryConsumeMeridianLayers(out long damage)
+        {
+            if (!WorldTimeline.MeridianBleed.TryConsume(damageLayers, DurationMs,
+                layer => layer.PaidTicks, layer => layer.DamagePerTick, out damage)) return false;
+            StackCount = damageLayers.Count;
+            return true;
         }
 
         public void TickDamageLayers(float elapsedMs)
         {
             BurnFeedCooldownMs = Math.Max(0, BurnFeedCooldownMs - elapsedMs);
             long damage = 0;
-            List<(Skill Source, long Amount)> contributions = null;
+            List<(DamageLayer Layer, long Start, long Amount)> contributions = null;
             int retained = 0;
             for (int i = 0; i < damageLayers.Count; i++)
             {
@@ -60,9 +72,9 @@ namespace SkillSystem
                 layer.ElapsedMs = Math.Min(DurationMs, layer.ElapsedMs + elapsedMs);
                 int dueTicks = (int)(layer.ElapsedMs / 1000f);
                 long amount = (long)(dueTicks - layer.PaidTicks) * layer.DamagePerTick;
+                if (amount > 0 && (layer.Source?.Caster?.BattleOutput != null || layer.Artifact != null))
+                    (contributions ??= ListPool<(DamageLayer, long, long)>.Get()).Add((layer, damage, amount));
                 damage += amount;
-                if (amount > 0 && layer.Source?.Caster?.BattleOutput != null)
-                    (contributions ??= ListPool<(Skill, long)>.Get()).Add((layer.Source, amount));
                 layer.PaidTicks = dueTicks;
                 if (layer.ElapsedMs < DurationMs) damageLayers[retained++] = layer;
             }
@@ -75,11 +87,13 @@ namespace SkillSystem
                 // Preserve a single tick hit. Allocate its effective damage in application order.
                 foreach (var contribution in contributions)
                 {
-                    int credited = (int)Math.Min(effective, contribution.Amount);
-                    EntityQizi.RecordBattleOutput(contribution.Source, damage: credited);
-                    effective -= credited;
+                    long credited = Math.Min(contribution.Amount, Math.Max(0L, effective - contribution.Start));
+                    var artifact = contribution.Layer.Artifact;
+                    if (artifact == null) EntityQizi.RecordBattleOutput(contribution.Layer.Source, damage: credited);
+                    else if (CheckBuffTag(BuffTag.Bleeding)) artifact.MeridianTickDamage += credited;
+                    else artifact.TinderDamage += credited;
                 }
-                ListPool<(Skill, long)>.Release(contributions);
+                ListPool<(DamageLayer, long, long)>.Release(contributions);
             }
             if (retained == 0) OnDestory();
         }
@@ -114,7 +128,11 @@ namespace SkillSystem
                 while (layerTimers.Count > 0 && layerTimers[0] <= 0f) layerTimers.RemoveAt(0);
                 StackCount = layerTimers.Count;
             }
-            if (DurationMs != 0 && RemainMs <= 0f) OnDestory();
+            if (DurationMs != 0 && RemainMs <= 0f)
+            {
+                if (TideReport != null && paramInt > 0) TideReport.TideExpirations++;
+                OnDestory();
+            }
         }
         public override void Clone(TriggerList copy)
         {
@@ -165,6 +183,11 @@ namespace SkillSystem
                 return;
             }
             IsValid = false;
+            if (ArtifactShield && paramInt > 0 && Owner is EntityQizi bearer)
+            {
+                bearer.GetAttribute(AttributeType.HuDun).AddNum(-paramInt);
+                paramInt = 0;
+            }
             base.OnDestory();
             if (IsAura)
             {
@@ -184,7 +207,7 @@ namespace SkillSystem
             FreshOtherBuffDuration = false;
             DurationMs = 0;
             RemainMs = 0;
-            IsValid = true;
+            IsValid = true; ArtifactShield = false; TideReport = null;
             StackCount = 1;
             BurnFeedCooldownMs = 0;
             BurnSourceId = 0;

@@ -76,7 +76,7 @@ namespace WorldTimeline
             var lastNodes = new Dictionary<int, int>();
             foreach (var actor in world.Actors.Values)
             {
-                if (!actor.IsAlive || actor.Id == world.PlayerActorId) continue;
+                if (!actor.OnWorldMap || actor.Id == world.PlayerActorId) continue;
                 routes.Add(actor.Id, new Dictionary<(int, int), LegProgress>());
                 lastNodes.Add(actor.Id, actor.BirthNodeId);
             }

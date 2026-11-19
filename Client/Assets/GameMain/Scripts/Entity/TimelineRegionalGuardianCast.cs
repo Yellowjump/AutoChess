@@ -197,6 +197,7 @@ namespace Entity
             {
                 hit.Caster = caster;
                 hit.SourceSkill = skill;
+                hit.CombatCast = skill?.CombatCast;
                 hit.Target = target;
                 hit.DamageValue = damage;
                 hit.TriggerDamageRelate = true;

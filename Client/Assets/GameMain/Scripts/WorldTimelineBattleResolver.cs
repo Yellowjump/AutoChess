@@ -124,6 +124,7 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
             SwordRecallEnabled = currentLoadout && world.SwordRecallEnabled,
             WreckBeastEncounterEnabled = currentLoadout && world.WreckBeastEncounterEnabled
         };
+        if (world.CriticalArtifactsEnabled) sandbox.EnableCriticalArtifacts();
         if (world.Nodes.TryGetValue(node, out var location)) sandbox.Nodes.Add(node, location);
         return view.TryRunBattlePreview(resolver.Run(sandbox, node,
             new[] { tester }, opponents, true, _ => { }, itemIds?.ToArray() ?? Array.Empty<int>(),
@@ -196,8 +197,8 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
     {
         bool playerFirst = world.FormationFirst.Any(a => a.Id == world.PlayerActorId);
         var own = new List<ActorState> { world.Actors[world.PlayerActorId] };
-        for (int role = 0; role < 4; role++)
-            if (world.Expedition.HasRecruited(role)) own.Add(world.Expedition.CreateCompanion(role, nodeId));
+        foreach (int role in world.Expedition.LivingRoles)
+            own.Add(world.Expedition.CreateCompanion(role, nodeId));
         var first = playerFirst ? own : world.FormationFirst;
         var second = playerFirst ? world.FormationSecond : own;
         bool trial = world.Nodes[nodeId].StoryTrialStarted && second.All(a => a.Id <= -nodeId);
@@ -222,9 +223,10 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
         Func<IReadOnlyList<ActorState>, IReadOnlyList<EntityQizi>, IEnumerator> planning = null)
     {
         world.Nodes.TryGetValue(nodeId, out var node);
+        int RoleOf(ActorState actor) => world.ExpeditionFor(actor.Id)?.LeaderRole ?? ExpeditionParty.Role(actor.Id);
         int Hero(ActorState actor)
         {
-            if (ExpeditionParty.IsCompanion(actor.Id)) return 2;
+            if (RoleOf(actor) is >= 0 and < ExpeditionParty.StageRoles) return 2;
             if (actor.Id == world.ChosenActorId) return chosenHero;
             foreach (int item in actor.Items)
                 if (heroByItem.TryGetValue(item, out int hero)) return hero;
@@ -237,8 +239,8 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
 
         List<int> Items(ActorState actor)
         {
-            if (ExpeditionParty.IsCompanion(actor.Id))
-                return ExpeditionParty.Role(actor.Id) switch
+            if (RoleOf(actor) is >= 0 and < ExpeditionParty.StageRoles)
+                return RoleOf(actor) switch
                 {
                     0 => new List<int> { 1, 3 }, 1 => new List<int> { 1, 9122 }, _ => new List<int> { 2 }
                 };
@@ -323,8 +325,8 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
         bool tidegateArena = nodeId == WorldTimelineDebug.WorldTimelineDebugView.LinxiEliteNode;
         string CombatAppearance(ActorState actor)
         {
-            if (ExpeditionParty.IsCompanion(actor.Id))
-                return new[] { "Chongshan", "Chili", "Wenchao", "Baixi" }[ExpeditionParty.Role(actor.Id)];
+            if (RoleOf(actor) is >= 0 and < ExpeditionParty.StageRoles)
+                return new[] { "Chongshan", "Chili", "Wenchao", "Baixi" }[RoleOf(actor)];
             if (previewCast)
             {
                 if (actor == first[0]) return "Chongshan";
@@ -358,7 +360,9 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
             }
             if (actor.Id == world.ChosenActorId) return "ChosenSwordsman";
             if (previewItems != null && second.Contains(actor)) return null;
-            if (appearanceByBirth.TryGetValue(actor.BirthNodeId, out string appearance)) return appearance;
+            var party = world.ExpeditionFor(actor.Id);
+            int birth = party?.LeaderRole >= ExpeditionParty.StageRoles ? party.PastBirth(party.LeaderRole) : actor.BirthNodeId;
+            if (appearanceByBirth.TryGetValue(birth, out string appearance)) return appearance;
             return actor.Items.Select(CultivatorAppearance).FirstOrDefault(model => model != null);
         }
         string Appearance(ActorState actor)
@@ -425,6 +429,6 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
                     if (swordArts.TryGetValue(actor, out var art))
                         actor.SettleTechniqueBattle(SwordArtId, art.Rank, TechniqueExperiencePerBattle, kills);
                 }, timeSliceSimulation: forecast,
-                setup: formationSetup);
+                setup: formationSetup, criticalRules: world.CriticalArtifactsEnabled);
     }
 }

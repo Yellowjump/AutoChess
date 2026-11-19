@@ -77,7 +77,8 @@ namespace WorldTimelineDebug
         public bool IsBusy => advancing;
         public int SelectedNodeId => selectedNode;
         public NodeState SelectedLocation => simulation.State.Nodes[selectedNode];
-        public string PlayerName => startingCultivator?.Name ?? TimelineText("Timeline_UI_86");
+        public string PlayerName => Expedition?.LeaderRole >= 0 ? CompanionName(Expedition.LeaderRole).Split('·')[0].Trim() : OriginalPlayerName;
+        public string OriginalPlayerName => startingCultivator?.Name ?? TimelineText("Timeline_UI_86");
         public (string Text, int? NodeId) MapNotice
         {
             get
@@ -106,7 +107,7 @@ namespace WorldTimelineDebug
                 notice = LocalRecruitmentNotice();
                 if (notice != null) return (notice, null);
                 if (PendingVanguard is int firstBattle)
-                    return ("岩舟已入队 · 前往近战守关，盾卫放前排、主角放后排。胜利后可招募阿翎。", firstBattle);
+                    return (Expedition.IsFallen(0) || Expedition.LeaderRole >= 0 ? "前往近战守关。胜利后可招募阿翎。" : "岩舟已入队 · 前往近战守关，盾卫放前排、主角放后排。胜利后可招募阿翎。", firstBattle);
                 notice = OpeningNotice;
                 if (notice != null) return (notice, null);
                 if (simulation?.WaitingForPlayer == true && simulation.CanJoinChosen(simulation.State.PlayerActorId))
@@ -200,7 +201,7 @@ namespace WorldTimelineDebug
         {
             if (node.IsExpeditionVanguard) return node.MonsterHealth > 0 ? "首战 · 近战守关" : "首战 · 已通关";
             if (node.CompanionStageRole is int role)
-                return Expedition.HasRecruited(role) ? "同伴关卡 · 已招募" : "同伴关卡";
+                return Expedition.IsFallen(role) ? "同伴关卡 · 已阵亡" : Expedition.HasRecruited(role) ? "同伴关卡 · 已招募" : "同伴关卡";
             var kind = WorldTimelineMapMarker.Classify(node, TryGetPlayerStory(node.Id, out _),
                 simulation.State.Ritual?.NodeId == node.Id, HasClearedGuardian(node));
             return node.IsGuardianGroup && (kind is MapMarkerKind.Battle or MapMarkerKind.BattleStory)
@@ -238,6 +239,41 @@ namespace WorldTimelineDebug
             _ => TimelineText("Timeline_Technique_SkillNumber", id)
         };
 
+        public string MapRewardDetails(NodeState node)
+        {
+            if (Expedition?.ProgressionEnabled != true) return LocationLoot(node);
+            if (node.FirstClear.HasValue) return ExplorationReward(node);
+            var lines = new System.Collections.Generic.List<string>();
+            if (node.MonsterHealth > 0)
+            {
+                lines.Add($"守军历练 +{Expedition.VictoryExperience(node.Id,simulation.Cultivation)} · 灵石 +{node.VictorySpiritStones}");
+                var choices = Expedition.Equipment.PreviewArtifactChoices(node.Id);
+                if (choices.Count > 0) lines.Add("三选一  " + string.Join("、",choices.Select(i => ExpeditionEquipment.Definition(i).Name)));
+            }
+            if (node.Items.Count > 0) lines.Add(LocationLoot(node));
+            if (lines.Count == 0) return "尚未首通";
+            return string.Join("\n",lines);
+        }
+
+        public string MapActorLocation(ActorState actor)
+        {
+            var world = simulation.State;
+            if (actor.HasJoinedPlayer)
+            {
+                for (int role = ExpeditionParty.StageRoles; role < Expedition.RoleCount; role++)
+                    if (Expedition.PastBirth(role) == actor.BirthNodeId && Expedition.IsFallen(role)) return "入队后阵亡";
+                return "已加入当世队伍";
+            }
+            if (!actor.IsAlive) return "已阵亡";
+            var traveller = actor.LeaderId is int leader ? world.Actors[leader] : actor;
+            bool travelling = traveller.CurrentAction?.Kind == WorldActionKind.Move;
+            int? node = travelling ? traveller.CurrentAction.TargetNodeId : traveller.NodeId;
+            if (!node.HasValue) return "行进中";
+            var place = world.Nodes[node.Value];
+            string location = $"{LocationName(place)} ({place.Q}, {place.R})";
+            return travelling ? $"前往{location} · 余{traveller.RemainingYears}年" : location;
+        }
+
         public string LocationLoot(NodeState node)
         {
             return node.Items.Count == 0 ? TimelineText("Timeline_UI_99") : string.Join("、", node.Items.Select(item =>
@@ -248,9 +284,11 @@ namespace WorldTimelineDebug
         public string LocationArrivals(NodeState node)
         {
             var arrivals = ActorMapProjection.NextArrivals(simulation, node.Id);
-            if (arrivals.Count == 0) return TimelineText("Timeline_Arrival_None");
             var world = simulation.State;
-            return string.Join("\n", arrivals.Select(entry =>
+            var present = simulation.Histories.Select(h => world.Actors[h.ActorId])
+                .Where(a => a.OnWorldMap && a.NodeId == node.Id)
+                .Select(a => ClearOwner(a.Id) + " · 已在此地");
+            var lines = present.Concat(arrivals.Select(entry =>
             {
                 var actor = world.Actors[entry.ActorId];
                 string name = actor.Id == world.PlayerActorId ? PlayerName
@@ -259,7 +297,8 @@ namespace WorldTimelineDebug
                         ?? TimelineText("Timeline_UI_PastLife", actor.Id);
                 return TimelineText(entry.Years == 1 ? "Timeline_Arrival_NextYear" : "Timeline_Arrival_Years",
                     name, entry.Years);
-            }));
+            })).ToArray();
+            return lines.Length == 0 ? TimelineText("Timeline_Arrival_None") : string.Join("\n",lines);
         }
 
         public bool CanMoveSelected => !advancing && simulation.WaitingForPlayer &&
@@ -282,9 +321,14 @@ namespace WorldTimelineDebug
                 if (selectedNode == world.NorthRelaySpringNodeId)
                     return TimelineText(world.NorthRelayRestored.HasValue ? "Timeline_NorthRelay_SpringFlowing" : "Timeline_NorthRelay_SpringDry");
                 if (TryGetPlayerStory(selectedNode, out var story))
-                    return story.Text + (SelectedLocation.MonsterHealth > 0 ? TimelineText("Timeline_UI_101") : TimelineText("Timeline_UI_102"))+
-                        (Expedition?.Equipment.Modern==true&&!story.IsMerchant?(Expedition.Equipment.HasVisitedEvent(selectedNode)?
-                            "\n此处的灵石与淬炼机缘已领取。":"\n首次完成事件：灵石 +12，可选一件法器或道具免费升阶。") : "");
+                {
+                    string text = story.Text + TimelineText(SelectedLocation.MonsterHealth > 0 ? "Timeline_UI_101" : "Timeline_UI_102");
+                    if (Expedition?.Equipment.Modern != true || story.IsMerchant) return text;
+                    if (SelectedLocation.FirstClear is { } clear && clear.ActorId != world.PlayerActorId)
+                        return text + "\n此处首通归" + ClearOwner(clear.ActorId) + "。";
+                    return text + (SelectedLocation.EventRewardTaken || Expedition.Equipment.HasVisitedEvent(selectedNode)
+                        ? "\n此处的灵石与淬炼机缘已领取。" : "\n首次完成事件：灵石 +12，可选一件法器或道具免费升阶。");
+                }
                 if (SelectedLocation.MonsterHealth > 0) return TimelineText("Timeline_UI_103");
                 if (SelectedLocation.Items.Count > 0) return TimelineText("Timeline_UI_104");
                 return "探索新地点、招募队友，再挑战守关敌人。原地等待只推进时间，不获得经验。";
@@ -304,6 +348,9 @@ namespace WorldTimelineDebug
                         .Select(level => TimelineText("Timeline_UI_LevelExperience", level.Level, level.ExperienceToNext)));
             }
         }
+
+        public string[] InactiveHistoryNames() => library.Where(entry => !simulation.Histories.Any(h =>
+            h.Record.BirthNodeId == entry.Record.BirthNodeId)).Select(entry => entry.Name).ToArray();
 
         public string HistoryDetails => library.Count == 0 ? TimelineText("Timeline_UI_106")
             : string.Join("\n\n", library.Select(entry => TimelineText(simulation.Histories.Any(history =>
@@ -337,8 +384,16 @@ namespace WorldTimelineDebug
         public void PanMap(Vector2 delta) { if (!advancing) board?.Pan(new Vector2(delta.x, -delta.y)); }
         public void ZoomMap(float factor) { if (!advancing) board?.Zoom(factor); }
         public void OverviewMap() { if (!advancing) board?.Overview(); }
+        public MapMarkerKind? MapMarkerFilter
+        {
+            get => board?.MarkerFilter;
+            set { if (board != null) board.MarkerFilter = value; }
+        }
         public void FocusMapActor(int id) { if (!advancing) board?.FocusActor(id); }
         public void MoveSelected() { if (CanMoveSelected) Submit(WorldAction.Move(selectedNode)); }
+        public bool CanRest => !OpeningActive && !IsBusy && simulation.WaitingForPlayer &&
+            Expedition?.AttritionEnabled == true && Expedition.NeedsRest;
+        public void RestYear() { if (CanRest) Submit(WorldAction.Rest()); }
         public void WaitYear() { if (!advancing && simulation.WaitingForPlayer) Submit(WorldAction.Wait()); }
         public void Disguise() { if (!advancing && simulation.WaitingForPlayer) Submit(WorldAction.Disguise()); }
         public void JoinChosen() { if (!advancing && simulation.WaitingForPlayer && simulation.CanJoinChosen(1)) Submit(WorldAction.JoinChosen()); }

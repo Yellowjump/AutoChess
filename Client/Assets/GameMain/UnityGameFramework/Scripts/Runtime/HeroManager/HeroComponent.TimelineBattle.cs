@@ -17,6 +17,8 @@ namespace UnityGameFramework.Runtime
     {
         internal bool IsStationaryTargetPreview { get; private set; }
         internal TimelineBurnVisuals BurnVisuals { get; private set; }
+        internal bool CriticalRules { get; private set; }
+        internal float TimelineBattleSeconds { get; private set; }
 #if UNITY_EDITOR
         private EntityQizi previewBurnTarget;
 
@@ -39,7 +41,7 @@ namespace UnityGameFramework.Runtime
             TimelineArenaStyle arenaStyle = TimelineArenaStyle.Forest, bool staggerStoneGuards = false,
             bool openingGuardianPounce = false, bool suppressNamelessSeal = false, bool saltChannelDrained = false,
             Func<ActorState, int> coastalFormation = null, bool timeSliceSimulation = false,
-            TimelineBattleSetup setup = null)
+            TimelineBattleSetup setup = null, bool criticalRules = false)
         {
             if (unlimitedDuration && !visible)
                 throw new ArgumentException("无时间限制的战斗必须在前台运行。", nameof(unlimitedDuration));
@@ -86,6 +88,8 @@ namespace UnityGameFramework.Runtime
             CameraClearFlags previousClearFlags = sceneCamera != null ? sceneCamera.clearFlags : default;
             Color previousBackground = sceneCamera != null ? sceneCamera.backgroundColor : default;
             Camera previousCanvasCamera = m_InstanceWorldCanvas.worldCamera;
+            CriticalRules = criticalRules;
+            TimelineBattleSeconds = 0f;
             IsTimelineBattle = true;
             IsTimelineSimulation = !visible;
             bool stationaryEnemies = unlimitedDuration && second.Count == 3;
@@ -319,6 +323,7 @@ namespace UnityGameFramework.Runtime
                     {
                         using (GameFramework.Utility.Random.UseGenerator(random))
                         {
+                            TimelineBattleSeconds += step;
                             OnLogicUpdate(step, step, stationaryEnemies);
                             setup?.Tick?.Invoke(step);
                         }
@@ -371,6 +376,10 @@ namespace UnityGameFramework.Runtime
                     {
                         ActorId = actor.Id,
                         Allied = (i < first.Count) == playerAttacks,
+                        Artifacts = entities[i].ArtifactOutput,
+                        CriticalHits = entities[i].Critical?.CriticalHits ?? 0,
+                        MarksApplied = entities[i].Critical?.MarksApplied ?? 0,
+                        MarksUsed = entities[i].Critical?.MarksUsed ?? 0,
                         DamageTaken = entities[i].BattleDamageTaken,
                         HealthLost = entities[i].BattleHealthLost,
                         Skills = entities[i].BattleOutput.Values.OrderBy(row => row.SkillId).ToArray()
@@ -408,6 +417,7 @@ namespace UnityGameFramework.Runtime
                     ItemUniqueIndex = itemUid;
                     dangqianliucheng = phase;
                     IsTimelineSimulation = false;
+                    CriticalRules = false;
                     IsTimelineBattle = false;
                     if (cameraObject != null)
                     {

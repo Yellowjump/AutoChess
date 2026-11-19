@@ -20,7 +20,7 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
     private TMP_FontAsset heading;
     private ExpeditionFormationStyle style;
     private ExpeditionFormationVfx vfx;
-    private int selected, nodeId;
+    private int selected, nodeId, memberPage;
     private bool playerFirst, confirmed, restoreDebugger;
     private readonly Dictionary<int, EntityQizi> models = new Dictionary<int, EntityQizi>();
     private readonly Dictionary<int, ActorState> actors = new Dictionary<int, ActorState>();
@@ -149,7 +149,8 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
 
         ReferencePicture("RosterBackground","RosterPaper",0,RosterTop,1672,196,true);
         int n=0;
-        foreach(int id in actors.Keys.Where(Party.Owns))BuildCard(id,235+n++*200);
+        foreach(int id in actors.Keys.Where(Party.Owns))BuildCard(id,235+(n++%5)*200);
+        if(n>5) Button("MemberPage","切换同伴",30,789,175,72,()=>{memberPage=1-memberPage; Refresh();},Paper);
         if(n<5)Label("RecruitHint","循地图寻访\n结识更多同行",253+n*200,810,165,63,24,Muted);
         var confirm=Button("Confirm","",1270,782,387,86,()=>confirmed=true,Color.white);
         confirm.image.sprite=ReferenceSprite("Confirm");
@@ -160,7 +161,7 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
     }
     private void BuildCard(int id,float x)
     {
-        var button=Button("Member"+(id==Party.LeaderId?0:ExpeditionParty.Role(id)+1),"",x,770,194,138,()=>Select(id),new Color(1,1,1,.12f));
+        var button=Button("Member"+(id==Party.LeaderId?0:Party.CombatRole(id)+1),"",x,770,194,138,()=>Select(id),new Color(1,1,1,.12f));
         var rect=(RectTransform)button.transform;
         Picture(rect,"Portrait",Portrait(id),7,10,102,114).preserveAspect=false;
         var name=Label("Name",Name(id),122,15,69,42,31);name.transform.SetParent(rect,false);
@@ -181,18 +182,23 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
     private string Name(int id)
     {
         if(id==Party.LeaderId)return view.PlayerName;
-        if(ExpeditionParty.IsCompanion(id))return view.CompanionName(ExpeditionParty.Role(id)).Split('·')[0].Trim();
+        if(!Party.Owns(id) && ExpeditionParty.Role(id)>=ExpeditionParty.StageRoles)
+        {
+            var owner=view.Simulation.State.HistoricalExpeditions.Values.FirstOrDefault(p=>p.Owns(id));
+            return owner==null?"前世修士":view.PastName(owner,owner.CombatRole(id));
+        }
+        if(ExpeditionParty.IsCompanion(id))return view.CompanionName(Party.CombatRole(id)).Split('·')[0].Trim();
         return view.Simulation.State.HistoricalExpeditions.ContainsKey(id)?"前世修士":"敌方守军";
     }
-    private string RoleName(int id)=>ExpeditionParty.Role(id) switch
-    {0=>"盾卫",1=>"剑客",2=>"弓手",3=>"医者",_=>Party.Owns(id)?"主角":"敌方"};
+    private string RoleName(int id)=>Party.CombatRole(id) switch
+    {0=>"盾卫",1=>"剑客",2=>"弓手",3=>"医者",>= ExpeditionParty.StageRoles when Party.NamedSite(Party.CombatRole(id))>=0=>"关卡同伴",>= ExpeditionParty.StageRoles=>"前世",_=>Party.Owns(id)?"主角":"敌方"};
     private Sprite Portrait(int id)
     {
         var full=DetailPortrait(id);
         if(full==null)return null;
         Rect bounds=full.rect;
         // Crop the new illustration so the card and detail show the same pose.
-        Rect crop=ExpeditionParty.Role(id) switch
+        Rect crop=Party.CombatRole(id) switch
         {
             2=>new Rect(.4f,.67f,.56f,.29f),
             3=>new Rect(.35f,.66f,.5f,.30f),
@@ -206,8 +212,13 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
     }
     private Sprite DetailPortrait(int id)
     {
-        if(id==Party.LeaderId)return ReferenceSprite("DetailLeader");
-        return ExpeditionParty.Role(id) switch
+        if (Party.CombatRole(id) >= ExpeditionParty.StageRoles)
+        {
+            var owner = Party.Owns(id) ? Party : view.Simulation.State.HistoricalExpeditions.Values.FirstOrDefault(p=>p.Owns(id));
+            return owner == null ? null : view.PastPortrait(owner, owner.CombatRole(id));
+        }
+        if(id==Party.LeaderId && Party.LeaderRole < 0)return ReferenceSprite("DetailLeader");
+        return Party.CombatRole(id) switch
         {
             0=>ReferenceSprite("DetailShield"),
             1=>ReferenceSprite("DetailSwordsman"),
@@ -230,7 +241,7 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
         int cell=benchedCells.TryGetValue(selected,out int remembered)&&Party.Cells[remembered]==0?remembered:-1;
         if(cell<0)
         {
-            var order=ExpeditionParty.Role(selected)<2?new[]{1,0,2,4,3,5}:new[]{4,3,5,1,0,2};
+            var order=Party.CombatRole(selected)<2?new[]{1,0,2,4,3,5}:new[]{4,3,5,1,0,2};
             cell=order.FirstOrDefault(c=>Party.Cells[c]==0);
         }
         PlaceSelected(cell);
@@ -253,8 +264,10 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
             if(!manager.TryPlace(unit,position))throw new InvalidOperationException("布阵位置被占用。");
             unit.SavePos=position;unit.LogicPosition=manager.GetGeziPos(position.y,position.x);
         }
+        int cardIndex=0;
         foreach(var card in cards)
         {
+            card.Button.gameObject.SetActive(cardIndex++/5==memberPage);
             bool deployed=Party.CellOf(card.Id)>=0;
             card.Stamp.sprite=ReferenceSprite(deployed?"Deployed":"Reserve");
             card.Selection.gameObject.SetActive(card.Id==selected);
@@ -273,7 +286,7 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
         }
         health.text=$"气血  {chosen.Health} / {chosen.MaxHealth}";
         attack.text=$"攻击  {chosen.CombatAttack}";
-        int role=ExpeditionParty.Role(selected);
+        int role=Party.CombatRole(selected);
         ability.text=role switch{0=>"近身牵制",1=>"近战突破",2=>"远程输出",3=>"悬壶济世",_=>Party.Owns(selected)?"本世修行":"知己知彼"};
         details.text=role switch
         {
@@ -283,6 +296,12 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
             3=>"每三秒治疗附近\n最虚弱的同伴。",
             _=>Party.Owns(selected)?"携当前装备与功法入阵。\n前后站位决定接敌顺序。":"敌方站位已定。\n可查看敌情，不能调动。"
         };
+        var innate = Party.Equipment.Innate(selected);
+        if (innate?.Personal == true)
+        {
+            ability.text = innate.Name;
+            details.text = innate.TriggerRule;
+        }
         bool historical=view.Simulation.State.HistoricalExpeditions.Values.Any(p=>p.Owns(selected));
         historyNote.text=historical?"前世队伍\n按旧阵自动参战":Party.Owns(selected)?"此战队伍与阵位\n将随本世一同留存":"审敌之势\n再定本世之阵";
         bool own=Party.Owns(selected),deployedSelected=Party.CellOf(selected)>=0,full=Party.DeployedCount>=ExpeditionParty.Capacity;
@@ -290,8 +309,6 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
         bench.GetComponentInChildren<TMP_Text>().text=!own?"敌方阵容":selected==Party.LeaderId?"主角须在场":
             deployedSelected?"下阵候补":full?"阵容已满":"上阵";
         vfx.Refresh(Party,selected);
-        if(heading.atlasPopulationMode!=AtlasPopulationMode.Static)
-            heading.TryAddCharacters(string.Concat(GetComponentsInChildren<TMP_Text>(true).Select(t=>t.text)));
     }
     private Vector2 Project(Vector3 world)
     {

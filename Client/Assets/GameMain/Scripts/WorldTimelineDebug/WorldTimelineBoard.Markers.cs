@@ -10,6 +10,10 @@ namespace WorldTimelineDebug
         private static readonly int BadgeUV = Shader.PropertyToID("_TimelineMapBadgeUV");
         private readonly Vector4[] badgeUVs = new Vector4[1023];
         private Mesh badgeQuad;
+        internal MapMarkerKind? MarkerFilter { get; set; }
+
+        private bool ShowsTypeBadge(Tile tile) => tile.Kind != MapMarkerKind.Trail &&
+            (!MarkerFilter.HasValue || tile.Kind == MarkerFilter);
 
         private void InitializeTypeMarkers()
         {
@@ -40,10 +44,18 @@ namespace WorldTimelineDebug
             foreach (var pair in tiles)
             {
                 var tile = pair.Value;
-                if (tile.Kind == MapMarkerKind.Trail || !(tile.Reachable || IsMarkerFocused(pair.Key, tile))) continue;
+                var owner = state.Nodes[pair.Key].FirstClear;
+                bool showOwner = owner.HasValue && (!MarkerFilter.HasValue || tile.Kind == MarkerFilter);
+                if (!showOwner && (!ShowsTypeBadge(tile) || !(tile.Reachable || IsMarkerFocused(pair.Key, tile)))) continue;
                 var center = MarkerCenter(tile, tile.LiftAt(now));
                 float radius = TypeMarkerRadius(camera, center, tile);
                 if (radius <= 0f) continue;
+                if (showOwner)
+                {
+                    Color tint = owner.Value.ActorId == state.PlayerActorId ? new Color(.13f,.54f,.43f) : ActorRouteColor(owner.Value.ActorId,state.ChosenActorId);
+                    AddMarker(cmd,pulseMesh,Matrix4x4.TRS(center,ringRotation,Vector3.one*radius*1.43f),tint,ref count);
+                    if (!ShowsTypeBadge(tile) || !(tile.Reachable || IsMarkerFocused(pair.Key,tile))) continue;
+                }
                 Color ring = tile.Selected ? SelectedColor : tile.Reachable ? OpeningDetourColor :
                     new Color(.54f, .46f, .31f);
                 AddMarker(cmd, pulseMesh, Matrix4x4.TRS(center, ringRotation, Vector3.one * radius * 1.22f), ring, ref count);
@@ -55,7 +67,7 @@ namespace WorldTimelineDebug
             foreach (var pair in tiles)
             {
                 var tile = pair.Value;
-                if (tile.Kind == MapMarkerKind.Trail) continue;
+                if (!ShowsTypeBadge(tile)) continue;
                 var center = MarkerCenter(tile, tile.LiftAt(now));
                 float radius = TypeMarkerRadius(camera, center, tile);
                 if (radius <= 0f) continue;

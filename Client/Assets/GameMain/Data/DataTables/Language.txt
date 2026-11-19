@@ -1156,3 +1156,15 @@
 	23223	战斗推演	Timeline_LanternForecastFight	继续闯关 · 1年	Fight anyway · 1y
 	23224	战斗推演	Timeline_LanternForecastDetour	浮灯水眼 · +{0}年	Lantern Spring +{0}y
 	23225	战斗推演	Timeline_LanternDetourInterrupted	前路有变，已在当前地点停下。	The route changed. You stop at your current location.
+	23226	同行装备	Gear_Unworn	未装备	Unequipped
+	23227	同行装备	Gear_WornBy	{0}已装备	Equipped by {0}
+	23228	同行装备	Gear_TransferPrompt	{0}已由{1}装备。是否将它装备到{2}身上？	{1} has {0} equipped. Transfer it to {2}?
+	23229	同行装备	Gear_Equip	装备	Equip
+	23230	同行装备	Gear_Unequip	卸下装备	Unequip
+	23231	同行装备	Gear_Innate	本命法器 · 仅可升级	Innate artifact · Upgrade only
+	23232	同行装备	Gear_Removed	已卸下装备。	Item unequipped.
+	23233	同行装备	Gear_Equipped	已装备。	Item equipped.
+	23234	同行装备	Gear_Unavailable	当前无法操作。	This action is currently unavailable.
+	23235	同行装备	Gear_SelectReplacement	装备槽已满，请选择要替换的槽位。	All slots are full. Choose a slot to replace.
+	23236	同行装备	Gear_Replace	{0}的装备槽已满。是否将第{1}格的「{2}」替换为「{3}」？	{0} has no free slots. Replace {2} in slot {1} with {3}?
+	23237	同行装备	Gear_TransferReplace	「{0}」已由{1}装备，{2}的装备槽已满。是否转给{2}，替换第{3}格的「{4}」？	{1} has {0} equipped, and {2} has no free slots. Transfer it to {2} and replace {4} in slot {3}?

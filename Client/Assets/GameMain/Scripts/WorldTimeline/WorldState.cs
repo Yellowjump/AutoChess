@@ -38,6 +38,57 @@ namespace WorldTimeline
         // Compatibility for the portion of a checkpoint originally played with lifespan deaths.
         public int LegacyLifespanDeathThroughYear { get; set; }
         public Dictionary<int, ActorState> Actors { get; } = new Dictionary<int, ActorState>();
+        // Populated from the same unlocked selection roster that starts a life.
+        public HashSet<int> PlayableBirths { get; } = new HashSet<int>();
+        public bool PastInvitations { get; internal set; }
+        private readonly Dictionary<int,int> returnedStageHealth = new Dictionary<int,int>();
+        public int? ReturnedStageHealth(int role) => returnedStageHealth.TryGetValue(role,out int hp) ? hp : (int?)null;
+        internal void ReturnStage(int role,int actor,int health)
+        {
+            if (StageOwner(role) != actor) return;
+            returnedStageHealth[role] = health;
+            if (health > 0) stageOwners.Remove(role);
+        }
+        internal void TakeReturnedStage(int role) => returnedStageHealth.Remove(role);
+        public bool HistoricalGrowth { get; internal set; }
+        public bool RainTasselEnabled { get; private set; }
+        public void EnableRainTassel() => RainTasselEnabled = true;
+        public bool RelayClaspEnabled { get; private set; }
+        public void EnableRelayClasp() => RelayClaspEnabled = true;
+        public bool ReprisalSealEnabled { get; private set; }
+        public void EnableReprisalSeal() => ReprisalSealEnabled = true;
+        public bool HeartLampEnabled { get; private set; }
+        public void EnableHeartLamp() => HeartLampEnabled = true;
+        public bool TinderPouchEnabled { get; private set; }
+        public void EnableTinderPouch() => TinderPouchEnabled = true;
+        public bool MeridianSpikeEnabled { get; private set; }
+        public void EnableMeridianSpike() => MeridianSpikeEnabled = true;
+        public bool ThunderBellEnabled { get; private set; }
+        public void EnableThunderBell() => ThunderBellEnabled = true;
+        public bool FalterMirrorEnabled { get; private set; }
+        public void EnableFalterMirror() => FalterMirrorEnabled = true;
+        public bool LastStandCharmEnabled { get; private set; }
+        public void EnableLastStandCharm() => LastStandCharmEnabled = true;
+        public bool AfflictionSealEnabled { get; private set; }
+        public void EnableAfflictionSeal() => AfflictionSealEnabled = true;
+        public bool SupportArtifactsEnabled { get; private set; }
+        public void EnableSupportArtifacts() => SupportArtifactsEnabled = true;
+        public bool CriticalArtifactsEnabled { get; private set; }
+        public void EnableCriticalArtifacts() => CriticalArtifactsEnabled = true;
+        public bool QuakeSpikeEnabled { get; private set; }
+        public void EnableQuakeSpike() => QuakeSpikeEnabled = true;
+        public bool SwordTraining { get; private set; }
+        public void EnableSwordTraining() => SwordTraining = true;
+        public bool SignatureArtifacts { get; internal set; }
+        public bool SharedClears { get; internal set; }
+        private readonly Dictionary<int,int> stageOwners = new Dictionary<int,int>();
+        public int? StageOwner(int role) => stageOwners.TryGetValue(role, out var owner) ? owner : (int?)null;
+        internal bool ClaimStage(int role,int actor)
+        {
+            if (!stageOwners.ContainsKey(role)) stageOwners.Add(role,actor);
+            return !SharedClears || stageOwners[role]==actor;
+        }
+        internal Func<int,int,int> HistoricalRewardDefinition;
         public ExpeditionParty Expedition { get; private set; }
         internal int FormationBattle;
         public IReadOnlyList<ActorState> FormationFirst { get; internal set; }

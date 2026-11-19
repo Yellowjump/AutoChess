@@ -73,13 +73,22 @@ namespace SkillSystem
             }
         }
 
-        private static void ApplyStatus(EntityQizi target, BuffTag tag, int buffId)
+        internal static void OnFalterMirrorHit(EntityQizi attacker, float elapsed, bool front, WorldTimeline.ArtifactBattleOutput output)
+        {
+            bool alreadyWeak = attacker.FindStatusBuff(BuffTag.Weakened, WeaknessBuffId) != null;
+            output.ResolveFalterMirror(elapsed, front, alreadyWeak,
+                () => ApplyStatus(attacker, BuffTag.Weakened, WeaknessBuffId),
+                () => ApplyStatus(attacker, BuffTag.Exposed, OpeningBuffId));
+        }
+
+        private static bool ApplyStatus(EntityQizi target, BuffTag tag, int buffId)
         {
             var existing = target.FindStatusBuff(tag, buffId);
             if (existing != null)
             {
+                int before = existing.StackCount;
                 existing.AddMarkLayer();
-                return;
+                return existing.StackCount > before;
             }
             var row = GameEntry.DataTable.GetDataTable<DRBuff>("Buff")[buffId];
             var template = GameEntry.DataTable.GetDataTable<DRBuffTemplate>("BuffTemplate")[row.TemplateID];
@@ -93,6 +102,7 @@ namespace SkillSystem
             buff.FreshOtherBuffDuration = row.FreshDuration;
             buff.paramInt = Mathf.Clamp(row.IntParam1, 0, 100);
             target.AddBuff(buff);
+            return true;
         }
 
         public override void WriteToFile(BinaryWriter writer)

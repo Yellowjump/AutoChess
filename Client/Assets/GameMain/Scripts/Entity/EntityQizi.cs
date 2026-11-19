@@ -17,11 +17,32 @@ namespace Entity
         internal bool CanOpenWithPounce, IsPounceStrike;
         internal int FirstStoneSmashDelayMs;
         internal bool HasSwordRecall;
+        internal System.Func<bool> BambooActive;
+        internal System.Func<WorldTimeline.EchoCast> BeginEchoCast;
+        internal WorldTimeline.CriticalFighter Critical;
+        internal System.Func<EntityQizi,int,int> RedirectHealthLoss;
+        internal System.Action<EntityQizi,int,int> ArtifactHealthLost;
+        internal System.Action<EntityQizi,int> ArtifactOverheal;
+        internal System.Action<EntityQizi,int> OnAllyHealed;
+        internal int ReceiveHealing(int amount, EntityQizi healer = null)
+        {
+            var hp = GetAttribute(AttributeType.Hp);
+            int before = (int)hp.GetFinalValue();
+            if (!IsValid || before <= 0 || amount <= 0) return 0;
+            hp.AddNum(System.Math.Min(amount,(int)GetAttribute(AttributeType.MaxHp).GetFinalValue()-before));
+            int gain = (int)hp.GetFinalValue() - before;
+            if (amount > gain) ArtifactOverheal?.Invoke(this,amount-gain);
+            if (gain > 0 && healer != null && healer != this && healer.IsValid && healer.BelongCamp == BelongCamp)
+                healer.OnAllyHealed?.Invoke(this, gain);
+            return gain;
+        }
         internal int TechniqueSkillId;
         internal int TechniqueKills;
         internal Dictionary<int, int> LightningMarks;
         internal int LightningApplications, LightningTransfers, LightningJumps;
         internal Dictionary<int, WorldTimeline.SkillBattleOutput> BattleOutput;
+        internal System.Action<EntityQizi, EntityQizi, CauseDamageData, int, bool> OnArtifactHit;
+        internal WorldTimeline.ArtifactBattleOutput ArtifactOutput;
         internal long BattleDamageTaken, BattleHealthLost;
 
         internal static void RecordBattleOutput(Skill skill, long damage = 0, long shield = 0, long healing = 0,
@@ -104,6 +125,7 @@ namespace Entity
         public void Init(int i,List<int> equipItem = null, bool recordBattleOutput = false)
         {
             IsValid = true;
+            Critical = HotGameEntry.HeroManager.CriticalRules ? new WorldTimeline.CriticalFighter() : null;
             ShowsPlayerHitFeedback = false;
             PriorityAttackTarget = null;
             ReservedMoveAnchor = null;
@@ -267,7 +289,7 @@ namespace Entity
             ownsTimelineModel = false;
             TimelineAppearance = null;
             UsesUndertow = false;
-            HasSwordRecall = false;
+            HasSwordRecall = false; BambooActive = null; BeginEchoCast = null; Critical = null; RedirectHealthLoss = null; ArtifactHealthLost = null; ArtifactOverheal = null; OnAllyHealed = null;
             ClearHpBar();
             GObj = null;
         }
@@ -290,6 +312,7 @@ namespace Entity
             }
             EquipItemList.Clear();
             PaperShadows?.Clear();
+            OnArtifactHit = null; ArtifactOutput = null;
             BattleOutput = null;
             HotGameEntry.HeroManager.ReleaseEntityQizi(this);
         }

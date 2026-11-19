@@ -54,12 +54,24 @@ internal static class StoryCharacterSkinBuilder
             Vector3 knee = new Vector3(side * .147f, .53f, 0);
             Vector3 hip = new Vector3(side * .136f, .87f, 0);
             int offset = vertices.Count;
-            foreach (var vertex in source.vertices)
+            // The robe's UV2 marks the sleeve rings beyond each sewn armhole.
+            var sleeveFit = filter.name == "Short robe" ? source.uv2 : null;
+            var sourceVertices = source.vertices;
+            for (int v = 0; v < sourceVertices.Length; v++)
             {
-                Vector3 point = filter.transform.TransformPoint(vertex);
+                Vector3 point = filter.transform.TransformPoint(sourceVertices[v]);
                 Vector3 fitted;
                 BoneWeight weight;
-                if (bone == arm && filter.name.StartsWith("Broad sleeve"))
+                if (sleeveFit != null && v < sleeveFit.Length && sleeveFit[v].x > .5f)
+                {
+                    float sleeveSide = Mathf.Sign(point.x);
+                    int upper = sleeveSide == Mathf.Sign(bones[3].position.x) ? 3 : 6;
+                    var root = new Vector3(sleeveSide * .27f, 1.38f, 0);
+                    var cuff = new Vector3(sleeveSide * .43f, 1.12f, .045f);
+                    (fitted, weight) = FitSegment(point, root, cuff, Torso(root), bones[upper + 1].position,
+                        1, upper, upper + 1, scale, startWeight: 0f);
+                }
+                else if (bone == arm && filter.name.StartsWith("Broad sleeve"))
                     (fitted, weight) = FitSegment(point, shoulder, elbow, Torso(shoulder), bones[arm + 1].position,
                         1, arm, arm + 1, scale, startWeight: 0f);
                 else if (bone == arm + 1 && filter.name.StartsWith("Forearm") && !filter.name.StartsWith("Forearm plate"))

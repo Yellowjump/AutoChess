@@ -55,14 +55,20 @@ namespace WorldTimeline
     {
         public int NodeId { get; internal set; }
         public int TrialItemId { get; internal set; }
+        public bool WonFirstClear { get; internal set; }
         public bool IsTreasure { get; internal set; }
         public (int Applications, int Transfers, int Jumps) Lightning { get; internal set; }
         public IReadOnlyList<ActorBattleOutput> CombatOutput { get; internal set; } = Array.Empty<ActorBattleOutput>();
+        public IReadOnlyList<(int ActorId, int StartHealth, int Health, int MaxHealth)> PartyAtBattleEnd { get; internal set; } = Array.Empty<(int, int, int, int)>();
+        public bool Attrition { get; internal set; }
+        public int PreviousLeaderRole { get; internal set; } = -1;
+        public int SuccessorRole { get; internal set; } = -1;
         public bool Victory { get; internal set; }
         public bool RitualBacklash { get; internal set; }
         public int Health { get; internal set; }
         public int MaxHealth { get; internal set; }
         public int RecoveredHealth { get; internal set; }
+        public (int Role, int Amount) FieldTreatment { get; internal set; }
         public long Experience { get; internal set; }
         public long SpiritStones { get; internal set; }
         public int PreviousLevel { get; internal set; }
@@ -80,6 +86,7 @@ namespace WorldTimeline
         internal Func<ActorState, int, IEnumerator> StoryResolver;
         internal Func<BattleSettlement, IEnumerator> PresentSettlement;
         internal Func<int, IEnumerator> PrepareBattle;
+        internal Func<IReadOnlyList<int>, Action<int>, IEnumerator> SelectSuccessor;
         internal CultivationConfig Growth;
         private readonly Dictionary<(int Year, int Node), int> formationBattles = new Dictionary<(int, int), int>();
         public EncounterSystem(IWorldBattleResolver battle) { this.battle = battle ?? throw new ArgumentNullException(nameof(battle)); }
@@ -107,10 +114,10 @@ namespace WorldTimeline
                     var result = outcome.Result;
                     Validate(result);
                     emit(new WorldEvent(world.Year, WorldEventKind.Battle, survivor.Id, nodeId, "Actor battle", other.Id));
-                    ApplyPartyResult(world, firstParty, outcome.FirstHealth - result.FirstHealth, outcome.Remaining, nodeId, emit);
+                    ApplyPartyResult(world, firstParty, outcome.FirstHealth - result.FirstHealth, outcome.Remaining, nodeId, emit, outcome);
                     ApplyPartyResult(world, secondParty, outcome.SecondHealth - result.SecondHealth,
-                        outcome.Remaining?.Skip(firstParty.Count).ToArray(), nodeId, emit);
-                    if (!survivor.IsAlive) survivor = other;
+                        outcome.Remaining?.Skip(firstParty.Count).ToArray(), nodeId, emit, outcome);
+                    if (result.FirstHealth == 0) survivor = other;
                     outcome.RecoveredHealth = AwardVictoryRewards(world, survivor, nodeId, emit);
                     yield return ShowSettlement(world, nodeId, outcome, survivor.Id == world.PlayerActorId);
                 }
@@ -191,7 +198,10 @@ namespace WorldTimeline
                         });
                     }
                     var timer = sample == null ? null : System.Diagnostics.Stopwatch.StartNew();
-                    outcome = new ResolvedBattle();
+                    outcome = new ResolvedBattle { TrainingGear = world.SwordTraining && world.SharedClears && !survivor.HasJoinedChosen
+                        ? world.ExpeditionFor(survivor.Id)?.Equipment : null };
+                    if (world.SupportArtifactsEnabled && !survivor.HasJoinedChosen && !isChosen)
+                        outcome.FieldKitParty = world.ExpeditionFor(survivor.Id);
                     yield return ResolveRoutine(world, nodeId, party, guardians, outcome);
                     var result = outcome.Result;
                     Validate(result);
@@ -229,7 +239,7 @@ namespace WorldTimeline
                         }
                     }
                     emit(new WorldEvent(world.Year, WorldEventKind.Battle, survivor.Id, nodeId, "Node monster"));
-                    ApplyPartyResult(world, party, outcome.FirstHealth - result.FirstHealth, outcome.Remaining, nodeId, emit);
+                    ApplyPartyResult(world, party, outcome.FirstHealth - result.FirstHealth, outcome.Remaining, nodeId, emit, outcome);
                     victory = result.SecondHealth == 0 && survivor.IsAlive;
                     if (sample != null)
                     {
@@ -244,18 +254,46 @@ namespace WorldTimeline
                     if (victory)
                     {
                         node.GuardianDefeat = (survivor.Id, world.Year);
-                        outcome.RecoveredHealth = AwardVictoryRewards(world, survivor, nodeId, emit, sample?.battleId);
+                        outcome.WonFirstClear = node.ClaimClear(survivor.Id,world.Year,true);
+                        if (outcome.WonFirstClear) outcome.TrainingGear?.TrainSwordCases(outcome.TrainingCases);
+                        if (!world.SharedClears || outcome.WonFirstClear)
+                            outcome.RecoveredHealth = AwardVictoryRewards(world, survivor, nodeId, emit, sample?.battleId);
+                        if (world.SharedClears && outcome.WonFirstClear)
+                        {
+                            var gear = world.ExpeditionFor(survivor.Id)?.Equipment;
+                            if (gear != null && gear.OfferReward(nodeId).Count > 0 &&
+                                (survivor.Id != world.PlayerActorId || PresentSettlement == null))
+                            {
+                                int preferred = survivor.Id == world.PlayerActorId ? 0 : world.HistoricalRewardDefinition?.Invoke(survivor.Id,nodeId) ?? 0;
+                                gear.ClaimReward(Math.Max(0,Array.IndexOf(gear.PendingRewards.ToArray(),preferred)));
+                            }
+                        }
                     }
                     if (ritual != null && nodeId == world.Ritual.NodeId && victory)
                     {
-                        ritual.BossDefeated(world, survivor, emit);
-                        yield return ShowSettlement(world, nodeId, outcome, true, ritualBacklash: !survivor.IsAlive);
+                        var expedition = world.ExpeditionFor(survivor.Id);
+                        bool teamBacklash = expedition?.AttritionEnabled == true && survivor.Id != world.ChosenActorId;
+                        ritual.BossDefeated(world, survivor, emit, !teamBacklash);
+                        if (teamBacklash && outcome.Remaining[party.IndexOf(survivor)] > 0)
+                        {
+                            yield return LoseCaptain(world, expedition, survivor, outcome);
+                            if (expedition.IsFallen(expedition.LeaderRole))
+                                Apply(world, survivor, 0, nodeId, emit);
+                            expedition.RecordFormation();
+                        }
+                        if (survivor.IsAlive) outcome.ApplyFieldTreatment();
+                        yield return ShowSettlement(world, nodeId, outcome, true, ritualBacklash: teamBacklash || !survivor.IsAlive);
                         yield break;
                     }
+                    outcome.ApplyFieldTreatment();
                     if (isChosen && result.SecondHealth == 0 && survivor.IsAlive)
                         Absorb(world, survivor, enemyHealth, SumAttack(guardians), nodeId, emit);
                 }
-                if (survivor.IsAlive && node.Items.Count > 0)
+                if (outcome == null && (node.Items.Count > 0 || (survivor.Id != world.ChosenActorId &&
+                    node.StoryTrialItemId == 0)))
+                    node.ClaimClear(survivor.Id,world.Year,false);
+                if ((outcome == null || victory) && survivor.IsAlive && node.Items.Count > 0 &&
+                    (!world.SharedClears || node.FirstClear?.ActorId == survivor.Id))
                 {
                     bool showTreasure = outcome == null && PresentSettlement != null &&
                         survivor.Id == world.PlayerActorId && !world.PlayerControlEnded;
@@ -281,7 +319,7 @@ namespace WorldTimeline
                 }
                 if (outcome != null) yield return ShowSettlement(world, nodeId, outcome, victory, drops,
                     trialItemId: resolveStory ? 0 : node.StoryTrialItemId);
-                if (resolveStory && survivor.IsAlive && !world.IsEnded && StoryResolver != null &&
+                if (resolveStory && (outcome == null || victory) && survivor.IsAlive && !world.IsEnded && StoryResolver != null &&
                     (!node.StoryRequiresGuardianDefeat || node.MonsterHealth == 0))
                 {
                     bool canStartTrial = node.StoryTrialItemId != 0 && !node.StoryTrialStarted && node.MonsterHealth == 0 &&
@@ -325,18 +363,31 @@ namespace WorldTimeline
             var result = outcome.Result;
             Validate(result);
             emit(new WorldEvent(world.Year, WorldEventKind.Battle, leader.Id, nodeId, "Disguised enemy", enemy.Id));
-            ApplyPartyResult(world, party, outcome.FirstHealth - result.FirstHealth, outcome.Remaining, nodeId, emit);
+            ApplyPartyResult(world, party, outcome.FirstHealth - result.FirstHealth, outcome.Remaining, nodeId, emit, outcome);
             ApplyPartyResult(world, enemyParty, outcome.SecondHealth - result.SecondHealth,
-                outcome.Remaining?.Skip(party.Count).ToArray(), nodeId, emit);
-            if (enemy.IsAlive) outcome.RecoveredHealth = AwardVictoryRewards(world, enemy, nodeId, emit);
-            yield return ShowSettlement(world, nodeId, outcome, enemy.IsAlive);
+                outcome.Remaining?.Skip(party.Count).ToArray(), nodeId, emit, outcome);
+            if (result.SecondHealth > 0 && enemy.IsAlive) outcome.RecoveredHealth = AwardVictoryRewards(world, enemy, nodeId, emit);
+            yield return ShowSettlement(world, nodeId, outcome, result.SecondHealth > 0 && enemy.IsAlive);
         }
 
         private sealed class ResolvedBattle
         {
+            public ExpeditionEquipment TrainingGear;
+            public ExpeditionParty FieldKitParty;
+            public int[] SurvivingFieldKitRoles;
+            public void ApplyFieldTreatment()
+            {
+                if (WonFirstClear && FieldKitParty != null && SurvivingFieldKitRoles.Any(role => !FieldKitParty.IsFallen(role)))
+                    FieldTreatment = FieldKitParty.TreatWithFieldKit();
+            }
+            public (int Role, int Amount) FieldTreatment;
+            public ArtifactInstance[] TrainingCases;
+            public bool WonFirstClear;
             public int FirstHealth, SecondHealth;
             public BattleResult Result;
             public int[] Remaining;
+            public int PreviousLeaderRole = -1, SuccessorRole = -1;
+            public (int ActorId, int StartHealth, int Health, int MaxHealth)[] PlayerParty = Array.Empty<(int, int, int, int)>();
             public ActorState Player;
             public long PreviousExperience,PreviousSpiritStones;
             public int PreviousLevel;
@@ -362,12 +413,19 @@ namespace WorldTimeline
                 }
                 finally { world.FormationBattle = 0; world.FormationFirst = world.FormationSecond = null; }
             }
+            outcome.TrainingCases = outcome.TrainingGear?.TrainingCases(first);
+            // Capture the deployed wearers after planning and before casualties change gear ownership.
+            var kitWearers = outcome.FieldKitParty == null ? Array.Empty<(int Index, int Role)>() : Enumerable.Range(0, first.Count)
+                .Where(i => (outcome.FieldKitParty.Equipment.BattleTriggers(first[i].Id) & ArtifactTrigger.FieldKit) != 0)
+                .Select(i => (Index: i, Role: outcome.FieldKitParty.CombatRole(first[i].Id))).ToArray();
             outcome.FirstHealth = SumHealth(first); outcome.SecondHealth = SumHealth(second);
             if (PresentSettlement != null && !world.PlayerControlEnded)
             {
                 outcome.Player = first.Concat(second).FirstOrDefault(actor => actor.Id == world.PlayerActorId);
                 if (outcome.Player != null)
                 {
+                    var deployed = first.Contains(outcome.Player) ? first : second;
+                    outcome.PlayerParty = deployed.Select(a => (a.Id, a.Health, a.Health, a.MaxHealth)).ToArray();
                     outcome.Player.LastLightningBattle = default;
                     outcome.Player.LastBattleOutput = Array.Empty<ActorBattleOutput>();
                     outcome.PreviousExperience = outcome.Player.Experience;
@@ -385,14 +443,74 @@ namespace WorldTimeline
             else
             {
                 outcome.Result = battle.Resolve(SumHealth(first), SumAttack(first), SumHealth(second), SumAttack(second));
-                yield break;
+                if (kitWearers.Length == 0 && !first.Concat(second).Any(a => world.ExpeditionFor(a.Id)?.AttritionEnabled == true)) yield break;
+                outcome.Remaining = new int[first.Count + second.Count];
+                void Distribute(List<ActorState> side, int hp, int offset)
+                {
+                    int damage = SumHealth(side) - hp;
+                    bool expedition = side.Any(a => world.ExpeditionFor(a.Id) != null);
+                    for (int j = 0; j < side.Count; j++)
+                    {
+                        int i = expedition ? side.Count - 1 - j : j;
+                        int loss = Math.Min(damage, side[i].Health);
+                        outcome.Remaining[offset+i] = side[i].Health - loss;
+                        damage -= loss;
+                    }
+                }
+                Distribute(first, outcome.Result.FirstHealth, 0);
+                Distribute(second, outcome.Result.SecondHealth, first.Count);
             }
 
             var remaining = outcome.Remaining;
             if (remaining == null || remaining.Length != first.Count + second.Count || remaining.Any(hp => hp < 0))
                 throw new InvalidOperationException("Invalid party battle result.");
+            if (outcome.Player != null)
+            {
+                int offset = first.Contains(outcome.Player) ? 0 : first.Count;
+                for (int i = 0; i < outcome.PlayerParty.Length; i++)
+                    outcome.PlayerParty[i].Health = remaining[offset + i];
+            }
+            outcome.SurvivingFieldKitRoles = kitWearers.Where(w => remaining[w.Index] > 0).Select(w => w.Role).ToArray();
             outcome.Result = new BattleResult(checked(remaining.Take(first.Count).Sum()), checked(remaining.Skip(first.Count).Sum()));
             Validate(outcome.Result);
+            yield return ResolveCasualties(world, first, 0, outcome);
+            yield return ResolveCasualties(world, second, first.Count, outcome);
+        }
+
+        private IEnumerator ResolveCasualties(WorldState world, List<ActorState> side, int offset, ResolvedBattle outcome)
+        {
+            var leader = side.FirstOrDefault(a => world.ExpeditionFor(a.Id)?.AttritionEnabled == true);
+            if (leader == null || leader.HasJoinedChosen || (leader.Id == world.PlayerActorId && world.PlayerControlEnded)) yield break;
+            var party = world.ExpeditionFor(leader.Id);
+            bool player = leader.Id == world.PlayerActorId;
+            int oldRole = party.LeaderRole;
+            if (player)
+            {
+                outcome.PreviousLeaderRole = oldRole;
+            }
+            for (int i = 0; i < side.Count; i++)
+                if (ExpeditionParty.IsCompanion(side[i].Id))
+                {
+                    party.RetainCombatProgress(side[i]);
+                    party.SetCompanionHealth(ExpeditionParty.Role(side[i].Id), outcome.Remaining[offset+i]);
+                }
+            if (outcome.Remaining[offset + side.IndexOf(leader)] > 0) yield break;
+            yield return LoseCaptain(world, party, leader, outcome);
+        }
+
+        private IEnumerator LoseCaptain(WorldState world, ExpeditionParty party, ActorState leader, ResolvedBattle outcome)
+        {
+            bool player = leader.Id == world.PlayerActorId;
+            party.RemoveFallen(party.LeaderRole, leader.Id);
+            int[] candidates = party.LivingRoles.ToArray();
+            if (candidates.Length == 0) yield break;
+            int selected = -1;
+            if (player && SelectSuccessor != null)
+                yield return SelectSuccessor(candidates, role => selected = role);
+            else selected = candidates.Contains(party.HistoricalSuccessor) ? party.HistoricalSuccessor : candidates[0];
+            if (!candidates.Contains(selected)) throw new InvalidOperationException("无效的接任队长。");
+            party.Promote(selected);
+            if (player) outcome.SuccessorRole = selected;
         }
 
         private int AwardVictoryRewards(WorldState world, ActorState winner, int nodeId, Action<WorldEvent> emit, string battleId = null)
@@ -405,10 +523,13 @@ namespace WorldTimeline
             var expedition = world.ExpeditionFor(winner.Id);
             bool expeditionGrowth = expedition?.ProgressionEnabled == true;
             if (world.BattleExperienceEnabled || newRewards || expeditionGrowth)
-                CultivationSystem.Gain(winner, expeditionGrowth ? expedition.VictoryExperience(nodeId, Growth)
-                    : node.BattleExperienceReward ?? checked(3 * qi), Growth, world.Year, emit, world, "battle");
+            {
+                int xp = expeditionGrowth ? expedition.VictoryExperience(nodeId, Growth) : node.BattleExperienceReward ?? checked(3 * qi);
+                CultivationSystem.Gain(winner, xp, Growth, world.Year, emit, world, "battle");
+                expedition?.GrowPastLeaders(xp, Growth, emit);
+            }
             if (expedition?.Equipment.Modern==true)
-                winner.AwardLegacySpiritStones(Math.Max(8,checked(2*qi)));
+                winner.AwardLegacySpiritStones(node.VictorySpiritStones);
             else if (newRewards && world.Year <= world.LegacyTradeThroughYear)
                 winner.AwardLegacySpiritStones(checked(2 * qi));
             if (world.TracksBalance(winner))
@@ -436,18 +557,19 @@ namespace WorldTimeline
             }
             yield return PresentSettlement(new BattleSettlement
             {
-                NodeId = nodeId, TrialItemId = trialItemId, Victory = victory, RitualBacklash = ritualBacklash,
+                NodeId = nodeId, WonFirstClear = outcome.WonFirstClear, TrialItemId = trialItemId, Victory = victory, RitualBacklash = ritualBacklash,
                 Health = actor.Health, MaxHealth = actor.MaxHealth,
-                RecoveredHealth = outcome.RecoveredHealth,
+                RecoveredHealth = outcome.RecoveredHealth, FieldTreatment = outcome.FieldTreatment,
                 PreviousLevel = outcome.PreviousLevel, Level = actor.Level,
                 Experience = actor.Experience - outcome.PreviousExperience,
                 SpiritStones = Math.Max(0,actor.LegacySpiritStones-outcome.PreviousSpiritStones),
                 Items = drops ?? Array.Empty<int>(), Techniques = techniques, Lightning = actor.LastLightningBattle,
-                CombatOutput = actor.LastBattleOutput
+                Attrition = world.Expedition?.AttritionEnabled == true, PreviousLeaderRole = outcome.PreviousLeaderRole,
+                SuccessorRole = outcome.SuccessorRole, PartyAtBattleEnd = outcome.PlayerParty, CombatOutput = actor.LastBattleOutput
             });
         }
         private static void ApplyPartyResult(WorldState world, List<ActorState> party, int damage,
-            int[] remaining, int nodeId, Action<WorldEvent> emit)
+            int[] remaining, int nodeId, Action<WorldEvent> emit, ResolvedBattle outcome)
         {
             if (remaining == null)
             {
@@ -456,21 +578,31 @@ namespace WorldTimeline
                     var health = party.Select(actor => actor.Health).ToArray();
                     for (int i = health.Length - 1; i >= 0; i--)
                     { int loss = Math.Min(damage, health[i]); health[i] -= loss; damage -= loss; }
-                    ApplyPartyResult(world, party, 0, health, nodeId, emit);
+                    ApplyPartyResult(world, party, 0, health, nodeId, emit, outcome);
                     return;
                 }
                 ApplyPartyDamage(world, party, damage, nodeId, emit);
                 return;
             }
-            bool playerParty = party.Any(actor => world.ExpeditionFor(actor.Id) != null);
+            var squad = party.Select(actor => world.ExpeditionFor(actor.Id)).FirstOrDefault(p => p != null);
+            bool playerParty = squad != null;
             bool survived = remaining.Take(party.Count).Any(hp => hp > 0);
             for (int i = 0; i < party.Count; i++)
             {
                 if (playerParty && ExpeditionParty.IsCompanion(party[i].Id)) continue;
+                var expedition = world.ExpeditionFor(party[i].Id);
+                if (expedition?.AttritionEnabled == true && !party[i].HasJoinedChosen &&
+                    (party[i].Id != world.PlayerActorId || !world.PlayerControlEnded))
+                {
+                    if (remaining[i] > 0 || expedition.IsFallen(expedition.LeaderRole))
+                        Apply(world, party[i], remaining[i], nodeId, emit);
+                    continue;
+                }
                 // A knocked-out leader is carried home by the surviving team.
                 int hp = playerParty && survived && world.ExpeditionFor(party[i].Id) != null ? Math.Max(1, remaining[i]) : remaining[i];
                 Apply(world, party[i], hp, nodeId, emit);
             }
+            if (squad?.AttritionEnabled == true) squad.RecordFormation();
         }
 
         private static List<ActorState> Party(WorldState world, ActorState leader)

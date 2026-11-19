@@ -7,13 +7,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using DataTable;
 using GameFramework.Localization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.TextCore.LowLevel;
 
 namespace UnityGameFramework.Runtime
 {
@@ -206,35 +204,17 @@ namespace UnityGameFramework.Runtime
         private static TMP_FontAsset chinesePaperFont;
         private static TMP_FontAsset englishPaperFont;
 
-        private static TMP_FontAsset CreatePaperFont(string familyName, string windowsFileName)
-        {
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), windowsFileName);
-            if (File.Exists(path))
-            {
-                var font = TMP_FontAsset.CreateFontAsset(path, 0, 72, 8, GlyphRenderMode.SDFAA, 1024, 1024);
-                if (font != null) return font;
-            }
-#endif
-            return TMP_FontAsset.CreateFontAsset(familyName, "Regular");
-        }
-
         protected static void RefreshPaperTypography(Transform root)
         {
             if (root == null) return;
             bool english = GameEntry.Localization.Language == Language.English;
             var font = english
-                ? (englishPaperFont ??= CreatePaperFont("Georgia", "georgia.ttf"))
-                : (chinesePaperFont ??= CreatePaperFont("KaiTi", "simkai.ttf"));
+                ? (englishPaperFont ??= Resources.Load<TMP_FontAsset>("InterfaceGeorgia"))
+                : (chinesePaperFont ??= Resources.Load<TMP_FontAsset>("InterfaceKai"));
             if (font == null) return;
-            font.fallbackFontAssetTable ??= new List<TMP_FontAsset>();
             foreach (var label in root.GetComponentsInChildren<TMP_Text>(true))
             {
                 if (label.font == font) continue;
-                var previous = label.font;
-                if (previous != null && previous != chinesePaperFont && previous != englishPaperFont &&
-                    !font.fallbackFontAssetTable.Contains(previous))
-                    font.fallbackFontAssetTable.Add(previous);
                 label.font = font;
                 label.fontSharedMaterial = font.material;
             }

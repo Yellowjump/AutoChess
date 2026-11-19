@@ -247,7 +247,7 @@ namespace WorldTimelineDebug
             int? playerNode = player.IsAlive && !world.PlayerControlEnded && !world.IsEnded
                 && !player.LeaderId.HasValue && player.CurrentAction == null ? player.NodeId : null;
             float now = Time.unscaledTime;
-            var groups = world.Actors.Values.Where(actor => actor.IsAlive)
+            var groups = world.Actors.Values.Where(actor => actor.OnWorldMap)
                 .Select(actor => ActorMapProjection.Position(world, actor))
                 .GroupBy(point => (point.Q, point.R))
                 .ToDictionary(group => group.Key, group => group.Count());
@@ -296,7 +296,7 @@ namespace WorldTimelineDebug
             var occupied = new Dictionary<Vector2, int>();
             foreach (var actor in world.Actors.Values.OrderBy(actor => actor.Id))
             {
-                if (!actor.IsAlive)
+                if (!actor.OnWorldMap)
                 {
                     if (pieces.TryGetValue(actor.Id, out var dead)) dead.Root.gameObject.SetActive(false);
                     continue;
@@ -343,6 +343,7 @@ namespace WorldTimelineDebug
 
         public void ClearPieces()
         {
+            MarkerFilter = null;
             focusedRouteActor = null;
             routeSimulation = null;
             actorRouteIndices.Clear();
@@ -642,7 +643,7 @@ namespace WorldTimelineDebug
             {
                 int node = pair.Key;
                 var tile = pair.Value;
-                if (!opening && tile.Kind != MapMarkerKind.Trail) continue;
+                if (!opening && ShowsTypeBadge(tile)) continue;
                 bool onRoute = openingStops.TryGetValue(node, out int route);
                 bool gate = opening && node == openingGateId;
                 bool useSeal = onRoute || gate || tile.Reachable || tile.Selected;
@@ -656,7 +657,7 @@ namespace WorldTimelineDebug
                     onRoute ? RouteColor(route) :
                     tile.Reachable ? OpeningDetourColor :
                     tile.Visited ? new Color(.25f, .25f, .22f, .88f) :
-                    tile.Kind == MapMarkerKind.Story ? new Color(.65f, .42f, .23f, .92f) :
+                    opening && tile.Kind == MapMarkerKind.Story ? new Color(.65f, .42f, .23f, .92f) :
                     new Color(.34f, .32f, .27f, tile.Important ? .84f : .63f);
                 if (onRoute) color.a = Mathf.Max(.63f, color.a);
                 if (!border && seals)
@@ -721,12 +722,14 @@ namespace WorldTimelineDebug
             foreach (var pair in tiles)
             {
                 var tile = pair.Value;
-                if (!IsVisible(tile) || openingLinks.Count == 0 && tile.Kind != MapMarkerKind.Trail) continue;
+                if (!IsVisible(tile) || openingLinks.Count == 0 && ShowsTypeBadge(tile)) continue;
                 float lift = tile.LiftAt(Time.unscaledTime);
                 float radius = MarkerRadius(pair.Key, tile, border, lift);
                 var matrix = Matrix4x4.TRS(MarkerCenter(tile, lift), boardCamera.transform.rotation * Quaternion.Euler(90, 0, 0),
                     Vector3.one * radius);
                 Color color = border ? (HoveredNode == pair.Key ? Color.white : new Color(.04f, .06f, .08f)) : tile.Selected ? SelectedColor : tile.Color;
+                if (!border && MarkerFilter.HasValue && !tile.Selected && !tile.Reachable)
+                    color = new Color(.52f, .52f, .49f);
                 if (Ink && border && !tile.Highlighted && HoveredNode != pair.Key)
                     color = Color.Lerp(new Color(.47f, .48f, .46f), new Color(.15f, .18f, .23f), dusk);
                 if (!border && dusk > 0f)
@@ -782,11 +785,13 @@ namespace WorldTimelineDebug
             focus = position; zoom = Mathf.Clamp(scale, .17f, MaxMapZoom); RebuildLinks(); UpdateCamera();
         }
         public void Focus(double q, double r) { focus = Position(q, r); zoom = Ink ? mapLayout.FocusZoom : .45f; RebuildLinks(); UpdateCamera(); }
-        public void FocusActor(int id)
+        public void FocusActor(int id, bool frameStartingArea = false)
         {
             if (!pieces.TryGetValue(id, out var piece) || !piece.Root.gameObject.activeInHierarchy) return;
             focusedRouteActor = id == state.PlayerActorId ? null : id;
             focus = piece.Destination;
+            if (frameStartingArea)
+                focus += Vector3.ClampMagnitude(origin - focus, unit * boardRadius * .22f);
             zoom = Ink ? mapLayout.FocusZoom : .45f;
             RebuildLinks();
             RebuildActorRoutes();
@@ -840,7 +845,7 @@ namespace WorldTimelineDebug
                 var markerCenter = MarkerCenter(pair.Value, lift);
                 var center = boardCamera.WorldToScreenPoint(markerCenter);
                 if (center.z < boardCamera.nearClipPlane || center.z > boardCamera.farClipPlane) continue;
-                float hitRadius = openingLinks.Count == 0 && pair.Value.Kind != MapMarkerKind.Trail
+                float hitRadius = openingLinks.Count == 0 && ShowsTypeBadge(pair.Value)
                     ? TypeMarkerRadius(boardCamera, markerCenter, pair.Value)
                     : Ink ? unit * InkRadius(pair.Key, pair.Value, lift)
                     : MarkerRadius(pair.Key, pair.Value, true, lift, picking: true);

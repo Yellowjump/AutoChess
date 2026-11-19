@@ -48,6 +48,7 @@ namespace SkillSystem
                             var newBuff = SkillFactory.CreateNewBuff();
                             TemporaryBuff.Clone(newBuff);
                             newBuff.Owner = target;
+                            newBuff.CombatCast = trigger.ParentTriggerList.CombatCast;
                             newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
                             newBuff.DurationMs = TemporaryBuff.DurationMs;
                             newBuff.RemainMs = newBuff.DurationMs;
@@ -83,6 +84,7 @@ namespace SkillSystem
                                         var newBuff = SkillFactory.CreateNewBuff();
                                         buffTemp.Clone(newBuff);
                                         newBuff.BuffID = buffData.Id;
+                                        newBuff.CombatCast = trigger.ParentTriggerList.CombatCast;
                                         newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
                                         newBuff.DurationMs = buffData.Duration;
                                         newBuff.RemainMs = buffData.Duration;

@@ -86,7 +86,7 @@ internal sealed class ExpeditionPaperUi
     {
         if(icons.TryGetValue(id,out var existing))return existing;
         var texture=Resources.Load<Texture2D>("TeamEquipmentIcons");
-        int index=ExpeditionEquipment.Item(id).Icon;
+        int index=ExpeditionEquipment.Definition(id).Icon;
         var sprite=Sprite.Create(texture,new Rect(index%5*texture.width/5f,(1-index/5)*texture.height/2f,
             texture.width/5f,texture.height/2f),new Vector2(.5f,.5f),100);
         icons.Add(id,sprite);return sprite;

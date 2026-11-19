@@ -16,6 +16,7 @@ namespace WorldTimeline
         public string GuardianAppearance { get; set; }
         public bool IsCaveEncounter { get; set; }
         public int? BattleExperienceReward { get; set; }
+        public int VictorySpiritStones => Math.Max(8,checked(2 * Math.Max(1,CultivationPerYear)));
         public int LootAttackBonus { get; set; }
         public bool GuardianOpensWithPounce { get; set; }
         public bool IsCultivationSite { get; set; }
@@ -24,6 +25,21 @@ namespace WorldTimeline
         public bool IsExpeditionVanguard { get; internal set; }
         public bool HasExplorationGuardian { get; set; }
         public bool StoryRequiresGuardianDefeat { get; set; }
+        public (int ActorId, int Year)? FirstClear { get; private set; }
+        public bool EventRewardTaken { get; internal set; }
+        internal bool StoryExperienceTaken { get; set; }
+        internal int FirstArtifactInstance { get; set; }
+        internal int FirstArtifact { get; set; }
+        internal bool ClearedInBattle { get; private set; }
+
+        internal bool ClaimClear(int actorId, int year, bool battle)
+        {
+            if (FirstClear.HasValue) return false;
+            FirstClear = (actorId, year);
+            ClearedInBattle = battle;
+            return true;
+        }
+
         public (int ActorId, int Year)? GuardianDefeat { get; internal set; }
         internal List<int> GroupGuardianHealth { get; } = new List<int>();
         public bool IsGuardianGroup { get; private set; }

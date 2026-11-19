@@ -200,6 +200,7 @@ public static partial class TimelineMonsterAuthoring
             var clips = root.AddComponent<TimelineMonsterAnimation>();
             build(Pivot(root.transform, "Body", Vector3.zero), mesh, Tint(name + "Shade", shade),
                 Tint(name + "Accent", accent), clips);
+            SculptFigure(root);
             var handle = root.AddComponent<EntityQiziObjHandle>();
             handle.EntityRendererList = root.GetComponentsInChildren<Renderer>();
             PrefabUtility.SaveAsPrefabAsset(root, Folder + "/" + name + ".prefab");

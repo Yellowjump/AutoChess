@@ -160,7 +160,7 @@ namespace WorldTimelineDebug
             {
                 board.RestoreVisited(simulation.Events, simulation.State.PlayerActorId);
                 board.Sync(simulation, selectedNode);
-                board.FocusActor(simulation.State.PlayerActorId);
+                board.FocusActor(simulation.State.PlayerActorId, frameStartingArea: true);
             }
             else
             {
@@ -414,7 +414,7 @@ namespace WorldTimelineDebug
             bool useConfiguredChosenRoute = true, ChosenRouteStage[] chosenRouteOverride = null, bool useOpeningMap = false,
             bool characterStories = true, bool regionalExploration = true, bool sluiceCampaign = true, bool northRelay = true,
             bool legacyAttack = false, bool caveRegions = true, bool contractStory = true, bool northRelaySpring = true,
-            bool sluiceDrainsBoss = true, bool saltChannel = true, bool expandedMap = true, bool expandedMapEncounters = true)
+            bool sluiceDrainsBoss = true, bool saltChannel = true, bool expandedMap = true, bool expandedMapEncounters = true, bool deferHistoryFormation = false)
         {
             activeChosenRoute = useConfiguredChosenRoute && returnToMenu != null
                 ? chosenRouteOverride ?? scenarioData.ChosenRoute : null;
@@ -489,6 +489,7 @@ namespace WorldTimelineDebug
                     world => ConfigureLocations(world, stories, closeLinxiFormation, blackfangPounce, expandedMap && expandedMapEncounters),
                 battle: battleResolver, chosenRoute: activeChosenRoute,
                 initialRitualDeadline: sluiceCampaignActive ? CampaignDeadline : (int?)null);
+            simulation.State.PlayableBirths.UnionWith(playableRoster.Select(character => character.Birth));
             if (!merchants && stories != null)
                 stories = stories.WithoutEvents(stories.Events.Values.Where(story => story.IsMerchant).Select(story => story.Id).ToArray());
             // Keep pre-route checkpoints on the map and event set they originally replayed.
@@ -519,6 +520,10 @@ namespace WorldTimelineDebug
             expeditionBattleNumber = 0;
             replayFormations.Clear();
             replayTeamRewards.Clear();
+            replayInvitations.Clear();
+            simulation.SetPastInvitationPresenter(PresentPastInvitation);
+            replaySuccessors.Clear();
+            simulation.SetSuccessorPresenter(PresentSuccessor);
             teamRewardNodes.Clear();
             equipmentServiceNumber=0;replayEquipmentServices.Clear();EquipmentServiceOpen=false;
             simulation.SetBattlePreparationPresenter(PresentExpeditionFormation);
@@ -545,7 +550,7 @@ namespace WorldTimelineDebug
             int id = 10;
             foreach (var record in historyOverride ?? (returnToMenu == null
                 ? library.Where(entry => entry.Selected).Select(entry => entry.Record) : CompanionRecords()))
-                simulation.AddHistory(record, id++);
+                simulation.AddHistory(record, id++, !IsRestoringCheckpoint || deferHistoryFormation);
             if (scenarioData?.Techniques?.TryGetValue(1, out var swordArt) == true)
                 foreach (var actor in simulation.State.Actors.Values.Where(actor => actor.Items.Contains(8104)))
                     actor.LearnTechnique(swordArt);
@@ -591,6 +596,24 @@ namespace WorldTimelineDebug
                 EnableCompanionStages();
                 EnableVanguard();
                 Expedition.Equipment.EnableArtifacts();
+                Expedition.EnableAttrition();
+                Expedition.Equipment.EnableLinks();
+                Expedition.EnableSignatureArtifacts();
+                simulation.State.EnableSwordTraining();
+                simulation.State.EnableQuakeSpike();
+                simulation.State.EnableRainTassel();
+                simulation.State.EnableRelayClasp();
+                simulation.State.EnableReprisalSeal();
+                simulation.State.EnableHeartLamp();
+                simulation.State.EnableTinderPouch();
+                simulation.State.EnableMeridianSpike();
+                simulation.State.EnableThunderBell();
+                simulation.State.EnableFalterMirror();
+                simulation.State.EnableLastStandCharm();
+                simulation.State.EnableAfflictionSeal();
+                simulation.State.EnableSupportArtifacts();
+                simulation.State.EnableCriticalArtifacts();
+                simulation.EnablePastInvitations();
             }
             archived = false;
             autoObserve = false;
@@ -793,6 +816,27 @@ namespace WorldTimelineDebug
         }
         private void OnGUI()
         {
+            if (fallbackInvitation.HasValue)
+            {
+                int id = fallbackInvitation.Value;
+                var former = simulation.State.ExpeditionFor(id);
+                GUILayout.BeginArea(new Rect(Screen.width*.25f,Screen.height*.25f,Screen.width*.5f,Screen.height*.5f),GUI.skin.box);
+                GUILayout.Label(ClearOwner(id) + " · " + simulation.State.Actors[id].Level + "级");
+                GUILayout.Label("全队灵石 " + former.Equipment.SpiritStones + " · 入囊装备 " + InvitationBag(id).Count());
+                if (GUILayout.Button("邀请主角入队")) fallbackInvitationChoice = true;
+                if (GUILayout.Button("不邀请，迎战")) fallbackInvitationChoice = false;
+                GUILayout.EndArea();
+                return;
+            }
+            if (fallbackCandidates != null)
+            {
+                GUILayout.BeginArea(new Rect(Screen.width * .25f, Screen.height * .3f, Screen.width * .5f, Screen.height * .4f), GUI.skin.box);
+                GUILayout.Label("队长已阵亡，选择一位同伴继续带队");
+                foreach (int role in fallbackCandidates)
+                    if (GUILayout.Button(CompanionName(role) + "  " + Expedition.CompanionHealth(role))) fallbackChoice = role;
+                GUILayout.EndArea();
+                return;
+            }
             if (simulation == null && !preparing) return;
             // The production flow uses a native UGUI preparation prefab.
             if (returnToMenu != null) return;
@@ -989,7 +1033,7 @@ namespace WorldTimelineDebug
                     : world.Ritual.NodeId == location.Id ? TimelineText("Timeline_UI_91")
                     : location.MonsterHealth > 0 ? "怪物" : location.Items.Count > 0 ? "宝藏" : "普通地点";
                 string travel = reachable ? "移动 1 年" : "当前无法直接抵达";
-                var occupants = world.Actors.Values.Where(actor => actor.IsAlive).OrderBy(actor => actor.Id)
+                var occupants = world.Actors.Values.Where(actor => actor.OnWorldMap).OrderBy(actor => actor.Id)
                     .Where(actor =>
                     {
                         var point = ActorMapProjection.Position(world, actor);
@@ -1126,7 +1170,7 @@ namespace WorldTimelineDebug
         private void DrawActorMarkers(Rect viewport, Vector2 origin)
         {
             var occupied = new List<Rect>();
-            foreach (var actor in simulation.State.Actors.Values.Where(a => a.IsAlive).OrderBy(a => a.Id))
+            foreach (var actor in simulation.State.Actors.Values.Where(a => a.OnWorldMap).OrderBy(a => a.Id))
             {
                 var point = ActorMapProjection.Position(simulation.State, actor);
                 Vector2 projected = origin + new Vector2(1.7320508f * ((float)point.Q + (float)point.R * .5f), 1.5f * (float)point.R) * hexSize;
@@ -1260,6 +1304,9 @@ namespace WorldTimelineDebug
             if (GUI.Button(new Rect(36, 654, 150, 36), "移动至 " + selectedNode + " · 1年", button)) Submit(WorldAction.Move(selectedNode));
             GUI.enabled = !showGrowth && simulation.WaitingForPlayer;
             if (GUI.Button(new Rect(196, 654, 140, 36), "成长来源", button)) showGrowth = true;
+            GUI.enabled = !showGrowth && CanRest;
+            if (GUI.Button(new Rect(344, 654, 145, 36), "休整一年", button)) RestYear();
+            GUI.enabled = !showGrowth && simulation.WaitingForPlayer;
             if (GUI.Button(new Rect(496, 654, 140, 36), "等待 1 年", button)) Submit(WorldAction.Wait());
             GUI.enabled = !showGrowth && simulation.WaitingForPlayer && !simulation.CanJoinChosen(1);
             if (GUI.Button(new Rect(646, 654, 205, 36), "提前伪装 · 1年", button)) Submit(WorldAction.Disguise());
@@ -1293,7 +1340,7 @@ namespace WorldTimelineDebug
             GUI.Box(new Rect(886, 94, 534, 340), GUIContent.none, card);
             GUI.Label(new Rect(900, 103, 506, 24), "全部存活角色 · 点击定位 / 查看资质", text);
             int row = 0;
-            foreach (var actor in simulation.State.Actors.Values.Where(a => a.IsAlive).OrderBy(a => a.Id))
+            foreach (var actor in simulation.State.Actors.Values.Where(a => a.OnWorldMap).OrderBy(a => a.Id))
             {
                 var point = ActorMapProjection.Position(simulation.State, actor);
                 string position = $"({point.Q:0.#},{point.R:0.#})" + (point.IsMoving ? " 移动中" : "") + (actor.LeaderId.HasValue ? " 队友" : "");
@@ -1363,6 +1410,7 @@ namespace WorldTimelineDebug
                 case HistoryReplayStatus.FateChanged: return TimelineText("Timeline_UI_134");
                 case HistoryReplayStatus.Dead: return TimelineText("Timeline_UI_135");
                 case HistoryReplayStatus.RecordFinished: return TimelineText("Timeline_UI_117");
+                case HistoryReplayStatus.JoinedPlayer: return "已加入当世队伍";
                 case HistoryReplayStatus.RouteBlocked: return TimelineText("Timeline_UI_136");
                 default: return TimelineText("Timeline_UI_137");
             }
@@ -1381,6 +1429,7 @@ namespace WorldTimelineDebug
                 case "World destroyed": return TimelineText("Timeline_UI_DetailDestroyed");
                 case "Chosen defeated final boss": return TimelineText("Timeline_UI_DetailChosenVictory");
                 case "Player killed chosen": return TimelineText("Timeline_UI_DetailPlayerKilledChosen");
+                case "Rest": return "休整";
                 case "Story delay": return TimelineText("Timeline_UI_DetailStoryDelay");
             }
             if ((entry.Kind == WorldEventKind.ActionStarted || entry.Kind == WorldEventKind.ActionCompleted)

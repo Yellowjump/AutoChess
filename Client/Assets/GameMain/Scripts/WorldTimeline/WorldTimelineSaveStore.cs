@@ -20,7 +20,7 @@ namespace WorldTimeline
     public static class WorldTimelineSaveStore
     {
         private const int Signature = 0x574C4946;
-        private const int Version = 11;
+        private const int Version = 13;
         public const int Capacity = 15;
         private const int MaxEntriesPerLife = 100000;
 
@@ -124,6 +124,11 @@ namespace WorldTimeline
                 foreach (int cell in step.Cells) writer.Write(cell);
                 writer.Write(step.Equipment.Count);
                 foreach(int value in step.Equipment)writer.Write(value);
+                writer.Write(step.Vitality.Count);
+                foreach (int value in step.Vitality) writer.Write(value);
+                writer.Write(step.Successor);
+                writer.Write(step.PastLeaders.Count);
+                foreach (var member in step.PastLeaders) WriteMember(writer, member);
             }
         }
 
@@ -149,6 +154,7 @@ namespace WorldTimeline
                 WorldAction action;
                 switch (kind)
                 {
+                    case WorldActionKind.Rest when years == 1: action = WorldAction.Rest(); break;
                     case WorldActionKind.Wait: action = WorldAction.Wait(years); break;
                     case WorldActionKind.Move: action = WorldAction.Move(target, years); break;
                     case WorldActionKind.Cultivate: action = WorldAction.Cultivate(years); break;
@@ -181,17 +187,64 @@ namespace WorldTimeline
             {
                 int stepYear = reader.ReadInt32(), node = reader.ReadInt32(), battle = reader.ReadInt32();
                 bool progression = reader.ReadBoolean(), closeTaunt = reader.ReadBoolean();
-                var roles = new int[ReadCount(reader, 4)];
+                var roles = new int[ReadCount(reader, version >= 13 ? 4 + ExpeditionParty.MaxPastLeaders : 4)];
                 for (int r = 0; r < roles.Length; r++) roles[r] = reader.ReadInt32();
                 var cells = new int[6]; for (int c = 0; c < 6; c++) cells[c] = reader.ReadInt32();
                 if (stepYear > year || (i > 0 && stepYear < expedition[i - 1].Year))
                     throw new InvalidDataException("前世队伍记录年份无效。");
                 var equipment=new int[version>=9?ReadCount(reader,ExpeditionEquipment.MaxSnapshot):0];
                 for(int e=0;e<equipment.Length;e++)equipment[e]=reader.ReadInt32();
-                expedition.Add(new RecordedExpedition(stepYear, node, battle, progression, closeTaunt, roles, cells, equipment));
+                var vitality = new int[version >= 12 ? ReadCount(reader, version >= 13 ? 8 + ExpeditionParty.MaxPastLeaders : 8) : 0];
+                for (int j = 0; j < vitality.Length; j++) vitality[j] = reader.ReadInt32();
+                int successor = version >= 12 ? reader.ReadInt32() : -1;
+                var members = new List<ActorState>();
+                int memberCount = version >= 13 ? ReadCount(reader, ExpeditionParty.MaxPastLeaders) : 0;
+                for (int m = 0; m < memberCount; m++) members.Add(ReadMember(reader));
+                expedition.Add(new RecordedExpedition(stepYear, node, battle, progression, closeTaunt, roles, cells,
+                    equipment, vitality, successor, members));
             }
             return new SavedLife(round, new LifeRecord(actor, items, actions, Array.Empty<WorldEvent>(), year, died, choices,
                 deathNode, breakYear, sluiceYear, northRelayYear, contractYear, expedition));
+        }
+
+        private static void WriteMember(BinaryWriter writer, ActorState actor)
+        {
+            writer.Write(actor.BirthNodeId); writer.Write(actor.MaxHealth); writer.Write(actor.Attack);
+            writer.Write(actor.Lifespan); writer.Write(actor.Level); writer.Write(actor.Age);
+            writer.Write(actor.BaseHealth); writer.Write(actor.BaseAttack); writer.Write(actor.BaseLifespan);
+            writer.Write(actor.Experience); writer.Write(actor.LevelExperience); writer.Write(actor.CombatAttackPercent);
+            WriteTalent(writer, actor.Talents.Health); WriteTalent(writer, actor.Talents.Attack); WriteTalent(writer, actor.Talents.Lifespan);
+            writer.Write(actor.Items.Count); foreach (int item in actor.Items) writer.Write(item);
+            writer.Write(actor.Techniques.Count);
+            foreach (var progress in actor.Techniques.Values)
+            {
+                var definition = progress.Definition;
+                writer.Write(definition.Id); writer.Write(definition.Stages.Count);
+                foreach (var stage in definition.Stages)
+                { writer.Write(stage.SkillId); writer.Write((int)stage.Requirement); writer.Write(stage.Value); }
+                writer.Write(progress.Rank); writer.Write(progress.Progress);
+            }
+        }
+
+        private static ActorState ReadMember(BinaryReader reader)
+        {
+            var member = new ActorState(0, reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
+            member.Level = reader.ReadInt32(); member.Age = reader.ReadInt32();
+            member.BaseHealth = reader.ReadInt32(); member.BaseAttack = reader.ReadInt32(); member.BaseLifespan = reader.ReadInt32();
+            member.Experience = reader.ReadInt64(); member.LevelExperience = reader.ReadInt64(); member.CombatAttackPercent = reader.ReadInt32();
+            member.Talents = new TalentProfile(ReadTalent(reader), ReadTalent(reader), ReadTalent(reader));
+            int items = ReadCount(reader, MaxEntriesPerLife);
+            for (int i = 0; i < items; i++) member.Items.Add(reader.ReadInt32());
+            int techniques = ReadCount(reader, 1024);
+            for (int i = 0; i < techniques; i++)
+            {
+                int id = reader.ReadInt32();
+                var stages = new TechniqueStage[ReadCount(reader, 1024)];
+                for (int j = 0; j < stages.Length; j++)
+                    stages[j] = new TechniqueStage(reader.ReadInt32(), (TechniqueRequirement)reader.ReadInt32(), reader.ReadInt32());
+                member.RestoreTechnique(new TechniqueProgress(new TechniqueDefinition(id, stages), reader.ReadInt32(), reader.ReadInt32()));
+            }
+            return member;
         }
 
         private static int ReadCount(BinaryReader reader, int maximum)

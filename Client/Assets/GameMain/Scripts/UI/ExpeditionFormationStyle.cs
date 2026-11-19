@@ -9,22 +9,18 @@ public sealed class ExpeditionFormationStyle : ScriptableObject
     public Sprite PaperFrame;
     public Sprite Seal;
     public Sprite[] Portraits;
-    private static TMP_FontAsset titleFont;
+    public TMP_FontAsset TitleFont;
 
-    public TMP_FontAsset HeadingFont(TMP_FontAsset fallback)
-    {
-        if (titleFont != null) return titleFont;
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-        string path = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Fonts), "simkai.ttf");
-        if (System.IO.File.Exists(path)) titleFont = TMP_FontAsset.CreateFontAsset(path, 0, 72, 8,
-            UnityEngine.TextCore.LowLevel.GlyphRenderMode.SDFAA, 1024, 1024);
-#endif
-        if (titleFont == null) return fallback;
-        titleFont.isMultiAtlasTexturesEnabled = true;
-        titleFont.fallbackFontAssetTable ??= new System.Collections.Generic.List<TMP_FontAsset>();
-        titleFont.fallbackFontAssetTable.Add(fallback);
-        return titleFont;
-    }
+    public TMP_FontAsset HeadingFont(TMP_FontAsset fallback) => TitleFont != null ? TitleFont : fallback;
 
     public Sprite Portrait(int index) => Portraits != null && index >= 0 && index < Portraits.Length ? Portraits[index] : null;
+}
+
+public static class ExpeditionRosterPortraits
+{
+    public static Sprite PastPortrait(this WorldTimelineDebug.WorldTimelineDebugView view, WorldTimeline.ExpeditionParty party, int role)
+    {
+        int index = view.PastPortraitIndex(party, role);
+        return index < 0 ? null : Resources.Load<ExpeditionFormationStyle>("ExpeditionFormationStyle")?.Portrait(index);
+    }
 }

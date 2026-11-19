@@ -12,6 +12,9 @@
     <Compile Include="WorldStoryTests.cs" />
     <Compile Include="TacticalTrialTests.cs" />
     <Compile Include="ExpeditionPartyTests.cs" />
+    <Compile Include="CampaignRouteTests.cs" />
+    <None Include="../../Client/Assets/GameMain/Data/DataTables/ChosenRoute.txt" Link="ChosenRoute.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../Client/Assets/GameMain/Data/DataTables/OuterLocations.txt" Link="OuterLocations.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures/CultivationLevels.csv" Link="CultivationLevels.csv" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../Client/Assets/GameMain/Data/DataTables/CultivationLevel.bytes" Link="CultivationLevel.bytes" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

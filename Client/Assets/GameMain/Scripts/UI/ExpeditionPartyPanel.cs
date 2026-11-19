@@ -17,7 +17,9 @@ public sealed class ExpeditionPartyPanel : MonoBehaviour
     private int battleNode, selected;
     private Action closed;
     private Action<int> showLocation;
-    private readonly Button[] roster = new Button[5], actions = new Button[4], slots = new Button[6];
+    private Button[] roster, actions;
+    private int memberPage;
+    private readonly Button[] slots = new Button[6];
     private TMP_Text details, instruction;
     private string feedback;
     private ExpeditionParty Party => view.Expedition;
@@ -43,13 +45,6 @@ public sealed class ExpeditionPartyPanel : MonoBehaviour
         if (panel.restoreDebugger) HotGameEntry.Debugger.ActiveWindow = false;
         view.ExpeditionPanelOpen = true;
         panel.Build(); panel.Refresh();
-        // Populate the shared dynamic atlas before the first canvas render, then rebuild every label.
-        // Adding glyphs label by label can otherwise leave earlier meshes using an outdated atlas.
-        var labels = root.GetComponentsInChildren<TMP_Text>();
-        if (font.atlasPopulationMode != AtlasPopulationMode.Static)
-            font.TryAddCharacters(string.Concat(labels.Select(label => label.text)));
-        Canvas.ForceUpdateCanvases();
-        foreach (var label in labels) label.ForceMeshUpdate();
         return panel;
     }
 
@@ -59,14 +54,18 @@ public sealed class ExpeditionPartyPanel : MonoBehaviour
         Label(transform, "Title", preBattle ? "关前布阵" : "同行队伍", 55, 40, 1300, 70, 46);
         Label(transform, "Subtitle", "查看同伴与招募地点 · 到达战斗关卡后，在真实战场调整上阵与站位", 55, 118, 1750, 50, 26);
         Label(transform, "RosterTitle", "队伍与招募地点", 55, 200, 690, 45, 28);
-        for (int i = 0; i < 5; i++)
+        roster = new Button[Party.RoleCount + 1];
+        actions = new Button[Party.RoleCount];
+        if (roster.Length > 5) Button(transform, "MemberPage", "切换同伴", 540, 194, 200, 52,
+            () => { memberPage = 1 - memberPage; Refresh(); });
+        for (int i = 0; i < roster.Length; i++)
         {
-            int id = i == 0 ? view.Simulation.State.PlayerActorId : ExpeditionParty.FirstCompanionId + i - 1;
-            roster[i] = Button(transform, "Member" + i, "", 55, 260 + i * 127, 470, 110,
+            int id = i == 0 ? view.Simulation.State.PlayerActorId : Party.CompanionId(i - 1);
+            roster[i] = Button(transform, "Member" + i, "", 55, 260 + (i%5) * 127, 470, 110,
                 () => { selected = id; feedback = null; Refresh(); });
             if (i == 0) continue;
             int role = i - 1;
-            actions[role] = Button(transform, "Recruit" + role, "", 540, 260 + i * 127, 200, 110,
+            actions[role] = Button(transform, "Recruit" + role, "", 540, 260 + (i%5) * 127, 200, 110,
                 () => ActOnRole(role));
         }
         Label(transform, "FormationTitle", "同伴详情", 790, 200, 1050, 45, 28);
@@ -93,7 +92,7 @@ public sealed class ExpeditionPartyPanel : MonoBehaviour
 
     private void ActOnRole(int role)
     {
-        int id = ExpeditionParty.FirstCompanionId + role;
+        int id = Party.CompanionId(role);
         if (Party.HasRecruited(role))
         {
             selected = id;
@@ -116,23 +115,26 @@ public sealed class ExpeditionPartyPanel : MonoBehaviour
         var player = world.Actors[world.PlayerActorId];
         for (int i = 0; i < roster.Length; i++)
         {
-            int role = i - 1, id = i == 0 ? player.Id : ExpeditionParty.FirstCompanionId + role;
+            int role = i - 1, id = i == 0 ? player.Id : Party.CompanionId(role);
             bool owned = Party.Owns(id);
-            string state = !owned ? "未招募" : Party.CellOf(id) >= 0 ? "上阵" : "候补";
+            bool duplicate = i / 5 != memberPage || i > 0 && role == Party.LeaderRole;
+            roster[i].gameObject.SetActive(!duplicate);
+            if (i > 0) actions[role].gameObject.SetActive(!duplicate);
+            string state = Party.IsFallen(role) && i > 0 ? "已阵亡" : !owned ? "未招募" : Party.CellOf(id) >= 0 ? "上阵" : "候补";
             var actor = i == 0 ? player : Party.CreateCompanion(role, player.NodeId ?? player.BirthNodeId);
             string location = "";
-            if (!owned && Party.RecruitmentSites.TryGetValue(role, out int nodeId))
+            if (!owned && !Party.IsFallen(role) && Party.RecruitmentSites.TryGetValue(role, out int nodeId))
             {
                 var node = world.Nodes[nodeId];
                 location = "\n" + view.LocationName(node) + $" ({node.Q}, {node.R})";
             }
             roster[i].GetComponentInChildren<TMP_Text>().text = Name(id) + "  [" + state + "]\n" +
-                $"气血 {actor.MaxHealth} · 攻击 {actor.CombatAttack}" + location;
+                $"气血 {actor.Health}/{actor.MaxHealth} · 攻击 {actor.CombatAttack}" + location;
             roster[i].targetGraphic.color = selected == id ? Gold : Jade;
             if (i == 0) continue;
             actions[role].GetComponentInChildren<TMP_Text>().text = owned ? (!preBattle ? "查看同伴" : Party.CellOf(id) >= 0 ? "下阵候补" : "选择上阵")
                 : preBattle ? "尚未招募" : "查看同伴关卡";
-            actions[role].interactable = owned || !preBattle && Party.RecruitmentSites.ContainsKey(role);
+            actions[role].interactable = !Party.IsFallen(role) && (owned || !preBattle && Party.RecruitmentSites.ContainsKey(role));
         }
         for (int cell = 0; cell < slots.Length; cell++)
         {
@@ -140,7 +142,7 @@ public sealed class ExpeditionPartyPanel : MonoBehaviour
             slots[cell].GetComponentInChildren<TMP_Text>().text = (cell < 3 ? "前排" : "后排") + "\n" + Name(Party.Cells[cell]);
             slots[cell].targetGraphic.color = Party.Cells[cell] == selected ? Gold : Jade;
         }
-        string ability = ExpeditionParty.Role(selected) switch
+        string ability = Party.CombatRole(selected) switch
         {
             0 => "护盾与牵制：定期获得护盾，吸引近身敌人攻击自己。放在前排接敌，才能及时掩护输出。",
             1 => "近战突破：高伤害近战，攻击附带流血。让盾卫接敌后集中突破一侧。",
@@ -155,13 +157,17 @@ public sealed class ExpeditionPartyPanel : MonoBehaviour
                 ? $" · 守军 {battle.GuardianCount} 人 · 总气血 {battle.MonsterHealth} · 攻击 {battle.MonsterAttack}"
                 : " · 遭遇来客") + "\n\n";
             if (Party.ProgressionEnabled)
-                enemy += $"胜利经验 +{Party.VictoryExperience(battleNode, view.Simulation.Cultivation)} · 战后恢复25%最大气血\n\n";
+                enemy += $"胜利经验 +{Party.VictoryExperience(battleNode, view.Simulation.Cultivation)} · 气血跨战保留\n\n";
             if (battle.IsExpeditionVanguard && battle.MonsterHealth > 0)
                 enemy += "<b>敌阵：两名近战守军，正面逼近</b>\n先攻击接近的目标，无远程火力。\n\n";
         }
+        var innate = Party.Equipment.Innate(selected);
+        if (innate?.Personal == true) ability = innate.Name + " · " + innate.TriggerRule;
+        if (Party.CombatRole(selected) >= ExpeditionParty.StageRoles)
+            ability = $"境界  第 {(selected == player.Id ? player.Level : Party.CreateCompanion(Party.CombatRole(selected), player.BirthNodeId).Level)} 层\n" + ability;
         details.text = enemy + "<b>" + Name(selected) + "</b>\n" + ability;
         instruction.text = (feedback ?? $"已上阵 {Party.DeployedCount} / 3 人。前往地图上的同伴关卡，满足条件后招募。") +
-            "\n探索与通关提升全队实力；队友每战满血，主角胜利后恢复25%最大气血。";
+            "\n探索与通关提升全队实力；气血跨战保留，阵亡同伴的装备收入行囊。";
         if (preBattle && world.Nodes[battleNode].IsExpeditionVanguard && world.Nodes[battleNode].MonsterHealth > 0)
             instruction.text = view.VanguardFormationHint + "\n可自由调整阵型；战后查看承伤与护盾吸收，检验这次布阵。";
     }

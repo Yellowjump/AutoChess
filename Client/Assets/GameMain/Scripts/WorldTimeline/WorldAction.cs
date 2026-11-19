@@ -2,7 +2,7 @@ using System;
 
 namespace WorldTimeline
 {
-    public enum WorldActionKind { Wait, Move, Cultivate, Disguise, JoinChosen }
+    public enum WorldActionKind { Wait, Move, Cultivate, Disguise, JoinChosen, Rest }
 
     // Action requests are immutable; progress belongs to the actor.
     public sealed class WorldAction
@@ -23,6 +23,7 @@ namespace WorldTimeline
             new WorldAction(WorldActionKind.Move, years, targetNodeId);
         public static WorldAction Cultivate(int years) => new WorldAction(WorldActionKind.Cultivate, years);
         public static WorldAction Wait(int years = 1) => new WorldAction(WorldActionKind.Wait, years);
+        public static WorldAction Rest() => new WorldAction(WorldActionKind.Rest, 1);
         public static WorldAction Disguise() => new WorldAction(WorldActionKind.Disguise, 1);
         public static WorldAction JoinChosen() => new WorldAction(WorldActionKind.JoinChosen, 0);
     }

@@ -68,8 +68,8 @@ public sealed class ExpeditionWorkshopPanel : MonoBehaviour
     private string Owner(int role)=>role==0?view.PlayerName:view.CompanionName(role-1).Split('·')[0].Trim();
     private IEnumerable<int> Targets()
     {
-        yield return -1;
-        for(int r=0;r<4;r++)if(view.Expedition.HasRecruited(r))yield return -r-2;
+        if (Gear.InnateKey(view.Expedition.LeaderId) != 0) yield return Gear.InnateKey(view.Expedition.LeaderId);
+        foreach(int r in view.Expedition.LivingRoles) if (Gear.InnateLevel(view.Expedition.CompanionId(r))>0) yield return -r-2;
         foreach(var item in Gear.Instances)yield return item.Id;
     }
     private void Refresh()
@@ -79,7 +79,7 @@ public sealed class ExpeditionWorkshopPanel : MonoBehaviour
         subtitle.text=view.EquipmentServiceTitle+"  /  "+(tab==0?"行装不限职业与槽位，购得后收入共享行囊":
             view.EquipmentServiceMerchant?"选择一件本命法器或行装，消耗灵石升阶":"此处机缘仅此一次；为任意一位同伴的法器或道具免费升一阶");
         if(shopTab!=null){ui.MarkSelection(shopTab,tab==0);ui.MarkSelection(upgradeTab,tab==1);}
-        int[] keys=tab==0?ExpeditionEquipment.Definitions.Where(d=>!d.Innate).Select(d=>d.Id).ToArray():Targets().ToArray();
+        int[] keys=tab==0?ExpeditionEquipment.Definitions.Where(Gear.IsForSale).Select(d=>d.Id).ToArray():Targets().ToArray();
         if(!keys.Contains(selected))selected=keys.FirstOrDefault();
         int total=Math.Max(1,(keys.Length+5)/6);page=Mathf.Clamp(page,0,total-1);pageLabel.text=$"{page+1}/{total}";
         var visible=keys.Skip(page*6).Take(6).ToArray();
@@ -101,6 +101,9 @@ public sealed class ExpeditionWorkshopPanel : MonoBehaviour
         icon.sprite=ui.ItemIcon(item.Id);icon.enabled=true;heading.text=item.Name+$"  {current} / {item.MaxLevel} 阶";
         effect.text="当前  "+item.Effect(current);
         next.text=tab==0?"通用行装 · 任意同伴 · 任意行装槽":max?"已达升阶上限":$"下一阶  {item.Effect(current+1)}";
+        if (tab==0) next.text=item.TriggerName+" · "+item.TriggerRule;
+        else effect.text=item.TriggerName+" · "+item.Effect(current);
+        next.enableAutoSizing=true;next.fontSizeMin=18;
         int price=tab==0?item.Price:item.UpgradePrice(current);
         bool free=tab==1&&!view.EquipmentServiceMerchant;
         cost.text=free?(view.EventUpgradeAvailable?"机缘赠予 · 本次免费":"本次免费升阶已使用"):tab==1&&max?"满阶后无法继续升级":$"需要 {price} 灵石";

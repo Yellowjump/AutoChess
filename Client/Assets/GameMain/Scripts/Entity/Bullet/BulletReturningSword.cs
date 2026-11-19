@@ -51,7 +51,7 @@ namespace Entity.Bullet
             {
                 if (enemy.IsValid && TouchesSegment(enemy.LogicHitPosition, from, LogicPosition) &&
                     hitThisLeg.Add(enemy.HeroUID))
-                    OwnerTriggerList?.OnTrigger(TriggerType.OnBulletHitTarget, enemy);
+                    Hit(enemy);
             }
 
             if (!arrived) return;

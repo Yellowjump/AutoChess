@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UnityManagedPath Condition="'$(UnityManagedPath)' == ''">D:/UnityEditors/2023.2.2f1/Editor/Data/Managed</UnityManagedPath>
+    <IntermediateOutputPath>obj/UnityCompile/</IntermediateOutputPath>
+    <OutputPath>bin/UnityCompile/</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Client/Assets/GameMain/Scripts/WorldTimeline/*.cs" />
+    <Compile Include="../../Client/Assets/GameMain/Scripts/WorldTimelineDebug/**/*.cs" />
+    <Compile Include="../../Client/Assets/GameMain/RenderSetting/WorldTimelineRenderFeature.cs" />
+    <Reference Include="UnityEngine"><HintPath>$(UnityManagedPath)/UnityEngine.dll</HintPath></Reference>
+    <Reference Include="UnityEditor"><HintPath>$(UnityManagedPath)/UnityEditor.dll</HintPath></Reference>
+    <Reference Include="Cinemachine"><HintPath>../../Client/Library/ScriptAssemblies/Cinemachine.dll</HintPath></Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime"><HintPath>../../Client/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.dll</HintPath></Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Runtime"><HintPath>../../Client/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.dll</HintPath></Reference>
+    <Reference Include="$(UnityManagedPath)/UnityEngine/*.dll" />
+  </ItemGroup>
+</Project>

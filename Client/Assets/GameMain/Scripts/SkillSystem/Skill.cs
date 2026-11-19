@@ -51,8 +51,21 @@ namespace SkillSystem
             if (MeetsCastCondition()) CastAfterConditionCheck();
         }
 
+        internal bool ExtraSwordReleased;
+        internal CommandCreateBullet FinishingSword;
+        private void ClearFinishingSword()
+        {
+            if (FinishingSword == null) return;
+            ReferencePool.Release(FinishingSword);
+            FinishingSword = null;
+        }
         internal void CastAfterConditionCheck()
         {
+            var echo = IsActiveDamageSkill ? Caster?.BeginEchoCast?.Invoke() : null;
+            var critical = Caster?.Critical;
+            CombatCast = echo != null || (critical != null && (IsBasicAttack || IsActiveDamageSkill))
+                ? new WorldTimeline.CombatCast(critical, IsBasicAttack, echo) : null;
+            ExtraSwordReleased = false; ClearFinishingSword();
             ignitedTargets?.Clear();
             lightningTargets?.Clear();
             BasicAttackSpeedBonus = 0;
@@ -175,6 +188,8 @@ namespace SkillSystem
 
         public override void OnDestory()
         {
+            FinishingSword?.FinishVolley(this);
+            ClearFinishingSword();
             base.OnDestory();
             LeftSkillCD = 0;
             CurCastCDMs = DefaultSkillCDMs;
@@ -185,6 +200,7 @@ namespace SkillSystem
         public override void Clear()
         {
             SetCastCondition(null);
+            ExtraSwordReleased = false; ClearFinishingSword();
             ignitedTargets?.Clear();
             lightningTargets?.Clear();
             SkillID = 0;

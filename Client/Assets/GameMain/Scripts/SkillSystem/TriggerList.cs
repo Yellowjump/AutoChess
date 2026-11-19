@@ -17,6 +17,7 @@ namespace SkillSystem
     {
         public List<OneTrigger> CurTriggerList;
         public Skill ParentSkill;
+        internal WorldTimeline.CombatCast CombatCast;
         public EntityBase Owner;
         public int paramInt;
         public virtual void WriteToFile(BinaryWriter writer)
@@ -134,8 +135,11 @@ namespace SkillSystem
                 {
                     ReferencePool.Release(oneTrigger);
                 }
+                CurTriggerList.Clear();
             }
+            paramInt = 0;
             ParentSkill = null;
+            CombatCast = null;
             Owner = null;
         }
     }

@@ -87,7 +87,8 @@ public static class ExpeditionValidation
         WorldTimelineDebugView.OpenMapHud = view => GameEntry.UI.OpenUIForm(UICtrlName.WorldTimelinePanel, "top", userData: view);
         WorldTimelineDebugView.OpenStoryHud = view => GameEntry.UI.OpenUIForm(UICtrlName.WorldTimelineStory, "tips", userData: view);
         WorldTimelineDebugView.ScenarioFactory = WorldTimelineTableConfig.Create;
-        WorldTimelineDebugView.BattleResolverFactory = () => new WorldTimelineBattleResolver();
+        successionYear = int.MaxValue;
+        WorldTimelineDebugView.BattleResolverFactory = () => new SuccessionFixture();
         title.Visible = false;
         session = WorldTimelineDebugView.OpenFromMenu(() => { });
         Require(session.SelectPreparationCharacter(0) && session.BeginPreparedRun(), "Start main campaign");
@@ -95,10 +96,29 @@ public static class ExpeditionValidation
         yield return Settle();
         Capture("Map.png");
         yield return Settle();
+        string freshCheckpoint = File.ReadAllText(Path.Combine(WorldTimelineDebugView.EditorSaveDirectory, "current-run.json"));
+        var opening = session.Simulation.State;
+        int birth = HexWorldMap.Id(-4,10);
+        int start = opening.Actors[1].BirthNodeId;
+        var storySites = session.Simulation.Stories.Config.Events.Values.Select(s => s.NodeId).ToArray();
+        var chosenRoute = session.Simulation.Chosen.Route;
+        // The player waits at birth. Let the archive travel the real map and fight intervening guards.
+        var meetingRoute = WorldPathfinder.FindRoute(opening,birth,new[]{start},
+            n => n.Id == start || (!storySites.Contains(n.Id) && !chosenRoute.Contains(n.Id)));
+        if (meetingRoute.Count == 0) meetingRoute = WorldPathfinder.FindRoute(opening,birth,new[]{start});
+        Require(meetingRoute.Count > 0,"An actual map route connects the former protagonist to the waiting player");
+        ValidateArtifactLinks();
         var initialHud = Object.FindFirstObjectByType<WorldTimelinePanelCtrl>();
         Require(!initialHud.GetComponentsInChildren<Button>().Any(button => button.GetComponentsInChildren<TMPro.TMP_Text>()
             .Any(label => label.text.Contains("修炼"))), "No cultivation action in the main map");
         Require(session.Expedition.ProgressionEnabled, "New campaign enables map growth");
+        Click(initialHud, "队伍·同伴");
+        yield return Settle();
+        var roster = Object.FindFirstObjectByType<ExpeditionPartyPanel>();
+        Require(roster != null && session.ExpeditionPanelOpen, "Roster opens from the world map");
+        roster.Close();
+        yield return Settle();
+        Require(initialHud.CanInteractWithMap, "Closing the roster restores map input");
 
         // Recreate an actual old action log: cultivation must replay before the new rules opt in.
         typeof(ExpeditionParty).GetProperty("ProgressionEnabled").SetValue(session.Expedition, false);
@@ -112,7 +132,7 @@ public static class ExpeditionValidation
         object checkpoint = JsonUtility.FromJson(File.ReadAllText(path), checkpointType);
         var actions = (IList)checkpointType.GetField("actions").GetValue(checkpoint);
         for (int i = actions.Count - 1; i >= 0; i--)
-            if ((int)actions[i].GetType().GetField("kind").GetValue(actions[i]) is -7 or -8 or -9) actions.RemoveAt(i);
+            if ((int)actions[i].GetType().GetField("kind").GetValue(actions[i]) is -7 or -8 or -9 or -22 or -25 or -26 or -27 or -28) actions.RemoveAt(i);
         checkpointType.GetField("version").SetValue(checkpoint, 43);
         File.WriteAllText(path, JsonUtility.ToJson(checkpoint));
         session = WorldTimelineDebugView.OpenFromMenu(() => { });
@@ -128,6 +148,28 @@ public static class ExpeditionValidation
         typeof(WorldTimelinePanelCtrl).GetMethod("ClosePopup", Hidden).Invoke(hud, null);
         yield return Settle();
         var world = session.Simulation.State;
+        var legend = hud.transform.Find("MapHud/关卡图例");
+        void ClickFilter(string row) => legend.Find(row).GetComponent<Button>().onClick.Invoke();
+        Require(legend.gameObject.activeInHierarchy && session.MapMarkerFilter == null, "Map opens showing all types");
+        ClickFilter("Merchant");
+        ClickFilter("Companion");
+        Require(session.MapMarkerFilter == MapMarkerKind.Companion, "Legend switches directly between types");
+        var board = Object.FindFirstObjectByType<WorldTimelineBoard>();
+        int merchant = world.Nodes.Values.First(node => node.IsMerchant).Id;
+        board.Focus(world.Nodes[merchant].Q, world.Nodes[merchant].R);
+        yield return Settle();
+        Require(session.SelectAtScreen(board.ProjectNode(merchant)) && session.SelectedNodeId == merchant &&
+            session.MapMarkerFilter == MapMarkerKind.Companion, "A filtered-out merchant remains selectable after camera movement");
+        ClickFilter("Companion");
+        Require(session.MapMarkerFilter == null, "Clicking the active type restores all markers");
+        ClickFilter("Battle");
+        ClickFilter("All");
+        Require(session.MapMarkerFilter == null, "Show all clears an active filter");
+        ClickFilter("Companion");
+        session.OverviewMap();
+        yield return Settle();
+        Capture("MapFilterCompanion.png");
+        yield return Settle();
         Require(session.Expedition.CompanionStagesEnabled && session.Expedition.RecruitmentSites.Count == 4,
             "Four companion stages appear in the actual campaign");
         var locator = hud.GetComponentsInChildren<Button>().Single(button => button.name == "同伴关卡");
@@ -166,7 +208,8 @@ public static class ExpeditionValidation
             "Backpack directly previews the innate artifact's next stats and upgrade cost");
         Require(Enumerable.Range(0,6).All(s=>equipment.transform.Find("EquippedSlot"+s)!=null),"All six ordinary equipment slots are visible");
         EquipClick("EquippedSlot5");yield return Settle();EquipClick("BagItem2");yield return Settle();EquipClick("EquipOrUse");yield return Settle();
-        Require(session.Expedition.Equipment.Worn(shieldId,5)?.DefinitionId==7,"Sixth slot equips through actual backpack UI");
+        Require(session.Expedition.Equipment.Worn(shieldId,2)?.DefinitionId==7 && session.Expedition.Equipment.Worn(shieldId,5)==null,
+            "Equip uses the lowest free slot even when the player selected a later slot");
         EquipClick("InnateArtifact");yield return Settle();
         Capture("TeamEquipment.png");yield return Settle();EquipClick("Close");yield return Settle();
         Require(!session.InventoryOpen && hud.CanInteractWithMap,"Closing backpack restores map interaction");
@@ -175,6 +218,7 @@ public static class ExpeditionValidation
         locator.onClick.Invoke();
         Require(session.SelectedNodeId == vanguard, "Map guidance locates the shield's first encounter");
         yield return Travel(vanguard);
+        Require(session.MapMarkerFilter == MapMarkerKind.Companion, "Current filter survives travel, backpack and combat");
         Require(session.Expedition.RecruitmentConditionMet(2), "Real two-person victory satisfies archer condition");
         int recruitNode = session.Expedition.RecruitmentSites[2];
         yield return Travel(recruitNode);
@@ -215,6 +259,7 @@ public static class ExpeditionValidation
         File.WriteAllText(path,JsonUtility.ToJson(checkpoint));
         session = WorldTimelineDebugView.OpenFromMenu(() => { });
         Require(session.ResumeUnfinishedRun(), "Replay checkpoint after real team battle");
+        Require(session.MapMarkerFilter == null, "Reload restores the unfiltered map");
         while (!session.UsesPrefabHud) yield return null;
         Require(session.Expedition.Cells.SequenceEqual(formation) && session.Expedition.HasRecruited(0) &&
             session.Expedition.HasRecruited(2) && session.Simulation.State.Year == year &&
@@ -227,8 +272,157 @@ public static class ExpeditionValidation
         Require(session.Expedition.Equipment.Snapshot().SequenceEqual(equipmentState),"Fixed artifacts, independent item levels, purchases and rewards survive checkpoint replay");
         session.ReturnToMenu();
         yield return null;
+        session = WorldTimelineDebugView.OpenFromMenu(() => { });
+        Require(session.ResumeUnfinishedRun(), "Open the saved squad for succession verification");
+        while (!session.UsesPrefabHud) yield return null;
+        successionYear = session.Simulation.State.Year + 1;
+        yield return FightNearestGuard();
+        Require(session.Expedition.LeaderRole == 2 && session.Expedition.IsFallen(-1), "Selected archer leads the map");
+        int successorHp = session.Simulation.State.Actors[1].Health;
+        int shieldHp = session.Expedition.CompanionHealth(0);
+        int[] inheritedBag = session.Expedition.Equipment.Snapshot();
+        yield return Settle(); Capture("SuccessorMap.png"); yield return Settle();
+        var rest = (Button)typeof(WorldTimelinePanelCtrl).GetField("rest", Hidden).GetValue(Object.FindFirstObjectByType<WorldTimelinePanelCtrl>());
+        Require(rest.isActiveAndEnabled && rest.interactable, "A wounded squad can rest on the world map");
+        int restYear = session.Simulation.State.Year;
+        rest.onClick.Invoke();
+        while (session.IsBusy) yield return null;
+        var captain = session.Simulation.State.Actors[1];
+        successorHp = Math.Min(captain.MaxHealth, successorHp + captain.MaxHealth / 4);
+        int shieldMax = session.Expedition.CompanionMaxHealth(0);
+        shieldHp = Math.Min(shieldMax, shieldHp + shieldMax / 4);
+        Require(session.Simulation.State.Year == restYear + 1 && captain.Health == successorHp &&
+            session.Expedition.CompanionHealth(0) == shieldHp, "Rest spends one year and heals the captain and companion");
+        yield return Settle(); Capture("RestedMap.png"); yield return Settle();
+        session.ReturnToMenu();
+        yield return null;
+        session = WorldTimelineDebugView.OpenFromMenu(() => { });
+        Require(session.ResumeUnfinishedRun() && session.Expedition.LeaderRole == 2 &&
+            session.Simulation.State.Actors[1].Health == successorHp && session.Expedition.CompanionHealth(0) == shieldHp &&
+            session.Expedition.Equipment.Snapshot().SequenceEqual(inheritedBag), "Checkpoint replays chosen successor, wounds and inherited gear");
+        session.ReturnToMenu();
+        yield return null;
         session = null;
         ValidateHistoricalCombat();
+        var source = new WorldState(1);
+        source.Nodes.Add(birth, new NodeState(birth));
+        source.Actors.Add(1, new ActorState(1, birth, 2400, 550));
+        source.Actors[1].Items.Add(8109);
+        var previousLife = new WorldSimulation(source);
+        source.EnableExpedition();
+        source.Expedition.Equipment.EnableArtifacts();
+        var robe = source.Expedition.Equipment.Instances.First(item=>item.DefinitionId==5);
+        source.Expedition.Equipment.EquipInstance(1, robe.Id, 3);
+        source.Expedition.Equipment.Upgrade(robe.Id,true);
+        previousLife.SubmitPlayerAction(WorldAction.Wait(1));
+        int from = birth;
+        foreach (int next in meetingRoute)
+        {
+            source.Nodes.Add(next,new NodeState(next));
+            source.Nodes[from].Links.Add(next); source.Nodes[next].Links.Add(from);
+            previousLife.SubmitPlayerAction(WorldAction.Move(next));
+            from = next;
+        }
+        object fresh = JsonUtility.FromJson(freshCheckpoint, checkpointType);
+        checkpointType.GetField("histories").SetValue(fresh,Convert.ToBase64String(
+            WorldTimelineSaveStore.Encode(new[] {new SavedLife(1, previousLife.RecordPlayerLife())})));
+        File.WriteAllText(path, JsonUtility.ToJson(fresh));
+        session = WorldTimelineDebugView.OpenFromMenu(()=>{});
+        Require(session.ResumeUnfinishedRun(),"Open isolated checkpoint with a playable former protagonist");
+        while(!session.UsesPrefabHud) yield return null;
+        for (int waited = 0; waited <= meetingRoute.Count+5 && session.Expedition.RoleCount == 4; waited++)
+        {
+            typeof(WorldTimelineDebugView).GetMethod("Submit",Hidden).Invoke(session,new object[]{ WorldAction.Wait(1) });
+            while (session.IsBusy)
+            {
+                var invitation = GameObject.Find("前世相遇");
+                if (invitation != null)
+                {
+                    Require(invitation.transform.Find("Loadout") != null && invitation.transform.Find("Assets") != null,
+                        "Invitation previews the incoming captain and separate party assets");
+                    yield return Settle(); Capture("PastInvitation.png"); yield return Settle();
+                    Click(invitation.transform,"Accept");
+                }
+                yield return null;
+            }
+        }
+        Require(session.Expedition.RoleCount == 5 && session.Simulation.State.Actors[10].HasJoinedPlayer,
+            "The encounter accepts only the former protagonist through the map UI");
+        int[] mergedGear = session.Expedition.Equipment.Snapshot();
+        long mergedStones = session.Expedition.Equipment.SpiritStones;
+        yield return Settle();
+        var partyHud = Object.FindFirstObjectByType<WorldTimelinePanelCtrl>();
+        Click(partyHud,"队伍·同伴"); yield return Settle();
+        var partyPanel = Object.FindFirstObjectByType<ExpeditionPartyPanel>();
+        Click(partyPanel.transform,"MemberPage"); Click(partyPanel.transform,"Member5");
+        Require(partyPanel.transform.Find("Details").GetComponent<TMPro.TMP_Text>().text.Contains(session.CompanionName(4)),
+            "The second roster page shows the actual former protagonist");
+        yield return Settle(); Capture("PastLeaderRoster.png"); yield return Settle();
+        partyPanel.Close();
+        var gearPanel = ExpeditionEquipmentPanel.Open(session, partyHud.GetComponentInChildren<TMPro.TMP_Text>().font, ()=>{});
+        Click(gearPanel.transform,"MemberPage"); Click(gearPanel.transform,"EquipMember5");
+        Require(gearPanel.SelectedActor==session.Expedition.CompanionId(4) && session.PastPortrait(session.Expedition,4)!=null,
+            "Equipment page selects the past protagonist with the original portrait");
+        yield return Settle(); Capture("PastLeaderEquipment.png"); yield return Settle();
+        gearPanel.Close(); session.ReturnToMenu(); yield return null;
+        session=WorldTimelineDebugView.OpenFromMenu(()=>{});
+        Require(session.ResumeUnfinishedRun() && session.Expedition.PastBirth(4)==birth &&
+            session.Expedition.Equipment.Worn(session.Expedition.CompanionId(4),3)?.Level==1 &&
+            session.Expedition.Equipment.Snapshot().SequenceEqual(mergedGear) && session.Expedition.Equipment.SpiritStones==mergedStones &&
+            session.Simulation.State.Actors[10].HasJoinedPlayer,
+            "Checkpoint replays the past protagonist and actual loadout");
+        session.ReturnToMenu(); yield return null; session=null;
+    }
+
+    private static void ValidateArtifactLinks()
+    {
+        var world = new WorldState(1);
+        int node = HexWorldMap.Id(0, 0);
+        var place = new NodeState(node);
+        world.Nodes.Add(node, place);
+        typeof(NodeState).GetProperty("IsExpeditionVanguard").SetValue(place, true);
+        var captain = new ActorState(1, node, 1800, 34);
+        captain.Items.Add(8102);
+        world.Actors.Add(1, captain);
+        world.EnableExpedition();
+        var party = world.Expedition;
+        var gear = party.Equipment;
+        gear.EnableArtifacts(); party.Recruit(0);
+        int shield = party.CompanionId(0);
+        for (int i = 0; i < 8; i++) gear.VisitEvent(i);
+        gear.Buy(6); gear.Buy(9);
+        gear.EquipInstance(shield, gear.Instances.First(i => i.DefinitionId == 6).Id, 0);
+        gear.EquipInstance(shield, gear.Instances.First(i => i.DefinitionId == 5).Id, 1);
+        gear.EquipInstance(1, gear.Instances.First(i => i.DefinitionId == 9).Id, 0);
+        var resolver = new WorldTimelineBattleResolver();
+        int[] Fight()
+        {
+            var allies = party.CreateCombatants(node);
+            // Both runs start with exactly the same wound, leaving room for bonus healing.
+            var front = allies.Single(a => a.Id == shield);
+            typeof(ActorState).GetProperty("Health").SetValue(front, front.MaxHealth / 3);
+            return resolver.ResolveParty(world, node, allies, new[]{new ActorState(-node, node, 2400, 90)});
+        }
+        int[] without = Fight();
+        Require(captain.LastBattleOutput.All(a=>a.Artifacts==null),"Unmigrated equipment battles keep the original rules");
+        gear.EnableLinks();
+        int[] with = Fight();
+        var guard = captain.LastBattleOutput.Single(a=>a.ActorId==shield).Artifacts;
+        var ally = captain.LastBattleOutput.Single(a=>a.ActorId==1).Artifacts;
+        File.WriteAllText(Path.Combine(output,"ArtifactLinks.txt"),
+            $"Without links {string.Join(",",without)}; with links {string.Join(",",with)}\n" +
+            $"Openings {guard.Openings}, pursuits {ally.Pursuits}, damage {ally.Damage}, remedies {ally.Remedies}, healing {ally.Healing}, recovery {guard.BonusHealing}");
+        Require(guard.Openings>0 && ally.Pursuits>0 && ally.Damage>0 && ally.Remedies>0 && guard.BonusHealing>0 &&
+            !without.SequenceEqual(with), "Equipped frontline and rear ally produce measurable pursuit and recovery");
+        Require(with.SequenceEqual(Fight()),"Artifact combat replays deterministically");
+        gear.Unequip(shield, 1);
+        Fight();
+        var solo = captain.LastBattleOutput.Single(a=>a.ActorId==1).Artifacts;
+        Require(solo.Remedies > 0 && solo.Healing > 0 && captain.LastBattleOutput.All(a=>a.Artifacts.BonusHealing==0),
+            "Remedy still heals alone, while the recipient needs Recovery to get the second heal");
+        gear.Unequip(1, 0);
+        Fight();
+        Require(captain.LastBattleOutput.All(a=>a.Artifacts.Remedies==0),"Removing the source turns off the healing chain");
     }
 
     private static void ValidateHistoricalCombat()
@@ -248,6 +442,25 @@ public static class ExpeditionValidation
         int[] health = new WorldTimelineBattleResolver().ResolveParty(world, 1, first.CreateCombatants(1), second.CreateCombatants(1));
         Require(health.Length == 4 && (health.Take(2).Any(hp => hp > 0) != health.Skip(2).Any(hp => hp > 0)),
             "Two historical squads complete real native combat without player formation input");
+    }
+
+    private static int successionYear;
+    // Only the final encounter is controlled; replay the same earlier fights with the production resolver.
+    private sealed class SuccessionFixture : IWorldAsyncPartyBattleResolver, IWorldBattleForecaster
+    {
+        private readonly WorldTimelineBattleResolver native = new WorldTimelineBattleResolver();
+        public BattleResult Resolve(int hp, int atk, int enemyHp, int enemyAtk) => native.Resolve(hp, atk, enemyHp, enemyAtk);
+        public int[] ResolveParty(WorldState world, int node, IReadOnlyList<ActorState> first, IReadOnlyList<ActorState> second)
+            => native.ResolveParty(world, node, first, second);
+        public IEnumerator ForecastGuardian(WorldState world, int node, ActorState actor, Action<int> done)
+            => native.ForecastGuardian(world, node, actor, done);
+        public IEnumerator ResolvePartyRoutine(WorldState world, int node, IReadOnlyList<ActorState> first,
+            IReadOnlyList<ActorState> second, Action<int[]> done)
+        {
+            if (world.Year >= successionYear && first.Any(a => a.Id == world.PlayerActorId) && world.Expedition.LeaderRole == -1)
+                done(first.Select(a => a.Id == world.PlayerActorId ? 0 : Math.Min(a.Health, 27)).Concat(second.Select(_ => 0)).ToArray());
+            else yield return native.ResolvePartyRoutine(world, node, first, second, done);
+        }
     }
 
     private static IEnumerator Travel(int destination)
@@ -409,6 +622,13 @@ public static class ExpeditionValidation
                 yield return Settle(2);
                 Capture("Battle.png"); capturedBattle = true;
             }
+            var succession = GameObject.Find("选择接任队长");
+            if (succession != null)
+            {
+                yield return Settle(); Capture("Succession.png"); yield return Settle();
+                Click(succession.transform, "Successor2");
+                yield return Settle();
+            }
             if (session.PendingBattleSettlement != null)
             {
                 if (!session.PendingBattleSettlement.IsTreasure)
@@ -502,9 +722,10 @@ public static class ExpeditionValidation
         EditorApplication.update -= Tick;
         while (routines.Count > 0) (routines.Pop() as IDisposable)?.Dispose();
         if (session != null) Object.Destroy(session.gameObject);
+        WorldTimelineDebugView.BattleResolverFactory = () => new WorldTimelineBattleResolver();
         WorldTimelineDebugView.EditorSaveDirectory = previousSaveDirectory;
         if (title != null) title.Visible = true;
-        File.WriteAllText(Path.Combine(output, "Result.txt"), error ?? "PASS: right-side bench/deploy toggle, six equipment slots, backpack upgrade preview, retired inventory entry removed, mixed old/new checkpoint commands, merchants, events and native team battles.");
+        File.WriteAllText(Path.Combine(output, "Result.txt"), error ?? "PASS: artifact pursuit and recovery, native team battles, equipment, merchants, succession and checkpoint replay.");
         if (error == null) Debug.Log("EXPEDITION_VALIDATION_PASSED"); else Debug.LogError(error);
     }
 }

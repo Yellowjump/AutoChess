@@ -46,7 +46,7 @@ public sealed class ExpeditionRewardPanel : MonoBehaviour
             ui.Picture("RewardIcon",ui.ItemIcon(item.Id),107,28,235,235,button.transform);
             var title=ui.Text("ItemName",item.Name,20,285,409,58,40);
             title.transform.SetParent(button.transform,false);title.alignment=TextAlignmentOptions.Center;
-            var type=ui.Text("Kind",$"通用行装 · 1 / {item.MaxLevel} 阶",21,352,407,40,26,ExpeditionPaperUi.Muted);
+            var type=ui.Text("Kind",$"{item.TriggerName} · 1 / {item.MaxLevel} 阶",21,352,407,40,26,ExpeditionPaperUi.Muted);
             type.transform.SetParent(button.transform,false);type.alignment=TextAlignmentOptions.Center;
             var effect=ui.Text("Effect",item.Effect(1),20,397,409,42,29,ExpeditionPaperUi.Jade);
             effect.transform.SetParent(button.transform,false);effect.alignment=TextAlignmentOptions.Center;
@@ -62,7 +62,8 @@ public sealed class ExpeditionRewardPanel : MonoBehaviour
         selected=index;confirm.interactable=true;
         for(int i=0;i<options.Count;i++)ui.MarkSelection(options[i],i==index);
         var item=ExpeditionEquipment.Definition(view.Expedition.Equipment.PendingRewards[index]);
-        hint.text="已选 "+item.Name+"\n收入共享行囊，任意同伴均可穿戴与升级。";
+        hint.text=item.Name+" · "+item.TriggerName+"\n"+item.TriggerRule;
+        hint.enableAutoSizing=true;hint.fontSizeMin=17;
     }
     private void OnDestroy(){ui?.Dispose();}
 }

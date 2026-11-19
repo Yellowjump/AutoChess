@@ -59,6 +59,17 @@ namespace WorldTimeline
         public int Progress { get; private set; }
         public TechniqueStage? NextStage => Rank < definition.Stages.Count ? definition.Stages[Rank] : (TechniqueStage?)null;
 
+        internal TechniqueDefinition Definition => definition;
+        internal TechniqueProgress Copy() => new TechniqueProgress(definition, Rank, Progress);
+        internal TechniqueProgress(TechniqueDefinition definition, int rank, int progress) : this(definition)
+        {
+            if (rank < 1 || rank > definition.Stages.Count || progress < 0 ||
+                (rank == definition.Stages.Count ? progress != 0 : progress >= definition.Stages[rank].Value))
+                throw new ArgumentException("Invalid saved technique.");
+            Rank = rank;
+            Progress = progress;
+        }
+
         internal TechniqueProgress(TechniqueDefinition definition) { this.definition = definition; }
 
         internal void SettleBattle(int usedRank, int experience, int skillKills, List<int> items)

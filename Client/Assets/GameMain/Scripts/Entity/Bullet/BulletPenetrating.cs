@@ -95,7 +95,7 @@ namespace Entity.Bullet
         }
         public override void OnHitTarget(EntityQizi target)
         {
-            OwnerTriggerList?.OnTrigger(TriggerType.OnBulletHitTarget,target);
+            Hit(target);
         }
         // 判断是否命中敌人
         private bool IsHitEnemy(EntityQizi enemy)

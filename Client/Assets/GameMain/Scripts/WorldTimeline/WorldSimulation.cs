@@ -34,6 +34,86 @@ namespace WorldTimeline
             State.PrepareHistoricalParty = (actor, node) => histories.FirstOrDefault(h => h.ActorId == actor)?.PrepareBattle(State, node);
         }
 
+        public void EnableSharedClears()
+        {
+            if (State.SharedClears) return;
+            State.SharedClears = true;
+            State.HistoricalRewardDefinition = (id,node) => histories.FirstOrDefault(h => h.ActorId == id)?.RewardDefinition(node) ?? 0;
+            foreach (var history in histories) PrepareRewardParty(history);
+        }
+
+        public void EnableHistoricalGrowth()
+        {
+            if (State.HistoricalGrowth) return;
+            EnableSharedClears();
+            State.HistoricalGrowth = true;
+            foreach (var history in histories)
+            {
+                PrepareRewardParty(history);
+                history.RestoreParty(State);
+            }
+        }
+
+        private void PrepareRewardParty(HistoryActorController history)
+        {
+            if (!State.HistoricalExpeditions.TryGetValue(history.ActorId,out var party))
+            {
+                if (!State.Actors[history.ActorId].NodeId.HasValue) return;
+                party = new ExpeditionParty(State,history.ActorId,(histories.IndexOf(history)+1)*4);
+                State.HistoricalExpeditions.Add(history.ActorId,party);
+            }
+            if (State.HistoricalGrowth)
+                party.EnableHistoricalGrowth();
+            else history.EnableSharedRewards(State,party);
+        }
+
+        private Func<int,Action<bool>,IEnumerator> pastInvitation;
+        public void SetPastInvitationPresenter(Func<int,Action<bool>,IEnumerator> presenter) => pastInvitation = presenter;
+        public void EnablePastInvitations()
+        {
+            EnableHistoricalGrowth();
+            State.PastInvitations = true;
+        }
+
+        private IEnumerator InviteAtArrival(int node)
+        {
+            var party = State.Expedition;
+            if (!State.PastInvitations || pastInvitation == null || party == null || State.PlayerControlEnded ||
+                !Player.IsAlive || Player.LeaderId.HasValue || Player.NodeId != node) yield break;
+            foreach (var history in histories.OrderBy(h => h.ActorId))
+            {
+                var source = State.Actors[history.ActorId];
+                var former = State.ExpeditionFor(source.Id);
+                if (source.NodeId != node || source.LeaderId.HasValue || former == null ||
+                    !party.CanAddPastLeader(source.Id) || !party.Equipment.CanMerge(former.Equipment)) continue;
+                bool? accept = null;
+                yield return pastInvitation(source.Id, value => accept = value);
+                if (!accept.HasValue) throw new InvalidOperationException("缺少相遇选择。");
+                if (!accept.Value) continue;
+                if (!party.AddPastLeader(source.Id,record:false)) throw new InvalidOperationException("前世主角无法入队。");
+                for (int role = 0; role < ExpeditionParty.StageRoles; role++)
+                    if (former.HasRecruited(role))
+                        State.ReturnStage(role,source.Id,former.IsFallen(role) ? 0 : former.CompanionHealth(role));
+                foreach (int site in new[]{ExpeditionParty.SandSite,ExpeditionParty.TideSite})
+                    if (former.SiteMember(site) is int member && member >= 0)
+                        State.ReturnStage(site,source.Id,former.IsFallen(member) ? 0 : former.CompanionHealth(member));
+                party.Equipment.MergeBags(former.Equipment);
+                source.TransferSpiritStonesTo(Player);
+                source.CurrentAction = null;
+                source.RemainingYears = 0;
+                source.NodeId = null;
+                source.LeaderId = Player.Id;
+                source.HasJoinedPlayer = true;
+                source.Items.Clear();
+                State.HistoricalExpeditions.Remove(source.Id);
+                history.UpdateStatus(State);
+                party.RecordFormation();
+            }
+        }
+
+        public bool TryAddPastLeaderToRoster(int sourceId) => WaitingForPlayer && State.Expedition != null &&
+            histories.Any(history => history.ActorId == sourceId) && State.Expedition.AddPastLeader(sourceId);
+
         public LifeRecord RecordPlayerLife() => recorder.Snapshot(State.Year, State.Expedition?.Records);
         public bool RecordCompletedLife()
         {
@@ -43,6 +123,9 @@ namespace WorldTimeline
         }
         public void SetBattleSettlementPresenter(Func<BattleSettlement, IEnumerator> presenter)
             => encounters.PresentSettlement = presenter;
+        public void SetSuccessorPresenter(Func<IReadOnlyList<int>, Action<int>, IEnumerator> presenter)
+            => encounters.SelectSuccessor = presenter;
+
         public void SetBattlePreparationPresenter(Func<int, IEnumerator> presenter)
             => encounters.PrepareBattle = presenter;
         public void ConfigureStories(StoryConfig config, int seed = 1, bool interactivePlayer = false,
@@ -89,19 +172,18 @@ namespace WorldTimeline
         }
 
         // Call before the first annual step. Instance IDs must be unique within this world.
-        public HistoryActorController AddHistory(LifeRecord record, int instanceId)
+        public HistoryActorController AddHistory(LifeRecord record, int instanceId, bool deferFormation = false)
         {
             if (record == null) throw new ArgumentNullException(nameof(record));
             if (State.Year != 0 || State.Actors.ContainsKey(instanceId) || !State.Nodes.ContainsKey(record.BirthNodeId))
                 throw new InvalidOperationException("History must spawn at year zero with a unique ID and valid birth node.");
             var controller = new HistoryActorController(instanceId, record);
             State.Actors.Add(instanceId, record.CreateActor(instanceId));
-            if (record.Expedition.Count > 0)
-            {
-                State.HistoricalExpeditions.Add(instanceId, new ExpeditionParty(State, instanceId, (histories.Count + 1) * 4));
-                controller.RestoreParty(State);
-            }
             histories.Add(controller);
+            if (State.SharedClears) PrepareRewardParty(controller);
+            else if (record.Expedition.Count > 0)
+                State.HistoricalExpeditions.Add(instanceId, new ExpeditionParty(State, instanceId, histories.Count * 4));
+            if (!deferFormation) controller.RestoreParty(State);
             return controller;
         }
 
@@ -114,6 +196,8 @@ namespace WorldTimeline
                 throw new InvalidOperationException("Growth comes from exploration and victories, not stationary cultivation.");
             if (State.IsEnded || (actorId == State.PlayerActorId && State.PlayerControlEnded) || !actor.IsAlive || actor.LeaderId.HasValue || actor.CurrentAction != null || !actor.NodeId.HasValue)
                 throw new InvalidOperationException("Actor cannot start an action.");
+            if (action.Kind == WorldActionKind.Rest && State.ExpeditionFor(actorId)?.AttritionEnabled != true)
+                throw new InvalidOperationException("Rest requires an expedition with persistent health.");
             if (action.Kind == WorldActionKind.JoinChosen)
             {
                 if (!CanJoinChosen(actorId)) throw new InvalidOperationException("Chosen must be alive at the same node.");
@@ -186,7 +270,7 @@ namespace WorldTimeline
             var arrivals = new List<int>();
 
             bool replayLegacyLifespan = State.Year <= State.LegacyLifespanDeathThroughYear;
-            foreach (var actor in actors.Where(a => a.IsAlive))
+            foreach (var actor in actors.Where(a => a.OnWorldMap))
             {
                 actor.Age++;
                 if (!replayLegacyLifespan || actor.Age < actor.Lifespan) continue;
@@ -217,11 +301,17 @@ namespace WorldTimeline
                     follower.RemainingYears = 0;
                     AssignAction(follower.Id, WorldAction.JoinChosen());
                 }
+            if (State.SharedClears)
+                foreach (var history in histories.Where(h => !State.HistoricalExpeditions.ContainsKey(h.ActorId) && State.Actors[h.ActorId].NodeId.HasValue))
+                    PrepareRewardParty(history);
             if (presentArrivals != null) yield return presentArrivals();
+            if (Player.NodeId is int place && arrivals.Contains(place))
+                yield return InviteAtArrival(place);
             yield return encounters.ResolveRoutine(State, arrivals, Emit);
             if (!State.IsEnded)
                 foreach (var actor in actors.Where(a => a.NodeId.HasValue && arrivals.Contains(a.NodeId.Value) &&
-                    a.CurrentAction?.Kind == WorldActionKind.Move && a.RemainingYears == 0))
+                    (a.CurrentAction?.Kind == WorldActionKind.Move && a.RemainingYears == 0 ||
+                    State.SharedClears && State.Nodes[a.NodeId.Value].FirstClear == (a.Id, State.Year))))
                     State.ExpeditionFor(actor.Id)?.Explore(actor.NodeId.Value, Cultivation, Emit);
             if (State.IsEnded)
             {
@@ -237,6 +327,7 @@ namespace WorldTimeline
                     Emit(new WorldEvent(State.Year, WorldEventKind.Cultivated, actor.Id, actor.NodeId));
                 }
                 if (actor.RemainingYears != 0) continue;
+                if (actor.CurrentAction.Kind == WorldActionKind.Rest) State.ExpeditionFor(actor.Id).Rest();
                 Emit(new WorldEvent(State.Year, WorldEventKind.ActionCompleted, actor.Id, actor.NodeId, actor.CurrentAction.Kind.ToString()));
                 actor.CurrentAction = null;
                 if (actor.StoryDelayYears > 0)
@@ -252,6 +343,9 @@ namespace WorldTimeline
                 {
                     type = "year_snapshot", hp = player.Health, maxHp = player.MaxHealth, attack = player.CombatAttack
                 });
+            if (State.HistoricalGrowth)
+                foreach (var history in histories.OrderBy(h => h.ActorId))
+                    history.RestoreParty(State, endOfYear:true);
             UpdateHistoryStatuses();
             if (Chosen != null && !State.Actors[Chosen.ActorId].IsAlive)
                 foreach (var actor in actors.Where(a => a.LeaderId == Chosen.ActorId)) actor.LeaderId = null;

@@ -21,8 +21,8 @@ namespace WorldTimelineDebug
         public bool EquipTeamItem(int actor,int item)=>ChangeTeamEquipment(CheckpointAction.EquipTeamItem,actor,item);
         public bool UnequipTeamItem(int actor,int slot)=>ChangeTeamEquipment(CheckpointAction.UnequipTeamItem,actor,slot);
         public bool UseTeamItem(int actor,int item)=>ChangeTeamEquipment(CheckpointAction.UseTeamItem,actor,item);
-        public bool EquipArtifact(int actor,int instance,int slot)=>slot>=0&&slot<ExpeditionEquipment.CommonSlots&&instance>0&&instance<=1000000&&
-            ChangeTeamEquipment(CheckpointAction.EquipArtifactSixSlots,actor,instance*6+slot);
+        public bool EquipArtifact(int actor,int instance,int slot,bool transfer=false)=>slot>=0&&slot<ExpeditionEquipment.CommonSlots&&instance>0&&instance<=1000000&&
+            ChangeTeamEquipment(transfer?CheckpointAction.TransferArtifact:CheckpointAction.EquipArtifactSixSlots,actor,instance*6+slot);
         public bool BuyArtifact(int definition)=>ChangeEquipmentService(CheckpointAction.BuyArtifact,definition);
         public bool UpgradeArtifact(int key)=>ChangeEquipmentService(EquipmentServiceMerchant?
             CheckpointAction.UpgradeArtifact:CheckpointAction.EventUpgrade,key);
@@ -76,10 +76,17 @@ namespace WorldTimelineDebug
         {
             if(result.IsTreasure || !result.Victory || Expedition?.Equipment.Enabled!=true ||
                 !simulation.State.Actors[Expedition.LeaderId].IsAlive)yield break;
+            if (simulation.State.SharedClears)
+            {
+                if (!result.WonFirstClear || Expedition.Equipment.PendingRewards.Count==0) yield break;
+            }
+            else
+            {
             var defeat=simulation.State.Nodes[result.NodeId].GuardianDefeat;
             if(!defeat.HasValue || defeat.Value.ActorId!=Expedition.LeaderId ||
                 defeat.Value.Year!=simulation.State.Year || !teamRewardNodes.Add(result.NodeId))yield break;
             Expedition.Equipment.OfferReward(result.NodeId);
+            }
             if(IsRestoringCheckpoint)
             {
                 var step=replayTeamRewards.SingleOrDefault(s=>s.atBattle==expeditionBattleNumber);
