@@ -7,7 +7,7 @@ public sealed class TidegateInkRenderFeature : ScriptableRendererFeature
     [SerializeField] private Shader shader;
     [SerializeField, Range(0f, 1f)] private float strength = .85f;
 
-    internal static Camera BattleCamera { get; set; }
+    public static Camera BattleCamera { get; set; }
 
     private static TidegateInkRenderFeature installed;
     private Material material;

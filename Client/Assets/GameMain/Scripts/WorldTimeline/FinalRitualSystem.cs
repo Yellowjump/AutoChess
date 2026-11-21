@@ -66,7 +66,7 @@ namespace WorldTimeline
         internal void BossDefeated(WorldState world, ActorState challenger, Action<WorldEvent> emit, bool applyBacklash = true)
         {
             var ritual = world.Ritual;
-            if (challenger.Id == world.ChosenActorId)
+            if (challenger.Id == world.ChosenActorId && challenger.InnateSeal != null)
             {
                 world.Finish(RunOutcome.Cleared);
                 emit(new WorldEvent(world.Year, WorldEventKind.WorldCleared, challenger.Id, ritual.NodeId));

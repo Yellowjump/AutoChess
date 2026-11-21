@@ -113,6 +113,7 @@ namespace WorldTimelineDebug
             if (kind == CheckpointAction.RecruitCompanion && advancing) return false;
             CancelLanternForecast();
             if (!ApplyExpeditionCommand(kind, target, cell)) return false;
+            RecordCollection();
             if (checkpoint != null)
             {
                 checkpoint.actions.Add(new CheckpointAction(kind, target, cell)
@@ -190,7 +191,7 @@ namespace WorldTimelineDebug
 
         public bool FocusVanguard()
         {
-            if (advancing || PendingVanguard is not int node) return false;
+            if (advancing || OpeningActive || PendingVanguard is not int node || board != null && !board.Revealed(node)) return false;
             selectedNode = node;
             if (board != null)
             {

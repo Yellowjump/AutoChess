@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using DataTable;
 using GameFramework;
 using GameFramework.Event;
@@ -41,6 +41,9 @@ public class MainTitlePanelCtrl : UIFormLogic
     private WorldTimelineDebugView worldTimeline;
     private TacticalTrialPanel tacticalTrial;
     private Button trialButton;
+    private Button collectionButton;
+    private TitleCollectionPanel collectionPanel;
+    [SerializeField] private Sprite[] collectionItemIcons;
     [SerializeField] private OpeningCinematic openingCinematicPrefab;
     private OpeningCinematic openingCinematic;
     private bool restoreDebugger;
@@ -91,6 +94,12 @@ public class MainTitlePanelCtrl : UIFormLogic
 
         InitScreenResolution();
         CreateTrialButton();
+        collectionButton = Instantiate(trialButton, transform);
+        collectionButton.name = "CollectionButton";
+        ((RectTransform)collectionButton.transform).anchoredPosition = new Vector2(-45,-139);
+        collectionButton.onClick = new Button.ButtonClickedEvent();
+        collectionButton.onClick.AddListener(OpenCollection);
+        RefreshTrialLabel();
     }
 
     private void CreateTrialButton()
@@ -109,9 +118,31 @@ public class MainTitlePanelCtrl : UIFormLogic
 
     private void RefreshTrialLabel()
     {
+        if (collectionButton != null)
+            collectionButton.GetComponentInChildren<TMP_Text>(true).text =
+                GameEntry.Localization.Language == Language.English ? "Field Guide" : "图鉴";
         if (trialButton == null) return;
         var label = trialButton.GetComponentInChildren<TMP_Text>(true);
         if (label != null) label.text = GameEntry.Localization.Language == Language.English ? "Mountain Gate Trial" : "山门试阵";
+    }
+
+    private void OpenCollection()
+    {
+        if (!CanUseTitleActions || IsConfirmationOpen) return;
+        CloseSettings();
+        var font = _btnStart.GetComponentInChildren<TMP_Text>(true).font;
+        collectionPanel = TitleCollectionPanel.Open(font, collectionItemIcons, CloseCollection);
+        Visible = false;
+    }
+
+    private void CloseCollection()
+    {
+        if (collectionPanel == null) return;
+        collectionPanel.gameObject.SetActive(false);
+        Destroy(collectionPanel.gameObject);
+        collectionPanel = null;
+        Visible = true;
+        EventSystem.current?.SetSelectedGameObject(collectionButton.gameObject);
     }
 
     public void OpenTacticalTrial()
@@ -195,7 +226,7 @@ public class MainTitlePanelCtrl : UIFormLogic
         mTransSetting.gameObject.SetActive(false);
     }
 
-    private bool CanUseTitleActions => Visible && worldTimeline == null && openingCinematic == null && tacticalTrial == null;
+    private bool CanUseTitleActions => Visible && worldTimeline == null && openingCinematic == null && tacticalTrial == null && collectionPanel == null;
 
     private static bool IsConfirmationOpen => GameEntry.UI.HasUIForm(UICtrlName.ConfirmPanel) ||
         GameEntry.UI.IsLoadingUIForm(UICtrlName.ConfirmPanel);
@@ -405,6 +436,8 @@ public class MainTitlePanelCtrl : UIFormLogic
         RestoreDebugger();
         if (worldTimeline != null) Destroy(worldTimeline.gameObject);
         worldTimeline = null;
+        if (collectionPanel != null) Destroy(collectionPanel.gameObject);
+        collectionPanel = null;
         if (tacticalTrial != null) Destroy(tacticalTrial.gameObject);
         tacticalTrial = null;
         base.OnClose(isShutdown, userData);

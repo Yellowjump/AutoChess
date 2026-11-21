@@ -47,6 +47,31 @@ namespace WorldTimeline
         public const int CoastalRangedCount = 7;
         public const int CoastalGuardianCount = 20;
         public bool HasCoastalFormation { get; private set; }
+        public static readonly int PracticeKilnId = HexWorldMap.Id(-7, 4);
+        public bool IsPracticeKiln { get; private set; }
+        internal bool KeepsGuardianSlots => HasCoastalFormation || IsPracticeKiln;
+
+        public static readonly int HerbYardId = HexWorldMap.Id(2, -6);
+        public static readonly int PulseDenId = HexWorldMap.Id(3, -6);
+        public bool IsBleedTrial { get; private set; }
+
+        public void SetBleedTrial()
+        {
+            if (Id != HerbYardId && Id != PulseDenId) throw new InvalidOperationException();
+            SetGuardianFormation(3, new[] { Id == HerbYardId ? 200 : 320 });
+            IsBleedTrial = true;
+            HasExplorationGuardian = true;
+            IsCultivationSite = false;
+            GuardianAppearance = "LuYing";
+        }
+
+        public void SetPracticeKiln()
+        {
+            SetGuardianFormation(3, new[] { 480, 120, 120 });
+            IsPracticeKiln = true;
+            HasExplorationGuardian = true;
+            IsCultivationSite = false;
+        }
         public int GuardianCount => GroupGuardianHealth.Count > 0
             ? GroupGuardianHealth.Count(hp => hp > 0) : MonsterHealth > 0 ? 1 : 0;
 
@@ -70,7 +95,7 @@ namespace WorldTimeline
         {
             if (GuardianCount < 2) return false;
             int last = GroupGuardianHealth.FindLastIndex(hp => hp > 0);
-            if (HasCoastalFormation) GroupGuardianHealth[last] = 0;
+            if (KeepsGuardianSlots) GroupGuardianHealth[last] = 0;
             else GroupGuardianHealth.RemoveAt(last);
             MonsterHealth = GroupGuardianHealth.Sum();
             return true;
@@ -86,6 +111,8 @@ namespace WorldTimeline
         internal void SetGuardianFormation(int attack, int[] health)
         {
             HasCoastalFormation = false;
+            IsPracticeKiln = false;
+            IsBleedTrial = false;
             MonsterHealth = health.Sum();
             IsGuardianGroup = health.Length > 1;
             MonsterAttack = attack;

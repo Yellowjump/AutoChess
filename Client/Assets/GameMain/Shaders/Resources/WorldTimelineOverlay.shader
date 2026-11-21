@@ -150,5 +150,52 @@ Shader "WorldTimeline/Overlay"
             }
             ENDHLSL
         }
+        Pass
+        {
+            Name "LandmarkSelectionSweep"
+            Stencil { Ref 1 ReadMask 1 WriteMask 1 Comp Always Pass Replace }
+            Blend SrcAlpha OneMinusSrcAlpha
+            HLSLPROGRAM
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            float4 _SelectionSweep;
+            struct Varyings
+            {
+                float4 position : SV_POSITION;
+                float height : TEXCOORD0;
+            };
+            Varyings Vert(float3 position : POSITION)
+            {
+                Varyings output;
+                output.position = TransformObjectToHClip(position);
+                output.height = (position.y - _SelectionSweep.x) * _SelectionSweep.y;
+                return output;
+            }
+            half4 Frag(Varyings input) : SV_Target
+            {
+                float band = 1 - smoothstep(0, .17, abs(input.height - _SelectionSweep.z));
+                return half4(1, .84, .47, band * .58);
+            }
+            ENDHLSL
+        }
+        Pass
+        {
+            Name "LandmarkSelectionOutline"
+            Stencil { Ref 1 ReadMask 1 WriteMask 0 Comp NotEqual }
+            HLSLPROGRAM
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            float4 _OutlineOffset;
+            float4 Vert(float3 position : POSITION) : SV_POSITION
+            {
+                float4 clipPos = TransformObjectToHClip(position);
+                clipPos.xy += 2 * _OutlineOffset.xy * clipPos.w / _ScaledScreenParams.xy;
+                return clipPos;
+            }
+            half4 Frag() : SV_Target { return half4(.94, .66, .23, 1); }
+            ENDHLSL
+        }
     }
 }

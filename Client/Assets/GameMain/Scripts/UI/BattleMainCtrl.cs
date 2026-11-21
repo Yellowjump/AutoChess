@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+using EquipmentEntry = WorldTimelineDebug.WorldTimelineDebugView.EquipmentEntry;
 using DataTable;
 using Entity;
 using GameMain.Scripts.UI.Items;
@@ -32,6 +34,9 @@ public class BattleMainCtrl : UIFormLogic
     [SerializeField] private TextMeshProUGUI powsum;
     [SerializeField] public Image qiziImage; //显示棋子image
     public BattleBagItem itemTemp;
+    [SerializeField] private WorldTimelineInventoryCtrl inventoryPresentation;
+    private ExpeditionPaperUi artifactIcons;
+    private List<EquipmentEntry> displayedInventory;
     [SerializeField] private Transform _equipItemParent;
     [SerializeField] private Transform _releaseItemPa;
     public TextMeshProUGUI AttrAttackNum;
@@ -108,6 +113,9 @@ public class BattleMainCtrl : UIFormLogic
         if (curTargetQizi != null && curTargetQizi.IsValid)
             curTargetQizi.ShowHighlight(false);
         ClearCurHeroEquipItem();
+        displayedInventory = null;
+        artifactIcons?.Dispose();
+        artifactIcons = null;
         tryDragTargetQizi = null;
         shuxin_qizi = null;
         GetOrNotGetQizi = false;
@@ -438,8 +446,41 @@ public class BattleMainCtrl : UIFormLogic
 
     private void ShowHeroEquip()
     {
-        if (HaveEquipChange())
+        var carried = curTargetQizi.CarriedEquipment;
+        if (carried != null)
         {
+            if (carried != displayedInventory)
+            {
+                ClearCurHeroEquipItem();
+                displayedInventory = carried;
+                var items = GameEntry.DataTable.GetDataTable<DRItem>("Item");
+                var actor = curTargetQizi.InventoryOwner;
+                foreach (var entry in carried)
+                {
+                    var card = _itemPool.Get();
+                    card.transform.SetParent(_equipItemParent, false);
+                    Sprite icon;
+                    if (entry.ArtifactId != 0)
+                    {
+                        artifactIcons ??= new ExpeditionPaperUi(gameObject, heroName.font);
+                        icon = artifactIcons.ItemIcon(entry.ArtifactId);
+                    }
+                    else icon = inventoryPresentation.Icon(entry, actor, items);
+                    var skill = curTargetQizi.NormalSkillList.Concat(curTargetQizi.NoAnimAtkSkillList)
+                        .Concat(curTargetQizi.PassiveSkillList).FirstOrDefault(candidate =>
+                            entry.SkillItemId != 0 && candidate.FromItemID == entry.SkillItemId ||
+                            entry.TechniqueId != 0 && actor.Techniques.TryGetValue(entry.TechniqueId, out var art)
+                            && candidate.SkillID == art.SkillId);
+                    card.ShowCarried(entry, icon, skill);
+                    _curHeroEquipItemList.Add(card);
+                }
+            }
+            foreach (var card in _curHeroEquipItemList) card.RefreshCarriedCooldown();
+            return;
+        }
+        if (displayedInventory != null || HaveEquipChange())
+        {
+            displayedInventory = null;
             ClearCurHeroEquipItem();
             if (curTargetQizi != null)
             {
@@ -500,6 +541,12 @@ public class BattleMainCtrl : UIFormLogic
 
     private void OnPointItemEnter(BattleBagItem battleBagItem)
     {
+        if (battleBagItem.CarriedEntry != null)
+        {
+            _itemTip.gameObject.SetActive(true);
+            _itemTip.ShowCarried(battleBagItem.CarriedEntry, battleBagItem.CarriedSkill);
+            return;
+        }
         _itemTip.ItemID = battleBagItem.ItemID;
         _itemTip.CurHeroUID = curTargetQizi?.HeroUID ?? 0;
         _itemTip.gameObject.SetActive(true);

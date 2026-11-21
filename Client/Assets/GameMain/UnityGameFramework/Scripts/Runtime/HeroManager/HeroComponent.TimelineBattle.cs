@@ -41,7 +41,7 @@ namespace UnityGameFramework.Runtime
             TimelineArenaStyle arenaStyle = TimelineArenaStyle.Forest, bool staggerStoneGuards = false,
             bool openingGuardianPounce = false, bool suppressNamelessSeal = false, bool saltChannelDrained = false,
             Func<ActorState, int> coastalFormation = null, bool timeSliceSimulation = false,
-            TimelineBattleSetup setup = null, bool criticalRules = false)
+            TimelineBattleSetup setup = null, bool criticalRules = false, bool ancientSwordWaitsForHit = true, bool shortAncientSwordOpening = true)
         {
             if (unlimitedDuration && !visible)
                 throw new ArgumentException("无时间限制的战斗必须在前台运行。", nameof(unlimitedDuration));
@@ -240,6 +240,8 @@ namespace UnityGameFramework.Runtime
                             entity.SaltFirstAttackDelayMs = slot % 2 * 300;
                         entity.NamelessSteleSealed = !friend && suppressNamelessSeal &&
                             entity.TimelineAppearance == TimelineMonsterAnimation.NamelessSteleAppearance;
+                        entity.AncientSwordReady = !ancientSwordWaitsForHit;
+                        entity.ShortAncientSwordOpening = shortAncientSwordOpening;
                         entity.CanOpenWithPounce = openingGuardianPounce && !friend;
                         if (staggerStoneGuards && !friend && entity.TimelineAppearance == "GateGolem")
                             entity.FirstStoneSmashDelayMs = slot % 2 * 300;
@@ -298,6 +300,8 @@ namespace UnityGameFramework.Runtime
 #if UNITY_EDITOR
                 if (stationaryEnemies && seedPreviewBurn) previewBurnTarget = entities[first.Count];
 #endif
+                // Death clears the entity's Critical reference, but allies can still consume its marks.
+                var reportCritical = reportOwner == null ? null : entities.Select(entity => entity.Critical).ToArray();
                 StartBattle();
                 float step = GameEntry.LogicDeltaTime;
                 if (step <= 0 || float.IsNaN(step) || float.IsInfinity(step))
@@ -377,9 +381,10 @@ namespace UnityGameFramework.Runtime
                         ActorId = actor.Id,
                         Allied = (i < first.Count) == playerAttacks,
                         Artifacts = entities[i].ArtifactOutput,
-                        CriticalHits = entities[i].Critical?.CriticalHits ?? 0,
-                        MarksApplied = entities[i].Critical?.MarksApplied ?? 0,
-                        MarksUsed = entities[i].Critical?.MarksUsed ?? 0,
+                        CriticalHits = reportCritical[i]?.CriticalHits ?? 0,
+                        PearlCharged = reportCritical[i]?.PearlCharged ?? false,
+                        MarksApplied = reportCritical[i]?.MarksApplied ?? 0,
+                        MarksUsed = reportCritical[i]?.MarksUsed ?? 0,
                         DamageTaken = entities[i].BattleDamageTaken,
                         HealthLost = entities[i].BattleHealthLost,
                         Skills = entities[i].BattleOutput.Values.OrderBy(row => row.SkillId).ToArray()

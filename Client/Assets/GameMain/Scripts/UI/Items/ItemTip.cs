@@ -16,6 +16,16 @@ namespace GameMain.Scripts.UI.Items
         [SerializeField] private TextMeshProUGUI _itemTipAtkDistance;
         public int ItemID;
         public int CurHeroUID = 0;
+        internal void ShowCarried(WorldTimelineDebug.WorldTimelineDebugView.EquipmentEntry entry, Skill skill)
+        {
+            _itemTipName.text = entry.Name;
+            _itemTipDec.text = entry.Description?.Replace("#A9A08A", "#665940");
+            _itemTipRarity.text = string.Empty;
+            _itemTipType.text = entry.SkillTypeName;
+            _itemTipType.gameObject.SetActive(!string.IsNullOrEmpty(entry.SkillTypeName));
+            bool casts = skill != null && skill.CurSkillType != SkillType.PassiveSkill;
+            LayoutDetails(casts ? skill.CurCastCDMs : 0, casts ? skill.SkillRange : 0);
+        }
         public void FreshTip()
         {
             var itemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
@@ -34,33 +44,32 @@ namespace GameMain.Scripts.UI.Items
             {
                 _itemTipDec.text = string.Empty;
             }
-            _itemTipRarity.color = ConstValue.RarityColorList[itemTable[ItemID].Rarity];
+            _itemTipRarity.color = Color.Lerp(ConstValue.RarityColorList[itemTable[ItemID].Rarity], new Color(.18f,.14f,.09f), .65f);
             _itemTipRarity.text = GameEntry.Localization.GetString(ConstValue.RarityNameList[itemTable[ItemID].Rarity]);
-            var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
-            _itemTipType.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
-            _itemTipAtkDistance.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
-            _itemTipCDNum.gameObject.SetActive(itemTable[ItemID].SkillID!=0);
-            if (skillTable.HasDataRow(itemTable[ItemID].SkillID))
-            {
-                var skillData = skillTable[itemTable[ItemID].SkillID];
-                if (skillData.SkillType == (int)SkillType.NormalSkill)
-                {
-                    _itemTipAtkDistance.text = Mathf.FloorToInt(skillData.SkillRange/1000f).ToString();
-                }
-                _itemTipAtkDistance.gameObject.SetActive(skillData.SkillRange != 0);
-                var key = EnumLanguage.SkillType_Active;
-                switch (skillData.SkillType)
-                {
-                    case (int)SkillType.NoAnimSkill:
-                        key = EnumLanguage.SkillType_Auto;
-                        break;
-                    case (int)SkillType.PassiveSkill:
-                        key = EnumLanguage.SkillType_Passive;
-                        break;
-                }
-                _itemTipType.text = GameEntry.Localization.GetString(key);
-                _itemTipCDNum.text = Mathf.FloorToInt(skillData.CDMs / 1000f).ToString();
-            }
+            var item = itemTable[ItemID];
+            var skillData = ItemSkills.Highest(item);
+            _itemTipType.gameObject.SetActive(skillData != null || item.AttrAdd?.Count > 0);
+            _itemTipType.text = ItemSkills.Label(skillData == null ? SkillType.PassiveSkill : (SkillType)skillData.SkillType);
+            bool casts = skillData != null && skillData.SkillType != (int)SkillType.PassiveSkill;
+            LayoutDetails(casts ? skillData.CDMs : 0, casts ? skillData.SkillRange : 0);
+        }
+
+        private void LayoutDetails(int cooldownMs, int rangeMm)
+        {
+            bool english = GameEntry.Localization.Language == GameFramework.Localization.Language.English;
+            _itemTipCDNum.gameObject.SetActive(cooldownMs > 0);
+            _itemTipAtkDistance.gameObject.SetActive(rangeMm > 0);
+            if (cooldownMs > 0)
+                _itemTipCDNum.text = (english ? "CD " : "冷却 ") + (cooldownMs / 1000f).ToString("0.##") + (english ? "s" : "秒");
+            if (rangeMm > 0)
+                _itemTipAtkDistance.text = (english ? "Range " : "射程 ") + (rangeMm / 1000f).ToString("0.##");
+
+            var body = _itemTipDec.rectTransform;
+            var paper = (RectTransform)body.parent;
+            float textHeight = _itemTipDec.GetPreferredValues(_itemTipDec.text, body.rect.width, Mathf.Infinity).y;
+            float bodyHeight = Mathf.Clamp(Mathf.Ceil(textHeight) + 6f, 38f, 440f);
+            body.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, bodyHeight);
+            paper.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, -body.anchoredPosition.y + bodyHeight + 22f);
         }
     }
 }

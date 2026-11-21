@@ -346,7 +346,15 @@ namespace WorldTimeline
             if (option.HealthCost > 0) rewards.Add(Config.Format("Timeline_UI_StoryLostHealth", "气血 -{0}", option.HealthCost));
             if (option.ItemId != 0)
             {
+                if (actor.Id == world.PlayerActorId) world.AcquiredPlayerItems.Add(option.ItemId);
                 var item = Config.Items[option.ItemId]; ClaimedItems.Add(item.Id); actor.Items.Add(item.Id); ApplyItem(actor, item, 1);
+                // Learning Rekindle resets the targets even if someone already used the yard for kindling.
+                if (item.Id == 9135 && context.Definition.NodeId == HexWorldMap.Id(-8, 5) &&
+                    world.Nodes.TryGetValue(NodeState.PracticeKilnId, out var kiln) && kiln.IsPracticeKiln)
+                {
+                    kiln.SetPracticeKiln();
+                    kiln.GuardianDefeat = null;
+                }
                 actor.CheckTechniqueItems();
                 rewards.Add(Config.Format("Timeline_UI_StoryObtained", "获得 {0}：{1}", item.Name, item.Description));
             }

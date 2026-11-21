@@ -33,3 +33,9 @@ Id,Name,Innate,Icon,Health,Attack,HealthStep,AttackStep,MaxLevel,Price,UpgradeBa
 32,藏芒珠,0,8,25,3,8,1,4,24,8,6,HiddenEdgePearl
 33,裂玉刃,0,7,0,5,0,2,4,24,8,6,JadeRendBlade
 34,照隙镜,0,6,35,2,12,1,4,24,8,6,BreachMirror
+35,寻隙笔,1,10,0,8,0,4,5,0,12,8,None
+36,唤雷云符,0,7,0,3,0,2,4,24,8,6,None
+37,金光镜,0,6,0,3,0,2,4,24,8,6,None
+38,赤焰印,0,7,0,3,0,2,4,24,8,6,None
+39,叠潮铃,0,6,0,3,0,2,4,24,8,6,None
+40,聚灵梭,0,8,24,0,8,0,4,24,8,6,None

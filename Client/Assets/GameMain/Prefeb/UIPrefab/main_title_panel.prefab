@@ -2130,6 +2130,26 @@ MonoBehaviour:
   _btnStart: {fileID: 2368523200766459185}
   _btnSetting: {fileID: 2484228084126869029}
   _btnQuit: {fileID: 851040230910014}
+  collectionItemIcons:
+  - {fileID: 4007502287027695706, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: -3493371435002259172, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: -3638070862877810284, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: -7009080966714031801, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: -7413955040948444884, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: 1644439917284058798, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: 4141383019745035152, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: 7192574610919693145, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: -3442657002975739228, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: 2076167717105065358, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: -8867113925279384392, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: -1777455776372657589, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: 3768685186987415826, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: -1055052180696410224, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: -2420950769482112606, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: 8338910966080482048, guid: 6d3a5bb0b63ba0f4b993557f2d4f663c, type: 3}
+  - {fileID: 7600881800101200010, guid: 4d7f31ba31df49a29460582cb6e22cd1, type: 3}
+  - {fileID: 7600881800101200011, guid: 4d7f31ba31df49a29460582cb6e22cd1, type: 3}
+  - {fileID: 7600881800101200012, guid: 4d7f31ba31df49a29460582cb6e22cd1, type: 3}
   openingCinematicPrefab: {fileID: 2364748962015665801, guid: 8c15bba6d7196bf418a9672fecca28a9, type: 3}
   mTransSetting: {fileID: 8971577977838571052}
   mVolumeMasterSlider: {fileID: 1730770412603773006}

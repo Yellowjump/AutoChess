@@ -4,6 +4,22 @@ using System.Linq;
 
 namespace WorldTimeline
 {
+    public sealed class NamelessSeal
+    {
+        public int AbsorptionPercent { get; }
+        internal NamelessSeal(int percent) { AbsorptionPercent = percent; }
+
+        internal (int Health, int Attack) Absorb(ActorState owner, int health, int attack)
+        {
+            int gainHp = checked((int)((long)health * AbsorptionPercent / 100));
+            int gainAtk = checked((int)((long)attack * AbsorptionPercent / 100));
+            owner.MaxHealth = checked(owner.MaxHealth + gainHp);
+            owner.Health = checked(owner.Health + gainHp);
+            owner.Attack = checked(owner.Attack + gainAtk);
+            return (gainHp, gainAtk);
+        }
+    }
+
     public sealed class ChosenActorController
     {
         public int ActorId { get; }

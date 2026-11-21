@@ -9,6 +9,8 @@ namespace WorldTimeline
     {
         // Year zero is 元年; completing one annual step advances to year one.
         public int Year { get; internal set; }
+        public HashSet<int> AcquiredPlayerItems { get; } = new HashSet<int>();
+        public HashSet<string> DefeatedGuardianSpecies { get; } = new HashSet<string>();
         public int PlayerActorId { get; }
         public int? ChosenActorId { get; internal set; }
         public RunOutcome Outcome { get; private set; }
@@ -101,6 +103,8 @@ namespace WorldTimeline
         public Dictionary<int, NodeState> Nodes { get; } = new Dictionary<int, NodeState>();
         public WorldState(int playerActorId) { PlayerActorId = playerActorId; }
 
+        public bool ShortAncientSwordOpening { get; set; } = true;
+        public bool AncientSwordWaitsForHit { get; set; } = true;
         public Action<BalanceSample> BalanceSink { get; set; }
 
         internal bool TracksBalance(ActorState actor) => BalanceSink != null && actor.Id == PlayerActorId;

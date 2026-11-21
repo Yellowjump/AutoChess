@@ -43,6 +43,7 @@ namespace WorldTimelineDebug
         }
         private sealed class Tile
         {
+            public Vector2Int Coordinate;
             public Vector3 Center;
             public Color Color;
             public bool ImportantWithoutSelection;
@@ -69,6 +70,41 @@ namespace WorldTimelineDebug
         private Mesh pulseMesh;
         private Mesh links;
         private Mesh selectionLinks;
+        private Mesh fogMesh;
+        private HashSet<int> revealed;
+        internal bool Revealed(int id) => revealed == null || revealed.Contains(id);
+
+        private void UpdateFog(HashSet<int> visible)
+        {
+            if (revealed == null && visible == null || revealed != null && visible != null && revealed.SetEquals(visible)) return;
+            revealed = visible;
+            if (fogMesh == null)
+            {
+                fogMesh = new Mesh { name = "山路薄雾" };
+                meshes.Add(fogMesh);
+            }
+            fogMesh.Clear();
+            if (visible == null) return;
+            // Extend the wash beyond the outermost row so the map edge stays in mist.
+            int radius = (int)boardRadius + 3;
+            int width = radius * 2 + 1;
+            var vertices = new List<Vector3>();
+            var colors = new List<Color>();
+            var indices = new List<int>();
+            for (int q = -radius; q <= radius; q++)
+            for (int r = -radius; r <= radius; r++)
+            {
+                int i = vertices.Count;
+                vertices.Add(Position(q, r));
+                colors.Add(new Color(.54f, .56f, .52f, Revealed(HexWorldMap.Id(q, r)) ? 0f : .79f));
+                if (q == radius || r == radius) continue;
+                indices.Add(i); indices.Add(i + 1); indices.Add(i + width);
+                indices.Add(i + width); indices.Add(i + 1); indices.Add(i + width + 1);
+            }
+            fogMesh.SetVertices(vertices);
+            fogMesh.SetColors(colors);
+            fogMesh.SetTriangles(indices, 0);
+        }
         private int? selectedTileId;
         private WorldState state;
         private readonly Matrix4x4[] markerMatrices = new Matrix4x4[1023];
@@ -209,7 +245,7 @@ namespace WorldTimelineDebug
         {
             Vector3 center = Position(node.Q, node.R);
             float lift = Mathf.Max(.08f, unit * .035f);
-            tiles.Add(node.Id, new Tile { Center = center + Vector3.up * lift });
+            tiles.Add(node.Id, new Tile { Coordinate = new Vector2Int(node.Q, node.R), Center = center + Vector3.up * lift });
         }
 
         private static Mesh CreatePulseMesh()
@@ -252,10 +288,14 @@ namespace WorldTimelineDebug
                 .GroupBy(point => (point.Q, point.R))
                 .ToDictionary(group => group.Key, group => group.Count());
             var view = GetComponentInParent<WorldTimelineDebugView>();
+            UpdateFog(view?.OpeningVisibleNodes());
             foreach (var node in world.Nodes.Values)
             {
                 var tile = tiles[node.Id];
-                bool reachable = playerNode.HasValue && world.Nodes[playerNode.Value].Links.Contains(node.Id);
+                bool reachable = Revealed(node.Id) && playerNode.HasValue && world.Nodes[playerNode.Value].Links.Contains(node.Id);
+                if (reachable && openingLinks.Count > 0)
+                    reachable = openingNextStop.HasValue ? node.Id == openingNextStop :
+                        openingCommitted == 0 && IsOpeningEntry(node.Id);
                 if (tile.Reachable != reachable)
                 {
                     tile.LiftFrom = tile.LiftAt(now);
@@ -296,7 +336,8 @@ namespace WorldTimelineDebug
             var occupied = new Dictionary<Vector2, int>();
             foreach (var actor in world.Actors.Values.OrderBy(actor => actor.Id))
             {
-                if (!actor.OnWorldMap)
+                if (!actor.OnWorldMap || revealed != null && actor.Id != world.PlayerActorId &&
+                    !(actor.NodeId is int actorNode && Revealed(actorNode)))
                 {
                     if (pieces.TryGetValue(actor.Id, out var dead)) dead.Root.gameObject.SetActive(false);
                     continue;
@@ -356,6 +397,11 @@ namespace WorldTimelineDebug
                 Destroy(piece.Root.gameObject);
             }
             pieces.Clear();
+        }
+
+        public void AddApproach(int start, int fork)
+        {
+            openingLinks[(Mathf.Min(start, fork), Mathf.Max(start, fork))] = 0;
         }
 
         public void SetOpeningPaths(int start, IReadOnlyList<int> shortcut, IReadOnlyList<int> detour, int swordId = 0)
@@ -474,8 +520,12 @@ namespace WorldTimelineDebug
             RebuildSelectionLinks();
         }
 
+        private float selectionStarted;
+
         private void SetSelectedTile(int nodeId)
         {
+            if (selectedTileId == nodeId) return;
+            selectionStarted = Time.unscaledTime;
             if (selectedTileId.HasValue) tiles[selectedTileId.Value].Selected = false;
             selectedTileId = nodeId;
             tiles[nodeId].Selected = true;
@@ -488,9 +538,10 @@ namespace WorldTimelineDebug
             foreach (var node in state.Nodes.Values)
             foreach (int otherId in node.Links)
             {
-                if (otherId <= node.Id) continue;
+                if (otherId <= node.Id || !Revealed(node.Id) || !Revealed(otherId)) continue;
                 bool reachable = node.Id == playerNode || otherId == playerNode;
                 bool openingLink = openingLinks.TryGetValue((node.Id, otherId), out int route);
+                if (openingLinks.Count > 0 && !openingLink) continue;
                 if (!openingLink && !reachable && (Ink || zoom >= .65f)) continue;
                 AddLink(node.Id, otherId, reachable, openingLink, route);
             }
@@ -505,7 +556,7 @@ namespace WorldTimelineDebug
             int nodeId = selectedTileId.Value;
             foreach (int otherId in state.Nodes[nodeId].Links)
             {
-                if (nodeId == playerNode || otherId == playerNode) continue;
+                if (openingLinks.Count > 0 || !Revealed(nodeId) || !Revealed(otherId) || nodeId == playerNode || otherId == playerNode) continue;
                 int from = Mathf.Min(nodeId, otherId);
                 int to = Mathf.Max(nodeId, otherId);
                 if (!openingLinks.ContainsKey((from, to)))
@@ -562,7 +613,8 @@ namespace WorldTimelineDebug
         {
             if (state == null || ForRenderingCamera(camera) != this) return;
             OverlayDrawCount++;
-            bool showGate = openingGateMarker != null && inkMap != null && inkMap.LandmarkMaterial != null;
+            if (revealed != null && fogMesh != null) cmd.DrawMesh(fogMesh, Matrix4x4.identity, overlay, 0, 1);
+            bool showGate = Revealed(openingGateId) && HasGateModel;
             if (showGate && inkMap != null && inkMap.ContactShadow != null)
             {
                 var shadow = Matrix4x4.TRS(openingGateMarker.position + Vector3.up * .07f, Quaternion.Euler(90f, 0f, 0f),
@@ -575,9 +627,7 @@ namespace WorldTimelineDebug
             DrawActorRoutes(cmd);
             if (showGate)
             {
-                var anchor = openingGateMarker.position;
-                var matrix = Matrix4x4.TRS(anchor, Quaternion.Euler(0, 337, 0), Vector3.one * unit);
-                cmd.DrawMesh(inkMap.GateMesh, matrix, inkMap.LandmarkMaterial, 0, 0);
+                cmd.DrawMesh(inkMap.GateMesh, GateMatrix, inkMap.LandmarkMaterial, 0, 0);
             }
             if (Ink)
             {
@@ -592,8 +642,51 @@ namespace WorldTimelineDebug
                 DrawMarkers(cmd, false);
             }
             if (openingLinks.Count == 0) DrawTypeMarkers(cmd, camera);
+            if (selectedTileId is int selected && Revealed(selected) && TryModel(selected, tiles[selected], out var model, out var matrix))
+                DrawSelectedModel(cmd, model, matrix);
             DrawPieces(cmd, camera);
-            if (openingSwordMarker != null && openingSwordMarker.gameObject.activeInHierarchy) DrawOpeningSword(cmd, camera);
+            if (Revealed(openingGateId) && openingSwordMarker != null && openingSwordMarker.gameObject.activeInHierarchy) DrawOpeningSword(cmd, camera);
+        }
+
+        private bool HasGateModel => openingGateMarker != null && inkMap != null && inkMap.GateMesh != null;
+        private Matrix4x4 GateMatrix => Matrix4x4.TRS(openingGateMarker.position, Quaternion.Euler(0, 337, 0), Vector3.one * unit);
+
+        private bool HasModel(int node, Tile tile) => node == openingGateId && HasGateModel ||
+            inkMap != null && inkMap.VisibleModel(tile.Coordinate) != null;
+
+        private bool TryModel(int node, Tile tile, out Mesh mesh, out Matrix4x4 matrix)
+        {
+            if (node == openingGateId && HasGateModel)
+            {
+                mesh = inkMap.GateMesh;
+                matrix = GateMatrix;
+                return true;
+            }
+            var filter = inkMap != null ? inkMap.VisibleModel(tile.Coordinate) : null;
+            mesh = filter != null ? filter.sharedMesh : null;
+            matrix = filter != null ? filter.transform.localToWorldMatrix : Matrix4x4.identity;
+            return mesh != null;
+        }
+
+        private static readonly int OutlineOffset = Shader.PropertyToID("_OutlineOffset");
+        private static readonly int SelectionSweep = Shader.PropertyToID("_SelectionSweep");
+        private void DrawSelectedModel(CommandBuffer cmd, Mesh mesh, Matrix4x4 matrix)
+        {
+            float progress = Mathf.Clamp01((Time.unscaledTime - selectionStarted) / .42f);
+            float width = 1.6f + 1.8f * Mathf.Sin(progress * Mathf.PI);
+            var bounds = mesh.bounds;
+            properties.Clear();
+            properties.SetVector(SelectionSweep, new Vector4(bounds.min.y, 1f / Mathf.Max(.001f, bounds.size.y),
+                Mathf.Lerp(-.2f, 1.2f, progress), 0f));
+            for (int sub = 0; sub < mesh.subMeshCount; sub++)
+                cmd.DrawMesh(mesh, matrix, overlay, sub, 4, properties);
+            for (int step = 0; step < 8; step++)
+            {
+                float angle = step * Mathf.PI / 4f;
+                properties.SetVector(OutlineOffset, new Vector4(Mathf.Cos(angle) * width, Mathf.Sin(angle) * width, 0, 0));
+                for (int sub = 0; sub < mesh.subMeshCount; sub++)
+                    cmd.DrawMesh(mesh, matrix, overlay, sub, 5, properties);
+            }
         }
 
         private void DrawOpeningSword(CommandBuffer cmd, Camera camera)
@@ -642,6 +735,7 @@ namespace WorldTimelineDebug
             foreach (var pair in tiles)
             {
                 int node = pair.Key;
+                if (!Revealed(pair.Key) || HasModel(pair.Key, pair.Value)) continue;
                 var tile = pair.Value;
                 if (!opening && ShowsTypeBadge(tile)) continue;
                 bool onRoute = openingStops.TryGetValue(node, out int route);
@@ -701,6 +795,7 @@ namespace WorldTimelineDebug
             float now = Time.unscaledTime;
             foreach (var pair in tiles)
             {
+                if (!Revealed(pair.Key) || HasModel(pair.Key, pair.Value)) continue;
                 var tile = pair.Value;
                 float lift = tile.LiftAt(now);
                 if (lift <= 0f) continue;
@@ -721,6 +816,7 @@ namespace WorldTimelineDebug
             float dusk = Ink && inkMap != null ? inkMap.Dusk : 0f;
             foreach (var pair in tiles)
             {
+                if (!Revealed(pair.Key) || HasModel(pair.Key, pair.Value)) continue;
                 var tile = pair.Value;
                 if (!IsVisible(tile) || openingLinks.Count == 0 && ShowsTypeBadge(tile)) continue;
                 float lift = tile.LiftAt(Time.unscaledTime);
@@ -838,8 +934,28 @@ namespace WorldTimelineDebug
         {
             int? selected = null;
             float distance = float.PositiveInfinity;
+            var ray = boardCamera.ScreenPointToRay(screenPosition);
+            float nearestModel = float.PositiveInfinity;
+            int? modelNode = null;
             foreach (var pair in tiles)
             {
+                if (!Revealed(pair.Key)) continue;
+                if (TryModel(pair.Key, pair.Value, out var mesh, out var matrix))
+                {
+                    var inverse = matrix.inverse;
+                    var localRay = new Ray(inverse.MultiplyPoint3x4(ray.origin), inverse.MultiplyVector(ray.direction));
+                    if (mesh.bounds.IntersectRay(localRay, out var hit))
+                    {
+                        var point = matrix.MultiplyPoint3x4(localRay.GetPoint(hit));
+                        float depth = Vector3.Dot(point - boardCamera.transform.position, boardCamera.transform.forward);
+                        if (depth >= boardCamera.nearClipPlane && depth <= boardCamera.farClipPlane && depth < nearestModel)
+                        {
+                            nearestModel = depth;
+                            modelNode = pair.Key;
+                        }
+                    }
+                    continue;
+                }
                 if (!IsVisible(pair.Value)) continue;
                 float lift = Ink ? InkLift(pair.Value, Time.unscaledTime) : pair.Value.LiftAt(Time.unscaledTime);
                 var markerCenter = MarkerCenter(pair.Value, lift);
@@ -857,7 +973,8 @@ namespace WorldTimelineDebug
                 distance = candidate;
                 selected = pair.Key;
             }
-            return selected;
+            // Point markers are drawn above landmarks and take priority throughout their click target.
+            return selected ?? modelNode;
         }
         public Vector3 ProjectNode(int nodeId)
         {

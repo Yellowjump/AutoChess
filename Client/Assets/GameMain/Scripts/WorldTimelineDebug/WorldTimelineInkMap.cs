@@ -44,6 +44,18 @@ namespace WorldTimelineDebug
         private Texture2D riverInk;
         private readonly Mesh[] landmarks = new Mesh[8];
 
+        private readonly Dictionary<Vector2Int, List<(MeshRenderer renderer, MeshFilter filter)>> nodeModels = new Dictionary<Vector2Int, List<(MeshRenderer renderer, MeshFilter filter)>>();
+
+        internal MeshFilter VisibleModel(Vector2Int node)
+        {
+            if (!applied || !nodeModels.TryGetValue(node, out var models)) return null;
+            foreach (var model in models)
+                if (model.renderer.enabled && !model.renderer.forceRenderingOff &&
+                    model.renderer.gameObject.activeInHierarchy && model.filter.sharedMesh != null)
+                    return model.filter;
+            return null;
+        }
+
         internal Material ContactShadow => contactShadow;
         internal Material LandmarkMaterial => landmarkMaterial;
         internal Mesh GateMesh => landmarks[4];
@@ -95,7 +107,11 @@ namespace WorldTimelineDebug
                     if (useFerry && riverInk != null) AddRiver(renderer, anchor, layout.NodeSpacing);
                     renderer.transform.SetPositionAndRotation(anchor, Quaternion.Euler(0, 337, 0));
                     renderer.transform.localScale = Vector3.one * (layout.NodeSpacing * (useFerry ? .51f : 1f));
-                    renderer.GetComponent<MeshFilter>().sharedMesh = useFerry ? ferryMesh
+                    var model = renderer.GetComponent<MeshFilter>();
+                    if (!nodeModels.TryGetValue(node, out var models))
+                        nodeModels.Add(node, models = new List<(MeshRenderer, MeshFilter)>());
+                    models.Add((renderer, model));
+                    model.sharedMesh = useFerry ? ferryMesh
                         : (landmarks[kind] ??= WorldTimelineLandmarkMesh.Create(kind));
                     renderer.sharedMaterial = landmarkMaterial;
                     renderer.sortingOrder = LandmarkOrder;

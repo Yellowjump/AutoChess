@@ -64,6 +64,9 @@ namespace WorldTimeline
         public int PreviousLeaderRole { get; internal set; } = -1;
         public int SuccessorRole { get; internal set; } = -1;
         public bool Victory { get; internal set; }
+        public (int Health, int Attack)? SealAbsorption { get; internal set; }
+        public bool RitualSealed { get; internal set; }
+        public bool ChosenOnlyReport { get; internal set; }
         public bool RitualBacklash { get; internal set; }
         public int Health { get; internal set; }
         public int MaxHealth { get; internal set; }
@@ -71,6 +74,8 @@ namespace WorldTimeline
         public (int Role, int Amount) FieldTreatment { get; internal set; }
         public long Experience { get; internal set; }
         public long SpiritStones { get; internal set; }
+        public IReadOnlyList<(int Role, int Before, int After)> CompanionLevelGains { get; internal set; }
+            = Array.Empty<(int, int, int)>();
         public int PreviousLevel { get; internal set; }
         public int Level { get; internal set; }
         public IReadOnlyList<int> Items { get; internal set; } = Array.Empty<int>();
@@ -118,7 +123,7 @@ namespace WorldTimeline
                     ApplyPartyResult(world, secondParty, outcome.SecondHealth - result.SecondHealth,
                         outcome.Remaining?.Skip(firstParty.Count).ToArray(), nodeId, emit, outcome);
                     if (result.FirstHealth == 0) survivor = other;
-                    outcome.RecoveredHealth = AwardVictoryRewards(world, survivor, nodeId, emit);
+                    outcome.RecoveredHealth = AwardVictoryRewards(world, survivor, nodeId, emit, outcome);
                     yield return ShowSettlement(world, nodeId, outcome, survivor.Id == world.PlayerActorId);
                 }
 
@@ -202,15 +207,16 @@ namespace WorldTimeline
                         ? world.ExpeditionFor(survivor.Id)?.Equipment : null };
                     if (world.SupportArtifactsEnabled && !survivor.HasJoinedChosen && !isChosen)
                         outcome.FieldKitParty = world.ExpeditionFor(survivor.Id);
+                    if (isChosen) outcome.ChosenStartHealth = survivor.Health;
                     yield return ResolveRoutine(world, nodeId, party, guardians, outcome);
                     var result = outcome.Result;
                     Validate(result);
                     node.MonsterHealth = result.SecondHealth;
                     if (grouped)
                     {
-                        if (node.HasCoastalFormation)
+                        if (node.KeepsGuardianSlots)
                         {
-                            // Keep vacant slots so surviving ranged units stay in the back rank on a later visit.
+                            // Preserve role and formation when a surviving guardian is encountered again.
                             int loss = enemyHealth - result.SecondHealth;
                             for (int i = 0; i < guardians.Count; i++)
                             {
@@ -253,11 +259,15 @@ namespace WorldTimeline
                     }
                     if (victory)
                     {
+                        if (party.Any(member => member.Id == world.PlayerActorId))
+                            foreach (var guardian in guardians)
+                                if (guardian.GuardianSpecies != null)
+                                    world.DefeatedGuardianSpecies.Add(guardian.GuardianSpecies);
                         node.GuardianDefeat = (survivor.Id, world.Year);
                         outcome.WonFirstClear = node.ClaimClear(survivor.Id,world.Year,true);
                         if (outcome.WonFirstClear) outcome.TrainingGear?.TrainSwordCases(outcome.TrainingCases);
                         if (!world.SharedClears || outcome.WonFirstClear)
-                            outcome.RecoveredHealth = AwardVictoryRewards(world, survivor, nodeId, emit, sample?.battleId);
+                            outcome.RecoveredHealth = AwardVictoryRewards(world, survivor, nodeId, emit, outcome, sample?.battleId);
                         if (world.SharedClears && outcome.WonFirstClear)
                         {
                             var gear = world.ExpeditionFor(survivor.Id)?.Equipment;
@@ -274,6 +284,7 @@ namespace WorldTimeline
                         var expedition = world.ExpeditionFor(survivor.Id);
                         bool teamBacklash = expedition?.AttritionEnabled == true && survivor.Id != world.ChosenActorId;
                         ritual.BossDefeated(world, survivor, emit, !teamBacklash);
+                        outcome.RitualSealed = isChosen && world.Outcome == RunOutcome.Cleared;
                         if (teamBacklash && outcome.Remaining[party.IndexOf(survivor)] > 0)
                         {
                             yield return LoseCaptain(world, expedition, survivor, outcome);
@@ -287,7 +298,7 @@ namespace WorldTimeline
                     }
                     outcome.ApplyFieldTreatment();
                     if (isChosen && result.SecondHealth == 0 && survivor.IsAlive)
-                        Absorb(world, survivor, enemyHealth, SumAttack(guardians), nodeId, emit);
+                        outcome.SealAbsorption = Absorb(world, survivor, enemyHealth, SumAttack(guardians), nodeId, emit);
                 }
                 if (outcome == null && (node.Items.Count > 0 || (survivor.Id != world.ChosenActorId &&
                     node.StoryTrialItemId == 0)))
@@ -300,6 +311,7 @@ namespace WorldTimeline
                     if (outcome?.Player != null || showTreasure) drops = node.Items.ToArray();
                     var loggedDrops = world.TracksBalance(survivor) ? node.Items.ToArray() : null;
                     survivor.Attack = checked(survivor.Attack + node.LootAttackBonus);
+                    if (survivor.Id == world.PlayerActorId) world.AcquiredPlayerItems.UnionWith(node.Items);
                     survivor.Items.AddRange(node.Items);
                     survivor.CheckTechniqueItems();
                     node.Items.Clear();
@@ -366,12 +378,15 @@ namespace WorldTimeline
             ApplyPartyResult(world, party, outcome.FirstHealth - result.FirstHealth, outcome.Remaining, nodeId, emit, outcome);
             ApplyPartyResult(world, enemyParty, outcome.SecondHealth - result.SecondHealth,
                 outcome.Remaining?.Skip(party.Count).ToArray(), nodeId, emit, outcome);
-            if (result.SecondHealth > 0 && enemy.IsAlive) outcome.RecoveredHealth = AwardVictoryRewards(world, enemy, nodeId, emit);
+            if (result.SecondHealth > 0 && enemy.IsAlive) outcome.RecoveredHealth = AwardVictoryRewards(world, enemy, nodeId, emit, outcome);
             yield return ShowSettlement(world, nodeId, outcome, result.SecondHealth > 0 && enemy.IsAlive);
         }
 
         private sealed class ResolvedBattle
         {
+            public (int Health, int Attack)? SealAbsorption;
+            public bool RitualSealed;
+            public int ChosenStartHealth;
             public ExpeditionEquipment TrainingGear;
             public ExpeditionParty FieldKitParty;
             public int[] SurvivingFieldKitRoles;
@@ -390,6 +405,7 @@ namespace WorldTimeline
             public (int ActorId, int StartHealth, int Health, int MaxHealth)[] PlayerParty = Array.Empty<(int, int, int, int)>();
             public ActorState Player;
             public long PreviousExperience,PreviousSpiritStones;
+            public List<(int Role, int Before, int After)> CompanionLevelGains;
             public int PreviousLevel;
             public int RecoveredHealth;
             public Dictionary<int, (int Rank, int Progress, TechniqueRequirement Requirement)> PreviousTechniques;
@@ -513,7 +529,7 @@ namespace WorldTimeline
             if (player) outcome.SuccessorRole = selected;
         }
 
-        private int AwardVictoryRewards(WorldState world, ActorState winner, int nodeId, Action<WorldEvent> emit, string battleId = null)
+        private int AwardVictoryRewards(WorldState world, ActorState winner, int nodeId, Action<WorldEvent> emit, ResolvedBattle outcome, string battleId = null)
         {
             if (winner.Id == world.ChosenActorId || winner.HasJoinedChosen) return 0;
             long beforeXp = winner.Experience, beforeStones = winner.LegacySpiritStones;
@@ -526,7 +542,9 @@ namespace WorldTimeline
             {
                 int xp = expeditionGrowth ? expedition.VictoryExperience(nodeId, Growth) : node.BattleExperienceReward ?? checked(3 * qi);
                 CultivationSystem.Gain(winner, xp, Growth, world.Year, emit, world, "battle");
-                expedition?.GrowPastLeaders(xp, Growth, emit);
+                if (expedition != null && winner == outcome.Player)
+                    outcome.CompanionLevelGains = new List<(int, int, int)>();
+                expedition?.GrowPastLeaders(xp, Growth, emit, outcome.CompanionLevelGains);
             }
             if (expedition?.Equipment.Modern==true)
                 winner.AwardLegacySpiritStones(node.VictorySpiritStones);
@@ -545,6 +563,18 @@ namespace WorldTimeline
             IReadOnlyList<int> drops = null, bool ritualBacklash = false, int trialItemId = 0)
         {
             var actor = outcome.Player;
+            if (actor == null && PresentSettlement != null && (outcome.SealAbsorption.HasValue || outcome.RitualSealed))
+            {
+                var bearer = world.Actors[chosen.ActorId];
+                int battleHp = bearer.Health - (outcome.SealAbsorption?.Health ?? 0);
+                int battleMax = bearer.MaxHealth - (outcome.SealAbsorption?.Health ?? 0);
+                yield return PresentSettlement(new BattleSettlement {
+                    NodeId = nodeId, Victory = victory, ChosenOnlyReport = true,
+                    SealAbsorption = outcome.SealAbsorption, RitualSealed = outcome.RitualSealed,
+                    Health = bearer.Health, MaxHealth = bearer.MaxHealth,
+                    PartyAtBattleEnd = new[] { (bearer.Id, outcome.ChosenStartHealth, battleHp, battleMax) }
+                });
+            }
             if (actor == null) yield break;
             var techniques = new List<(int, int, int, int, int, TechniqueRequirement)>();
             foreach (var pair in actor.Techniques.OrderBy(pair => pair.Key))
@@ -558,9 +588,11 @@ namespace WorldTimeline
             yield return PresentSettlement(new BattleSettlement
             {
                 NodeId = nodeId, WonFirstClear = outcome.WonFirstClear, TrialItemId = trialItemId, Victory = victory, RitualBacklash = ritualBacklash,
+                SealAbsorption = outcome.SealAbsorption, RitualSealed = outcome.RitualSealed,
                 Health = actor.Health, MaxHealth = actor.MaxHealth,
                 RecoveredHealth = outcome.RecoveredHealth, FieldTreatment = outcome.FieldTreatment,
                 PreviousLevel = outcome.PreviousLevel, Level = actor.Level,
+                CompanionLevelGains = outcome.CompanionLevelGains?.ToArray() ?? Array.Empty<(int, int, int)>(),
                 Experience = actor.Experience - outcome.PreviousExperience,
                 SpiritStones = Math.Max(0,actor.LegacySpiritStones-outcome.PreviousSpiritStones),
                 Items = drops ?? Array.Empty<int>(), Techniques = techniques, Lightning = actor.LastLightningBattle,
@@ -629,14 +661,11 @@ namespace WorldTimeline
                 damage -= loss;
             }
         }
-        private void Absorb(WorldState world, ActorState leader, int health, int attack, int nodeId, Action<WorldEvent> emit)
+        private (int Health, int Attack) Absorb(WorldState world, ActorState leader, int health, int attack, int nodeId, Action<WorldEvent> emit)
         {
-            int gainedHealth = checked((int)((long)health * chosen.AbsorptionPercent / 100));
-            int gainedAttack = checked((int)((long)attack * chosen.AbsorptionPercent / 100));
-            leader.MaxHealth = checked(leader.MaxHealth + gainedHealth);
-            leader.Health = checked(leader.Health + gainedHealth);
-            leader.Attack = checked(leader.Attack + gainedAttack);
-            emit(new WorldEvent(world.Year, WorldEventKind.Absorbed, leader.Id, nodeId, "Health +" + gainedHealth + ", attack +" + gainedAttack));
+            var gain = leader.InnateSeal.Absorb(leader, health, attack);
+            emit(new WorldEvent(world.Year, WorldEventKind.Absorbed, leader.Id, nodeId, "Health +" + gain.Health + ", attack +" + gain.Attack));
+            return gain;
         }
 
         private static void Validate(BattleResult result)

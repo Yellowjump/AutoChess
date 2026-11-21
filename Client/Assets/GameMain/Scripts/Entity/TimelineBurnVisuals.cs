@@ -734,6 +734,11 @@ namespace Entity
 
         private void OnDestroy()
         {
+            if (mirrorMesh != null) Destroy(mirrorMesh);
+            if (mirrorMetal != null) Destroy(mirrorMetal);
+            if (rayMaterial != null) Destroy(rayMaterial);
+            if (tideBellMetal != null) Destroy(tideBellMetal);
+            if (cloudMaterial != null) Destroy(cloudMaterial);
             if (shellShieldMesh != null) Destroy(shellShieldMesh);
             if (lavaMesh != null) Destroy(lavaMesh);
             if (lavaMaterial != null) Destroy(lavaMaterial);

@@ -44,6 +44,7 @@ namespace WorldTimelineDebug
             foreach (var route in routes.OrderBy(route => route.Key))
                 foreach (var leg in route.Value)
                 {
+                    if (!Revealed(leg.Key.From) || !Revealed(leg.Key.To)) continue;
                     if (!sharedEdges.TryGetValue(leg.Key, out var lanes))
                         sharedEdges.Add(leg.Key, lanes = new List<(int, ActorMapProjection.LegProgress)>());
                     lanes.Add((route.Key, leg.Value));

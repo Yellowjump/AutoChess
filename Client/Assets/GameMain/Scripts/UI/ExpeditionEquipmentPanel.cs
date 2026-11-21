@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SkillSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,6 +15,7 @@ public sealed class ExpeditionEquipmentPanel : MonoBehaviour
     private ExpeditionPaperUi ui;
     private int selectedActor,selectedKey,page;
     private int memberPage;
+    private long? inspectedItem;
     private int selectedSlot=-1;
     private bool slotFocused;
     private Action closed;
@@ -51,7 +53,7 @@ public sealed class ExpeditionEquipmentPanel : MonoBehaviour
         {
             int role=i-1,actor=i==0?view.Expedition.LeaderId:view.Expedition.CompanionId(role);
             var button=ui.Button("EquipMember"+i,"",91,230+(i%5)*139,274,128,()=>{
-                selectedActor=actor;selectedKey=Gear.InnateKey(actor);selectedSlot=-1;slotFocused=false;Refresh();});
+                inspectedItem=null;selectedActor=actor;selectedKey=Gear.InnateKey(actor);selectedSlot=-1;slotFocused=false;Refresh();});
             if (i > 0 && role == view.Expedition.LeaderRole) button.gameObject.SetActive(false);
             bool owned=view.Expedition.Owns(actor);button.interactable=owned;members.Add(button);
             ui.Picture("MemberPortrait",view.PastPortrait(view.Expedition,view.Expedition.CombatRole(actor)) ?? ui.Portrait(view.Expedition.CombatRole(actor)),9,6,65,115,button.transform);
@@ -82,7 +84,7 @@ public sealed class ExpeditionEquipmentPanel : MonoBehaviour
     private void Act()
     {
         var item=Gear.Instance(selectedKey);
-        if(item==null || transferDialog!=null)return;
+        if(inspectedItem.HasValue || item==null || transferDialog!=null)return;
         if(item.Owner>=0 && OwnerActor(item)==selectedActor)
         {
             ApplyItem(item,item.Slot);
@@ -182,9 +184,9 @@ public sealed class ExpeditionEquipmentPanel : MonoBehaviour
         var innate=Gear.Innate(selectedActor);int level=Gear.InnateLevel(selectedActor);
         if (innate != null)
         {
-        var fixedCard=ui.Button("InnateArtifact","",435,410,215,223,()=>{selectedKey=Gear.InnateKey(selectedActor);slotFocused=false;Refresh();});Track(fixedCard.gameObject);
-        ui.MarkSelection(fixedCard,!slotFocused&&selectedKey==Gear.InnateKey(selectedActor));
-        var fixedLabel=ui.Text("InnateType","本命法器 · 固定",449,424,190,33,21,ExpeditionPaperUi.Red);Track(fixedLabel.gameObject);
+        var fixedCard=ui.Button("InnateArtifact","",435,410,215,223,()=>{inspectedItem=null;selectedKey=Gear.InnateKey(selectedActor);slotFocused=false;Refresh();});Track(fixedCard.gameObject);
+        ui.MarkSelection(fixedCard,!inspectedItem.HasValue&&!slotFocused&&selectedKey==Gear.InnateKey(selectedActor));
+        var fixedLabel=ui.Text("InnateType","本命 · "+ItemSkills.ArtifactLabel(innate.Id),449,424,190,33,21,ExpeditionPaperUi.Red);Track(fixedLabel.gameObject);
         Track(ui.Picture("InnateIcon",ui.ItemIcon(innate.Id),470,458,137,92).gameObject);
         Track(ui.Text("InnateName",innate.Name,455,554,190,35,29).gameObject);
         Track(ui.Text("InnateLevel",$"{level} / {innate.MaxLevel} 阶 · 仅可升级",450,594,193,29,18,ExpeditionPaperUi.Muted).gameObject);
@@ -193,31 +195,55 @@ public sealed class ExpeditionEquipmentPanel : MonoBehaviour
         {
             int slot=s;float x=435+s%3*148,y=710+s/3*128;var worn=Gear.Worn(selectedActor,s);
             var card=ui.Button("EquippedSlot"+s,"",x,y,135,116,()=>{
-                selectedSlot=slot;slotFocused=true;if(worn!=null)selectedKey=worn.Id;Refresh();});Track(card.gameObject);ui.MarkSelection(card,slotFocused&&s==selectedSlot);
-            Track(ui.Text("SlotType"+s,"行装 "+(s+1),x+11,y+5,114,24,20,ExpeditionPaperUi.Muted).gameObject);
+                inspectedItem=null;selectedSlot=slot;slotFocused=true;if(worn!=null)selectedKey=worn.Id;Refresh();});Track(card.gameObject);ui.MarkSelection(card,slotFocused&&s==selectedSlot);
+            Track(ui.Text("SlotType"+s,worn==null?"行装 "+(s+1):ItemSkills.ArtifactLabel(worn.DefinitionId),x+11,y+5,114,24,20,ExpeditionPaperUi.Muted).gameObject);
             if(worn!=null)Track(ui.Picture("WornIcon"+s,ui.ItemIcon(worn.DefinitionId),x+35,y+30,65,39).gameObject);
             var label=ui.Text("WornName"+s,worn?.Definition.Name??"空位",x+5,y+72,125,24,20);label.alignment=TextAlignmentOptions.Center;Track(label.gameObject);
             var lv=ui.Text("WornLevel"+s,worn==null?"不限道具类型":$"{worn.Level} / {worn.Definition.MaxLevel} 阶",x+5,y+98,125,18,17,ExpeditionPaperUi.Muted);lv.alignment=TextAlignmentOptions.Center;Track(lv.gameObject);
         }
-        var bag=Gear.Instances;int total=Math.Max(1,(bag.Count+5)/6);page=Mathf.Clamp(page,0,total-1);pages.text=$"{page+1} / {total}";
-        if(bag.Count==0)Track(ui.Text("EmptyBag","行囊暂空，战斗择宝或前往商人补充行装。",960,410,780,90,29,ExpeditionPaperUi.Muted).gameObject);
+        var leader=view.Simulation.State.Actors[view.Expedition.LeaderId];
+        IReadOnlyList<WorldTimelineDebugView.EquipmentEntry> carried=WorldTimelineInventoryCtrl.ReadCarriedEquipment(view, leader);
+        var bag=Gear.Instances;int total=Math.Max(1,(bag.Count+carried.Count+5)/6);page=Mathf.Clamp(page,0,total-1);pages.text=$"{page+1} / {total}";
+        if(bag.Count+carried.Count==0)Track(ui.Text("EmptyBag","行囊暂空，战斗择宝或前往商人补充行装。",960,410,780,90,29,ExpeditionPaperUi.Muted).gameObject);
         var visible=bag.Skip(page*6).Take(6).ToArray();
         for(int i=0;i<visible.Length;i++)
         {
             var item=visible[i];float x=945+i%3*281,y=316+i/3*186;
-            var card=ui.Button("BagItem"+item.Id,"",x,y,263,168,()=>{selectedKey=item.Id;slotFocused=false;Refresh();});Track(card.gameObject);ui.MarkSelection(card,!slotFocused&&item.Id==selectedKey);
+            var card=ui.Button("BagItem"+item.Id,"",x,y,263,168,()=>{inspectedItem=null;selectedKey=item.Id;slotFocused=false;Refresh();});Track(card.gameObject);ui.MarkSelection(card,!inspectedItem.HasValue&&!slotFocused&&item.Id==selectedKey);
             ui.Picture("Icon",ui.ItemIcon(item.DefinitionId),10,20,104,116,card.transform);
             if(item.Owner>=0 && OwnerActor(item)!=selectedActor)
                 ui.Picture("OwnerPortrait",view.PastPortrait(view.Expedition,item.Owner-1) ?? ui.Portrait(item.Owner-1),8,6,48,56,card.transform);
             var title=ui.Text("Name",item.Definition.Name,121,28,136,42,28);title.transform.SetParent(card.transform,false);
             var count=ui.Text("Level",$"{item.Level} / {item.Definition.MaxLevel} 阶",121,84,136,30,23,ExpeditionPaperUi.Muted);count.transform.SetParent(card.transform,false);
-            var owner=ui.Text("Owner",OwnerLabel(item),12,125,239,34,21,ExpeditionPaperUi.Muted);
+            var owner=ui.Text("Owner",ItemSkills.ArtifactLabel(item.DefinitionId)+" · "+OwnerLabel(item),12,125,239,34,21,ExpeditionPaperUi.Muted);
             owner.transform.SetParent(card.transform,false);
         }
+        for(int cell=visible.Length;cell<6;cell++)
+        {
+            int index=page*6+cell-bag.Count;
+            if(index<0 || index>=carried.Count)break;
+            var entry=carried[index];
+            string kind=entry.IsStartingSkill?"起手功法":entry.TechniqueId!=0?"已习功法":"随身道具";
+            string type = string.IsNullOrEmpty(entry.SkillTypeName) ? "" : entry.SkillTypeName + " · ";
+            var card=ui.Button("CarriedItem"+entry.SelectionId,$"{type}{entry.Name}  ×{entry.Count}\n{view.PlayerName} · {kind}",
+                945+cell%3*281,316+cell/3*186,263,168,()=>{inspectedItem=entry.SelectionId;slotFocused=false;Refresh();});
+            Track(card.gameObject);ui.MarkSelection(card,inspectedItem==entry.SelectionId);
+        }
+        var inspected=carried.FirstOrDefault(entry=>entry.SelectionId==inspectedItem);
+        action.gameObject.SetActive(inspected==null);
+        if(inspected!=null)
+        {
+            itemName.text=inspected.Name;itemEffect.text=string.Join(" · ",new[]{inspected.SkillTypeName,view.PlayerName,"无需装备"}.Where(part=>!string.IsNullOrEmpty(part)));
+            itemNext.text=itemCost.text=itemDescription.text="";detailIcon.enabled=false;
+            var description=ui.Text("CarriedEffect",inspected.Description,945,850,830,135,28);
+            description.enableAutoSizing=true;description.fontSizeMin=18;Track(description.gameObject);
+            return;
+        }
+        inspectedItem=null;
         var selected=Gear.UpgradeDefinition(selectedKey);int selectedLevel=Gear.UpgradeLevel(selectedKey);var instance=Gear.Instance(selectedKey);
         if(selectedKey<0&&selectedKey!=Gear.InnateKey(selectedActor)){selectedKey=Gear.InnateKey(selectedActor);selected=Gear.Innate(selectedActor);selectedLevel=level;}
         itemName.text=selected==null?"选择一件行装":$"{selected.Name}  {selectedLevel} / {selected.MaxLevel} 阶";
-        itemEffect.text=selected==null?"":"当前  "+selected.Effect(selectedLevel);
+        itemEffect.text=selected==null?"":ItemSkills.ArtifactLabel(selected.Id)+" · "+selected.Effect(selectedLevel);
         if (instance?.DefinitionId == ExpeditionEquipment.GrowingSwordCase)
             itemEffect.text += instance.SwordClears == 2 ? " · 已养成" : $" · 养剑 {instance.SwordClears}/2";
         bool capped=selected!=null&&selectedLevel>=selected.MaxLevel;

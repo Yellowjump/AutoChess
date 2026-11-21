@@ -46,7 +46,8 @@ namespace WorldTimelineDebug
             void Add(string key, string art) => pages.Add((TimelineText("Timeline_Ending_" + key + "Title"),
                 TimelineText("Timeline_Ending_" + key + "Body"), art));
 
-            Add("Stele", "Stele");
+            pages.Add((TimelineText("Timeline_Ending_SteleTitle"),
+                TimelineText("Timeline_Seal_Finale") + "\n\n" + TimelineText("Timeline_Ending_SteleBody"), "Stele"));
             if (guardianDisabled.HasValue) Add(guardianDisabled.Value ? "Deed" : "DeedsKept", "Deed");
             if (springUsed.HasValue) Add(springUsed.Value ? "Spring" : "Names", "Spring");
             if (sluiceDrainsBoss.HasValue) Add(sluiceDrainsBoss.Value ? "Sluice" : "Channel", "Sluice");
@@ -66,7 +67,7 @@ namespace WorldTimelineDebug
                 }
                 finally { PendingBattleSettlement = null; }
             }
-            yield return PresentTeamReward(result);
+            if (!result.ChosenOnlyReport) yield return PresentTeamReward(result);
         }
 
         public string BattleDropName(int nodeId, int itemId)
@@ -84,8 +85,10 @@ namespace WorldTimelineDebug
             get
             {
                 var notice = MapGuide;
+                if (notice.NodeId is int target && board != null && !board.Revealed(target))
+                    notice = (TimelineText("Timeline_Opening_Explore"), null);
                 var world = simulation?.State;
-                if (world == null || advancing || world.IsEnded || !simulation.WaitingForPlayer || saveIssue != null) return notice;
+                if (OpeningActive || world == null || advancing || world.IsEnded || !simulation.WaitingForPlayer || saveIssue != null) return notice;
                 var explored = simulation.Events.LastOrDefault(entry => entry.Kind == WorldEventKind.Explored &&
                     entry.ActorId == world.PlayerActorId && entry.Year == world.Year);
                 return explored == null ? notice : ("新地点历练 +" + explored.Detail + "　·　" + notice.Text, notice.NodeId);
@@ -104,12 +107,29 @@ namespace WorldTimelineDebug
                     return (TimelineText("Timeline_Guide_AfterKillingChosen"), null);
                 if (world?.Outcome == RunOutcome.Running && !world.Actors[world.PlayerActorId].IsAlive)
                     return (TimelineText("Timeline_Guide_AfterDeath"), null);
-                notice = LocalRecruitmentNotice();
-                if (notice != null) return (notice, null);
-                if (PendingVanguard is int firstBattle)
-                    return (Expedition.IsFallen(0) || Expedition.LeaderRole >= 0 ? "前往近战守关。胜利后可招募阿翎。" : "岩舟已入队 · 前往近战守关，盾卫放前排、主角放后排。胜利后可招募阿翎。", firstBattle);
                 notice = OpeningNotice;
                 if (notice != null) return (notice, null);
+                notice = LocalRecruitmentNotice();
+                if (notice != null) return (notice, null);
+                if (world != null && world.Nodes.TryGetValue(NodeState.PracticeKilnId, out var kiln) &&
+                    kiln.IsPracticeKiln && kiln.MonsterHealth > 0)
+                {
+                    var actor = world.Actors[world.PlayerActorId];
+                    if (actor.NodeId == HexWorldMap.Id(-8, 5) && (actor.Items.Contains(9135) || actor.Items.Contains(9131)))
+                        return (TimelineText("Timeline_PracticeKiln_Guide"), kiln.Id);
+                }
+                if (world != null && world.Nodes.TryGetValue(NodeState.HerbYardId, out var yard) && yard.IsBleedTrial)
+                {
+                    var actor = world.Actors[world.PlayerActorId];
+                    if (actor.Items.Contains(9122) && yard.MonsterHealth > 0 &&
+                        (actor.NodeId == HexWorldMap.Id(2, -10) || actor.NodeId == HexWorldMap.Id(2, -7)))
+                        return (TimelineText("Timeline_HerbYard_Guide"), yard.Id);
+                    if (actor.NodeId == yard.Id && Expedition?.Equipment.Instances.Any(i => i.DefinitionId == ExpeditionEquipment.MeridianSpike) == true &&
+                        world.Nodes[NodeState.PulseDenId].MonsterHealth > 0)
+                        return (TimelineText("Timeline_PulseDen_Guide"), NodeState.PulseDenId);
+                }
+                if (PendingVanguard is int firstBattle)
+                    return (Expedition.IsFallen(0) || Expedition.LeaderRole >= 0 ? "前往近战守关。胜利后可招募阿翎。" : "岩舟已入队 · 前往近战守关，盾卫放前排、主角放后排。胜利后可招募阿翎。", firstBattle);
                 if (simulation?.WaitingForPlayer == true && simulation.CanJoinChosen(simulation.State.PlayerActorId))
                 {
                     var player = simulation.State.Actors[simulation.State.PlayerActorId];
@@ -178,6 +198,8 @@ namespace WorldTimelineDebug
 
         public string LocationName(NodeState node)
         {
+            if (node.IsBleedTrial) return TimelineText(node.Id == NodeState.HerbYardId ? "Timeline_HerbYard_Name" : "Timeline_PulseDen_Name");
+            if (node.IsPracticeKiln) return TimelineText("Timeline_PracticeKiln_Name");
             if (node.IsExpeditionVanguard) return "近战守关";
             if (openingMap && node.Id == OpeningGate) return TimelineText("Timeline_Opening_Gate");
             if (contractStoryActive && node.Id == TwinGolemGate) return TimelineText("Timeline_QiStory_Pass");
@@ -301,7 +323,7 @@ namespace WorldTimelineDebug
             return lines.Length == 0 ? TimelineText("Timeline_Arrival_None") : string.Join("\n",lines);
         }
 
-        public bool CanMoveSelected => !advancing && simulation.WaitingForPlayer &&
+        public bool CanMoveSelected => !OpeningActive && (board == null || board.Revealed(selectedNode)) && !advancing && simulation.WaitingForPlayer &&
             simulation.State.Actors[simulation.State.PlayerActorId].NodeId.HasValue &&
             simulation.State.Nodes[simulation.State.Actors[simulation.State.PlayerActorId].NodeId.Value].Links.Contains(selectedNode);
 
@@ -310,6 +332,13 @@ namespace WorldTimelineDebug
             get
             {
                 var world = simulation.State;
+                if (SelectedLocation.IsBleedTrial)
+                {
+                    if (SelectedLocation.MonsterHealth == 0) return TimelineText("Timeline_BleedTrial_Clear");
+                    return TimelineText(selectedNode == NodeState.HerbYardId ? "Timeline_HerbYard_Hint" : "Timeline_PulseDen_Hint");
+                }
+                if (SelectedLocation.IsPracticeKiln)
+                    return TimelineText(SelectedLocation.MonsterHealth > 0 ? "Timeline_PracticeKiln_Hint" : "Timeline_PracticeKiln_Clear");
                 if (SelectedLocation.IsExpeditionVanguard) return SelectedLocation.MonsterHealth > 0
                     ? "两名近战守军从正面逼近。让岩舟站前排接敌，主角留后排输出。胜利可满足阿翎的招募条件。"
                     : "近战守关已通关。前往阿翎的同伴关卡，招募远程输出。";

@@ -108,5 +108,9 @@ namespace DataTable
         CrabShell = 2031,
         ClerkWindup = 2032,
         ClerkSummon = 2033,
+        StormGather = 2034,
+        MirrorChime = 2035,
+        MirrorRay = 2036,
+        TideBell = 2037,
     }
 }

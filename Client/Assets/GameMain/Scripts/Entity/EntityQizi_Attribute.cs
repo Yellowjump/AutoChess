@@ -47,6 +47,7 @@ namespace Entity
                 return;
             }
             var attributeData = heroAttributeTable[attributeID];
+            TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.AutoItemDamagePercent,0,0,int.MaxValue));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.MaxHp,attributeData.Hp,0,int.MaxValue));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().Initialize(AttributeType.Hp,ReferencePool.Acquire<FixedModifyAttribute>().Initialize(attributeData.Hp,ReferencePool.Acquire<FixedLimitAttribute<int>>().Initialize(0),ReferencePool.Acquire<DynamicLimitAttribute<int>>().Initialize(AttributeType.MaxHp,this))));
             TryAddAttribute(ReferencePool.Acquire<CharacterAttribute>().InitializeIntAttr(AttributeType.HuDun,0,0));

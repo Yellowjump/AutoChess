@@ -9,6 +9,41 @@ internal static partial class WorldSimulationTests
     private static void RunExpeditionTests()
     {
         RunCampaignRoutes();
+        Run("Summoned arts can be bought, equipped and restored", () =>
+        {
+            var world = ExpeditionFixture().State;
+            var gear = world.Expedition.Equipment;
+            gear.EnableArtifacts();
+            world.Actors[1].AwardLegacySpiritStones(120);
+            foreach (int id in new[] { ExpeditionEquipment.StormCloud, ExpeditionEquipment.SunMirror,
+                ExpeditionEquipment.EmberStamp, ExpeditionEquipment.TideChime, ExpeditionEquipment.SpiritSpindle })
+            {
+                Check(gear.Buy(id), "Summon is available in the workshop");
+                var item = gear.Instances.Single(instance => instance.DefinitionId == id);
+                Check(gear.EquipInstance(1, item.Id, gear.FirstFreeSlot(1)), "Summon is wearable");
+            }
+            gear.Restore(gear.Snapshot());
+            Check(gear.SpiritStones == 0 && gear.Worn(1,0)?.Definition.AutoSkillItem == 9210 &&
+                gear.Worn(1,1)?.Definition.AutoSkillItem == 9211 && gear.Worn(1,2)?.Definition.AutoSkillItem == 9212 &&
+                gear.Worn(1,3)?.Definition.AutoSkillItem == 9213 && gear.Worn(1,4)?.Definition.BattleSkillItem == 9214 &&
+                gear.Worn(1,4)?.Definition.AutoSkillItem == 0, "All skill IDs and the passive classification survive a snapshot");
+        });
+        Run("Qi Mo retains the innate Opening Brush and its rank after restoring equipment", () =>
+        {
+            int birth = HexWorldMap.Id(-10, 2);
+            var world = new WorldState(1);
+            world.Nodes.Add(birth, new NodeState(birth));
+            world.Actors.Add(1, new ActorState(1, birth, 100, 20));
+            world.EnableExpedition();
+            var party = world.Expedition;
+            var gear = party.Equipment;
+            gear.EnableArtifacts();
+            Check(gear.Innate(party.LeaderId)?.Id == ExpeditionEquipment.OpeningBrush, "Qi Mo starts with the brush");
+            Check(gear.Upgrade(gear.InnateKey(party.LeaderId), true), "Brush upgrades in the innate slot");
+            gear.Restore(gear.Snapshot());
+            Check(gear.Innate(party.LeaderId)?.Id == ExpeditionEquipment.OpeningBrush &&
+                gear.InnateLevel(party.LeaderId) == 2, "Restore preserves brush identity and rank");
+        });
         foreach (bool accept in new[] {true,false})
         {
             Run(accept ? "Map invitation merges exactly one protagonist, current assets and wounded stage survivors" :

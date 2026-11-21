@@ -452,6 +452,31 @@ internal static partial class WorldSimulationTests
             Check(new ArtifactBattleOutput().ThunderBellPower(false,31) == 0 &&
                 new ArtifactBattleOutput().ThunderBellPower(true,31) == 18, "Fresh combatants start with their own count");
         });
+        Run("Herb yard offers the spike after an earlier reward and the den is one step away", () =>
+        {
+            var sim = RouteCampaign(HexWorldMap.Id(1,-10));
+            var world = sim.State;
+            var gear = world.Expedition.Equipment;
+            world.Expedition.EnableSignatureArtifacts();
+            world.EnableMeridianSpike();
+            var yard = world.Nodes[NodeState.HerbYardId];
+            var den = world.Nodes[NodeState.PulseDenId];
+            yard.SetBleedTrial();
+            den.SetBleedTrial();
+            var other = world.Nodes.Values.First(n => !n.IsBleedTrial && n.MonsterHealth > 0);
+            other.ClaimClear(1,1,true);
+            gear.OfferReward(other.Id);
+            Check(gear.ClaimReward(0), "Prior reward changes the rotating pool");
+            var choices = gear.PreviewArtifactChoices(yard.Id).ToArray();
+            Check(choices.Length == 3 && choices.Distinct().Count() == 3 && choices[0] == ExpeditionEquipment.MeridianSpike,
+                "The yard guarantees the spike among three different choices");
+            Check(world.Nodes[HexWorldMap.Id(2,-7)].Links.Contains(yard.Id) && yard.Links.Contains(den.Id) &&
+                den.GuardianCount == 1 && den.MonsterHealth > yard.MonsterHealth, "Connected encounters for stacking and cashing out");
+            yard.ClaimClear(1,2,true);
+            Check(gear.OfferReward(yard.Id).SequenceEqual(choices) && gear.ClaimReward(0) &&
+                gear.Equip(1,ExpeditionEquipment.MeridianSpike) && gear.BattleTriggers(1).HasFlag(ArtifactTrigger.MeridianSpike)
+                && gear.OfferReward(yard.Id).Count == 0, "First clear grants a wearable spike once");
+        });
         Run("Meridian Spike collects only unpaid bleed ticks from the oldest two layers", () =>
         {
             var sim = RouteCampaign(HexWorldMap.Id(0,-10));

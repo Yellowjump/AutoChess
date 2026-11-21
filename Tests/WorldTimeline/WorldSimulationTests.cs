@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 using WorldTimeline;
 
 internal static partial class WorldSimulationTests
@@ -31,6 +33,7 @@ internal static partial class WorldSimulationTests
             var battles = sim.Events.Where(e => e.Kind == WorldEventKind.Battle).ToArray();
             Check(battles.Length == 2 && battles[0].ActorId == 1 && battles[0].OtherActorId == 2 &&
                 battles[1].ActorId == 1 && battles[1].OtherActorId == 3, "ID tournament order");
+            Check(!sim.State.AcquiredPlayerItems.Contains(99), "An NPC looting the node must not discover a player item");
             Check(sim.State.Actors[3].Health == 90 && sim.State.Actors[3].Items.Single() == 99, "Damage persists; final winner loots");
         });
         Run("Arrival interrupts resident cultivation on death", () =>
@@ -181,6 +184,27 @@ internal static partial class WorldSimulationTests
                 sim.State.Actors[20].MaxHealth == 210, "Arrival and percentage growth");
             sim.SubmitPlayerAction(WorldAction.Wait(10));
             Check(sim.State.Actors[20].NodeId == 4, "Next route step");
+        });
+        Run("The Nameless Seal reports actual guardian gains and seals the ritual once", () =>
+        {
+            var sim = CreateRitual(period: 20, chosenStep: 2);
+            sim.State.Nodes[3].MonsterHealth = 149;
+            sim.State.Nodes[3].MonsterAttack = 29;
+            var reports = new List<BattleSettlement>();
+            IEnumerator Capture(BattleSettlement report) { reports.Add(report); yield break; }
+            sim.SetBattleSettlementPresenter(Capture);
+            var chosen = sim.State.Actors[sim.Chosen.ActorId];
+            int attack = chosen.Attack, maximum = chosen.MaxHealth;
+            Check(chosen.InnateSeal.AbsorptionPercent == 10 && sim.State.Actors[1].InnateSeal == null,
+                "Only the Chosen begins with the seal");
+            sim.SubmitPlayerAction(WorldAction.Wait(4));
+            var gain = reports.Single(r => r.SealAbsorption.HasValue);
+            var ending = reports.Single(r => r.RitualSealed);
+            Check(gain.ChosenOnlyReport && gain.NodeId == 3 && gain.SealAbsorption == (14,2) &&
+                gain.Health == gain.PartyAtBattleEnd.Single().Health + 14 &&
+                chosen.MaxHealth == maximum + 14 && chosen.Attack == attack + 2, "Report matches awarded stats");
+            Check(ending.ChosenOnlyReport && ending.SealAbsorption == null && !ending.RitualBacklash &&
+                sim.State.Outcome == RunOutcome.Cleared, "The final seal replaces ordinary absorption");
         });
         Run("Normal chosen encounter allows passing without combat", () =>
         {
@@ -763,6 +787,8 @@ internal static partial class WorldSimulationTests
             Check(native.Called && player.Health == 70 && world.Actors[20].Health == 190,
                 "Companion and chosen retain their actual individual results");
             Check(world.Nodes[2].MonsterHealth == 0, "Monster result is applied");
+            Check(world.DefeatedGuardianSpecies.SetEquals(new[] { "GateGolem" }),
+                "A cleared guardian counts when the player fought alongside the Chosen");
         });
         Run("Coastal formation preserves ranged and melee slots across arrivals", () =>
         {
@@ -824,6 +850,26 @@ internal static partial class WorldSimulationTests
             Check(routine.MoveNext() && !player.Items.Contains(9102), "Treasure waits for presentation");
             Check(!routine.MoveNext() && player.Items.Contains(9102) && !chosen.Items.Contains(9102),
                 "Simultaneous arrival resolves the unique reward once");
+        });
+        Run("Battle settlement reports the full level jump from one reward", () =>
+        {
+            var world = new WorldState(1) { BattleRewardsFromYear = 1 };
+            world.Nodes.Add(1, new NodeState(1));
+            world.Nodes.Add(2, new NodeState(2) { MonsterHealth = 100, MonsterAttack = 20, BattleExperienceReward = 26 });
+            world.Nodes[1].Links.Add(2);
+            world.Nodes[2].Links.Add(1);
+            var player = new ActorState(1, 1, 100, 10);
+            var growth = GrowthConfig();
+            CultivationSystem.Initialize(player, growth, TalentProfile.Generate(1));
+            world.Actors.Add(1, player);
+            var sim = new WorldSimulation(world, new DelayedBattleResolver(), growth);
+            BattleSettlement summary = null;
+            System.Collections.IEnumerator Present(BattleSettlement result) { summary = result; yield break; }
+            sim.SetBattleSettlementPresenter(Present);
+            using var pending = FlattenRoutine(sim.SubmitPlayerActionRoutine(WorldAction.Move(2)));
+            while (pending.MoveNext()) { }
+            Check(summary?.PreviousLevel == 1 && summary.Level == 3 && summary.Experience == 26 &&
+                player.Level == summary.Level, "Settlement shows levels one to three after a single award");
         });
         Run("Battle settlement shows applied rewards and waits for confirmation", () =>
         {
@@ -973,6 +1019,7 @@ internal static partial class WorldSimulationTests
             Called = true;
             Check(first.Count == 2 && first[0].Items.Contains(8101) && second.Count == 1 && nodeId == 2,
                 "Full party, equipment and node reach the adapter");
+            second[0].GuardianSpecies = "GateGolem";
             return new[] { 70, 190, 0 };
         }
     }

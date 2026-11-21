@@ -108,6 +108,9 @@ MonoBehaviour:
   health: {fileID: 40044}
   experience: {fileID: 40064}
   breakthrough: {fileID: 40068}
+  cultivationHeading: {fileID: 40060}
+  cultivationPaper: {fileID: 40056}
+  breakthroughArt: {fileID: 21300000, guid: 0633988c362a40a191b2b3e83bff57c1, type: 3}
   backlash: {fileID: 40072}
   noDrops: {fileID: 40084}
   technique: {fileID: 40122}

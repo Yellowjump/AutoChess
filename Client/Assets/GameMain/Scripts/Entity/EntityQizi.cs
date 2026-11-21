@@ -12,6 +12,8 @@ namespace Entity
     {
         public int HeroID;//hero表中ID
         public string TimelineAppearance;
+        internal WorldTimeline.ActorState InventoryOwner;
+        internal List<WorldTimelineDebug.WorldTimelineDebugView.EquipmentEntry> CarriedEquipment;
         internal EntityQizi PriorityAttackTarget;
         internal bool UsesUndertow;
         internal bool CanOpenWithPounce, IsPounceStrike;
@@ -288,6 +290,8 @@ namespace Entity
             else HotGameEntry.HeroManager.ReleaseHeroGameObject(HeroID,GObj,OnGetHeroGObjCallback);
             ownsTimelineModel = false;
             TimelineAppearance = null;
+            InventoryOwner = null;
+            CarriedEquipment = null;
             UsesUndertow = false;
             HasSwordRecall = false; BambooActive = null; BeginEchoCast = null; Critical = null; RedirectHealthLoss = null; ArtifactHealthLost = null; ArtifactOverheal = null; OnAllyHealed = null;
             ClearHpBar();
@@ -378,6 +382,7 @@ namespace Entity
         {
             RemoveGObj();
             IsValid = false;
+            foreach (var autoSkill in NoAnimAtkSkillList) autoSkill.Summon?.Clear();
             if (PaperShadows != null)
                 foreach (var shadow in PaperShadows)
                     if (shadow.IsValid) shadow.OnDead();

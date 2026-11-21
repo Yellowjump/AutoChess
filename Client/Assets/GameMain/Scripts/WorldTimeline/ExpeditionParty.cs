@@ -342,13 +342,16 @@ namespace WorldTimeline
             emit(new WorldEvent(world.Year, WorldEventKind.Explored, player.Id, nodeId, experience.ToString()));
         }
 
-        internal void GrowPastLeaders(int experience, CultivationConfig growth, Action<WorldEvent> emit)
+        internal void GrowPastLeaders(int experience, CultivationConfig growth, Action<WorldEvent> emit,
+            List<(int Role, int Before, int After)> levelGains = null)
         {
             foreach (int role in LivingRoles.Where(role => role >= StageRoles))
             {
                 var member = pastLeaders[role - StageRoles];
                 member.NodeId = world.Actors[LeaderId].NodeId;
+                int before = member.Level;
                 CultivationSystem.Gain(member, experience, growth, world.Year, emit);
+                if (member.Level > before) levelGains?.Add((role, before, member.Level));
             }
         }
 

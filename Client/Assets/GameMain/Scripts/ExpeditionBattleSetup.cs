@@ -15,6 +15,7 @@ internal static class ExpeditionBattleSetup
         public int KnotBearerId;
         public float NextOpening;
         public readonly PursuitMark Mark = new PursuitMark();
+        public LinkState RelayStarter;
         public int Hits, SwordHits;
         public readonly ArtifactVitality Vitality = new ArtifactVitality();
         public readonly ArtifactBattleOutput Output = new ArtifactBattleOutput();
@@ -62,7 +63,10 @@ internal static class ExpeditionBattleSetup
                         entity.Critical.Equipment = link.Effects;
                         entity.GetAttribute(AttributeType.CriticalDamage).SetBaseNum(CriticalFighter.DamagePercent(link.Effects));
                     }
-                    link.Output.HasRainTassel = link.Has(ArtifactTrigger.RainTassel);
+                    link.Output.EquippedEffects = link.Effects;
+                    if (cell >= 0 && world.SwordTraining && !link.Has(ArtifactTrigger.OpeningSword))
+                        link.Output.TrainingSwordCase = Enumerable.Range(0, ExpeditionEquipment.CommonSlots)
+                            .Any(slot => party.Equipment.Worn(actor.Id, slot)?.DefinitionId == ExpeditionEquipment.GrowingSwordCase);
                     entity.OnArtifactHit = OnHit;
                     entity.ArtifactOutput = link.Output;
                     if (link.Has(ArtifactTrigger.EchoJade)) entity.BeginEchoCast = link.Output.BeginEchoCast;
@@ -83,7 +87,13 @@ internal static class ExpeditionBattleSetup
                         entity.ArtifactHealthLost = Lost;
                     if (world.SignatureArtifacts)
                     {
-                        entity.BambooActive = () => Aura(entity,ArtifactTrigger.Bamboo) != null;
+                        entity.BambooActive = () =>
+                        {
+                            var bearer = Aura(entity,ArtifactTrigger.Bamboo);
+                            if (bearer == null) return false;
+                            links[bearer].Output.ActivatedEffects |= ArtifactTrigger.Bamboo;
+                            return true;
+                        };
                         entity.RedirectHealthLoss = Redirect;
                         entity.ArtifactOverheal = Overheal;
                     }
@@ -115,6 +125,7 @@ internal static class ExpeditionBattleSetup
                     var state = entry.Value;
                     int amount = state.Vitality.TakeRepeat(elapsed);
                     if (amount <= 0) continue;
+                    state.Output.ActivatedEffects |= ArtifactTrigger.SpringPendant;
                     state.Output.RepeatHealing += entry.Key.ReceiveHealing(amount);
                 }
                 UpdateFocus();
@@ -173,6 +184,10 @@ internal static class ExpeditionBattleSetup
             {
                 guard.NextOpening = elapsed + 3f;
                 attack.Mark.Apply(elapsed);
+                if (guard.Front && guard.Has(ArtifactTrigger.FrontOpening))
+                    guard.Output.ActivatedEffects |= ArtifactTrigger.FrontOpening;
+                if (absorbed > 0 && guard.Has(ArtifactTrigger.ShieldOpening))
+                    guard.Output.ActivatedEffects |= ArtifactTrigger.ShieldOpening;
                 guard.Output.Openings++;
             }
             if (!Living(attacker)) return;
@@ -197,11 +212,15 @@ internal static class ExpeditionBattleSetup
                 int damage = CommandCauseDamage.DealSecondaryDamage(defender, bonus);
                 if (pursuit == PursuitHit.Relay)
                 {
+                    if (guard.RelayStarter != null)
+                        guard.RelayStarter.Output.ActivatedEffects |= ArtifactTrigger.RelayClasp;
+                    guard.RelayStarter = null;
                     attack.Output.RelayHits++;
                     attack.Output.RelayDamage += damage;
                 }
                 else
                 {
+                    guard.RelayStarter = attack.Has(ArtifactTrigger.RelayClasp) ? attack : null;
                     attack.Output.Pursuits++;
                     attack.Output.Damage += damage;
                 }
@@ -292,6 +311,8 @@ internal static class ExpeditionBattleSetup
         void Shield(EntityQizi target,int id,int amount,int cap,LinkState source)
         {
             if (amount <= 0 || cap <= 0) return;
+            if (id == 12001) source.Output.ActivatedEffects |= ArtifactTrigger.MountainRing;
+            if (id == 12002) source.Output.ActivatedEffects |= ArtifactTrigger.Tide;
             var shield = target.FindStatusBuff(BuffTag.Shield,id);
             if (shield == null)
             {
@@ -314,6 +335,7 @@ internal static class ExpeditionBattleSetup
         }
         void FireVolley(EntityQizi attacker,EntityQizi target,LinkState link,ArtifactTrigger source)
         {
+            link.Output.ActivatedEffects |= source;
             int count = attacker.BambooActive?.Invoke() == true ? 2 : 1;
             if (source == ArtifactTrigger.RainTassel)
             {

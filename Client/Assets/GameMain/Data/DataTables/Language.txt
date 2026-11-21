@@ -70,7 +70,7 @@
 	20004	护甲板	ItemDesc_ArmorPlate	增加 20 点 护盾增益,增加500最大生命值	Increases Shield Boost by 20 and Max HP by 500
 	20008	战斗狂热描述	ItemDesc_MoreFast	每次主动技能释放后增加释放者 20 点技能急速，持续5s，最多叠加10层	Each time an active skill is cast, increases the caster's Skill Haste by 20 for 5s, stacking up to 10 times
 	20009	飞剑	ItemDesc_FlySword	在身后生成6把飞剑，朝最近的敌人突刺，每把造成 {0} = [ 100%Attr_ATK]伤害	Generates 6 flying swords behind you, stabbing at the nearest enemy, each dealing {0} = [100%Attr_ATK] damage
-	20010	施法飞剑	ItemDesc_FlySwordAnim	每隔0.2s生成一把飞剑，随机选取攻击距离内的目标，并对飞行途中的敌人造成 {0} = [ 100%Attr_ATK]伤害，在释放结束时朝人群最密集的区域释放爆炸。造成 {0} = [ 100%Attr_ATK]伤害	Generates a flying sword every 0.2s, randomly selecting a target within attack range, dealing {0} = [100%Attr_ATK] damage to enemies in its path. At the end of the release, explodes in the most densely populated area, dealing {0} = [100%Attr_ATK] damage
+	20010	施法飞剑	ItemDesc_FlySwordAnim	每 0.2 秒放出一把飞剑，共 40 把。每把对沿途敌人造成 {0} = [24%Attr_ATK] 伤害。收招时在敌人最密集处引爆剑气，造成 {0} = [120%Attr_ATK] 范围伤害。	Release 40 swords, one every 0.2s. Each deals {0} = [24%Attr_ATK] damage to enemies in its path. The finishing burst deals {0} = [120%Attr_ATK] damage where enemies are most clustered.
 	21001	旋转斧头	ItemDesc_WhirlingAxe	生成两把斧头围绕自身旋转，对周围目标造成 {0} = [ 100%Attr_ATK]伤害	Generates two axes that spin around you, dealing {0} = [100%Attr_ATK] damage to nearby enemies
 	21002	反甲	ItemDesc_ThornArmor	每次受到伤害，给伤害来源 {0} = [5 + 1%Attr_MaxHp] 伤害	Each time you take damage, deals {0} = [5 + 1%Attr_MaxHp] damage to the source of the damage
 	21003	轮回	Timeline_OuterLocations_1_Name	青篁谷	Green Bamboo Valley
@@ -157,7 +157,7 @@
 	21084	轮回	Timeline_StoryItem_9103_Name	敛息诀	Breath Veil Art
 	21085	轮回	Timeline_StoryItem_9104_Name	镇水铃	Tide-Calming Bell
 	21086	轮回	Timeline_StoryItem_9101_Description	最大生命 +80，获得时同时增加80当前生命；可用于救助散修。	Max HP +80. Gain 80 current HP when acquired. Can be used to save the wanderer.
-	21087	轮回	Timeline_StoryItem_9102_Description	攻击 +12；升级后仍保留此加成。	Attack +12. This bonus persists when you advance.
+	21087	轮回	Timeline_StoryItem_9102_Description	攻击 +12，升级后保留。每场战斗中，佩戴者首次普攻命中敌人后，残剑开始自动放出飞剑。首轮三柄，后续每轮六柄，各对最近的敌人造成相当于攻击力 100% 的伤害。	Attack +12, retained on advancement. In each battle, the sword starts launching flying swords after its bearer lands a basic attack. The first volley sends three blades and later volleys send six. Each blade targets the nearest enemy and deals 100% of attack.
 	21088	轮回	Timeline_StoryItem_9103_Description	被动：战斗攻击提高15%。	Passive: increases attack in battle by 15%.
 	21089	轮回	Timeline_StoryItem_9104_Description	从临溪沉舟中寻回的旧铃。铃声响时，回流会短暂停歇。	An old bell recovered from the Linxi wreck. Its ring briefly stills the current.
 	21090	轮回	Timeline_UI_1	修仙轮回	Cultivation Rebirth
@@ -452,7 +452,7 @@
 	22195	闲话	Timeline_Flavor_Skill_8	师父只教了怎么放剑。收剑这事，是弟子后来自己悟的。	The master only taught them how to send the swords flying. Calling them home took some figuring out.
 	22196	闲话	Timeline_Flavor_Item_9104	临溪的船家说，夜里听见铃响，就知道还有船没靠岸。	The Linxi boatfolk say that if you hear a bell after dark, a boat is still out on the water.
 	22197	功法详情	Timeline_Technique_LongReachDescription	朝当前目标方向横扫，命中前方扇形内的敌人。\n每名目标的基础伤害：{0} = [{1}%Attr_ATK]	Sweep toward the current target, hitting enemies in a cone.\nBase damage per enemy: {0} = [{1}%Attr_ATK]
-	22198	功法详情	Timeline_Technique_FlightDescription	施法期间每 0.2 秒放出一柄飞剑，瞄准攻击范围内的敌人，并穿过沿途目标。收招时在敌人最密集处引爆剑气。\n每次命中的基础伤害：{0} = [100%Attr_ATK]	Release a sword every 0.2s while casting. Each sword aims at an enemy in range and pierces enemies along its path. The cast ends with a burst where enemies are most clustered.\nBase damage per hit: {0} = [100%Attr_ATK]
+	22198	功法详情	Timeline_Technique_FlightDescription	每 0.2 秒放出一把飞剑，共 40 把。每把对沿途敌人造成 {0} = [24%Attr_ATK] 伤害。收招时在敌人最密集处引爆剑气，造成 {0} = [120%Attr_ATK] 范围伤害。	Release 40 swords, one every 0.2s. Each deals {0} = [24%Attr_ATK] damage to enemies in its path. The finishing burst deals {0} = [120%Attr_ATK] damage where enemies are most clustered.
 	22199	功法详情	Timeline_Technique_BellShieldDescription	摇铃护身，生成持续 4 秒的护盾，同类护盾不可叠加。\n基础护盾值：{0} = [10%Attr_MaxHp]	Ring the bell to gain a 4-second shield. Shields of this kind do not stack.\nBase shield: {0} = [10%Attr_MaxHp]
 	22200	闲话	Timeline_Flavor_Item_9121	疾风门教人先练步。脚下乱了，手上再快也追不回来。	Gale disciples practice footwork first. Once your steps falter, quick hands cannot catch up.
 	22201	闲话	Timeline_Flavor_Item_9122	断刃石台上的血痕一层盖一层，最早那道早已看不清了。	Bloodstains overlap on the Broken Blade Altar. The oldest is long since lost beneath the rest.
@@ -471,7 +471,7 @@
 	22222	雷印	ItemName_9152	传雷符	Storm Relay
 	22223	雷印	ItemDesc_9152	带有你雷印的敌人倒下时，给最近的另一名敌人添一层雷印。传递本身不会引发落雷。	When an enemy bearing your mark falls, give the nearest other enemy one Lightning Mark. Transferring a mark does not call down lightning.
 	22224	雷印	ItemName_9153	惊蛰印	Awakening Thunder Seal
-	22225	雷印	ItemDesc_9153	主修招式命中带有三层雷印的敌人时，消耗其雷印，造成120%攻击力的伤害。落雷最多跳两次，每跳寻找2.5单位内最近的未命中敌人，伤害降至上次的三分之二。	When your primary technique hits an enemy with three marks, consume the marks and strike for 120% Attack. The bolt jumps up to twice to the nearest unhit enemy within 2.5 units, each jump dealing two thirds of the previous hit.
+	22225	雷印	ItemDesc_9153	主修招式命中后，若存活目标身上已有你的三层雷印（含本次叠加），立即消耗雷印并落雷，造成120%攻击力的伤害。落雷最多跳两次，每跳寻找2.5单位内最近的未命中敌人，伤害降至上次的三分之二。	After your primary technique hits, if the surviving target has three of your Lightning Marks, including the mark from this hit, consume them immediately and strike for 120% Attack. The bolt jumps up to twice to the nearest unhit enemy within 2.5 units, each jump dealing two thirds of the previous hit.
 	22226	雷印	Timeline_StoryOption_504_Text	取出桥阵中的铜针	Lift the needle from the bridge ward
 	22227	雷印	Timeline_StoryOption_504_Hint	须先修复桥阵，再回来察看。	Repair the bridge ward and return.
 	22228	雷印	Timeline_StoryOption_504_Result	铜针仍在发颤，针尾刻着临溪渡口的旧记号。	The needle still quivers. An old Linxi Ferry mark is etched into its tail.
@@ -713,7 +713,7 @@
 	22693	石门开场	Timeline_Opening_Detour	绕路 · {0} 年	Detour · {0} years
 	22694	石门开场	Timeline_Opening_Intro	赶在第 {0} 年前助无名客击败阵主。结算后，前世会在往后的轮回重演走过的路和做过的选择。\n先去石门争夺残剑：近路有守怪，绕路更安全。	Help the Nameless win before year {0}. Past lives replay their choices.\nRace for the sword: the shortcut is guarded, and the detour is safer.
 	22695	石门开场	Timeline_Opening_Travel	赶往古修石门 · 无名客预计第 {0} 年抵达。	Heading to the stone gate · The Nameless is due in year {0}.
-	22696	石门开场	Timeline_Opening_Won	你在第 {0} 年抢先到达，取得古修残剑。\n下一场战斗中，残剑会自动放出飞剑。	You arrived first in year {0} and took the Ancient Broken Sword.\nIt launches flying swords in your next battle.
+	22696	石门开场	Timeline_Opening_Won	你在第 {0} 年抢先到达，取得古修残剑。\n每场战斗中，你的第一次普攻命中后，残剑便会自动放出飞剑。	You arrived first in year {0} and took the Ancient Broken Sword.\nEach battle, it starts launching flying swords after your first basic attack hits.
 	22697	石门开场	Timeline_Opening_Lost	无名客在第 {0} 年先到，取走了古修残剑。\n那柄剑现在会随他上阵。	The Nameless arrived first in year {0} and took the Ancient Broken Sword.\nHe will carry it into battle.
 	22698	石门开场	Timeline_Opening_Continue	继续赶路	Continue on
 	22699	石门开场	Timeline_Opening_Explore	继续探索	Explore
@@ -1168,3 +1168,29 @@
 	23235	同行装备	Gear_SelectReplacement	装备槽已满，请选择要替换的槽位。	All slots are full. Choose a slot to replace.
 	23236	同行装备	Gear_Replace	{0}的装备槽已满。是否将第{1}格的「{2}」替换为「{3}」？	{0} has no free slots. Replace {2} in slot {1} with {3}?
 	23237	同行装备	Gear_TransferReplace	「{0}」已由{1}装备，{2}的装备槽已满。是否转给{2}，替换第{3}格的「{4}」？	{1} has {0} equipped, and {2} has no free slots. Transfer it to {2} and replace {4} in slot {3}?
+	23238	灰脊口	Timeline_PracticeKiln_Name	试火窑	Trial Kiln
+	23239	灰脊口	Timeline_PracticeKiln_Guide	薛灯掀开窑门：“要试火就到隔壁窑场。看准中间那只，两边的小怪也会吃到火。”	Xue Deng lifts the kiln latch. “Try the yard next door. Catch the middle beast and the fire will reach the two beside it.”
+	23240	灰脊口	Timeline_PracticeKiln_Hint	炉兽居中，两侧各有一只小怪。带引火符或回炉诀入窑，薛灯会借出施法飞剑，缺引火符也可借用。炉兽起手带两层余火；用主动招式点到四层，再次命中即可用回炉诀引爆。借物仅在本场生效。	A kiln beast stands between two smaller foes. Bring Kindling or Rekindle to borrow a casting sword and any missing Kindling for this fight. The beast starts with two Burn stacks. Raise it to four with an active skill, then hit it again with an active skill to trigger Rekindle.
+	23241	灰脊口	Timeline_PracticeKiln_Clear	窑场已经清静。薛灯合上风门，把散落的炭块拢回炉里。	The kiln yard is quiet. Xue Deng closes the vent and rakes the scattered coals back into the furnace.
+	23242	流血路线	Timeline_HerbYard_Name	晒药坪	Herb Drying Yard
+	23243	流血路线	Timeline_PulseDen_Name	伏兽窟	Beast Den
+	23244	流血路线	Timeline_HerbYard_Guide	听风药庐旁的晒药坪有兽啃食药根。带割脉刃去，留意两次普攻之间的流血跳伤。	A beast is gnawing the roots in the drying yard by the Windwatch Apothecary. Bring the Vein-Cutting Blade and watch it bleed between strikes.
+	23245	流血路线	Timeline_HerbYard_Hint	药兽守着晒架。用割脉刃普攻叠流血，首通时可选截脉钉。	The beast guards the drying racks. Stack Bleed with basic attacks from the blade. The Meridian Spike is a first-clear reward choice.
+	23246	流血路线	Timeline_PulseDen_Guide	在编队里把截脉钉装给常用普攻的队员，再去相邻的伏兽窟。	Equip the Meridian Spike on a basic attacker in formation, then enter the adjacent Beast Den.
+	23247	流血路线	Timeline_PulseDen_Hint	窟里只有一头厚皮老兽。让割脉刃与截脉钉集中打它。已有三层流血时，截脉钉命中会收掉最早两层，一次结清剩余伤害。战报可查截脉次数和提前结算伤害。	One thick-skinned beast lives here. Focus the blade and spike on it. At three or more Bleed stacks, a spike hit consumes the oldest two and deals their unpaid damage. Check the battle report for bursts and damage.
+	23248	流血路线	Timeline_BleedTrial_Clear	兽迹已散，药工可以安心进山采药了。	The beast is gone. The herbalists can gather in peace.
+	23249	无名印	Timeline_Seal_Report	无名客战报 · 本命法宝无名印	The Nameless · Innate Artifact: Nameless Seal
+	23250	无名印	Timeline_Seal_Absorbed	无名印吸收气血 {0}、攻击 {1}。无名客当前气血与气血上限各 +{0}，攻击 +{1}。	The Nameless Seal absorbed {0} HP and {1} attack. Current and maximum HP each rise by {0}, and attack rises by {1}.
+	23251	无名印	Timeline_Seal_Victory	无名客以无名印封住仪式，阵主无法再生。	The Nameless sealed the ritual with the Nameless Seal. Its lord can no longer return.
+	23252	无名印	Timeline_Seal_Finale	阵主倒下，碑上的裂纹又亮了起来。无名客将本命法宝无名印按进碑心。最后一道光熄灭了。	The ritual lord fell, and light crept back into the cracks in the stele. The Nameless pressed his Nameless Seal into its heart. The last light went out.
+	23253	无名印	Timeline_Seal_Innate	本命法宝无名印	Innate Nameless Seal
+	23300	唤雷云符	SummonName_9210	唤雷云符	Stormcloud Talisman
+	23301	唤雷云符	SummonDesc_9210	在最近敌人所在位置上空召来雷云，持续6秒。每2秒雷击云下最近的一名敌人，造成80%攻击力伤害。冷却10秒。	Summons a stationary cloud above the nearest enemy for 6s. Every 2s, lightning strikes the closest enemy beneath it for 80% ATK. Cooldown: 10s.
+	23302	金光镜	SummonName_9211	金光镜	Golden Mirror
+	23303	金光镜	SummonDesc_9211	肩侧升起八瓣古镜，蓄光0.8秒后射出长8格的金光，持续0.4秒。每名敌人每次施放最多受到一次120%攻击力伤害。冷却8秒。	An eight-lobed mirror rises and charges for 0.8s, then fires an 8-tile beam for 0.4s. Each enemy hit takes 120% ATK damage once per cast. Cooldown: 8s.
+	23304	赤焰印	SummonName_9212	赤焰印	Cinder Seal
+	23305	赤焰印	SummonDesc_9212	锁定6格内最近敌人的位置，0.65秒后落下赤焰印，对落点1.6格内所有敌人造成110%攻击力伤害。冷却7秒。	Marks the nearest enemy within 6 tiles. After 0.65s, deals 110% ATK to all enemies within 1.6 tiles of the marked spot. Cooldown: 7s.
+	23306	叠潮铃	SummonName_9213	叠潮铃	Tide Chime
+	23307	叠潮铃	SummonDesc_9213	3格内出现敌人时鸣响两次，间隔0.9秒。每响对佩戴者周围3格内所有敌人造成45%攻击力伤害。冷却6秒。	When an enemy is within 3 tiles, rings twice, 0.9s apart. Each pulse deals 45% ATK to enemies within 3 tiles of the bearer. Cooldown: 6s.
+	23308	聚灵梭	SummonName_9214	聚灵梭	Spirit Spindle
+	23309	聚灵梭	SummonDesc_9214	佩戴者的自动道具技能伤害提高25%。同名效果只生效一次。	Increases the bearer's automatic item skill damage by 25%. Duplicate effects do not stack.

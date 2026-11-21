@@ -50,6 +50,18 @@ namespace SkillSystem
                             newBuff.Owner = target;
                             newBuff.CombatCast = trigger.ParentTriggerList.CombatCast;
                             newBuff.ParentSkill = trigger.ParentTriggerList.ParentSkill;
+                            var skill = newBuff.ParentSkill;
+                            if (skill?.FromItemID == 9102 && trigger.ParentTriggerList == skill && skill.Caster.ShortAncientSwordOpening)
+                            {
+                                // The volley schedules one sword per timed tick on this buff instance.
+                                foreach (var step in newBuff.CurTriggerList)
+                                    if (step.CurTriggerType == TriggerType.PerTick && step.CurCondition is ConditionTimed timer)
+                                    {
+                                        timer.PassNumber.Value = 3;
+                                        skill.Caster.ShortAncientSwordOpening = false;
+                                        break;
+                                    }
+                            }
                             newBuff.DurationMs = TemporaryBuff.DurationMs;
                             newBuff.RemainMs = newBuff.DurationMs;
                             target.AddBuff(newBuff);

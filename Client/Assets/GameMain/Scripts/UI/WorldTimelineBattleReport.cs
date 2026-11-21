@@ -35,6 +35,10 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
     private readonly List<RectTransform> treasureRows = new();
     private Action confirm;
     private bool statsOpen, showCultivation, showLoot, showTechnique, showBacklash;
+    [SerializeField] private TMP_Text cultivationHeading;
+    [SerializeField] private Image cultivationPaper;
+    [SerializeField] private Sprite breakthroughArt;
+    private Color regularPaperColor, regularHeadingColor, regularExperienceColor;
     private float summaryHeight;
     private TMP_Text partyHealth;
     private readonly List<(TMP_Text Label, RectTransform Fill)> partyRows = new();
@@ -55,6 +59,9 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
             else if (!string.IsNullOrEmpty(key) && (key.StartsWith("Timeline_", StringComparison.Ordinal) || key == "Attr_HuDun"))
                 label.text = TimelineText(key);
         }
+        regularPaperColor = cultivationPaper.color;
+        regularHeadingColor = cultivationHeading.color;
+        regularExperienceColor = experience.color;
         var note = statsPage.transform.Find("Stats Note").GetComponent<TMP_Text>();
         note.text += TimelineText("Timeline_BattleStatsDamage") == "Damage"
             ? "  Shares: combatant / side, skill / combatant." : "  占比：角色占本方，技能与法器占角色。";
@@ -124,7 +131,8 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
         title.text = TimelineText(treasureMode ? "Timeline_TreasureOpened"
             : battle.Victory ? "Timeline_BattleVictory" : "Timeline_BattleDefeat");
         var world = view.Simulation.State;
-        bool vanguard = world.Nodes[battle.NodeId].IsExpeditionVanguard && !battle.IsTreasure;
+        if (battle.ChosenOnlyReport) title.text = TimelineText("Timeline_Seal_Report");
+        bool vanguard = world.Nodes[battle.NodeId].IsExpeditionVanguard && !battle.IsTreasure && !battle.ChosenOnlyReport;
         techniqueHeading.text = vanguard ? "战术回顾" : regularTechniqueHeading;
         string location = view.LocationName(world.Nodes[battle.NodeId]);
         if (battle.TrialItemId != 0) location += " · " + view.BattleDropName(battle.NodeId, battle.TrialItemId);
@@ -151,7 +159,7 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
         ShowPartyHealth(view, battle);
         if (health.gameObject.activeSelf)
         {
-            var member = battle.PartyAtBattleEnd.FirstOrDefault(m => m.ActorId == world.PlayerActorId);
+            var member = battle.ChosenOnlyReport ? battle.PartyAtBattleEnd[0] : battle.PartyAtBattleEnd.FirstOrDefault(m => m.ActorId == world.PlayerActorId);
             health.text = $"{member.StartHealth} → {member.Health} / {member.MaxHealth}";
             if (battle.Health != member.Health || battle.MaxHealth != member.MaxHealth)
                 health.text += $"  <size=65%>战后 {battle.Health}/{battle.MaxHealth}</size>";
@@ -160,11 +168,34 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
         }
         AnimateHealth(0f);
         showBacklash = battle.RitualBacklash;
-        showCultivation = !comparison && (battle.Victory || battle.Experience > 0);
-        experience.text = $"+{battle.Experience}";
-        breakthrough.gameObject.SetActive(battle.Level > battle.PreviousLevel);
-        breakthrough.text = TimelineText("Timeline_BattleBreakthrough", battle.PreviousLevel, battle.Level);
-        showLoot = !comparison && (battle.Victory || battle.Items.Count > 0);
+        bool leaderAdvanced = battle.Level > battle.PreviousLevel;
+        bool advanced = leaderAdvanced || battle.CompanionLevelGains.Count > 0;
+        showCultivation = !battle.ChosenOnlyReport && !comparison && (advanced || battle.Victory || battle.Experience > 0);
+        cultivationPaper.sprite = advanced ? breakthroughArt : null;
+        cultivationPaper.color = advanced ? Color.white : regularPaperColor;
+        cultivationHeading.color = advanced ? new Color32(244, 210, 139, 255) : regularHeadingColor;
+        experience.color = advanced ? new Color32(255, 246, 215, 255) : regularExperienceColor;
+        experience.enableAutoSizing = advanced;
+        experience.fontSizeMin = 24;
+        experience.fontSizeMax = experience.fontSize = 36;
+        breakthrough.gameObject.SetActive(advanced);
+        if (advanced)
+        {
+            var featured = leaderAdvanced ? (Role: -1, Before: battle.PreviousLevel, After: battle.Level)
+                : battle.CompanionLevelGains[0];
+            string name = leaderAdvanced ? view.PlayerName : view.CompanionName(featured.Role).Split('·')[0].Trim();
+            bool english = GameEntry.Localization.Language == GameFramework.Localization.Language.English;
+            cultivationHeading.text = name + (english ? " · Level up" : " · 境界突破");
+            experience.text = english ? $"Lv. {featured.Before} → {featured.After}" : $"第 {featured.Before} 层 → {featured.After} 层";
+            breakthrough.color = new Color32(237, 225, 192, 255);
+            breakthrough.text = $"{TimelineText("Timeline_UI_8")}  +{battle.Experience}";
+        }
+        else
+        {
+            cultivationHeading.text = TimelineText("Timeline_UI_8");
+            experience.text = $"+{battle.Experience}";
+        }
+        showLoot = !battle.ChosenOnlyReport && !comparison && (battle.Victory || battle.Items.Count > 0);
         ShowLoot(view, battle);
         bool hasLightning = battle.TrialItemId != 0 || battle.Lightning.Applications > 0 ||
             battle.Lightning.Transfers > 0 || battle.Lightning.Jumps > 0;
@@ -176,12 +207,18 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
             return TimelineText(art.Requirement == TechniqueRequirement.SkillKills
                 ? "Timeline_BattleTechniqueKills" : "Timeline_BattleTechniqueXP", name, art.Progress);
         }).ToList();
+        foreach (var member in battle.CompanionLevelGains.Skip(leaderAdvanced ? 0 : 1).Reverse())
+            progressLines.Insert(0, view.CompanionName(member.Role).Split('·')[0].Trim() + " · " +
+                TimelineText("Timeline_BattleBreakthrough", member.Before, member.After));
+        if (battle.SealAbsorption is { } gain)
+            progressLines.Add(TimelineText("Timeline_Seal_Absorbed", gain.Health, gain.Attack));
+        if (battle.RitualSealed) progressLines.Add(TimelineText("Timeline_Seal_Victory"));
         if (hasLightning)
         {
             progressLines.Add(TimelineText("Timeline_BattleLightningCounts",
                 battle.Lightning.Applications, battle.Lightning.Transfers, battle.Lightning.Jumps));
         }
-        if (world.Nodes[battle.NodeId].IsExpeditionVanguard)
+        if (vanguard)
         {
             var shield = battle.CombatOutput.FirstOrDefault(actor => actor.ActorId == view.Expedition?.CompanionId(0));
             var leader = battle.CombatOutput.FirstOrDefault(actor => actor.ActorId == world.PlayerActorId);
@@ -213,6 +250,8 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
             progressLines.Add($"行医囊 · {patient} 战后恢复 {battle.FieldTreatment.Amount} 气血");
         }
         var allies = battle.CombatOutput.Where(actor => actor.Allied).ToArray();
+        if (battle.FieldTreatment.Amount == 0 && links.Any(link => (link.EquippedEffects & ArtifactTrigger.FieldKit) != 0))
+            progressLines.Add("行医囊 · 治疗 0 次｜佩戴者须存活首通，且有存活伤员");
         if (allies.Any(actor => actor.CriticalHits > 0))
             progressLines.Add($"暴击命中 {allies.Sum(actor => actor.CriticalHits)} 段");
         if (allies.Any(actor => actor.MarksApplied > 0))
@@ -423,6 +462,71 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
         return WorldTimelineInventoryCtrl.ResolveInventoryIcon(entry.Id, skillId, entry.Icon, itemIcons, techniqueIcons);
     }
 
+    private static IEnumerable<string> UntriggeredEffects(ActorBattleOutput actor)
+    {
+        var a = actor.Artifacts;
+        var missing = a.EquippedEffects & ~a.ActivatedEffects;
+        bool Missing(ArtifactTrigger effect, long count = 0) => (missing & effect) != 0 && count == 0;
+        if (a.TrainingSwordCase)
+            yield return "    养剑匣 · 出剑 0 次｜仍在养剑，须佩戴并随队首通两处守关";
+        if (Missing(ArtifactTrigger.Bamboo))
+            yield return "    青竹剑 · 触发 0 次｜青篁在场时，队伍须发动飞剑";
+        if (Missing(ArtifactTrigger.HiddenEdgePearl) && !actor.PearlCharged)
+            yield return "    藏芒珠 · 蓄势 0 次｜须普攻击中且未暴击";
+        if (Missing(ArtifactTrigger.JadeRendBlade, actor.CriticalHits))
+            yield return "    裂玉刃 · 暴击命中 0 段｜佩戴者暴击时享受额外暴击伤害";
+        if (Missing(ArtifactTrigger.ShieldOpening))
+            yield return "    铁木盾 · 触发 0 次｜护盾须挡住敌方直接伤害";
+        if (Missing(ArtifactTrigger.FrontOpening))
+            yield return "    锁子甲 · 触发 0 次｜前排受直接伤害后须存活";
+        if (Missing(ArtifactTrigger.Pursuit, a.Pursuits))
+            yield return "    追击 · 触发 0 次｜普攻须命中带反击标记的存活敌人";
+        if (Missing(ArtifactTrigger.Remedy, a.Remedies))
+            yield return "    回春 · 触发 0 次｜普攻命中三次，且有队友可受疗";
+        if (Missing(ArtifactTrigger.Recovery, a.Recoveries))
+            yield return "    养血 · 触发 0 次｜须接受装备回春并实际额外回血";
+        if (Missing(ArtifactTrigger.SwordCase))
+            yield return "    藏锋匣 · 触发 0 次｜普攻命中四次后须有可攻击的敌人";
+        if (Missing(ArtifactTrigger.MountainRing))
+            yield return "    承岳环 · 触发 0 次｜累计损失15%最大气血后须存活";
+        if (Missing(ArtifactTrigger.SpringPendant))
+            yield return "    留春佩 · 触发 0 次｜跌破半血后接受装备回春，等待两秒";
+        if (Missing(ArtifactTrigger.Sand, a.SharedDamage))
+            yield return "    镇砂杵 · 触发 0 次｜须有队友受到可分担的盾后伤害";
+        if (Missing(ArtifactTrigger.Tide))
+            yield return "    听潮剑 · 触发 0 次｜队友的溢出治疗须足以生成护盾";
+        if (Missing(ArtifactTrigger.OpeningSword))
+            yield return "    养剑匣 · 触发 0 次｜养成后开战时须有存活敌人";
+        if (Missing(ArtifactTrigger.Quake, a.Quakes))
+            yield return "    震山钉 · 触发 0 次｜自身护盾须被敌方直接伤害击破";
+        if (Missing(ArtifactTrigger.RainTassel, a.RainVolleys))
+            yield return "    听雨剑穗 · 触发 0 次｜自身护盾须被敌方直接伤害击破";
+        if (Missing(ArtifactTrigger.RelayClasp))
+            yield return "    连环扣接力 · 触发 0 次｜消耗反击标记后，两秒内由队友普攻同一敌人";
+        if (Missing(ArtifactTrigger.ReprisalSeal, a.ReprisalHits))
+            yield return "    偿锋印 · 触发 0 次｜损失气血蓄力后，普攻须留下存活目标";
+        if (Missing(ArtifactTrigger.HeartLamp, a.LampTransfers))
+            yield return "    同心灯 · 触发 0 次｜实际治疗队友时，还须有另一名存活伤员";
+        if (Missing(ArtifactTrigger.TinderPouch, a.TinderLayers))
+            yield return "    火绒囊 · 触发 0 次｜普攻命中后目标须存活";
+        if (Missing(ArtifactTrigger.MeridianSpike, a.MeridianLayers + a.MeridianBursts))
+            yield return "    截脉钉 · 触发 0 次｜普攻命中后目标须存活";
+        if (Missing(ArtifactTrigger.ThunderBell, a.ThunderBellJumps))
+            yield return "    鸣雷铃 · 触发 0 次｜普攻达三次或目标带雷印，附近须有另一敌人";
+        if (Missing(ArtifactTrigger.FalterMirror, a.MirrorWeakens))
+            yield return "    折势镜 · 触发 0 次｜前排受敌方直接伤害后双方须存活";
+        if (Missing(ArtifactTrigger.LastStandCharm, a.LastStandActive ? 1 : 0))
+            yield return "    背水符 · 触发 0 次｜气血须降至一半或以下且存活";
+        if (Missing(ArtifactTrigger.AfflictionSeal, a.DoubleAfflictionHits + a.TripleAfflictionHits))
+            yield return "    三煞印 · 触发 0 次｜普攻前须有燃烧、流血、虚弱中至少两种，命中后目标存活";
+        if (Missing(ArtifactTrigger.EchoJade, a.EchoHits))
+            yield return "    回响玉简 · 触发 0 次｜普攻命中两次后，主动伤害招式须留下存活目标";
+        if (Missing(ArtifactTrigger.ComradeKnot, a.KnotShield))
+            yield return "    同袍结 · 触发 0 次｜正前方队友须受伤从半血以上降至半血或以下并存活";
+        if (Missing(ArtifactTrigger.BreachMirror, actor.MarksApplied))
+            yield return "    照隙镜 · 触发 0 次｜普攻暴击后目标须存活，才能施加死隙";
+    }
+
     private void FillStats(WorldTimelineDebugView view, BattleSettlement battle)
     {
         int index = 0;
@@ -454,7 +558,7 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
             if (links?.RepeatHealing > 0) SetRow("    留春复疗",0,0,0,links.RepeatHealing,false);
             if (links?.SharedDamage > 0) SetRow($"    镇砂代受 {links.SharedDamage:N0}",0,0,0,0,false);
             if (links?.OpeningSwordDamage > 0) SetRow("    养剑开场",links.OpeningSwordDamage,0,0,0,false);
-            if (links?.HasRainTassel == true) SetRow($"    听雨剑穗 ×{links.RainVolleys} · 出剑 {links.RainSwords} 柄",links.RainDamage,0,0,0,false);
+            if (links?.RainVolleys > 0) SetRow($"    听雨剑穗 ×{links.RainVolleys} · 出剑 {links.RainSwords} 柄",links.RainDamage,0,0,0,false);
             if (links?.Quakes > 0) SetRow($"    震山钉 ×{links.Quakes} · 命中 {links.QuakeHits} 人次",links.QuakeDamage,0,0,0,false);
             if (links?.SwordDamage > 0) SetRow("    藏锋飞剑",links.SwordDamage,0,0,0,false);
             if (links != null && links.GrantedShield > links.KnotShield) SetRow("    法器护盾",0,links.GrantedShield - links.KnotShield,0,0,false);
@@ -463,12 +567,17 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
             if (links?.RelayHits > 0) SetRow($"    接力追击 ×{links.RelayHits}",links.RelayDamage,0,0,0,false);
             if (links?.MeridianLayers > 0) SetRow($"    截脉钉 · 流血 {links.MeridianLayers} 层",links.MeridianTickDamage,0,0,0,false);
             if (actor.CriticalHits > 0) SetRow($"    暴击命中 {actor.CriticalHits} 段",0,0,0,0,false);
-            if (actor.MarksApplied > 0) SetRow($"    照隙镜 · 标记 {actor.MarksApplied} 次 · 队友触发 {actor.MarksUsed} 次",0,0,0,0,false);
+            if (actor.MarksApplied > 0)
+                SetRow($"    照隙镜 · 标记 {actor.MarksApplied} 次 · 队友触发 {actor.MarksUsed} 次" +
+                    (actor.MarksUsed == 0 ? "｜需另一名队友在3秒内以主动伤害招式命中" : ""),0,0,0,0,false, hint: actor.MarksUsed == 0);
             if (links?.EchoHits > 0) SetRow($"    回响玉简 ×{links.EchoHits}",links.EchoDamage,0,0,0,false);
             if (links?.KnotShield > 0) SetRow("    同袍结 · 同列护盾",0,links.KnotShield,0,0,false);
             if (links?.DoubleAfflictionHits > 0 || links?.TripleAfflictionHits > 0)
                 SetRow($"    三煞印 · 两种 ×{links.DoubleAfflictionHits} · 三种 ×{links.TripleAfflictionHits}",links.AfflictionDamage,0,0,0,false);
-            if (links?.LastStandActive == true) SetRow($"    背水符 · 强化普攻 {links.LastStandHits}/3",links.LastStandDamage,0,0,0,false);
+            if (links?.LastStandActive == true)
+                SetRow($"    背水符 · 强化普攻 {links.LastStandHits}/3" +
+                    (links.LastStandHits == 0 ? "｜已获得强化，须普攻命中后目标仍存活" : ""),
+                    links.LastStandDamage,0,0,0,false, hint: links.LastStandHits == 0);
             if (links?.MirrorWeakens > 0) SetRow($"    折势镜 · 虚弱 ×{links.MirrorWeakens} · 破绽 +{links.MirrorOpenings}",0,0,0,0,false);
             if (links?.ThunderBellJumps > 0) SetRow($"    鸣雷铃 · 跳雷 ×{links.ThunderBellJumps}",links.ThunderBellDamage,0,0,0,false);
             if (links?.MeridianBursts > 0) SetRow($"    截脉钉 · 提前结算 ×{links.MeridianBursts}",links.MeridianBurstDamage,0,0,0,false);
@@ -477,6 +586,11 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
             if (links?.ReprisalHits > 0) SetRow($"    偿锋印 ×{links.ReprisalHits}",links.ReprisalDamage,0,0,0,false);
             if (links?.Remedies > 0) SetRow($"    回春 ×{links.Remedies}",0,0,0,links.Healing,false);
             if (links?.Recoveries > 0) SetRow($"    养血 ×{links.Recoveries}",0,0,0,links.BonusHealing,false);
+            if (links != null)
+            {
+                foreach (string hint in UntriggeredEffects(actor))
+                    SetRow(hint, 0, 0, 0, 0, false, hint: true);
+            }
             foreach (var skill in actor.Skills)
             {
                 string skillName = (skill.ItemId == 0 || skill.SkillId == 1) ? TechniqueSkillName(skill.SkillId)
@@ -489,7 +603,7 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
         statsScroll.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
             Mathf.Max(statsScroll.viewport.rect.height, index * 44f));
 
-        void SetRow(string label, long damage, long shield, long shieldAbsorbed, long healing, bool heading)
+        void SetRow(string label, long damage, long shield, long shieldAbsorbed, long healing, bool heading, bool hint = false)
         {
             if (index == statsRows.Count) statsRows.Add(Instantiate(statsRowTemplate, statsScroll.content, false));
             var row = statsRows[index];
@@ -498,6 +612,11 @@ public sealed class WorldTimelineBattleReport : MonoBehaviour
             band.enabled = heading;
             band.color = new Color(sideColor.r, sideColor.g, sideColor.b, .14f);
             var nameCell = row.Find("Name").GetComponent<TMP_Text>();
+            var templateName = (RectTransform)statsRowTemplate.Find("Name");
+            nameCell.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,
+                hint ? row.rect.width - 2 * templateName.anchoredPosition.x : templateName.rect.width);
+            foreach (Transform child in row)
+                if (child != nameCell.transform) child.gameObject.SetActive(!hint);
             nameCell.text = label;
             nameCell.enableAutoSizing = true;
             nameCell.fontSizeMin = 14;

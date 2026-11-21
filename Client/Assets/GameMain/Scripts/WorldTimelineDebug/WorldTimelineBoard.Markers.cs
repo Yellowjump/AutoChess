@@ -43,6 +43,7 @@ namespace WorldTimelineDebug
             int count = 0;
             foreach (var pair in tiles)
             {
+                if (!Revealed(pair.Key) || HasModel(pair.Key, pair.Value)) continue;
                 var tile = pair.Value;
                 var owner = state.Nodes[pair.Key].FirstClear;
                 bool showOwner = owner.HasValue && (!MarkerFilter.HasValue || tile.Kind == MarkerFilter);
@@ -66,6 +67,7 @@ namespace WorldTimelineDebug
             var atlas = WorldTimelineMapMarker.Atlas;
             foreach (var pair in tiles)
             {
+                if (!Revealed(pair.Key) || HasModel(pair.Key, pair.Value)) continue;
                 var tile = pair.Value;
                 if (!ShowsTypeBadge(tile)) continue;
                 var center = MarkerCenter(tile, tile.LiftAt(now));

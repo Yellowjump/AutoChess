@@ -51,6 +51,7 @@ namespace SkillSystem
             if (MeetsCastCondition()) CastAfterConditionCheck();
         }
 
+        internal SummonedArt Summon;
         internal bool ExtraSwordReleased;
         internal CommandCreateBullet FinishingSword;
         private void ClearFinishingSword()
@@ -203,6 +204,8 @@ namespace SkillSystem
             ExtraSwordReleased = false; ClearFinishingSword();
             ignitedTargets?.Clear();
             lightningTargets?.Clear();
+            Summon?.Clear();
+            Summon = null;
             SkillID = 0;
             TempleteID = 0;
             FromItemID = 0;

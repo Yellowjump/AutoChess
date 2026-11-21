@@ -25,6 +25,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     [SerializeField] private Button relayNotice;
     [SerializeField] private Image healthFill, experienceFill, ritualFill, locationArt;
     [SerializeField] private Button move, cultivate, rest, wait, disguise, join;
+    [SerializeField] private ExpeditionFormationStyle formationStyle;
     [SerializeField] private Button observeStep, observeToggle, speed, nextLife, returnMenu;
     [SerializeField] private Button overview, focusPlayer, focusChosen, zoomIn, zoomOut;
     [SerializeField] private Button roles, history, logs, growth, closePopup, previousPage, nextPage;
@@ -43,9 +44,6 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     private Vector2 lastHudSize;
     private RectTransform[] locationRows;
     private bool compactLocation;
-    private TMP_Text rosterLabel, recruitmentLabel;
-    private Button expeditionButton;
-    private Button recruitButton;
     private GameObject companionStageCard;
     private TMP_Text companionStageText, companionStageAction;
     private Button companionStageRecruit;
@@ -104,7 +102,6 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         regularCultivateColor = cultivateLabel.color;
         regularCultivateFontSize = cultivateLabel.fontSize;
         BuildMapLegend();
-        BuildExpeditionButton();
         BuildCompanionStageCard();
         ArrangeMapHud();
         leaderPortrait = heroName.transform.parent.Find("CultivatorPortrait").GetComponent<Image>();
@@ -159,6 +156,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     public override void OnOpen(object userData)
     {
         base.OnOpen(userData);
+        ExpeditionFormationStyle.Active = formationStyle;
         view = userData as WorldTimelineDebugView;
         if (view == null || view.Simulation == null)
         {
@@ -204,6 +202,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         if (restoreDebugger && HotGameEntry.Debugger != null) HotGameEntry.Debugger.ActiveWindow = true;
         restoreDebugger = false;
         base.OnClose(isShutdown, userData);
+        if (ExpeditionFormationStyle.Active == formationStyle) ExpeditionFormationStyle.Active = null;
     }
 
     public override void OnPause()
@@ -270,53 +269,11 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         SetHudVisible(state != DisplayState.Ending, state != DisplayState.Ending);
         headerSection.SetActive(view == null || !view.InventoryOpen && !view.ExpeditionPanelOpen);
         bool showMap = state == DisplayState.Map && (view == null || !view.InventoryOpen && !view.ExpeditionPanelOpen);
-        expeditionButton.gameObject.SetActive(showMap && view?.Expedition != null && !popup.activeSelf);
-        recruitButton.gameObject.SetActive(expeditionButton.gameObject.activeSelf);
         foreach (var section in mapSections) section.SetActive(showMap);
         locationSection.SetActive(showMap && locationOpen);
         journeyCard.gameObject.SetActive(showMap && !locationOpen && !string.IsNullOrWhiteSpace(notice.text));
         mapLegend.SetActive(showMap && view != null && !view.OpeningActive && !popup.activeSelf);
         if (mapLegend.activeSelf && displayedFilter != view.MapMarkerFilter) RefreshMapLegend();
-    }
-
-    private void BuildExpeditionButton()
-    {
-        recruitButton = CreateMapButton("同伴关卡", 212, 186, new Color(.61f, .40f, .14f));
-        expeditionButton = CreateMapButton("队伍·同伴", 28, 178, new Color(.19f, .38f, .32f));
-        rosterLabel = expeditionButton.GetComponentInChildren<TMP_Text>();
-        recruitmentLabel = recruitButton.GetComponentInChildren<TMP_Text>();
-        recruitButton.onClick.AddListener(() =>
-        {
-            if (!CanInteractWithMap || !view.Simulation.WaitingForPlayer) return;
-            if (view.FocusVanguard()) { ShowLocationDetails(true); return; }
-            var next = new[] { 0, 2, 3, 1, ExpeditionParty.SandSite, ExpeditionParty.TideSite }.Where(candidate => view.Expedition.RecruitmentSites.ContainsKey(candidate) &&
-                !view.Expedition.HasRecruited(candidate)).Select(candidate => (int?)candidate).FirstOrDefault();
-            if (next is int role && view.FocusRecruitmentSite(role)) ShowLocationDetails(true);
-            else OpenExpedition();
-        });
-        expeditionButton.onClick.AddListener(OpenExpedition);
-
-        Button CreateMapButton(string name, float x, float width, Color color)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
-            var rect = (RectTransform)go.transform;
-            rect.SetParent(transform, false);
-            rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.up;
-            rect.anchoredPosition = new Vector2(x, -114);
-            rect.sizeDelta = new Vector2(width, 52);
-            go.GetComponent<Image>().color = color;
-            var button = go.GetComponent<Button>();
-            button.targetGraphic = go.GetComponent<Image>();
-            go.layer = gameObject.layer;
-            var label = Instantiate(moveLabel, rect);
-            label.rectTransform.anchorMin = Vector2.zero; label.rectTransform.anchorMax = Vector2.one;
-            label.rectTransform.offsetMin = label.rectTransform.offsetMax = Vector2.zero;
-            label.fontSize = 26; label.color = new Color(.96f, .91f, .78f);
-            label.alignment = TextAlignmentOptions.Center; label.raycastTarget = false;
-            label.enableAutoSizing = true; label.fontSizeMin = 20; label.fontSizeMax = 26;
-            BindButtonClickSound(button);
-            return button;
-        }
     }
 
     private void ArrangeMapHud()
@@ -570,7 +527,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     {
         var resolver = new WorldTimelineBattleResolver();
         yield return resolver.PreviewFormation(view.Simulation.State, nodeId,
-            (actors, entities) => ExpeditionBattleFormation.Present(view, moveLabel.font, nodeId, actors, entities));
+            (actors, entities) => ExpeditionBattleFormation.Present(view, formationStyle, moveLabel.font, nodeId, actors, entities));
     }
 
     private void BuildMapLegend()
@@ -724,12 +681,6 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
         if (relayNotice != null)
             relayNotice.interactable = notice.raycastTarget = mapNotice.NodeId.HasValue && CanInteractWithMap && !view.OpeningActive;
         bool waiting = view.Simulation.WaitingForPlayer && !view.IsBusy;
-        if (view.Expedition != null)
-        {
-            rosterLabel.text = $"队伍  {view.Expedition.DeployedCount}/{ExpeditionParty.Capacity}";
-            recruitmentLabel.text = view.PendingVanguard.HasValue ? "定位首战关卡" : "查找同伴";
-            expeditionButton.interactable = recruitButton.interactable = waiting;
-        }
         focusChosen.interactable = world.ChosenActorId.HasValue && !view.IsBusy;
         bool observing = view.CanObserve || view.AutoObserving;
         observeStep.gameObject.SetActive(observing);
@@ -953,6 +904,7 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
                 string name = actor.Id == view.Simulation.State.PlayerActorId ? view.PlayerName
                     : actor.Id == view.Simulation.State.ChosenActorId ? TimelineText("Timeline_UI_79") : view.ClearOwner(actor.Id);
                 bool showRouteColor = actor.Id != view.Simulation.State.PlayerActorId;
+                if (actor.InnateSeal != null) name += " · " + TimelineText("Timeline_Seal_Innate");
                 actorLabels[i].richText = showRouteColor;
                 if (showRouteColor)
                 {
@@ -1036,6 +988,11 @@ public sealed class WorldTimelinePanelCtrl : UIFormLogic
     public void SelectNode(Vector2 screen)
     {
         if (!CanInteractWithMap) return;
+        if (view.OpeningActive)
+        {
+            view.ClickOpeningNode(screen);
+            return;
+        }
         ShowLocationDetails(view.SelectAtScreen(screen));
     }
 

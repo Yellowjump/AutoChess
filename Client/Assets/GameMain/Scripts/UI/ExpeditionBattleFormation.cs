@@ -52,7 +52,7 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
     }
     public bool Confirmed => confirmed;
 
-    public static IEnumerator Present(WorldTimelineDebugView view, TMP_FontAsset font, int node,
+    public static IEnumerator Present(WorldTimelineDebugView view, ExpeditionFormationStyle style, TMP_FontAsset font, int node,
         IReadOnlyList<ActorState> actors, IReadOnlyList<EntityQizi> entities)
     {
         var go=new GameObject("战场布阵",typeof(RectTransform),typeof(Canvas),typeof(CanvasScaler),typeof(GraphicRaycaster));
@@ -61,7 +61,7 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
         scaler.referenceResolution=new Vector2(1672,941); scaler.matchWidthOrHeight=.5f;
         var panel=go.AddComponent<ExpeditionBattleFormation>();
         panel.view=view;panel.nodeId=node;panel.root=(RectTransform)go.transform;
-        panel.style=Resources.Load<ExpeditionFormationStyle>("ExpeditionFormationStyle");
+        panel.style=style;
         panel.heading=panel.style!=null?panel.style.HeadingFont(font):font;
         panel.selected=view.Simulation.State.PlayerActorId;
         panel.playerFirst=entities[actors.ToList().FindIndex(a=>a.Id==panel.selected)].BelongCamp==CampType.Friend;
@@ -140,7 +140,7 @@ public sealed class ExpeditionBattleFormation : MonoBehaviour
         details=Label("Details","",1267,435,210,88,24);
         details.enableAutoSizing=true;details.fontSizeMin=21;details.fontSizeMax=24;
         bench=Button("Bench","下阵候补",1271,527,178,50,ToggleSelectedDeployment,Color.white);
-        bench.image.sprite=style.PaperFrame;bench.image.type=Image.Type.Sliced;bench.image.pixelsPerUnitMultiplier=4;
+        UsePaperFrame(bench, Color.white);
         ReferencePicture("HistoryBook","Archive",1245,617,111,82);
         Line("HistoryRuleTop",1355,628,303,1);
         Line("HistoryRuleBottom",1260,694,397,1);

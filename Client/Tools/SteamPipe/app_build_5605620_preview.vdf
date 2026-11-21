@@ -1,0 +1,13 @@
+"AppBuild"
+{
+    "AppID"        "5605620"
+    "Desc"         "Windows x64 release file-list preview"
+    "Preview"      "1"
+    "ContentRoot"  "../../../outputs/Steam-Windows64-HybridCLR"
+    "BuildOutput"  "../../../outputs/SteamPipe-Preview"
+
+    "Depots"
+    {
+        "5605621"  "depot_build_5605621.vdf"
+    }
+}

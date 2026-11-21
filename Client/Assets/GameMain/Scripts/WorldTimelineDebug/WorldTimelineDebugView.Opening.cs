@@ -11,23 +11,31 @@ namespace WorldTimelineDebug
     {
         private const int OpeningCultivator = 8102;
         private const int OpeningSword = 9102;
-        private const int ChosenGateYear = 3;
+        private int ChosenGateYear => stagedRoutes ? 4 : 3;
+        private bool stagedRoutes, guidedDiscovery;
+        private static readonly int Fork = HexWorldMap.Id(1, -9);
         private static readonly int OpeningBirth = HexWorldMap.Id(1, -10);
         private static readonly int OpeningGate = HexWorldMap.Id(2, -9);
-        private static readonly int[] Shortcut = { HexWorldMap.Id(2, -10), OpeningGate };
-        private static readonly int[] Detour = { HexWorldMap.Id(1, -9), HexWorldMap.Id(1, -8), HexWorldMap.Id(2, -8), OpeningGate };
+        private static readonly int[] LegacyShortcut = { HexWorldMap.Id(2, -10), OpeningGate };
+        private static readonly int[] LegacyDetour = { HexWorldMap.Id(1, -9), HexWorldMap.Id(1, -8), HexWorldMap.Id(2, -8), OpeningGate };
+        private static readonly int[] ForkShortcut = { Fork, HexWorldMap.Id(2, -10), OpeningGate };
+        private static readonly int[] ForkDetour = { Fork, HexWorldMap.Id(0, -8), HexWorldMap.Id(1, -8), HexWorldMap.Id(2, -8), OpeningGate };
+        private int[] Shortcut => stagedRoutes ? ForkShortcut : LegacyShortcut;
+        private int[] Detour => stagedRoutes ? ForkDetour : LegacyDetour;
+        public bool OpeningApproach => OpeningActive && stagedRoutes &&
+            (OpeningPlayer.NodeId ?? OpeningPlayer.TravelOriginNodeId) == OpeningBirth;
         private bool openingMap, openingPrompt;
         private int openingChoice;
 
         public bool OpeningActive => openingPrompt && simulation != null && !simulation.State.IsEnded;
-        public bool OpeningOfferRoutes => OpeningActive && openingChoice == 0;
+        public bool OpeningOfferRoutes => OpeningActive && !OpeningApproach && openingChoice == 0;
         public bool OpeningAtStop => OpeningActive && openingChoice != 0 &&
             OpeningPlayer.NodeId is int current && current != OpeningBirth;
         private ActorState OpeningPlayer => simulation.State.Actors[simulation.State.PlayerActorId];
         private bool OpeningReachedGate => OpeningPlayer.NodeId == OpeningGate;
-        public int OpeningShortcutYears => Shortcut.Length;
-        public int OpeningDetourYears => Detour.Length;
-        public string OpeningDeadlineLabel => OpeningChosenHasSword
+        public int OpeningShortcutYears => Shortcut.Length - (stagedRoutes ? 1 : 0);
+        public int OpeningDetourYears => Detour.Length - (stagedRoutes ? 1 : 0);
+        public string OpeningDeadlineLabel => OpeningApproach ? string.Empty : OpeningChosenHasSword
             ? TimelineText("Timeline_Opening_Lost", ChosenGateYear).Split('\n')[0]
             : TimelineText("Timeline_Opening_Deadline", ChosenGateYear);
         private bool OpeningChosenHasSword => simulation != null &&
@@ -53,7 +61,7 @@ namespace WorldTimelineDebug
         {
             var legs = new (int Q, int R, int Years)[]
             {
-                (4,-10,0), (3,-10,1), (2,-9,2), (2,-8,2), (2,-7,1), (1,-6,1),
+                (4,-10,0), (3,-10,2), (2,-9,2), (2,-8,2), (2,-7,1), (1,-6,1),
                 (0,-6,1), (-1,-6,1), (-2,-6,1), (-3,-5,1), (-4,-4,1), (-5,-3,1), (-6,-2,1), (-7,-1,1)
             };
             int merge = Array.FindIndex(route, stage => stage.Q == -8 && stage.R == 0);
@@ -71,7 +79,7 @@ namespace WorldTimelineDebug
                 }).Concat(route.Skip(merge + 1)).ToArray();
         }
 
-        private static void ConfigureOpeningLocations(WorldState world)
+        private void ConfigureOpeningLocations(WorldState world)
         {
             foreach (int id in Shortcut.Concat(Detour).Distinct())
             {
@@ -81,7 +89,7 @@ namespace WorldTimelineDebug
                 node.Items.Clear();
                 node.LootAttackBonus = 0;
             }
-            var guard = world.Nodes[Shortcut[0]];
+            var guard = world.Nodes[LegacyShortcut[0]];
             guard.MonsterHealth = 56;
             guard.MonsterAttack = 5;
             guard.BattleExperienceReward = 6;
@@ -96,6 +104,7 @@ namespace WorldTimelineDebug
             int leg = world.Year - 1;
             if (actor.Id == world.PlayerActorId)
             {
+                if (guidedDiscovery && leg == 0 && nodeId == Fork) return true;
                 if (openingChoice == 0) return false;
                 var path = openingChoice == 2 ? Detour : Shortcut;
                 return IsOpeningStop(path, leg, nodeId) ||
@@ -104,9 +113,11 @@ namespace WorldTimelineDebug
 
             var record = simulation.Histories.FirstOrDefault(history => history.ActorId == actor.Id)?.Record;
             if (record == null || record.BirthNodeId != OpeningBirth) return false;
-            return IsRecordedOpeningStop(Shortcut, record, leg, nodeId) || IsRecordedOpeningStop(Detour, record, leg, nodeId) ||
-                IsDelayedOpeningStop(Shortcut, record.Actions, world.Year, nodeId) ||
-                IsDelayedOpeningStop(Detour, record.Actions, world.Year, nodeId);
+            if (stagedRoutes && leg == 0 && nodeId == Fork) return true;
+            foreach (var route in new[] { LegacyShortcut, LegacyDetour, ForkShortcut, ForkDetour })
+                if (IsRecordedOpeningStop(route, record, leg, nodeId) ||
+                    IsDelayedOpeningStop(route, record.Actions, world.Year, nodeId)) return true;
+            return false;
         }
 
         private static bool IsOpeningStop(int[] path, int leg, int nodeId) => leg >= 0 && leg < path.Length && path[leg] == nodeId;
@@ -143,6 +154,7 @@ namespace WorldTimelineDebug
             get
             {
                 if (!OpeningActive) return null;
+                if (OpeningApproach) return TimelineText("Timeline_Opening_Continue");
                 var world = simulation.State;
                 var player = world.Actors[world.PlayerActorId];
                 if (player.Items.Contains(OpeningSword))
@@ -155,19 +167,62 @@ namespace WorldTimelineDebug
                 var chosen = world.Actors[simulation.Chosen.ActorId];
                 if (chosen.Items.Contains(OpeningSword)) return TimelineText("Timeline_Opening_Lost", ChosenGateYear);
                 return openingChoice == 0
-                    ? TimelineText("Timeline_Opening_Intro", world.Ritual.DeadlineYear)
+                    ? TimelineText("Timeline_Opening_Intro", world.Ritual.DeadlineYear).Split('\n').Last()
                     : TimelineText("Timeline_Opening_Travel", ChosenGateYear);
             }
         }
 
         private void ShowOpeningMap()
         {
-            if (!OpeningActive || board == null) return;
-            board.SetOpeningPaths(OpeningBirth, Shortcut, Detour, OpeningSword);
-            SyncOpeningRoute();
-            board.Sync(simulation, selectedNode);
-            var gate = simulation.State.Nodes[OpeningGate];
-            board.Focus(gate.Q, gate.R);
+            if (board == null) return;
+            if (OpeningActive)
+            {
+                int start = stagedRoutes ? Fork : OpeningBirth;
+                board.SetOpeningPaths(start, stagedRoutes ? Shortcut.Skip(1).ToArray() : Shortcut,
+                    stagedRoutes ? Detour.Skip(1).ToArray() : Detour, OpeningSword);
+                if (stagedRoutes) board.AddApproach(OpeningBirth, Fork);
+                SyncOpeningRoute();
+            }
+            if (guidedDiscovery || OpeningActive)
+            {
+                board.Sync(simulation, selectedNode);
+                if (OpeningPlayer.NodeId is int id)
+                    board.Focus(simulation.State.Nodes[id].Q, simulation.State.Nodes[id].R);
+            }
+        }
+
+        internal HashSet<int> OpeningVisibleNodes()
+        {
+            if (!guidedDiscovery || simulation.State.IsEnded || simulation.State.PlayerControlEnded || !OpeningPlayer.IsAlive)
+                return null;
+            var visible = new HashSet<int> { OpeningBirth, Fork };
+            if (OpeningApproach) return visible;
+            visible.UnionWith(Shortcut);
+            visible.UnionWith(Detour);
+            if (openingPrompt) return visible;
+            visible.Add(HexWorldMap.Id(3, -9));
+            visible.Add(HexWorldMap.Id(3, -10));
+            bool passedGate = false;
+            foreach (var entry in simulation.Events)
+            {
+                if (entry.Kind != WorldEventKind.Arrived || entry.ActorId != simulation.State.PlayerActorId ||
+                    entry.NodeId is not int id) continue;
+                if (passedGate) visible.UnionWith(simulation.State.Nodes[id].Links);
+                passedGate |= id == OpeningGate;
+            }
+            return visible;
+        }
+
+        public void ClickOpeningNode(Vector2 screen)
+        {
+            if (board == null || !OpeningActive || advancing) return;
+            if (OpeningOfferRoutes)
+            {
+                int route = board.OpeningRouteAt(screen);
+                if (route != 0) SelectOpeningRoute(route == 2);
+            }
+            else if (TryGetOpeningStop(openingChoice == 2 ? 2 : 1, out int next) && board.Pick(screen) == next)
+                SelectOpeningRoute(false);
         }
 
         public void PreviewOpeningRoute(int route)
@@ -192,7 +247,12 @@ namespace WorldTimelineDebug
 
         private void SyncOpeningRoute()
         {
-            if (openingChoice == 0 || board == null) return;
+            if (board == null) return;
+            if (openingChoice == 0)
+            {
+                board.SetOpeningNextStop(OpeningApproach ? Fork : (int?)null);
+                return;
+            }
             board.SetOpeningRouteFocus(openingChoice, committed: true);
             board.SetOpeningNextStop(TryGetOpeningStop(openingChoice, out int next) ? next : (int?)null);
         }
@@ -213,7 +273,7 @@ namespace WorldTimelineDebug
             }
             int route = openingChoice != 0 ? openingChoice : detour ? 2 : 1;
             if (!TryGetOpeningStop(route, out int target)) return;
-            if (openingChoice == 0)
+            if (openingChoice == 0 && !OpeningApproach)
             {
                 openingChoice = route;
                 SyncOpeningRoute();
@@ -256,7 +316,16 @@ namespace WorldTimelineDebug
                     autoObserve = !world.IsEnded;
                     SaveCheckpoint();
                 }
-                else SyncOpeningRoute();
+                else
+                {
+                    SyncOpeningRoute();
+                    board?.Sync(simulation, selectedNode);
+                    if (OpeningOfferRoutes && board != null)
+                    {
+                        var gate = world.Nodes[OpeningGate];
+                        board.Focus(gate.Q, gate.R);
+                    }
+                }
             }
         }
 

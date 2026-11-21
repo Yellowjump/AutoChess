@@ -18,7 +18,7 @@
 #	2001	两把斧头	ItemName_TwoAxes		2	4001	1,1	1450,1714	1,2;7,1		1	200
 #	2002	三把斧头	ItemName_ThreeAxes		2	4001	1,1,1	2307,2571	1,3;7,2		1001	300
 #												
-	9102	古修残剑	Timeline_StoryItem_9102_Name	ItemDesc_FlySword	1	4505					9102	0
+	9102	古修残剑	Timeline_StoryItem_9102_Name	Timeline_StoryItem_9102_Description	1	4505					9102	0
 	9103	敛息诀	Timeline_StoryItem_9103_Name	ItemDesc_MoreFast	1	4508					9103	0
 	9104	镇水铃	Timeline_StoryItem_9104_Name	ItemDesc_Shield	1	4504					9104	0
 	9111	照壁剑印	ItemName_9111	ItemDesc_9111	2	4505					9111	0
@@ -66,3 +66,8 @@
 	9180	截流诀	Timeline_Salt_RewardName	Timeline_Salt_RewardDesc	2	4504					9180	-1
 	9208	夹脚	Timeline_Salt_Clamp	Timeline_Salt_ClampDesc	1	4507					9208	-1
 	9209	抽潮	Timeline_Salt_Draw	Timeline_Salt_DrawDesc	1	4507					9209	-1
+	9210	唤雷云符	SummonName_9210	SummonDesc_9210	2	4505					9210	24
+	9211	金光镜	SummonName_9211	SummonDesc_9211	2	4505					9211	24
+	9212	赤焰印	SummonName_9212	SummonDesc_9212	2	4502					9212	24
+	9213	叠潮铃	SummonName_9213	SummonDesc_9213	2	4504					9213	24
+	9214	聚灵梭	SummonName_9214	SummonDesc_9214	2	4508					9214	24

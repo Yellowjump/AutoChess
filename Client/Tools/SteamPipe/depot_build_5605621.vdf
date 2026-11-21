@@ -1,0 +1,52 @@
+"DepotBuild"
+{
+    "DepotID" "5605621"
+
+    "FileMapping"
+    {
+        "LocalPath" "Zizouqi.exe"
+        "DepotPath" "."
+    }
+    "FileMapping"
+    {
+        "LocalPath" "UnityCrashHandler64.exe"
+        "DepotPath" "."
+    }
+    "FileMapping"
+    {
+        "LocalPath" "baselib.dll"
+        "DepotPath" "."
+    }
+    "FileMapping"
+    {
+        "LocalPath" "GameAssembly.dll"
+        "DepotPath" "."
+    }
+    "FileMapping"
+    {
+        "LocalPath" "UnityPlayer.dll"
+        "DepotPath" "."
+    }
+    "FileMapping"
+    {
+        "LocalPath" "D3D12\*"
+        "DepotPath" "D3D12"
+        "Recursive" "1"
+    }
+    "FileMapping"
+    {
+        "LocalPath" "Zizouqi_Data\*"
+        "DepotPath" "Zizouqi_Data"
+        "Recursive" "1"
+    }
+
+    "FileExclusion" "steam_appid.txt"
+    "FileExclusion" "*.pdb"
+    "FileExclusion" "*.mdb"
+    "FileExclusion" "*.dmp"
+    "FileExclusion" "*.dbg"
+    "FileExclusion" "*.debug"
+    "FileExclusion" "*.ilk"
+    "FileExclusion" "Zizouqi_BackUpThisFolder_ButDontShipItWithYourGame*"
+    "FileExclusion" "Zizouqi_BurstDebugInformation_DoNotShip*"
+}

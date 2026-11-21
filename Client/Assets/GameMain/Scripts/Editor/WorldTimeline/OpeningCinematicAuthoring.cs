@@ -59,7 +59,7 @@ public static class OpeningCinematicAuthoring
         var gate = AddShot(shots, "元年 · 古修石门", Art + "StoneGate.png", 25.6, 6.4, 1.12f, 1f,
             new Vector2(.5f, .58f), new Vector2(.5f, .5f), .60f, fadeOut: .55f);
         gate.heading = Line("元年 · 古修石门", "YEAR ZERO  /  ANCIENT STONE GATE", .5f, 5.95f);
-        gate.dialogue = Line("第三年，渡口那孩子会走到这里。", "In the third year, the child from the ferry will reach this gate.", .8f, 3.7f);
+        gate.dialogue = Line("第四年，渡口那孩子会走到这里。", "In the fourth year, the child from the ferry will reach this gate.", .8f, 3.7f);
         gate.secondDialogue = Line("这一回，你也在路上。", "This time, you're on the road too.", 3.88f, 6.15f);
 
         var music = AddAudio(timeline, "配乐 · 第十二个名字", "TheTwelfthName.wav");

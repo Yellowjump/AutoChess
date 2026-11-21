@@ -53,6 +53,28 @@ public class BattleBagItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
     public Action<BattleBagItem> OnPointEnterCallback;
     public Action<BattleBagItem> OnPointExitCallback;
     private LoadAssetCallbacks _loadIconCallback;
+    internal WorldTimelineDebug.WorldTimelineDebugView.EquipmentEntry CarriedEntry { get; private set; }
+    internal Skill CarriedSkill { get; private set; }
+    private int iconRequest;
+
+    internal void ShowCarried(WorldTimelineDebug.WorldTimelineDebugView.EquipmentEntry entry, Sprite icon, Skill skill)
+    {
+        CarriedEntry = entry;
+        CarriedSkill = skill;
+        Icon.sprite = icon;
+        ItemNameTmp.text = entry.Name;
+        ItemNumTmp.text = "×" + entry.Count;
+        ItemNumTmp.gameObject.SetActive(entry.Count > 1);
+        gameObject.SetActive(true);
+    }
+
+    internal void RefreshCarriedCooldown()
+    {
+        if (CDFillImage == null) return;
+        bool active = CarriedSkill != null && CarriedSkill.CurSkillType != SkillType.PassiveSkill && CarriedSkill.CurCastCDMs > 0;
+        CDFillImage.gameObject.SetActive(active);
+        CDFillImage.fillAmount = active ? CarriedSkill.LeftSkillCD * 1000 / CarriedSkill.CurCastCDMs : 0;
+    }
     public void Init()
     {
         BtnClick.onClick.AddListener(OnClickBtn);
@@ -68,9 +90,18 @@ public class BattleBagItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
             return;
         }
         gameObject.SetActive(false);
-        ItemNameTmp.text = itemTable[ItemID].Name;
+        string type = ItemSkills.ItemLabel(itemTable[ItemID]);
+        string name = GameEntry.Localization.GetString(itemTable[ItemID].Name);
+        ItemNameTmp.text = string.IsNullOrEmpty(type) ? name : type + " · " + name;
         FreshNum();
         var itemData = itemTable[ItemID];
+        if (ItemID is SummonedArt.Cloud or SummonedArt.Mirror)
+        {
+            iconRequest++;
+            Icon.sprite = Resources.Load<Sprite>(ItemID == SummonedArt.Cloud ? "StormCloud" : "SunMirror");
+            gameObject.SetActive(true);
+            return;
+        }
         var assetsTable = GameEntry.DataTable.GetDataTable<DRAssetsPath>("AssetsPath");
         if (!assetsTable.HasDataRow(itemData.IconID))
         {
@@ -79,12 +110,14 @@ public class BattleBagItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
         }
 
         var assetData = assetsTable[itemData.IconID];
-        GameEntry.Resource.LoadAsset(assetData.AssetPath,typeof(Sprite),_loadIconCallback);
+        GameEntry.Resource.LoadAsset(assetData.AssetPath,typeof(Sprite),_loadIconCallback, ++iconRequest);
     }
 
     public void OnRelease()
     {
-        
+        iconRequest++;
+        CarriedEntry = null;
+        CarriedSkill = null;
     }
     public void FreshNum()
     {
@@ -104,25 +137,6 @@ public class BattleBagItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
                 return;
             }
 
-            var itemData = itemTable[ItemID];
-            if (itemData.SkillID == 0)
-            {
-                CDFillImage.fillAmount = 0;
-                return;
-            }
-            var skillTable = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
-            if (!skillTable.HasDataRow(itemData.SkillID))
-            {
-                Log.Error($"Skill Table not Contain {itemData.SkillID}");
-                return;
-            }
-
-            var skillData = skillTable[itemData.SkillID];
-            if (skillData.SkillType == (int)SkillType.PassiveSkill)
-            {
-                CDFillImage.fillAmount = 0;
-                return;
-            }
             if (entity != null)
             {
                 var skill = entity.GetSkillByItemUniqID(ItemUniqueID);
@@ -144,6 +158,7 @@ public class BattleBagItem:MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
     }
     private void OnIconLoadSuccessCallback(string assetName, object asset, float duration, object userData)
     {
+        if (!(userData is int request) || request != iconRequest) return;
         Sprite sp = asset as Sprite;
         if (sp != null)
         {

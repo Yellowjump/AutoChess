@@ -17,8 +17,8 @@ internal sealed class ExpeditionPaperUi
     public ExpeditionPaperUi(GameObject root,TMP_FontAsset fallback)
     {
         this.root=(RectTransform)root.transform;
-        style=Resources.Load<ExpeditionFormationStyle>("ExpeditionFormationStyle");
-        font=style.HeadingFont(fallback);
+        style=ExpeditionFormationStyle.Active;
+        font=style != null ? style.HeadingFont(fallback) : fallback;
     }
     public static GameObject Canvas(string name)
     {
@@ -39,9 +39,9 @@ internal sealed class ExpeditionPaperUi
     public Image Page(string name,float x,float y,float w,float h)
     {
         var rect=Rect(name,x,y,w,h);
-        var paper=rect.gameObject.AddComponent<RawImage>();paper.texture=style.PaperTexture;
+        var paper=rect.gameObject.AddComponent<RawImage>();paper.texture=style?.PaperTexture;
         paper.uvRect=new Rect(.09f,.61f,.32f,.29f);
-        var image=Box("PaperBorder",0,0,w,h,Color.white,rect);image.sprite=style.PaperFrame;
+        var image=Box("PaperBorder",0,0,w,h,Color.white,rect);image.sprite=style?.PaperFrame;
         image.type=Image.Type.Sliced;image.fillCenter=false;image.pixelsPerUnitMultiplier=1.5f;
         image.raycastTarget=false;return image;
     }
@@ -53,7 +53,7 @@ internal sealed class ExpeditionPaperUi
     }
     public Button Button(string name,string text,float x,float y,float w,float h,Action click,Color? fill=null)
     {
-        var image=Box(name,x,y,w,h,fill??Color.white);image.sprite=style.PaperFrame;
+        var image=Box(name,x,y,w,h,fill??Color.white);image.sprite=style?.PaperFrame;
         image.type=Image.Type.Sliced;image.pixelsPerUnitMultiplier=4;
         var button=image.gameObject.AddComponent<Button>();button.targetGraphic=image;
         button.navigation=new Navigation{mode=Navigation.Mode.None};
@@ -84,6 +84,9 @@ internal sealed class ExpeditionPaperUi
     }
     public Sprite ItemIcon(int id)
     {
+        if(id == ExpeditionEquipment.StormCloud) return Resources.Load<Sprite>("StormCloud");
+        if(id == ExpeditionEquipment.SunMirror) return Resources.Load<Sprite>("SunMirror");
+        if(id == ExpeditionEquipment.OpeningBrush) return Resources.Load<Sprite>("QiMoBrush");
         if(icons.TryGetValue(id,out var existing))return existing;
         var texture=Resources.Load<Texture2D>("TeamEquipmentIcons");
         int index=ExpeditionEquipment.Definition(id).Icon;

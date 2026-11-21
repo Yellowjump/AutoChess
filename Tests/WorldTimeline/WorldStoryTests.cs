@@ -16,6 +16,30 @@ internal static partial class WorldSimulationTests
         new[] { new StoryItem { Id = 91, Name = "残剑", Description = "攻击提升", AttackBonus = 12, CombatAttackPercent = 15 } });
     private static void RunStoryTests()
     {
+        Run("Ashridge lends kindling before Rekindle reopens the kiln without another first clear", () =>
+        {
+            var world = new WorldState(1);
+            foreach (var pair in HexWorldMap.Create()) world.Nodes.Add(pair.Key, pair.Value);
+            int mentor = HexWorldMap.Id(-8, 5);
+            var kiln = world.Nodes[NodeState.PracticeKilnId];
+            kiln.SetPracticeKiln();
+            var player = new ActorState(1, HexWorldMap.Id(-8, 4), 500, 100);
+            world.Actors.Add(1, player);
+            var sim = new WorldSimulation(world);
+            sim.ConfigureStories(new StoryConfig(new[] { new StoryDefinition { Id = 26, NodeId = mentor } },
+                new[] { new StoryOption { Id = 2602, EventId = 26, ItemId = 9135, TimeYears = 1 },
+                    new StoryOption { Id = 2603, EventId = 26, ItemId = 9131 }, new StoryOption { Id = 2604, EventId = 26 } },
+                new[] { new StoryItem { Id = 9131 }, new StoryItem { Id = 9135 } }),
+                replayPlayerChoices: new[] { new RecordedStoryChoice(26, 1, 2603), new RecordedStoryChoice(26, 2, 2602) });
+            sim.Stories.AllowOptionsOnRevisit(2602);
+            sim.SubmitPlayerAction(WorldAction.Move(mentor));
+            sim.SubmitPlayerAction(WorldAction.Move(kiln.Id));
+            var first = kiln.FirstClear;
+            Check(player.Items.Contains(9131) && kiln.GuardianCount == 0 && first.HasValue, "Kindling trial cleared");
+            sim.SubmitPlayerAction(WorldAction.Move(mentor));
+            Check(player.Items.Contains(9135) && kiln.GuardianCount == 3 && kiln.FirstClear == first,
+                "The lesson restores all three targets and preserves the first clear");
+        });
         Run("Salt channel replay drains the shared arena and awards its art once", () =>
         {
             const string clue = "salt_channel_clue";

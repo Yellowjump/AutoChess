@@ -49,6 +49,14 @@ namespace SkillSystem
 
     public class CommandCauseDamage : CommandBase
     {
+        internal static float ApplyAutoItemBonus(Skill source, float damage)
+        {
+            if (source == null || source.FromItemID <= 0 || source.CurSkillType != SkillType.NoAnimSkill || source.Caster == null)
+                return damage;
+            int bonus = (int)source.Caster.GetAttribute(AttributeType.AutoItemDamagePercent).GetFinalValue();
+            return damage * (1f + bonus / 100f);
+        }
+
         internal static int DealSecondaryDamage(EntityQizi target, long damage, Skill source = null, bool sharedLoss = false)
         {
             if (damage <= 0) return 0;
@@ -57,7 +65,7 @@ namespace SkillSystem
             {
                 hit.Target = target;
                 hit.SharedLoss = sharedLoss;
-                hit.DamageValue = System.Math.Min(damage, 1000000000L);
+                hit.DamageValue = ApplyAutoItemBonus(source, System.Math.Min(damage, 1000000000L));
                 hit.TriggerDamageRelate = false;
                 int effective = target.BeCauseDamage(hit);
                 EntityQizi.RecordBattleOutput(source, damage: effective);

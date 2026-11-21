@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 using System;
 using System.Text.RegularExpressions;
@@ -59,7 +60,12 @@ public static class PrepareLocalHotUpdate
         EnsureBootstrapScene();
         PrebuildCommand.GenerateAll();
 
-        string projectDirectory = Directory.GetParent(Application.dataPath).FullName;
+        PreparePlayerResources();
+    }
+
+    private static void PreparePlayerResources()
+    {
+        string projectDirectory = ProjectDirectory;
         CompileAndCopyHotDll(projectDirectory);
         CopyAotMetadata(projectDirectory);
         BuildHotSceneBundle(projectDirectory);
@@ -116,7 +122,12 @@ public static class PrepareLocalHotUpdate
 
             string destination = Path.Combine(projectDirectory, HotAssetDirectory, HotAssemblyName + ".bytes");
             Directory.CreateDirectory(Path.GetDirectoryName(destination));
-            File.Copy(source, destination, true);
+            // Unity can still have the previous TextAsset memory-mapped on Windows.
+            // Replace its directory entry instead of truncating the mapped file.
+            if (File.Exists(destination))
+                File.Replace(source, destination, null);
+            else
+                File.Move(source, destination);
             ImportHotAsset(HotAssemblyName + ".bytes", HotAssemblyGuid);
             Debug.Log($"Freshly compiled {HotAssemblyName}: {source} -> {destination}");
         }
@@ -174,13 +185,89 @@ public static class PrepareLocalHotUpdate
             throw new BuildFailedException("HybridCLR Player requires IL2CPP scripting backend.");
         }
 
-        Directory.CreateDirectory(Application.streamingAssetsPath);
-        File.WriteAllText(Path.Combine(Application.streamingAssetsPath, AotCompatibilityFile),
-            Guid.NewGuid().ToString("N"));
-        AssetDatabase.Refresh();
-        GenerateAndCopy();
-
         BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
+        EnsureBootstrapScene();
+        PrebuildCommand.GenerateAll();
+        string baseline = Path.Combine(ProjectDirectory, "ProjectSettings", $"AotCompatibility-{target}.txt");
+        string[] fingerprint = GetAotFingerprint(target);
+        string[] previous = File.Exists(baseline) ? File.ReadAllLines(baseline) : Array.Empty<string>();
+        string idPath = Path.Combine(Application.streamingAssetsPath, AotCompatibilityFile);
+        string versionPath = Path.Combine(Application.streamingAssetsPath, "version.json");
+        byte[] oldId = File.Exists(idPath) ? File.ReadAllBytes(idPath) : null;
+        byte[] oldVersion = File.Exists(versionPath) ? File.ReadAllBytes(versionPath) : null;
+        // StreamingAssets is shared by build targets. Prefer the last successful Player for this target.
+        string id = previous.FirstOrDefault() ?? (oldId == null ? null : File.ReadAllText(idPath).Trim());
+        if (string.IsNullOrWhiteSpace(id))
+            id = Guid.NewGuid().ToString("N");
+        else if (!previous.Skip(1).SequenceEqual(fingerprint))
+            id = ChooseCompatibilityId(id, previous.Length == 0, fingerprint, previous.Skip(1));
+
+        Directory.CreateDirectory(Application.streamingAssetsPath);
+        try
+        {
+            File.WriteAllText(idPath, id);
+            PreparePlayerResources();
+            BuildPreparedPlayer(playerOutputDirectory, target);
+            string temporary = baseline + ".tmp";
+            File.WriteAllLines(temporary, new[] { id }.Concat(fingerprint));
+            if (File.Exists(baseline)) File.Replace(temporary, baseline, null);
+            else File.Move(temporary, baseline);
+        }
+        catch
+        {
+            RestoreFile(idPath, oldId);
+            RestoreFile(versionPath, oldVersion);
+            throw;
+        }
+    }
+
+    private static void RestoreFile(string path, byte[] contents)
+    {
+        if (contents == null) File.Delete(path);
+        else File.WriteAllBytes(path, contents);
+    }
+
+    private static string[] GetAotFingerprint(BuildTarget target)
+    {
+        string directory = HybridCLR.Editor.SettingsUtil.GetAssembliesPostIl2CppStripDir(target);
+        string[] assemblies = Directory.GetFiles(directory, "*.dll");
+        if (assemblies.Length == 0) throw new BuildFailedException($"Missing stripped AOT assemblies: {directory}");
+        // Native method bridges also affect which calls a hot assembly can make.
+        string bridge = Path.Combine(HybridCLR.Editor.SettingsUtil.GeneratedCppDir, "MethodBridge.cpp");
+        using (SHA256 sha = SHA256.Create())
+        {
+            return assemblies.Append(bridge).OrderBy(p => Path.GetFileName(p), StringComparer.Ordinal)
+                .Select(path =>
+                {
+                    using (FileStream stream = File.OpenRead(path))
+                        return Path.GetFileName(path) + " " + Convert.ToBase64String(sha.ComputeHash(stream));
+                }).ToArray();
+        }
+    }
+
+    private static string ChooseCompatibilityId(string id, bool firstBaseline, string[] current,
+        IEnumerable<string> previous)
+    {
+        string reason = firstBaseline ? "此平台尚无 AOT 构建基线，无法核对旧主包。"
+            : "AOT 构建产物发生变化：" + string.Join("、", current.Except(previous).Concat(previous.Except(current))
+                .Select(line => line.Split(' ')[0]).Distinct());
+        string message = reason + "\n如果旧主包仍能加载新的热更资源，可以沿用 ID；需要玩家更新主包时，请生成新 ID。";
+        Debug.LogWarning(message);
+        if (Application.isBatchMode)
+        {
+            string decision = Environment.GetEnvironmentVariable("ZIZOUQI_AOT_DECISION");
+            Debug.Log($"AOT 兼容 ID 决策：{decision ?? "keep"}（批处理）。");
+            if (string.IsNullOrEmpty(decision) || decision == "keep") return id;
+            if (decision == "renew") return Guid.NewGuid().ToString("N");
+            throw new BuildFailedException($"未知的 ZIZOUQI_AOT_DECISION 值：{decision}。支持 keep 或 renew。");
+        }
+        int choice = EditorUtility.DisplayDialogComplex("核对 AOT 兼容性", message, "沿用现有 ID", "取消构建", "生成新 ID");
+        if (choice == 1) throw new BuildFailedException("已取消主包构建。");
+        return choice == 0 ? id : Guid.NewGuid().ToString("N");
+    }
+
+    private static void BuildPreparedPlayer(string playerOutputDirectory, BuildTarget target)
+    {
         string projectDirectory = Directory.GetParent(Application.dataPath).FullName;
         string outputDirectory = string.IsNullOrWhiteSpace(playerOutputDirectory)
             ? Path.Combine(projectDirectory, "Builds", target.ToString())

@@ -4,6 +4,7 @@ using UnityEngine;
 // References existing project art so the formation skin also ships in player builds.
 public sealed class ExpeditionFormationStyle : ScriptableObject
 {
+    internal static ExpeditionFormationStyle Active { get; set; }
     public Texture2D PaperTexture;
     public Texture2D Landscape;
     public Sprite PaperFrame;
@@ -21,6 +22,6 @@ public static class ExpeditionRosterPortraits
     public static Sprite PastPortrait(this WorldTimelineDebug.WorldTimelineDebugView view, WorldTimeline.ExpeditionParty party, int role)
     {
         int index = view.PastPortraitIndex(party, role);
-        return index < 0 ? null : Resources.Load<ExpeditionFormationStyle>("ExpeditionFormationStyle")?.Portrait(index);
+        return index < 0 ? null : ExpeditionFormationStyle.Active?.Portrait(index);
     }
 }

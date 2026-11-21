@@ -13,7 +13,6 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
 {
     private const int SwordArtId = 1;
     private const int TechniqueExperiencePerBattle = 10;
-    private const int BrushAttackItem = 9147;
     private static readonly int BlackfangNode = HexWorldMap.Id(0, -9);
     private static readonly int AshridgeNode = HexWorldMap.Id(-8, 5);
     private readonly Dictionary<int, int> heroByItem = new Dictionary<int, int>();
@@ -128,7 +127,7 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
         if (world.Nodes.TryGetValue(node, out var location)) sandbox.Nodes.Add(node, location);
         return view.TryRunBattlePreview(resolver.Run(sandbox, node,
             new[] { tester }, opponents, true, _ => { }, itemIds?.ToArray() ?? Array.Empty<int>(),
-            seedBurn, previewCast, previewMonster, lightningFormation, previewTechnique, slashFormation));
+            seedBurn, previewCast, previewMonster, lightningFormation, previewTechnique, slashFormation, inventoryView: currentLoadout ? view : null));
     }
 #endif
 
@@ -220,9 +219,13 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
         IReadOnlyList<ActorState> second, bool visible, Action<int[]> completed, IReadOnlyList<int> previewItems = null,
         bool seedBurn = false, bool previewCast = false, string previewMonster = null, bool lightningFormation = false,
         int previewTechnique = 0, bool slashFormation = false, bool forecast = false,
-        Func<IReadOnlyList<ActorState>, IReadOnlyList<EntityQizi>, IEnumerator> planning = null)
+        Func<IReadOnlyList<ActorState>, IReadOnlyList<EntityQizi>, IEnumerator> planning = null,
+        WorldTimelineDebug.WorldTimelineDebugView inventoryView = null)
     {
         world.Nodes.TryGetValue(nodeId, out var node);
+        bool practiceKiln = node?.IsPracticeKiln == true && second.All(IsGuardian);
+        bool UsesKilnTools(ActorState actor) => practiceKiln && first.Contains(actor) &&
+            (actor.Items.Contains(9131) || actor.Items.Contains(9135));
         int RoleOf(ActorState actor) => world.ExpeditionFor(actor.Id)?.LeaderRole ?? ExpeditionParty.Role(actor.Id);
         int Hero(ActorState actor)
         {
@@ -237,18 +240,31 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
         bool IsCoastalRanged(ActorState actor) => IsCoastalGuardian(actor) &&
             -nodeId - actor.Id < NodeState.CoastalRangedCount;
 
+        ExpeditionParty EquipmentParty(WorldState state, ActorState actor)
+        {
+            if (actor.HasJoinedChosen) return null;
+            if (!ExpeditionParty.IsCompanion(actor.Id)) return state.ExpeditionFor(actor.Id);
+            return state.Expedition?.Owns(actor.Id) == true ? state.Expedition :
+                state.HistoricalExpeditions.Values.FirstOrDefault(p => p.Owns(actor.Id));
+        }
+
         List<int> Items(ActorState actor)
         {
-            if (RoleOf(actor) is >= 0 and < ExpeditionParty.StageRoles)
-                return RoleOf(actor) switch
+            int role = RoleOf(actor);
+            var result = role is >= 0 and < ExpeditionParty.StageRoles
+                ? role switch
                 {
                     0 => new List<int> { 1, 3 }, 1 => new List<int> { 1, 9122 }, _ => new List<int> { 2 }
-                };
-            var result = new List<int>();
+                } : new List<int>();
+            var roleItems = new List<int>(result);
             foreach (int item in actor.Items)
-                if (nativeItems.TryGetValue(item, out int native) && native > 0) result.Add(native);
+            {
+                if (!nativeItems.TryGetValue(item, out int native) || native <= 0) continue;
+                if (!roleItems.Remove(native)) result.Add(native);
+            }
             if (IsGuardian(actor) || (previewItems != null && !previewCast && second.Contains(actor)))
             {
+                if (practiceKiln) return new List<int> { 9190 };
                 if (node?.IsExpeditionVanguard == true && IsGuardian(actor)) return new List<int> { 9190 };
                 if (IsCoastalGuardian(actor))
                 {
@@ -284,7 +300,7 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
             if (actor.Items.Contains(WorldTimelineDebug.WorldTimelineDebugView.QiMoStartingItem))
             {
                 result.Remove(1);
-                result.Add(BrushAttackItem);
+                // The brush itself grants the Ink Jab basic attack.
             }
             // The default axe still supplies a basic attack for legacy cultivator lives.
             else if (result.Count == 0 ||
@@ -302,6 +318,14 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
                 result.Add(TimelineCaveHazards.FrostWedge);
             foreach (int item in actor.Items)
                 if (item < 0) result.Add(-item);
+            var gear = EquipmentParty(inventoryView?.Simulation?.State ?? world, actor)?.Equipment;
+            if (gear?.Modern == true)
+                for (int slot = 0; slot < ExpeditionEquipment.CommonSlots; slot++)
+                {
+                    int skillItem = gear.Worn(actor.Id, slot)?.Definition.BattleSkillItem ?? 0;
+                    if (skillItem != 0 && !result.Contains(skillItem)) result.Add(skillItem);
+                }
+            if (UsesKilnTools(actor) && !result.Contains(9131)) result.Add(9131);
             if (previewItems != null && actor.Id == world.PlayerActorId)
             {
                 // Replace an equivalent starting weapon unless both versions were explicitly selected.
@@ -367,11 +391,15 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
         }
         string Appearance(ActorState actor)
         {
+            if (practiceKiln && IsGuardian(actor))
+                return actor.Id == -nodeId ? TimelineRegionalGuardianCast.KilnAppearance : "LuYing";
             if (tidegateArena && IsGuardian(actor)) return "GateGolem";
             return CombatAppearance(actor) ?? (tidegateArena ? "LuYing" : null);
         }
         bool IsGuardian(ActorState actor) => previewItems == null && actor.Id <= -nodeId
             && !world.Actors.ContainsKey(actor.Id);
+        foreach (var guardian in second.Where(IsGuardian))
+            guardian.GuardianSpecies = Appearance(guardian) ?? "Guardian";
         var swordArts = new Dictionary<ActorState, (int Rank, int SkillId)>();
         if (world.TechniqueCombatEnabled && previewItems == null)
             foreach (var actor in first.Concat(second))
@@ -395,10 +423,74 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
         var formationSetup = previewItems == null && first.Concat(second).Any(a => world.ExpeditionFor(a.Id) != null && !a.HasJoinedChosen)
             ? ExpeditionBattleSetup.Create(world, first, second, visible, node?.IsExpeditionVanguard == true && second.All(IsGuardian)) : null;
         if (formationSetup != null) formationSetup.ExpeditionView = true;
+        if (practiceKiln)
+        {
+            formationSetup ??= new TimelineBattleSetup();
+            var position = formationSetup.AdjustPosition;
+            var configure = formationSetup.Configure;
+            EntityQizi fireSource = null;
+            formationSetup.AdjustPosition = (actor, original) => IsGuardian(actor)
+                ? (-nodeId - actor.Id) switch { 0 => new Vector2Int(3, 4), 1 => new Vector2Int(2, 5), _ => new Vector2Int(3, 5) }
+                : position?.Invoke(actor, original) ?? original;
+            formationSetup.Configure = (actor, unit) =>
+            {
+                configure?.Invoke(actor, unit);
+                if (UsesKilnTools(actor))
+                {
+                    unit.BorrowKilnSword();
+                    fireSource ??= unit;
+                }
+                if (actor.Id == -nodeId && fireSource != null)
+                    SkillSystem.CommandBurnEffect.Apply(fireSource, unit, 2);
+            };
+        }
         if (planning != null)
         {
             formationSetup ??= new TimelineBattleSetup();
             formationSetup.Planning = planning;
+        }
+        if (visible && previewItems == null)
+        {
+            var session = UnityEngine.Object.FindFirstObjectByType<WorldTimelineDebug.WorldTimelineDebugView>();
+            if (session?.Simulation?.State == world) inventoryView = session;
+        }
+        if (inventoryView != null)
+        {
+            formationSetup ??= new TimelineBattleSetup();
+            var configure = formationSetup.Configure;
+            formationSetup.Configure = (actor, entity) =>
+            {
+                configure?.Invoke(actor, entity);
+                var state = inventoryView.Simulation.State;
+                var party = EquipmentParty(state, actor);
+                if (!state.Actors.TryGetValue(actor.Id, out var owner) && party == null) return;
+                entity.InventoryOwner = owner ?? actor;
+                var carried = WorldTimelineInventoryCtrl.ReadCarriedEquipment(inventoryView, entity.InventoryOwner).ToList();
+                if (party?.Equipment.Modern == true && !actor.HasJoinedChosen)
+                {
+                    var gear = party.Equipment;
+                    void AddArtifact(ArtifactDefinition definition, int level)
+                    {
+                        if (definition == null) return;
+                        // Qi Mo's starting passive and innate brush describe the same possession.
+                        if (definition.Id == ExpeditionEquipment.OpeningBrush &&
+                            carried.Any(entry => entry.Id == WorldTimelineDebug.WorldTimelineDebugView.QiMoStartingItem)) return;
+                        carried.Add(new WorldTimelineDebug.WorldTimelineDebugView.EquipmentEntry
+                        {
+                            ArtifactId = definition.Id, SkillItemId = definition.BattleSkillItem, Count = 1, Name = definition.Name,
+                            SkillTypeName = SkillSystem.ItemSkills.ArtifactLabel(definition.Id),
+                            Description = definition.Effect(level) + "\n" + definition.TriggerRule
+                        });
+                    }
+                    AddArtifact(gear.Innate(actor.Id), gear.InnateLevel(actor.Id));
+                    for (int slot = 0; slot < ExpeditionEquipment.CommonSlots; slot++)
+                    {
+                        var worn = gear.Worn(actor.Id, slot);
+                        if (worn != null) AddArtifact(worn.Definition, worn.Level);
+                    }
+                }
+                entity.CarriedEquipment = carried;
+            };
         }
         using (visible ? HotGameEntry.Sound?.PlayTemporaryMusic(BattleMusicId()) : null)
         using (visible ? WorldTimelineDebug.WorldTimelineBoard.SuspendMapPresentation() : null)
@@ -409,6 +501,7 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
                 lightningFormation: lightningFormation, slashFormation: slashFormation,
                 arenaStyle: previewMonster == TimelineMonsterAnimation.NamelessSteleAppearance
                     ? ResolveArena(HexWorldMap.Id(0, 0), HexWorldMap.Radius)
+                    : practiceKiln ? TimelineArenaStyle.Ashridge
                     : node?.HasCoastalFormation == true ? TimelineArenaStyle.SaltFlat
                     : (visible || forecast || node?.IsCaveEncounter == true)
                         ? ResolveArena(nodeId, node == null ? 0 : HexWorldMap.Radius - regionDistance)
@@ -429,6 +522,7 @@ public sealed class WorldTimelineBattleResolver : IWorldAsyncPartyBattleResolver
                     if (swordArts.TryGetValue(actor, out var art))
                         actor.SettleTechniqueBattle(SwordArtId, art.Rank, TechniqueExperiencePerBattle, kills);
                 }, timeSliceSimulation: forecast,
-                setup: formationSetup, criticalRules: world.CriticalArtifactsEnabled);
+                setup: formationSetup, criticalRules: world.CriticalArtifactsEnabled,
+                ancientSwordWaitsForHit: world.AncientSwordWaitsForHit, shortAncientSwordOpening: world.ShortAncientSwordOpening);
     }
 }

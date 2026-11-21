@@ -27,9 +27,7 @@
       <Asset Guid="0160d5e89a94e174bb17a7d386d4596f" ResourceName="UIPrefabs" />
       <Asset Guid="02954ed9bed83bb46872110a3e9b9059" ResourceName="PrefabLevel" />
       <Asset Guid="03ea2d256bf144dfa907b17f13aa4949" ResourceName="RoleRobot" />
-      <Asset Guid="05daeacaebfe0bd498506348dbede77c" ResourceName="sceneDelay" />
       <Asset Guid="06280453cf436f0478d0e60b04aa0984" ResourceName="sceneDelay" />
-      <Asset Guid="0670373b160253649bb431be52e0a04f" ResourceName="sceneDelay" />
       <Asset Guid="0762aad6c86c7184482fd5c0cdea3b0e" ResourceName="PrefabSfx" />
       <Asset Guid="07e27cb62484a7840b0e1a9dfc96949b" ResourceName="PrefabLevel" />
       <Asset Guid="0825dfa25de4551469e65496af7b3c71" ResourceName="image" />
@@ -37,7 +35,6 @@
       <Asset Guid="0944ec8e99d68bb46b07392dedb8cdc6" ResourceName="sceneDelay" />
       <Asset Guid="0b6d251ba3ab07a45beb3c4a6ac4b68b" ResourceName="sceneDelay" />
       <Asset Guid="0c63b7066857917439b9e3332642d096" ResourceName="PrefabLevel" />
-      <Asset Guid="0c7476005817e1a44b58b85fdcc5e10f" ResourceName="sceneDelay" />
       <Asset Guid="0d20804a969e9604fa2e05a5b419cba9" ResourceName="PrefabWeapon" />
       <Asset Guid="0d54653003bc3524ab6b64cac060bd52" ResourceName="Sound" />
       <Asset Guid="0ef37d727bf3b084ea936ae8a8840f79" ResourceName="gezi" />
@@ -84,7 +81,6 @@
       <Asset Guid="2e5eb9caac3cf8c46bddf08022b91592" ResourceName="Render" />
       <Asset Guid="2f612124e8426d74ea9a5602e48552e2" ResourceName="UIPrefabs" />
       <Asset Guid="30c41c686541ab64bb4c79d84567f3ed" ResourceName="PrefabSfx" />
-      <Asset Guid="31b1fd1d9f0d49546aaad2e95058952b" ResourceName="sceneDelay" />
       <Asset Guid="3215859107e8f7e4d8b4d52318560c25" ResourceName="UIPrefabs" />
       <Asset Guid="322897a3f386af04da16877f496e12c9" ResourceName="sceneDelay" />
       <Asset Guid="3271cae2a4b914342a461c5ff92a3733" ResourceName="PrefabWeapon" />
@@ -180,7 +176,6 @@
       <Asset Guid="817e371bb770e834abd39dbb74c94c86" ResourceName="RolaAnimation" />
       <Asset Guid="820523c41c7062142971a293db74dca3" ResourceName="sceneDelay" />
       <Asset Guid="82f1e40c0cf7c5048a41bfa78b10c9d9" ResourceName="PrefabWeapon" />
-      <Asset Guid="8486ad95e77021345816eeefb224ee43" ResourceName="sceneDelay" />
       <Asset Guid="84a090ef864c2cc498132d6ed4618221" ResourceName="Font" />
       <Asset Guid="857d1505256958046bfac798b6eefcc8" ResourceName="image" />
       <Asset Guid="86f66ff282e22d741ad40396685281fa" ResourceName="PrefabLevel" />
@@ -224,7 +219,6 @@
       <Asset Guid="a81df4963508f8c4e9c854c919c93b67" ResourceName="PrefabSfx" />
       <Asset Guid="a90146740bb646f4ea7a749ef469a24a" ResourceName="dataTable" />
       <Asset Guid="a9e8ec9d2ae5a9e46a3c2f168aef0d21" ResourceName="sceneDelay" />
-      <Asset Guid="aa345c1c32f9f2b4081281422bbf646d" ResourceName="sceneDelay" />
       <Asset Guid="aac84a94412c1c844b3780bd3759203d" ResourceName="RolaAnimation" />
       <Asset Guid="aafc99c83a57e81459bf4ec25507cffa" ResourceName="dataTable" />
       <Asset Guid="ab297b593498a6e47ba84de770477cbe" ResourceName="Sound" />
@@ -232,15 +226,12 @@
       <Asset Guid="adb3eb1c35fcff14f89fba7b05c9d71c" ResourceName="sceneDelay" />
       <Asset Guid="ae591e4647ccc6a45b274c0f30d30166" ResourceName="PrefabSfx" />
       <Asset Guid="aee29ca4814728040bdb4976c5135b43" ResourceName="PrefabWeapon" />
-      <Asset Guid="aeff0a23b7ccf34449828084f9be714b" ResourceName="sceneDelay" />
       <Asset Guid="af3cfda8da7b34b46bdc8cf9d95509df" ResourceName="sceneDelay" />
       <Asset Guid="af612d5ebadf6ea419bf76a86ff95f4f" ResourceName="RolaAnimation" />
       <Asset Guid="b25de0cc51368cb4ba847bd575597020" ResourceName="PrefabWeapon" />
-      <Asset Guid="b2bd0f14b26a0b04387f602fd6b8debf" ResourceName="sceneDelay" />
       <Asset Guid="b431c815d89fb3946aaac14bbc784162" ResourceName="UIPrefabs" />
       <Asset Guid="b4bd19aa3d62abd41acc4bd34c8b198a" ResourceName="sceneDelay" />
       <Asset Guid="b4c058e0744fa8b4f89db9d3171f4eb9" ResourceName="PrefabSfx" />
-      <Asset Guid="b7c74c75bb40a98438f7ba84cb1221fe" ResourceName="sceneDelay" />
       <Asset Guid="b7d3d31a47feb684381c8e16cce325ff" ResourceName="mat" />
       <Asset Guid="b84d7ca3927758646a65731cc107aa76" ResourceName="PrefabWeapon" />
       <Asset Guid="b9ee5bc3be5006449bc2d7846377d710" ResourceName="mat" />
@@ -250,7 +241,6 @@
       <Asset Guid="bf4f5e405899518419f0c6d38baa0125" ResourceName="sceneDelay" />
       <Asset Guid="c096c0ce8df50674ea94782c8abaab3a" ResourceName="Render" />
       <Asset Guid="c2b57ea0005b5f041999fdabf3deaeff" ResourceName="dataTable" />
-      <Asset Guid="c3cf84b6d8462e9418e2da6c641f112b" ResourceName="sceneDelay" />
       <Asset Guid="c4cf9c9f7cf52f6409ef75a08a4357ac" ResourceName="PrefabSfx" />
       <Asset Guid="c4e6807c9972f6f4c85965be48ed2c90" ResourceName="sceneDelay" />
       <Asset Guid="c6892dce6e357bc4995ea20499f34fe8" ResourceName="sceneDelay" />
@@ -264,7 +254,6 @@
       <Asset Guid="cb216642070d7954b91cafbf2a79cd04" ResourceName="Font" />
       <Asset Guid="ccf5ff725becd2c4093234367bb756c1" ResourceName="sceneDelay" />
       <Asset Guid="cdaa1cfa9bfd6f5488bae7284b3aaf6d" ResourceName="RolaAnimation" />
-      <Asset Guid="cf38325fcdf63cd47957853e25f8d85b" ResourceName="sceneDelay" />
       <Asset Guid="d00dec123be83b445adbe6c8f3f02f41" ResourceName="PrefabWeapon" />
       <Asset Guid="d05a904ceda1450488062bf3d9dcf57c" ResourceName="image" />
       <Asset Guid="d1eb8e0d4609d0a4cb00a0946e7c963d" ResourceName="PrefabLevel" />
@@ -274,7 +263,6 @@
       <Asset Guid="d4958227484245e4592c41ab2c02ad22" ResourceName="PrefabWeapon" />
       <Asset Guid="d51b6e6fa79b61a43a3949ccebeccc1f" ResourceName="UIPrefabs" />
       <Asset Guid="d574d9a65e89cfb498a54dfb301b872f" ResourceName="image" />
-      <Asset Guid="d61f6b44ca5b18f4b8f2f06f02524125" ResourceName="sceneDelay" />
       <Asset Guid="d681134af7b3e50479d8d90effa0e1eb" ResourceName="RoleZombie" />
       <Asset Guid="d7939ebe057bbb8428fd6b5758ec4273" ResourceName="image" />
       <Asset Guid="d7987998050ef7748b606617422a26bb" ResourceName="Render" />
@@ -290,7 +278,6 @@
       <Asset Guid="de600257196d56449b779f3c7a348f12" ResourceName="RolaAnimation" />
       <Asset Guid="decb53c07686cc94b860f8e04d438d22" ResourceName="RoleZombie" />
       <Asset Guid="decbab60a25cb7f4bb331bb58a041d80" ResourceName="Render" />
-      <Asset Guid="ded90e33612eeef40bcb088e3c8d7e9a" ResourceName="sceneDelay" />
       <Asset Guid="dfe9fb7c1e766f746b8dcbc2223ec6d2" ResourceName="sceneDelay" />
       <Asset Guid="e0c0526c725224b42aa003e1506a6910" ResourceName="UIPrefabs" />
       <Asset Guid="e1e5eaca3d06239448865116704150b5" ResourceName="dataTable" />
@@ -302,26 +289,22 @@
       <Asset Guid="e97c96ae1151e7a4eb2ea2ee44995667" ResourceName="sceneDelay" />
       <Asset Guid="ea816f7cece47574da091aaf86ab56f4" ResourceName="PrefabWeapon" />
       <Asset Guid="eab25d0fbde50624694d6a47f3a5dbe7" ResourceName="sceneDelay" />
-      <Asset Guid="eaeefdcff39e9c14094b8bed33e217b3" ResourceName="sceneDelay" />
       <Asset Guid="ec68edbe91a6f6646ab0fe188a03e7f3" ResourceName="Render" />
       <Asset Guid="ec7ae897721ac3547aa48bf2961d00c6" ResourceName="sceneDelay" />
       <Asset Guid="edb6eaaf36222f9429a9b2214ec69ad0" ResourceName="Sound" />
       <Asset Guid="eef7e2ca5f8233a468d237b3b7d3979d" ResourceName="UIPrefabs" />
       <Asset Guid="ef0aad77947e64d45bf48b611891400f" ResourceName="UIPrefabs" />
-      <Asset Guid="f011986bc36690b4d934f2708930e3a1" ResourceName="sceneDelay" />
       <Asset Guid="f0956835f417fe84a886e501e152ae1d" ResourceName="image" />
       <Asset Guid="f235761ef5c367e4ab01f6e408b9327c" ResourceName="UIPrefabs" />
       <Asset Guid="f38a1928d63efef47a81d30cc8277de5" ResourceName="Render" />
       <Asset Guid="f499ef173e98ba9459b3c38c135dee40" ResourceName="PrefabLevel" />
       <Asset Guid="f6b8b85cbdc82ce439a41ae3d56d57ee" ResourceName="image" />
-      <Asset Guid="f845cff3ca4bd9e46b0cbff7fa1a05d0" ResourceName="sceneDelay" />
       <Asset Guid="fa56cae7c0b4c484b8188237d3741fe1" ResourceName="image" />
       <Asset Guid="fa6d918e79284d96b37ef49bf91c8511" ResourceName="Render" />
       <Asset Guid="fcf77559b4c484b4bb499c9a95c32e21" ResourceName="Sound" />
       <Asset Guid="fdec8e5b6b6bb784ba3d5d435ba8611e" ResourceName="sceneDelay" />
       <Asset Guid="fdf5d7df6a44f4042a9592e6f6d81ee3" ResourceName="Render" />
       <Asset Guid="fe8889fe456fd14499b2ea473074e761" ResourceName="UIPrefabs" />
-      <Asset Guid="ff09529534122f54fb0a40524e07e275" ResourceName="sceneDelay" />
       <Asset Guid="ff6cf1a2b51b1704caf33e4d7a786f8a" ResourceName="sceneDelay" />
       <Asset Guid="57d24f8b192c4b98ab6a8304f10243ba" ResourceName="Sound" />
       <Asset Guid="8686af515ba54c41a410bc423942c709" ResourceName="Sound" />
@@ -378,6 +361,9 @@
       <Asset Guid="aff92b86ff2f9bf40ae7004e3245c603" ResourceName="UIPrefabs" />
       <Asset Guid="3e56e85929e03e5419369c0a599c651e" ResourceName="UIPrefabs" />
       <Asset Guid="f066cada4d775ad4bb14b2f012135f21" ResourceName="UIPrefabs" />
+      <Asset Guid="1b772c2c3b214b989c787cebf6dd1012" ResourceName="Sound" />
+      <Asset Guid="93e6bcb6e705488fa69b497c8b885c75" ResourceName="Sound" />
+      <Asset Guid="1428cdf29b5f44b1b02d47d10fd2c241" ResourceName="Sound" />
     </Assets>
   </ResourceCollection>
 </UnityGameFramework>

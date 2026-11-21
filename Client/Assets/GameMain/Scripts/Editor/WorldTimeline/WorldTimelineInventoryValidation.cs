@@ -137,6 +137,13 @@ public static class WorldTimelineInventoryValidation
             Check(hero.EquipItemList.Count==20,"原生装备接口实际接收二十件装备");
             Check(hero.NormalSkillList.Count==20,"二十件装备全部进入技能列表，无截断");
             Check(!manager.TryEquipItem(hero.HeroUID,created[0]),"同一背包实例不能重复装备");
+            var brush = manager.AddEquipItemToEquip(9145);
+            created.Add(brush);
+            manager.ItemBagList.Add(brush);
+            Check(manager.TryEquipItem(hero.HeroUID,brush) &&
+                hero.NormalSkillList.Count(skill => skill.FromItemUID == brush.UniqueID && skill.SkillID == 9147) == 1 &&
+                hero.PassiveSkillList.Count(skill => skill.FromItemUID == brush.UniqueID && skill.SkillID == 9145) == 1 &&
+                hero.GetSkillByItemUniqID(brush.UniqueID)?.SkillID == 9147, "寻隙笔同时提供主动和被动，优先显示主动");
             Check(!manager.TryEquipItem(-99999,created[0]),"无效角色不会抛空引用");
         }
         finally

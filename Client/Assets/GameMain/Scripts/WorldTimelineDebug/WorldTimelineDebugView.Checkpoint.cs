@@ -13,9 +13,9 @@ namespace WorldTimelineDebug
         [Serializable]
         private sealed class Checkpoint
         {
-            public const int LatestVersion = 52;
+            public const int LatestVersion = 57;
             public int version = LatestVersion, round, item, selectedNode, year, health, attack, level;
-            public bool openingMap, openingPrompt;
+            public bool openingMap, openingPrompt, guidedDiscovery;
             public int openingChoice;
             public bool ended;
             public bool hasLifespanCutoff;
@@ -232,6 +232,7 @@ namespace WorldTimelineDebug
             {
                 var player = simulation.State.Actors[simulation.State.PlayerActorId];
                 checkpoint.selectedNode = selectedNode;
+                checkpoint.guidedDiscovery = guidedDiscovery;
                 checkpoint.openingMap = openingMap;
                 checkpoint.openingPrompt = openingPrompt;
                 checkpoint.openingChoice = openingChoice;
@@ -248,6 +249,7 @@ namespace WorldTimelineDebug
                 File.WriteAllText(temporary, JsonUtility.ToJson(checkpoint));
                 if (File.Exists(CheckpointPath)) File.Replace(temporary, CheckpointPath, null);
                 else File.Move(temporary, CheckpointPath);
+                RecordCollection();
                 return true;
             }
             catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
@@ -271,6 +273,8 @@ namespace WorldTimelineDebug
                     throw new InvalidDataException("续玩存档缺少无名客路线。");
                 startingCultivator = roster.Single(entry => entry.Item == data.item);
                 round = data.round;
+                stagedRoutes = data.version >= 57;
+                guidedDiscovery = data.guidedDiscovery;
                 openingChoice = data.openingChoice;
                 IsRestoringCheckpoint = true;
                 NewRound(histories.Select(entry => entry.Record), data.version >= 2,
@@ -288,7 +292,9 @@ namespace WorldTimelineDebug
                     sluiceCampaign: data.version >= 33, northRelay: data.version >= 34, legacyAttack: data.version < 35,
                     caveRegions: data.version >= 36, contractStory: data.version >= 37, northRelaySpring: data.version >= 38,
                     sluiceDrainsBoss: data.version >= 39, saltChannel: data.version >= 40, expandedMap: data.version >= 41,
-                    expandedMapEncounters: data.version >= 42, deferHistoryFormation: data.version >= 51);
+                    expandedMapEncounters: data.version >= 42, deferHistoryFormation: data.version >= 51,
+                    practiceKiln: data.version >= 53, bleedTrials: data.version >= 54,
+                    ancientSwordWaitsForHit: data.version >= 55, shortAncientSwordOpening: data.version >= 56);
                 int cutoff = data.hasLifespanCutoff ? data.lifespanThroughYear : data.year;
                 if (cutoff < 0 || cutoff > data.year)
                     throw new InvalidDataException("续玩存档的旧寿元结算截止年份无效。");
@@ -506,6 +512,7 @@ namespace WorldTimelineDebug
                 OpenMapHud?.Invoke(this);
                 if (simulation.Stories != null && !UsesStoryHud) OpenStoryHud?.Invoke(this);
                 message = TimelineText("Timeline_UI_Resumed", simulation.State.Year);
+                RecordCollection();
                 StartBalanceLog(data.balanceRunId, true);
                 return true;
             }

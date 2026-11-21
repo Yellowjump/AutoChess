@@ -34,6 +34,7 @@ namespace WorldTimeline
         public const int BaseChance = 5, BaseDamage = 150;
         public ArtifactTrigger Equipment;
         public int PearlBonus { get; private set; }
+        public bool PearlCharged { get; private set; }
         public int CriticalHits, MarksApplied, MarksUsed;
         private float nextMirror, markExpires;
         private CriticalFighter markedBy;
@@ -44,7 +45,10 @@ namespace WorldTimeline
         internal void RecordBasic(bool critical)
         {
             if ((Equipment & ArtifactTrigger.HiddenEdgePearl) != 0)
+            {
+                PearlCharged |= !critical;
                 PearlBonus = critical ? 0 : Math.Min(100, PearlBonus + 10);
+            }
         }
 
         public bool HasMark(float now) => markedBy != null && now < markExpires;
@@ -106,6 +110,10 @@ namespace WorldTimeline
 
     public sealed class ArtifactBattleOutput
     {
+        public ArtifactTrigger EquippedEffects;
+        public bool TrainingSwordCase;
+        // Some effects can activate without dealing damage or restoring health.
+        public ArtifactTrigger ActivatedEffects;
         public int Openings, Pursuits, Remedies, Recoveries;
         public int RelayHits;
         public long RelayDamage;
@@ -223,7 +231,7 @@ namespace WorldTimeline
         }
 
         public int Quakes, QuakeHits;
-        public bool HasRainTassel;
+        public bool HasRainTassel => (EquippedEffects & ArtifactTrigger.RainTassel) != 0;
         public int RainVolleys, RainSwords, TideShields, TideBreaks, TideExpirations;
         public long RainDamage;
         public long QuakeDamage;
@@ -247,6 +255,7 @@ namespace WorldTimeline
         public int ActorId { get; set; }
         public ArtifactBattleOutput Artifacts { get; set; }
         public bool Allied { get; set; }
+        public bool PearlCharged;
         public int CriticalHits, MarksApplied, MarksUsed;
         public long DamageTaken { get; set; }
         public long HealthLost { get; set; }
@@ -258,6 +267,7 @@ namespace WorldTimeline
         private readonly Dictionary<int, TechniqueProgress> techniques = new Dictionary<int, TechniqueProgress>();
         public int Id { get; }
         public int BirthNodeId { get; }
+        public NamelessSeal InnateSeal { get; internal set; }
         public int CombatAttackPercent { get; internal set; }
         public int CombatAttack => checked((int)((long)Attack * (100 + CombatAttackPercent) / 100));
         internal int StoryDelayYears { get; set; }
@@ -299,6 +309,7 @@ namespace WorldTimeline
             receiver.LegacySpiritStones = checked(receiver.LegacySpiritStones + LegacySpiritStones);
             LegacySpiritStones = 0;
         }
+        public string GuardianSpecies { get; set; }
         public bool IsAlive => Health > 0;
         public WorldAction CurrentAction { get; internal set; }
         public int RemainingYears { get; internal set; }

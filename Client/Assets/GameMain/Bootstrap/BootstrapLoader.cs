@@ -54,8 +54,31 @@ namespace Zizouqi.Bootstrap
         private long m_CompletedDownloadBytes;
         private bool m_ShowDownloadProgress;
 
+        private bool m_ShowStoreUpdate;
+        private Font m_StoreUpdateFont;
+
         private void OnGUI()
         {
+            if (m_ShowStoreUpdate)
+            {
+                if (m_StoreUpdateFont == null)
+                    m_StoreUpdateFont = Font.CreateDynamicFontFromOSFont(
+                        new[] { "Microsoft YaHei", "SimHei", "PingFang SC", "Noto Sans CJK SC", "Arial" }, 20);
+                GUIStyle body = new GUIStyle(GUI.skin.label) { font = m_StoreUpdateFont, fontSize = 18, wordWrap = true };
+                GUIStyle title = new GUIStyle(body) { fontSize = 24 };
+                GUIStyle button = new GUIStyle(GUI.skin.button) { font = m_StoreUpdateFont, fontSize = 18 };
+                float panelWidth = Mathf.Min(560f, Screen.width - 24f);
+                const float panelHeight = 208f;
+                GUILayout.BeginArea(new Rect((Screen.width - panelWidth) / 2f, (Screen.height - panelHeight) / 2f,
+                    panelWidth, panelHeight), GUI.skin.box);
+                GUILayout.Label("游戏客户端需要更新", title);
+                GUILayout.Label("请前往安装游戏的应用商店更新游戏。Steam 玩家请在游戏库中更新《山河旧事》。", body);
+                GUILayout.Space(8f);
+                if (GUILayout.Button("退出游戏", button, GUILayout.Height(34f))) Application.Quit();
+                if (GUILayout.Button("继续使用本地版本", button, GUILayout.Height(34f))) m_ShowStoreUpdate = false;
+                GUILayout.EndArea();
+                return;
+            }
             if (!m_ShowDownloadProgress || m_TotalDownloadBytes <= 0) return;
 
             long downloaded = m_CompletedDownloadBytes;
@@ -241,7 +264,13 @@ namespace Zizouqi.Bootstrap
                     yield return request.SendWebRequest();
                     if (request.result == UnityWebRequest.Result.Success)
                     {
-                        VersionInfo remote = ParseVersion(request.downloadHandler.text);
+                        VersionInfo remote = ParseVersion(request.downloadHandler.text, out bool differentAot);
+                        if (differentAot)
+                        {
+                            Debug.LogWarning("Remote AOT compatibility ID differs. A store update is required for these resources.");
+                            m_ShowStoreUpdate = true;
+                            while (m_ShowStoreUpdate) yield return null;
+                        }
                         if (remote != null)
                         {
                             m_SelectedVersion = remote;
@@ -265,14 +294,19 @@ namespace Zizouqi.Bootstrap
             completed(true);
         }
 
-        private VersionInfo ParseVersion(string json)
+        private VersionInfo ParseVersion(string json) => ParseVersion(json, out _);
+
+        private VersionInfo ParseVersion(string json, out bool differentAot)
         {
+            differentAot = false;
             try
             {
                 VersionInfo info = JsonUtility.FromJson<VersionInfo>(json);
-                return info != null && info.schemaVersion == 1 && info.appVersion == Application.version &&
-                    info.aotCompatibility == m_AotCompatibility && info.internalResourceVersion >= 0 &&
-                    info.versionListLength > 0 && info.versionListCompressedLength > 0 ? info : null;
+                if (info == null || info.schemaVersion != 1 || string.IsNullOrWhiteSpace(info.appVersion) ||
+                    string.IsNullOrWhiteSpace(info.aotCompatibility) || info.internalResourceVersion < 0 ||
+                    info.versionListLength <= 0 || info.versionListCompressedLength <= 0) return null;
+                differentAot = info.aotCompatibility != m_AotCompatibility;
+                return !differentAot && info.appVersion == Application.version ? info : null;
             }
             catch (Exception exception)
             {

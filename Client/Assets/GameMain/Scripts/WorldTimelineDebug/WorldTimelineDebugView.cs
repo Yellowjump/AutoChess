@@ -414,10 +414,16 @@ namespace WorldTimelineDebug
             bool useConfiguredChosenRoute = true, ChosenRouteStage[] chosenRouteOverride = null, bool useOpeningMap = false,
             bool characterStories = true, bool regionalExploration = true, bool sluiceCampaign = true, bool northRelay = true,
             bool legacyAttack = false, bool caveRegions = true, bool contractStory = true, bool northRelaySpring = true,
-            bool sluiceDrainsBoss = true, bool saltChannel = true, bool expandedMap = true, bool expandedMapEncounters = true, bool deferHistoryFormation = false)
+            bool sluiceDrainsBoss = true, bool saltChannel = true, bool expandedMap = true, bool expandedMapEncounters = true, bool deferHistoryFormation = false,
+            bool practiceKiln = true, bool bleedTrials = true, bool ancientSwordWaitsForHit = true, bool shortAncientSwordOpening = true)
         {
             activeChosenRoute = useConfiguredChosenRoute && returnToMenu != null
                 ? chosenRouteOverride ?? scenarioData.ChosenRoute : null;
+            if (!IsRestoringCheckpoint)
+            {
+                stagedRoutes = true;
+                guidedDiscovery = openingPrompt && round == 1;
+            }
             CloseEnding();
             openingMap = useOpeningMap && activeChosenRoute != null;
             if (openingMap && chosenRouteOverride == null)
@@ -505,7 +511,18 @@ namespace WorldTimelineDebug
                     node.Items.Clear();
                     node.LootAttackBonus = 0;
                 }
+            if (practiceKiln && enableStories && stories?.Events.ContainsKey(AshridgeStory) == true &&
+                startingCultivator != null && !simulation.Chosen.Route.Contains(NodeState.PracticeKilnId))
+                simulation.State.Nodes[NodeState.PracticeKilnId].SetPracticeKiln();
+            if (bleedTrials && enableStories && stories?.Events.ContainsKey(9) == true && startingCultivator != null &&
+                !simulation.Chosen.Route.Contains(NodeState.HerbYardId) && !simulation.Chosen.Route.Contains(NodeState.PulseDenId))
+            {
+                simulation.State.Nodes[NodeState.HerbYardId].SetBleedTrial();
+                simulation.State.Nodes[NodeState.PulseDenId].SetBleedTrial();
+            }
             if (expandedExploration && startingCultivator != null) PopulateExploration(simulation.State, stories);
+            simulation.State.AncientSwordWaitsForHit = ancientSwordWaitsForHit;
+            simulation.State.ShortAncientSwordOpening = shortAncientSwordOpening;
             simulation.State.StoryCombatSkillsEnabled = storyCombatSkills && enableStories;
             simulation.State.WreckBeastEncounterEnabled = wreckBeastEncounter && enableStories;
             simulation.State.SwordRecallEnabled = swordRecall && enableStories;
@@ -1444,7 +1461,7 @@ namespace WorldTimelineDebug
                 const string separator = ", attack +";
                 int index = detail.IndexOf(separator, StringComparison.Ordinal);
                 if (index >= 0)
-                    return TimelineText("Timeline_UI_DetailAbsorbed",
+                    return TimelineText("Timeline_Seal_Absorbed",
                         detail.Substring("Health +".Length, index - "Health +".Length), detail.Substring(index + separator.Length));
             }
             return detail;
@@ -1476,8 +1493,8 @@ namespace WorldTimelineDebug
                 case WorldEventKind.ChosenEncounter: action = TimelineText("Timeline_ChosenEncounter_Log"); break;
                 case WorldEventKind.RitualReset: action = TimelineText("Timeline_UI_144") + detail; break;
                 case WorldEventKind.RitualCompleted: action = TimelineText("Timeline_UI_145"); break;
-                case WorldEventKind.WorldCleared: action = TimelineText("Timeline_UI_146"); break;
-                case WorldEventKind.Absorbed: action = TimelineText("Timeline_UI_147") + detail; break;
+                case WorldEventKind.WorldCleared: action = TimelineText("Timeline_Seal_Victory"); break;
+                case WorldEventKind.Absorbed: action = detail; break;
                 case WorldEventKind.Looted: action = TimelineText("Timeline_UI_EventLoot", entry.NodeId); break;
                 case WorldEventKind.Cultivated: action = TimelineText("Timeline_UI_148"); break;
                 case WorldEventKind.Explored: action = "探索新地点，历练 +" + detail; break;

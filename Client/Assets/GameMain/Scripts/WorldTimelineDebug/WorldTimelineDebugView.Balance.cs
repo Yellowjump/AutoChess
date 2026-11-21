@@ -53,6 +53,8 @@ namespace WorldTimelineDebug
                         $"{option.HealthCost},{option.Heal},{option.TimeYears},{option.LegacyPrice}");
             input.Append($"{world.BattleExperienceEnabled},{world.StoryCombatSkillsEnabled}," +
                 $"{world.TechniqueCombatEnabled},{world.BalancedLightningTrials}");
+            if (world.AncientSwordWaitsForHit) input.AppendLine("Ancient sword opens after a basic hit");
+            if (world.ShortAncientSwordOpening) input.AppendLine("Three blades in the first ancient sword volley");
             using var sha = SHA256.Create();
             var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(input.ToString()));
             return Application.version + "/" + BitConverter.ToString(hash, 0, 8).Replace("-", "");

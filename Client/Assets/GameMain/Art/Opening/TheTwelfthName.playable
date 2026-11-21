@@ -784,8 +784,8 @@ MonoBehaviour:
     start: 0.5
     end: 5.95
   dialogue:
-    chinese: "\u7B2C\u4E09\u5E74\uFF0C\u6E21\u53E3\u90A3\u5B69\u5B50\u4F1A\u8D70\u5230\u8FD9\u91CC\u3002"
-    english: In the third year, the child from the ferry will reach this gate.
+    chinese: "\u7B2C\u56DB\u5E74\uFF0C\u6E21\u53E3\u90A3\u5B69\u5B50\u4F1A\u8D70\u5230\u8FD9\u91CC\u3002"
+    english: In the fourth year, the child from the ferry will reach this gate.
     start: 0.8
     end: 3.7
   secondDialogue:

@@ -4,13 +4,13 @@
 
 ## 构建主包
 
-切换到目标平台并使用 IL2CPP，打开 Unity 菜单 **HybridCLR > Hot Update Build Window**，检查 VPS、SSH 用户和密钥路径；可用 **选择文件夹** 指定 Player 输出目录，再点击 **构建全包并上传 VPS**。窗口先调用 **HybridCLR > Build Local One DLL Player** 对应的构建入口：生成本次主包的 `aot-compatibility.txt`、AOT 元数据、热更 DLL、`qipan` 场景 AB、GameFramework Full 与 Packed 资源，将 Packed 资源复制到 `StreamingAssets`，再执行 `BuildPipeline.BuildPlayer`。Player 成功后，窗口还会生成与它兼容的远端热更资源并上传。Windows Player 默认输出到 `Client/Builds/StandaloneWindows64/Zizouqi.exe`；窗口中更改目录后会输出到所选目录，窗口会显示完整 EXE 路径。每次主包构建都会产生新的 AOT 兼容 ID。
+切换到目标平台并使用 IL2CPP，打开 Unity 菜单 **HybridCLR > Hot Update Build Window**，检查 VPS、SSH 用户和密钥路径；可用 **选择文件夹** 指定 Player 输出目录，再点击 **构建全包并上传 VPS**。窗口先调用 **HybridCLR > Build Local One DLL Player** 对应的构建入口：生成本次主包的 `aot-compatibility.txt`、AOT 元数据、热更 DLL、`qipan` 场景 AB、GameFramework Full 与 Packed 资源，将 Packed 资源复制到 `StreamingAssets`，再执行 `BuildPipeline.BuildPlayer`。Player 成功后，窗口还会生成与它兼容的远端热更资源并上传。Windows Player 默认输出到 `Client/Builds/StandaloneWindows64/Zizouqi.exe`；窗口中更改目录后会输出到所选目录，窗口会显示完整 EXE 路径。主包默认沿用该平台上一次成功构建的 AOT 兼容 ID。构建会核对裁剪后的 AOT DLL 和 HybridCLR 方法桥的 SHA-256。产物变化时，编辑器列出变化文件，供开发者选择沿用 ID、生成新 ID 或取消。批处理默认记录变化并沿用 ID；确认需要换 ID 时，为该次构建设定环境变量 `ZIZOUQI_AOT_DECISION=renew`。已有 ID 但缺少平台基线时也会提示核对。请随项目保存 `ProjectSettings/AotCompatibility-<平台>.txt`，其中记录成功构建的 ID 和指纹。
 
 `StreamingAssets` 包含 Packed 资源、`GameFrameworkList.dat`、压缩的 `GameFrameworkVersion.dat`、`version.json` 和 AOT 元数据。启动器第一次离线运行时会将版本列表解压到可写目录，调用 GameFramework `CheckResources`，随后从资源包读取 DLL 和场景包，调用 `Assembly.Load`，再打开热更棋盘场景。
 
 ## 发布热更
 
-先构建主包，再在 **HybridCLR > Hot Update Build Window** 点击 **构建热更包并上传 VPS**。它会重新编译 `Assembly-CSharp.dll`，重建 `qipan` 场景 AB 和 GameFramework Full 资源；若资源文件、应用版本或 AOT 兼容 ID 有变化，将完整文件及 `version.json` 复制到 `Client/Builds/HotUpdateServer/<BuildTarget>/`。本地内容相同时保留原发布目录与版本文件；本地比较使用资源文件的 SHA-256，忽略因构建编号变化而生成的版本列表。随后总会核对 VPS：远端内容与版本快照完整一致时跳过上传，缺失或不同的文件才补传。热更包不重建 Player，也不改动 `StreamingAssets`。原来的 **HybridCLR > Publish Local Hot Update Files** 菜单只在本地生成文件，不上传。仅修改热更代码或资源时无需重建 Player；修改 AOT 代码时必须重建 Player，并用新的兼容 ID 重新发布热更。
+先构建主包，再在 **HybridCLR > Hot Update Build Window** 点击 **构建热更包并上传 VPS**。它会重新编译 `Assembly-CSharp.dll`，重建 `qipan` 场景 AB 和 GameFramework Full 资源；若资源文件、应用版本或 AOT 兼容 ID 有变化，将完整文件及 `version.json` 复制到 `Client/Builds/HotUpdateServer/<BuildTarget>/`。本地内容相同时保留原发布目录与版本文件；本地比较使用资源文件的 SHA-256，忽略因构建编号变化而生成的版本列表。随后总会核对 VPS：远端内容与版本快照完整一致时跳过上传，缺失或不同的文件才补传。热更包不重建 Player，也不改动 `StreamingAssets`。原来的 **HybridCLR > Publish Local Hot Update Files** 菜单只在本地生成文件，不上传。仅修改热更代码或资源时无需重建 Player；修改 AOT 代码后需重建 Player，并在新资源依赖旧主包缺少的能力时更换兼容 ID。支持更新提示的客户端遇到有效远端清单但 AOT ID 不同时，会提示玩家到应用商店更新，也可选择继续使用本地版本。
 
 服务器原样提供该目录。上传资源文件后，最后上传 `version.json`。启动器请求 `<服务地址>/version.json`，检查应用版本及 AOT 兼容 ID，调用 GameFramework `CheckVersionList`、`UpdateVersionList`、`CheckResources`、`UpdateResources`，然后从 GameFramework 资源中读取 DLL。资源下载时，`bootstrap` 显示进度条及“百分比 已下载 / 总大小”，大小按压缩后的实际下载字节计算；无待下载资源时不显示。`hot-update-url.txt` 已设置为正式 HTTPS 地址；也可在启动参数中指定 `-hotUpdateUrl http://127.0.0.1:8000/StandaloneWindows64` 覆盖。
 

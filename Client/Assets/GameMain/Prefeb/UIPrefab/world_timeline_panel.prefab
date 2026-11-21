@@ -115,6 +115,7 @@ MonoBehaviour:
   ritualFill: {fileID: 1033}
   locationArt: {fileID: 1085}
   move: {fileID: 1182}
+  formationStyle: {fileID: 11400000, guid: 54ddad3088de4db6bf28a558401ca818, type: 2}
   cultivate: {fileID: 1191}
   rest: {fileID: 1218}
   wait: {fileID: 1200}

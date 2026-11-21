@@ -29,6 +29,7 @@ namespace WorldTimelineDebug
         private bool ChangeEquipmentService(int kind,int target)
         {
             if(!EquipmentServiceOpen || !ApplyExpeditionCommand(kind,target,0))return false;
+            RecordCollection();
             checkpoint?.actions.Add(new CheckpointAction(kind,target,0){atService=equipmentServiceNumber});
             return true;
         }
@@ -68,6 +69,7 @@ namespace WorldTimelineDebug
         public bool ClaimTeamReward(int option)
         {
             if(Expedition?.Equipment.Enabled!=true || !Expedition.Equipment.ClaimReward(option))return false;
+            RecordCollection();
             checkpoint?.actions.Add(new CheckpointAction(CheckpointAction.ClaimTeamReward,option,0)
                 {atBattle=expeditionBattleNumber});
             return true;

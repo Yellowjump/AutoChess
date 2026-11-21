@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using WorldTimeline;
 
 namespace WorldTimelineDebug
 {
@@ -11,9 +12,10 @@ namespace WorldTimelineDebug
             public int Id, Count, Icon;
             public int TechniqueId;
             public int SkillItemId;
-            public bool IsStartingSkill;
+            public int ArtifactId;
+            public bool IsStartingSkill, GrantsAttributes;
             public long SelectionId => TechniqueId == 0 ? Id : (long)int.MaxValue + TechniqueId;
-            public string Name, Description, Origin;
+            public string Name, Description, Origin, SkillTypeName;
             public EquipmentKind Kind;
         }
         public bool InventoryOpen { get; set; }
@@ -29,6 +31,7 @@ namespace WorldTimelineDebug
             var stories = simulation?.Stories?.Config ?? scenarioData?.Stories;
             if (stories != null && stories.Items.TryGetValue(id, out var story))
             {
+                entry.GrantsAttributes = story.HealthBonus != 0 || story.AttackBonus != 0 || story.CombatAttackPercent != 0;
                 entry.Name = story.Name;
                 entry.Description = story.Description;
                 entry.Origin = TimelineText("Timeline_UI_112");
@@ -39,6 +42,7 @@ namespace WorldTimelineDebug
                 ? row : locations.Values.FirstOrDefault(candidate => candidate.LootItemId == id);
             if (location != null)
             {
+                entry.GrantsAttributes = location.LootAttackBonus != 0;
                 entry.Name = location.LootName;
                 entry.Description = location.LootAttackBonus == 0 ? TimelineText("Timeline_UI_113")
                     : TimelineText("Timeline_UI_ItemAttack", location.LootAttackBonus);
@@ -46,6 +50,7 @@ namespace WorldTimelineDebug
             }
             else if (id > 0 && simulation?.State.Nodes.TryGetValue(id, out var node) == true)
             {
+                entry.GrantsAttributes = node.LootAttackBonus != 0;
                 int kind = id % 3;
                 entry.Name = TimelineText("Timeline_ExplorerRelic_" + kind);
                 entry.Icon = 16 + kind;
@@ -57,11 +62,12 @@ namespace WorldTimelineDebug
             return entry;
         }
 
-        public IReadOnlyList<EquipmentEntry> ReadEquipment()
+        public IReadOnlyList<EquipmentEntry> ReadEquipment() => simulation == null
+            ? new List<EquipmentEntry>() : ReadEquipment(simulation.State.Actors[simulation.State.PlayerActorId]);
+
+        public List<EquipmentEntry> ReadEquipment(ActorState actor)
         {
             var result = new List<EquipmentEntry>();
-            if (simulation == null) return result;
-            var actor = simulation.State.Actors[simulation.State.PlayerActorId];
             foreach (var group in actor.Items.GroupBy(id => id))
             {
                 int id = group.Key;

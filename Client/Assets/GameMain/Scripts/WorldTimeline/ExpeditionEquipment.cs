@@ -157,7 +157,11 @@ namespace WorldTimeline
                 uint seed = unchecked((uint)node*397u+(uint)RewardsTaken*17u);
                 int first = (int)(seed % count);
                 int Choice(int offset) { int index = (first+offset)%count; return index switch { 9 => GrowingSwordCase, 10 => QuakeSpike, 11 => RainTassel, 12 => RelayClasp, 13 => ReprisalSeal, 14 => HeartLamp, 15 => TinderPouch, 16 => MeridianSpike, 17 => ThunderBell, 18 => FalterMirror, 19 => LastStandCharm, 20 => AfflictionSeal, 21 => EchoJade, 22 => ComradeKnot, 23 => FieldKit, 24 => HiddenEdgePearl, 25 => JadeRendBlade, 26 => BreachMirror, _ => 5+index }; }
-                return new[]{Choice(0),Choice(2),Choice(5)};
+                var choices = new[]{Choice(0),Choice(2),Choice(5)};
+                if (world.MeridianSpikeEnabled && node == NodeState.HerbYardId &&
+                    world.Nodes.TryGetValue(node, out var yard) && yard.IsBleedTrial)
+                    return new[]{MeridianSpike}.Concat(choices.Where(id => id != MeridianSpike).Take(2)).ToArray();
+                return choices;
             }
             int start=(int)(unchecked((uint)node*397u+(uint)RewardsTaken*17u)%6u);
             return new[]{5+start,5+(start+2)%6,5+(start+4)%6};

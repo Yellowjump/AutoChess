@@ -156,6 +156,7 @@ namespace WorldTimeline
             if (State.Year != 0 || Chosen != null || State.Actors.ContainsKey(actor.Id))
                 throw new InvalidOperationException("Configure one chosen actor at year zero using a unique ID.");
             var controller = new ChosenActorController(State, actor, route, yearsPerStep, absorptionPercent, travelYears);
+            actor.InnateSeal = new NamelessSeal(controller.AbsorptionPercent);
             State.Actors.Add(actor.Id, actor);
             State.ChosenActorId = actor.Id;
             Chosen = controller;

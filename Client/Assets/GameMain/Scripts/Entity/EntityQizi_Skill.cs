@@ -71,6 +71,8 @@ namespace Entity
         public int NextCastNormalSkillIndex = 0;
         public int CurCastNormalSkillIndex = 0;
         public List<Skill> NoAnimAtkSkillList = new List<Skill>();
+        internal bool AncientSwordReady { get; set; }
+        internal bool ShortAncientSwordOpening { get; set; }
         public Skill SpSkill;
         public List<Skill> PassiveSkillList = new List<Skill>();
         public Dictionary<TriggerType, List<OneTrigger>> CurTriggerDic = new Dictionary<TriggerType, List<OneTrigger>>();
@@ -94,11 +96,21 @@ namespace Entity
         
         private void InitSkill()
         {
+            AncientSwordReady = false;
+            ShortAncientSwordOpening = true;
             InitItemSkillAndAttr();
             InitHeroTableSkill();
             if (TechniqueSkillId != 0)
                 InitTechniqueSkill();
             CastPassiveSkill();
+        }
+
+        internal void BorrowKilnSword()
+        {
+            if (NormalSkillList.Exists(skill => skill.SkillID == 8)) return;
+            var sword = AddOneNewSkill(8);
+            sword.FromItemID = 10;
+            NormalSkillList.Insert(0, sword);
         }
 
         private Skill techniqueSkill;
@@ -146,15 +158,15 @@ namespace Entity
                 }
 
                 var itemData = itemTable[oneItem.ItemID];
-                var itemSkill = skillTable.GetDataRow(itemData.SkillID);
-                bool replacesSkill = TechniqueSkillId != 0 && itemSkill != null &&
-                    (itemSkill.Id == TechniqueSkillId ||
-                     ((SkillType)itemSkill.SkillType == SkillType.NormalSkill && itemSkill.CastPower < 0) ||
-                     (activeStage != null && stages.Any(stage => stage.TechniqueId == activeStage.TechniqueId &&
-                         stage.SkillId == itemSkill.Id)));
-                if (itemData.SkillID != 0 && !replacesSkill)
+                foreach (int skillID in ItemSkills.All(itemData))
                 {
-                    var skillID = itemData.SkillID;
+                    var itemSkill = skillTable.GetDataRow(skillID);
+                    bool replacesSkill = TechniqueSkillId != 0 && itemSkill != null &&
+                        (itemSkill.Id == TechniqueSkillId ||
+                         ((SkillType)itemSkill.SkillType == SkillType.NormalSkill && itemSkill.CastPower < 0) ||
+                         (activeStage != null && stages.Any(stage => stage.TechniqueId == activeStage.TechniqueId &&
+                             stage.SkillId == itemSkill.Id)));
+                    if (replacesSkill) continue;
                     var oneNewSkill = AddOneNewSkill(skillID);
                     if (oneNewSkill == null)
                     {
@@ -231,7 +243,8 @@ namespace Entity
                 //持有技能
                 var skillTableData = skillTable[skillID];
                 var skillTemplates = GameEntry.DataTable.GetDataTable<DRSkillTemplate>("SkillTemplate");
-                if (!skillTemplates.HasDataRow(skillTableData.TemplateID))
+                bool summoned = SummonedArt.Handles(skillID);
+                if (!summoned && !skillTemplates.HasDataRow(skillTableData.TemplateID))
                 {
                     Log.Error($"skillID{skillID} no match Template{skillTableData.TemplateID}");
                     return null;
@@ -248,8 +261,8 @@ namespace Entity
                 oneSkill.DefaultSkillCDMs = skillTableData.CDMs;
                 // Legacy table rows use a negative value to identify basic attacks.
                 oneSkill.IsBasicAttack = oneSkill.CurSkillType == SkillType.NormalSkill && skillTableData.CastPower < 0;
-                var temp = skillTemplates[skillTableData.TemplateID].SkillTemplate;
-                temp.Clone(oneSkill);
+                if (summoned) oneSkill.Summon = new SummonedArt(oneSkill, skillTableData.IntParam1);
+                else skillTemplates[skillTableData.TemplateID].SkillTemplate.Clone(oneSkill);
                 oneSkill.Owner = this;
                 oneSkill.SetSkillValue(skillTableData);
                 return oneSkill;
@@ -259,11 +272,11 @@ namespace Entity
 
         public Skill GetSkillByItemUniqID(int itemUid)
         {
-            foreach (var passiveSkill in PassiveSkillList)
+            foreach (var normalSkill in NormalSkillList)
             {
-                if (passiveSkill.FromItemUID == itemUid)
+                if (normalSkill.FromItemUID == itemUid)
                 {
-                    return passiveSkill;
+                    return normalSkill;
                 }
             }
             foreach (var noAnimSkill in NoAnimAtkSkillList)
@@ -273,14 +286,13 @@ namespace Entity
                     return noAnimSkill;
                 }
             }
-            foreach (var normalSkill in NormalSkillList)
+            foreach (var passiveSkill in PassiveSkillList)
             {
-                if (normalSkill.FromItemUID == itemUid)
+                if (passiveSkill.FromItemUID == itemUid)
                 {
-                    return normalSkill;
+                    return passiveSkill;
                 }
             }
-
             return null;
         }
         public void AddTriggerListen(OneTrigger oneTrigger)
@@ -473,8 +485,12 @@ namespace Entity
             foreach (var noAnimSkill in NoAnimAtkSkillList)
             {
                 noAnimSkill.LogicUpdateCD(elapseSeconds,realElapseSeconds);
+                noAnimSkill.Summon?.Tick(elapseSeconds);
+                // The Ancient Broken Sword waits for its own bearer to connect in this battle.
+                if (noAnimSkill.FromItemID == 9102 && !AncientSwordReady) continue;
                 if (!noAnimSkill.InCD && noAnimSkill.MeetsCastCondition())
                 { 
+                    if (noAnimSkill.Summon != null && !noAnimSkill.Summon.TryBegin()) continue;
                     noAnimSkill.OnDestory();
                     noAnimSkill.CastAfterConditionCheck();
                 }
@@ -621,6 +637,7 @@ namespace Entity
             {
                 return 0;
             }
+            damageData.DamageValue = CommandCauseDamage.ApplyAutoItemBonus(damageData.SourceSkill, damageData.DamageValue);
             //todo 计算护盾
             var hudunAttr = GetAttribute(AttributeType.HuDun);
             var hpAttr = GetAttribute(AttributeType.Hp);
@@ -752,6 +769,9 @@ namespace Entity
             int healthLost = System.Math.Max(0, healthBefore - healthAfter);
             int shieldLost = System.Math.Max(0, shieldValue - shieldAfter);
             int effectiveDamage = (int)System.Math.Min(int.MaxValue, (long)healthLost + shieldLost);
+            if (effectiveDamage > 0 && damageData.SourceSkill?.IsBasicAttack == true &&
+                caster != null && caster.BelongCamp != BelongCamp)
+                caster.AncientSwordReady = true;
             if (BattleOutput != null)
             {
                 BattleDamageTaken += effectiveDamage;

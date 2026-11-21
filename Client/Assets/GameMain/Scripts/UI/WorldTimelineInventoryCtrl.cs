@@ -210,38 +210,8 @@ public sealed class WorldTimelineInventoryCtrl : UIFormLogic
         int portraitIndex=view.InventoryPortraitIndex;
         portrait.sprite=portraitIndex>=0 && portraitIndex<portraits.Length?portraits[portraitIndex]:null;
         portrait.enabled=portrait.sprite!=null;
-        var all=view.ReadEquipment();
         var nativeItemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
-        var skills = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
-        foreach (var entry in all)
-        {
-            if (entry.TechniqueId != 0 || nativeItemTable == null) continue;
-            int nativeId = WorldTimelineBattleResolver.InventorySkillItem(entry.Id, view.Simulation.State.StoryCombatSkillsEnabled);
-            if (nativeId == 0 || !nativeItemTable.HasDataRow(nativeId)) continue;
-            var item = nativeItemTable[nativeId];
-            if (entry.IsStartingSkill)
-            {
-                if (item.SkillID == 0 || skills == null || !skills.HasDataRow(item.SkillID)) continue;
-                bool replaced = view.Simulation.State.TechniqueCombatEnabled && actor.Techniques.ContainsKey(1) &&
-                    (SkillType)skills[item.SkillID].SkillType == SkillType.NormalSkill;
-                if (replaced) continue;
-                entry.Name = item.SkillID == 1 ? TechniqueSkillName(1) : TimelineText(item.Name);
-                entry.Icon = 12;
-            }
-            if (item.SkillID != 0)
-            {
-                entry.SkillItemId = nativeId;
-                entry.Kind = entry.Id is TimelineCaveHazards.EmberHeart or TimelineCaveHazards.IceBead
-                    ? EquipmentKind.Relic : EquipmentKind.Art;
-            }
-            if (entry.Id < 0)
-            {
-                entry.Name = GameEntry.Localization.GetString(item.Name);
-                if (!string.IsNullOrEmpty(item.Decs))
-                    entry.Description = HotGameEntry.HeroManager.FormatTimelineItemDesc(TimelineText(item.Decs), actor);
-            }
-        }
-        var carried = all.Where(item => !item.IsStartingSkill || item.SkillItemId != 0).ToArray();
+        var carried = ReadCarriedEquipment(view, actor);
         visible=carried.Where(item=>filter==0 || (int)item.Kind==filter).ToList();
         quantity.text=TimelineText("Timeline_UI_InventoryCount", carried.Sum(item=>item.Count));
         EnsureCards(visible.Count);
@@ -255,7 +225,7 @@ public sealed class WorldTimelineInventoryCtrl : UIFormLogic
             if (i >= visible.Count) continue;
             ((RectTransform)slot.button.transform).anchoredPosition = new Vector2(8 + i % 4 * 212, -8 - i / 4 * 197);
             var item = visible[i];
-            slot.name.text = item.Name;
+            slot.name.text = string.IsNullOrEmpty(item.SkillTypeName) ? item.Name : item.SkillTypeName + " · " + item.Name;
             slot.count.text = item.Count > 1 ? "×" + item.Count : "";
             slot.icon.sprite = Icon(item, actor, nativeItemTable);
             slot.selected.enabled = item.SelectionId == selectedId;
@@ -265,11 +235,18 @@ public sealed class WorldTimelineInventoryCtrl : UIFormLogic
         var selected=visible.FirstOrDefault(item=>item.SelectionId==selectedId);detail.SetActive(selected!=null);
         if(selected==null)return;
         itemName.text=selected.Name;itemKind.text=TimelineText(selected.Kind==EquipmentKind.Art?"Timeline_UI_19":"Timeline_UI_68");
+        if (!string.IsNullOrEmpty(selected.SkillTypeName)) itemKind.text += " · " + selected.SkillTypeName;
         detailIcon.sprite=Icon(selected, actor, nativeItemTable);description.text=selected.Description;origin.text=selected.Origin;
+
+    }
+    private static string DescribeCarried(WorldTimelineDebugView view, WorldTimeline.ActorState actor,
+        EquipmentEntry selected, GameFramework.DataTable.IDataTable<DRItem> nativeItemTable)
+    {
+        string text = selected.Description;
         int skillId = InventorySkillId(selected, actor, nativeItemTable);
         bool bell = selected.Id == 9104 || selected.Id == -9104;
         bool bellShieldReplaced = bell && view.Simulation.State.TechniqueCombatEnabled && actor.Techniques.ContainsKey(1);
-        if (bellShieldReplaced && selected.Id < 0) description.text = "";
+        if (bellShieldReplaced && selected.Id < 0) text = "";
         if (!bellShieldReplaced && (selected.SkillItemId != 0 || selected.TechniqueId != 0))
         {
             string template = WorldTimelineTechniqueRoute.DescriptionTemplate(skillId);
@@ -278,30 +255,81 @@ public sealed class WorldTimelineInventoryCtrl : UIFormLogic
             if (!string.IsNullOrEmpty(template))
             {
                 string effect = HotGameEntry.HeroManager.FormatTimelineItemDesc(template, actor);
-                if (selected.Id < 0 || string.IsNullOrEmpty(description.text)) description.text = effect;
-                else if (effect != description.text) description.text += $"\n\n{effect}";
+                if (selected.Id < 0 || string.IsNullOrEmpty(text)) text = effect;
+                else if (effect != text) text += $"\n\n{effect}";
             }
         }
         if (view.Simulation.State.SwordRecallEnabled && bell)
         {
-            if (!string.IsNullOrEmpty(description.text)) description.text += "\n\n";
-            description.text += TimelineText("Timeline_SwordRecall_Description");
+            if (!string.IsNullOrEmpty(text)) text += "\n\n";
+            text += TimelineText("Timeline_SwordRecall_Description");
         }
         int flavorItemId = selected.Id < 0 ? selected.SkillItemId : selected.Id;
         string flavor = DetailFlavor(skillId, flavorItemId);
         if (!string.IsNullOrEmpty(flavor))
-            description.text += $"\n\n<size=80%><color=#A9A08A>{flavor}</color></size>";
+            text += $"\n\n<size=80%><color=#A9A08A>{flavor}</color></size>";
+        return text;
     }
+
+    internal static EquipmentEntry[] ReadCarriedEquipment(WorldTimelineDebugView view, WorldTimeline.ActorState actor)
+    {
+        var all = view.ReadEquipment(actor);
+        var nativeItemTable = GameEntry.DataTable.GetDataTable<DRItem>("Item");
+        var skills = GameEntry.DataTable.GetDataTable<DRSkill>("Skill");
+        foreach (var entry in all)
+        {
+            if (entry.TechniqueId != 0 || nativeItemTable == null) continue;
+            int nativeId = WorldTimelineBattleResolver.InventorySkillItem(entry.Id, view.Simulation.State.StoryCombatSkillsEnabled);
+            if (nativeId == 0 || !nativeItemTable.HasDataRow(nativeId)) continue;
+            var item = nativeItemTable[nativeId];
+            if (entry.IsStartingSkill)
+            {
+                if (ItemSkills.Highest(item) == null && !(item.AttrAdd?.Count > 0)) continue;
+                bool replaced = view.Simulation.State.TechniqueCombatEnabled && actor.Techniques.ContainsKey(1) &&
+                    !(item.AttrAdd?.Count > 0) && ItemSkills.All(item).All(id =>
+                        skills?.GetDataRow(id) is DRSkill skill && (SkillType)skill.SkillType == SkillType.NormalSkill && skill.CastPower < 0);
+                if (replaced) continue;
+                entry.Name = item.SkillID == 1 ? TechniqueSkillName(1) : TimelineText(item.Name);
+                entry.Icon = 12;
+            }
+            if (ItemSkills.Highest(item) != null || item.AttrAdd?.Count > 0)
+            {
+                entry.SkillItemId = nativeId;
+                entry.Kind = entry.Id is TimelineCaveHazards.EmberHeart or TimelineCaveHazards.IceBead
+                    ? EquipmentKind.Relic : EquipmentKind.Art;
+            }
+            if (entry.Id < 0)
+            {
+                entry.Name = GameEntry.Localization.GetString(item.Name);
+                if (!string.IsNullOrEmpty(item.Decs))
+                    entry.Description = HotGameEntry.HeroManager.FormatTimelineItemDesc(TimelineText(item.Decs), actor);
+            }
+        }
+        var carried = all.Where(item => !item.IsStartingSkill || item.SkillItemId != 0).ToArray();
+        foreach (var entry in carried)
+        {
+            entry.Description = DescribeCarried(view, actor, entry, nativeItemTable);
+            int skillId = InventorySkillId(entry, actor, nativeItemTable);
+            var native = entry.SkillItemId == 0 ? null : nativeItemTable[entry.SkillItemId];
+            var highest = native == null ? (skillId == 0 ? null : skills?.GetDataRow(skillId)) : ItemSkills.Highest(native);
+            if (highest != null) entry.SkillTypeName = ItemSkills.Label((SkillType)highest.SkillType);
+            else if (native?.AttrAdd?.Count > 0 || entry.GrantsAttributes) entry.SkillTypeName = ItemSkills.Label(SkillType.PassiveSkill);
+        }
+        return carried;
+    }
+
     private static int InventorySkillId(EquipmentEntry entry, WorldTimeline.ActorState actor,
         GameFramework.DataTable.IDataTable<DRItem> items) =>
         entry.SkillItemId != 0 ? items[entry.SkillItemId].SkillID
             : actor.Techniques.TryGetValue(entry.TechniqueId, out var art) ? art.SkillId : 0;
 
-    private Sprite Icon(EquipmentEntry entry, WorldTimeline.ActorState actor, GameFramework.DataTable.IDataTable<DRItem> items)
+    internal Sprite Icon(EquipmentEntry entry, WorldTimeline.ActorState actor, GameFramework.DataTable.IDataTable<DRItem> items)
         => ResolveInventoryIcon(entry.Id, InventorySkillId(entry, actor, items), entry.Icon, itemIcons, techniqueIcons);
 
     internal static Sprite ResolveInventoryIcon(int itemId, int skillId, int fallback, Sprite[] itemIcons, Sprite[] techniqueIcons)
     {
+        if (skillId == 9210 || skillId == 9211) return Resources.Load<Sprite>(skillId == 9210 ? "StormCloud" : "SunMirror");
+        if (skillId == 9145 || itemId == 8111) return Resources.Load<Sprite>("QiMoBrush");
         if (skillId == 0) skillId = Math.Abs(itemId);
         int index = itemId == 9104 || itemId == -9104 ? 3 : skillId switch
         {

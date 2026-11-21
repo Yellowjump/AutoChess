@@ -112,7 +112,9 @@ namespace WorldTimeline
         public int Id { get; internal set; }
         public string Name { get; internal set; }
         public bool Innate { get; internal set; }
-        public bool Personal => Trigger is ArtifactTrigger.Bamboo or ArtifactTrigger.Sand or ArtifactTrigger.Tide;
+        public int AutoSkillItem => Id switch { ExpeditionEquipment.StormCloud => 9210, ExpeditionEquipment.SunMirror => 9211, ExpeditionEquipment.EmberStamp => 9212, ExpeditionEquipment.TideChime => 9213, _ => 0 };
+        public int BattleSkillItem => Id == ExpeditionEquipment.SpiritSpindle ? 9214 : AutoSkillItem;
+        public bool Personal => Id == ExpeditionEquipment.OpeningBrush || Trigger is ArtifactTrigger.Bamboo or ArtifactTrigger.Sand or ArtifactTrigger.Tide;
         public int Icon { get; internal set; }
         public int Health { get; internal set; }
         public int Attack { get; internal set; }
@@ -120,7 +122,7 @@ namespace WorldTimeline
         public int AttackStep { get; internal set; }
         public int MaxLevel { get; internal set; }
         public ArtifactTrigger Trigger { get; internal set; }
-        public string TriggerName => Trigger switch
+        public string TriggerName => AutoSkillItem != 0 ? "自动" : Id == ExpeditionEquipment.SpiritSpindle ? "自动道具增伤" : Id == ExpeditionEquipment.OpeningBrush ? "命中被动" : Trigger switch
         {
             ArtifactTrigger.ShieldOpening or ArtifactTrigger.FrontOpening => "反击标记",
             ArtifactTrigger.SwordCase => "藏锋", ArtifactTrigger.MountainRing => "承岳", ArtifactTrigger.SpringPendant => "留春",
@@ -142,7 +144,13 @@ namespace WorldTimeline
             ArtifactTrigger.RainTassel => "听雨回剑", ArtifactTrigger.Quake => "震击", ArtifactTrigger.OpeningSword => "养剑", ArtifactTrigger.Bamboo => "青竹剑阵", ArtifactTrigger.Sand => "镇砂护阵", ArtifactTrigger.Tide => "听潮护生",
             ArtifactTrigger.Pursuit => "追击", ArtifactTrigger.Remedy => "回春", ArtifactTrigger.Recovery => "养血", _ => ""
         };
-        public string TriggerRule => Trigger switch
+        public string TriggerRule => Id == ExpeditionEquipment.StormCloud ? "在最近敌人所在位置上空召来雷云，持续6秒。每2秒雷击云下最近的一名敌人，造成80%攻击力伤害。冷却10秒。"
+            : Id == ExpeditionEquipment.SunMirror ? "肩侧升起八瓣古镜，蓄光0.8秒后射出长8格的金光，持续0.4秒。每名敌人每次施放最多受到一次120%攻击力伤害。冷却8秒。"
+            : Id == ExpeditionEquipment.EmberStamp ? "锁定6格内最近敌人的位置，0.65秒后落下赤焰印，对落点1.6格内所有敌人造成110%攻击力伤害。冷却7秒。"
+            : Id == ExpeditionEquipment.TideChime ? "3格内出现敌人时鸣响两次，间隔0.9秒。每响对佩戴者周围3格内所有敌人造成45%攻击力伤害。冷却6秒。"
+            : Id == ExpeditionEquipment.SpiritSpindle ? "佩戴者的自动道具技能伤害提高25%。同名效果只生效一次。"
+            : Id == ExpeditionEquipment.OpeningBrush
+            ? "祁墨以点墨普攻。命中存活的敌人时施加4秒虚弱，使其直接伤害降低15%，并积累1层破绽，最多3层。" : Trigger switch
         {
             ArtifactTrigger.EchoJade => "普攻命中2次后，下次施放的主动伤害招式获得回响，对首个命中后仍存活的敌人追加自身攻击力80%的伤害。每次施法最多一次。",
             ArtifactTrigger.ComradeKnot => "佩戴者在后排时，正前方同列队友首次受伤降到半血或以下且仍存活，获得佩戴者气血上限12%的护盾，持续4秒。每战一次。",
@@ -200,7 +208,7 @@ namespace WorldTimeline
     {
         public static int SharedLoss(int incoming, int guardHealth) => Math.Min(guardHealth,(int)((long)incoming*15/100));
         public static int RingThreshold(int maxHealth) => Math.Max(1,(int)((15L*maxHealth+99)/100));
-        public const int GrowingSwordCase = 17, QuakeSpike = 18, RainTassel = 19, RelayClasp = 20, ReprisalSeal = 21, HeartLamp = 22, TinderPouch = 23, MeridianSpike = 24, ThunderBell = 25, FalterMirror = 26, LastStandCharm = 27, AfflictionSeal = 28, EchoJade = 29, ComradeKnot = 30, FieldKit = 31, HiddenEdgePearl = 32, JadeRendBlade = 33, BreachMirror = 34;
+        public const int GrowingSwordCase = 17, QuakeSpike = 18, RainTassel = 19, RelayClasp = 20, ReprisalSeal = 21, HeartLamp = 22, TinderPouch = 23, MeridianSpike = 24, ThunderBell = 25, FalterMirror = 26, LastStandCharm = 27, AfflictionSeal = 28, EchoJade = 29, ComradeKnot = 30, FieldKit = 31, HiddenEdgePearl = 32, JadeRendBlade = 33, BreachMirror = 34, OpeningBrush = 35, StormCloud = 36, SunMirror = 37, EmberStamp = 38, TideChime = 39, SpiritSpindle = 40;
         private const int SwordProgressMarker = 20261121;
         private static int ItemStride(IReadOnlyList<int> data) => data[0] == SwordProgressMarker ? 6 : 5;
 
@@ -267,13 +275,13 @@ namespace WorldTimeline
                 int N(int i)=>int.Parse(c[i],CultureInfo.InvariantCulture);
                 var d=new ArtifactDefinition{Id=N(0),Name=c[1],Innate=N(2)==1,Icon=N(3),Health=N(4),Attack=N(5),
                     HealthStep=N(6),AttackStep=N(7),MaxLevel=N(8),Price=N(9),UpgradeBase=N(10),UpgradeStep=N(11),Trigger=(ArtifactTrigger)Enum.Parse(typeof(ArtifactTrigger),c[12])};
-                if(d.Id!=rows.Count+1 || d.MaxLevel<1 || d.MaxLevel>20 || d.Icon<0 || d.Icon>9 ||
+                if(d.Id!=rows.Count+1 || d.MaxLevel<1 || d.MaxLevel>20 || d.Icon<0 || d.Icon>(d.Id==OpeningBrush?10:9) ||
                     new[]{d.Health,d.Attack,d.HealthStep,d.AttackStep,d.Price,d.UpgradeBase,d.UpgradeStep}.Any(v=>v<0 || v>100000) ||
-                    d.Innate!=(d.Id<=4 || d.Id is >=14 and <=16) || (!d.Innate && d.Price<1) || d.UpgradeBase<1)
+                    d.Innate!=(d.Id<=4 || d.Id is >=14 and <=16 || d.Id==OpeningBrush) || (!d.Innate && d.Price<1) || d.UpgradeBase<1)
                     throw new InvalidDataException("Invalid artifact definition "+d.Id);
                 rows.Add(d);
             }
-            if(rows.Count!=34)throw new InvalidDataException("Artifact table must contain thirty-four definitions.");
+            if(rows.Count!=SpiritSpindle)throw new InvalidDataException("Incomplete artifact table.");
             definitions=rows.AsReadOnly();
         }
         public static ArtifactDefinition Definition(int id)=>id>=1 && id<=Definitions.Count?Definitions[id-1]:null;
@@ -283,9 +291,11 @@ namespace WorldTimeline
         internal void GrantNamedInnate(int role) => innateLevels[role+1] = 1;
         private int InnateDefinition(int owner)
         {
-            if (world.SignatureArtifacts && (owner == 0 || owner > ExpeditionParty.StageRoles && owner <= party.RoleCount))
+            if (owner == 0 || owner > ExpeditionParty.StageRoles && owner <= party.RoleCount)
             {
                 int birth = owner == 0 ? Leader.BirthNodeId : party.PastBirth(owner-1);
+                if (birth == HexWorldMap.Id(-10,2)) return OpeningBrush;
+                if (!world.SignatureArtifacts) return 1;
                 if (birth == HexWorldMap.Id(0,-10)) return 14;
                 if (birth == HexWorldMap.Id(10,-8)) return 15;
                 if (birth == HexWorldMap.Id(8,2)) return 16;
@@ -407,7 +417,7 @@ namespace WorldTimeline
             (item.Id != MeridianSpike || world.MeridianSpikeEnabled) && (item.Id != ThunderBell || world.ThunderBellEnabled) &&
             (item.Id != FalterMirror || world.FalterMirrorEnabled) && (item.Id != LastStandCharm || world.LastStandCharmEnabled) &&
             (item.Id != AfflictionSeal || world.AfflictionSealEnabled) && (item.Id < EchoJade || item.Id > FieldKit || world.SupportArtifactsEnabled) &&
-            (item.Id < HiddenEdgePearl || world.CriticalArtifactsEnabled);
+            (item.Id < HiddenEdgePearl || item.Id > BreachMirror || world.CriticalArtifactsEnabled);
         public bool Buy(int definition)
         {
             var d=Definition(definition);
@@ -495,6 +505,23 @@ namespace WorldTimeline
                 result.Add(data[i],new ArtifactInstance { Id=data[i], DefinitionId=data[i+1],
                     SwordClears = data[0] == SwordProgressMarker ? data[i+5] : 0, Level=data[i+2], Owner=data[i+3]-1, Slot=data[i+4]-1 });
             return result;
+        }
+
+        public static IEnumerable<(int Id, bool LegacyConsumable)> ArchivedPossessions(RecordedExpedition formation)
+        {
+            var snapshot = formation.Equipment;
+            if (snapshot.Count == 0) yield break;
+            if (IsArtifactPlan(snapshot))
+            {
+                foreach (var item in PlannedItems(snapshot).Values)
+                    yield return (item.DefinitionId, false);
+            }
+            else
+            {
+                foreach (var item in Catalog)
+                    if (snapshot[item.Id] > 0 || snapshot.Skip(11).Take(15).Contains(item.Id))
+                        yield return (item.Id, item.Consumable);
+            }
         }
 
         private readonly Dictionary<int,int> historicalInstances = new Dictionary<int,int>();

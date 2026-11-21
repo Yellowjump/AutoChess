@@ -295,6 +295,8 @@ namespace SkillSystem
         CriticalChance = 9,
         [InspectorName("暴击伤害")]
         CriticalDamage = 10,
+        [InspectorName("自动道具增伤")]
+        AutoItemDamagePercent = 11,
     }
     public enum BulletType
     {
